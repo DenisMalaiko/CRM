@@ -1,13 +1,18 @@
-# Stage 1: Build
-FROM node:20-alpine AS builder
-WORKDIR /app
-COPY package*.json ./
-RUN npm install
-COPY . .
-RUN npm run build
+# frontend/Dockerfile
+FROM node:20-bullseye
 
-# Stage 2: Serve
-FROM nginx:alpine
-COPY --from=builder /app/dist /usr/share/nginx/html
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+WORKDIR /app
+
+# Копіюємо тільки package.json та package-lock.json для кешування layer
+COPY package*.json ./
+
+RUN npm install
+
+# Копіюємо весь код
+COPY . .
+
+# Dev server порт CRA
+EXPOSE 3000
+
+# Запуск React у dev режимі з live reload
+CMD ["npm", "start"]
