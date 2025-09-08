@@ -6,6 +6,8 @@ WORKDIR /app
 # Копіюємо тільки package.json та package-lock.json для кешування layer
 COPY package*.json ./
 
+RUN npm cache clean --force
+
 RUN npm install
 
 # Копіюємо весь код
