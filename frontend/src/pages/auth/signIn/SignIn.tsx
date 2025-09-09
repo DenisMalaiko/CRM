@@ -1,21 +1,17 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link } from 'react-router-dom';
 import { useState } from "react";
-import { isEmail, isPassword, isRepeatPassword, minLength } from "../../../utils/validations";
+import { isEmail, isPassword } from "../../../utils/validations";
 
-function SignUp() {
-  const [name, setName] = useState("");
+function SignIn() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [repeatPassword, setRepeatPassword] = useState("");
   const [errors, setErrors]: any = useState({});
 
   const validateField = (name: string, data: any) => {
     let error: string | null = null;
-    if (name === "name") error = minLength(data.value, 3);
     if (name === "email") error = isEmail(data.value);
     if (name === "password") error = isPassword(data.value);
-    if (name === "repeatPassword") error = isRepeatPassword(data.value, data.repeatPassword);
     setErrors((prev: any) => ({ ...prev, [name]: error }));
   };
 
@@ -23,30 +19,13 @@ function SignUp() {
     <section className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="w-full max-w-md bg-white shadow-lg rounded-2xl p-8">
         <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">
-          Sign Up
+          Sign In
         </h2>
 
         <form className="space-y-5" action="">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
-              Name {name}
-            </label>
-            <input
-              type="name"
-              value={name}
-              onChange={(e) => {
-                setName(e.target.value);
-                validateField("name", { value: e.target.value })
-              }}
-              placeholder="you"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            />
-            {errors.name && <p className="text-red-500 text-sm mt-2 text-left">{errors.name}</p>}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
-              Email {email}
+              Email
             </label>
             <input
               type="email"
@@ -63,7 +42,7 @@ function SignUp() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
-              Password {password}
+              Password
             </label>
             <input
               type="password"
@@ -78,28 +57,21 @@ function SignUp() {
             {errors.password && <p className="text-red-500 text-sm mt-2 text-left">{errors.password}</p>}
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
-              Repeat Password {repeatPassword}
+          <div className="flex items-center justify-between text-sm">
+            <label className="flex items-center space-x-2">
+              <input type="checkbox" className="h-4 w-4 text-blue-600 border-gray-300 rounded" />
+              <span className="text-gray-600">Remember me</span>
             </label>
-            <input
-              type="password"
-              value={repeatPassword}
-              onChange={(e) => {
-                setRepeatPassword(e.target.value);
-                validateField("repeatPassword", { value: e.target.value, repeatPassword: password });
-              }}
-              placeholder="••••••••"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            />
-            {errors.repeatPassword && <p className="text-red-500 text-sm mt-2 text-left">{errors.repeatPassword}</p>}
+            <a href="#" className="text-blue-600 hover:underline">
+              Forgot password?
+            </a>
           </div>
 
           <button
             type="submit"
             className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
           >
-            Sign Up
+            Sign In
           </button>
         </form>
 
@@ -110,13 +82,12 @@ function SignUp() {
         </div>
 
         <p className="text-center text-sm text-gray-600">
-          Have an account?{" "}
-          <Link className="text-blue-600 font-medium hover:underline" to="/signIn">Sign in</Link>
+          Don’t have an account?{" "}
+          <Link className="text-blue-600 font-medium hover:underline" to="/signUp">Sign up</Link>
         </p>
-
       </div>
     </section>
   )
 }
 
-export default SignUp;
+export default SignIn;
