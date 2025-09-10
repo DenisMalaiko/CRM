@@ -1,13 +1,20 @@
 import React from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from '../../../store';
+import { signUpUser } from '../../../store/auth/authThunks';
+
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import { isEmail, isPassword, isRepeatPassword, minLength } from "../../../utils/validations";
 
 function SignUp() {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [repeatPassword, setRepeatPassword] = useState("");
+  const dispatch = useDispatch<AppDispatch>();
+  const { user, loading, error } = useSelector((state: RootState) => state.authModule)
+
+  const [name, setName] = useState("Denis");
+  const [email, setEmail] = useState("malaiko.denis@gmail.com");
+  const [password, setPassword] = useState("Ab12345$");
+  const [repeatPassword, setRepeatPassword] = useState("Ab12345$");
   const [errors, setErrors]: any = useState({});
 
   const validateField = (name: string, data: any) => {
@@ -19,6 +26,12 @@ function SignUp() {
     setErrors((prev: any) => ({ ...prev, [name]: error }));
   };
 
+  const signUp = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+
+    dispatch(signUpUser({ name, email, password }))
+  }
+
   return (
     <section className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="w-full max-w-md bg-white shadow-lg rounded-2xl p-8">
@@ -26,7 +39,9 @@ function SignUp() {
           Sign Up
         </h2>
 
-        <form className="space-y-5" action="">
+        <h3 className="text-3xl font-bold text-center text-gray-800 mb-6">User: { user }</h3>
+
+        <form className="space-y-5" onSubmit={signUp} action="">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
               Name {name}
