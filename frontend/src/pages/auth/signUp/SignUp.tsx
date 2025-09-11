@@ -9,7 +9,7 @@ import { isEmail, isPassword, isRepeatPassword, minLength } from "../../../utils
 
 function SignUp() {
   const dispatch = useDispatch<AppDispatch>();
-  const { user, loading, error } = useSelector((state: RootState) => state.authModule)
+  //const { user, loading, error } = useSelector((state: RootState) => state.authModule)
 
   const [name, setName] = useState("Denis");
   const [email, setEmail] = useState("malaiko.denis@gmail.com");
@@ -28,7 +28,6 @@ function SignUp() {
 
   const signUp = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-
     dispatch(signUpUser({ name, email, password }))
   }
 
@@ -38,8 +37,6 @@ function SignUp() {
         <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">
           Sign Up
         </h2>
-
-        <h3 className="text-3xl font-bold text-center text-gray-800 mb-6">User: { user }</h3>
 
         <form className="space-y-5" onSubmit={signUp} action="">
           <div>
