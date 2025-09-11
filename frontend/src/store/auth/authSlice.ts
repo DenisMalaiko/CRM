@@ -1,9 +1,10 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { signUpUser } from './authThunks'
+import { IUser, User } from "../../models/User";
 
 type AuthState = {
   isAuthenticated: boolean
-  user: string | null
+  user: IUser | null
   loading: boolean
   error: string | null
 }
@@ -21,7 +22,12 @@ const authSlice = createSlice({
   reducers: {
     signUp: (state, action: PayloadAction<string>) => {
       state.isAuthenticated = true
-      state.user = action.payload
+
+      console.log("---------")
+      console.log("signUp")
+      console.log(action.payload)
+      console.log("---------")
+      //state.user.name = action.payload.name;
     },
   },
   extraReducers: (builder) => {
