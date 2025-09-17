@@ -1,8 +1,11 @@
 # CRM
 
 ## Run Project
-docker-compose up -d --build
+```docker-compose up -d --build```
 
 ## Clear Cache
-docker system prune -af --volumes
+```docker system prune -af --volumes```
+
+## Generate prisma schema
+```npx prisma generate```
 

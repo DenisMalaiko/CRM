@@ -10,7 +10,6 @@ export class AuthController {
 
   @Post("/signUp")
   async signUp(@Body() body: UserDto, @Req() req: ExpressRequest) {
-    console.log("START CONTROLLER")
     return await this.authService.signUp(body);
   }
 }
