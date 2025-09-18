@@ -1,18 +1,14 @@
-export interface IUser {
+export type TUser = {
   id?: string;
   name: string;
   email: string;
+}
+
+export type TUserSignUp = TUser & {
   password: string;
 }
 
-export class User implements IUser {
-  name: string;
+export type TUserSignIn = {
   email: string;
   password: string;
-
-  constructor() {
-    this.name = '';
-    this.email = '';
-    this.password = '';
-  }
 }

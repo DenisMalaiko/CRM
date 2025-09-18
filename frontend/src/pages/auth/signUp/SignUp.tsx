@@ -1,15 +1,19 @@
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from '../../../store';
+import { toast } from "react-toastify";
 import { signUpUser } from '../../../store/auth/authThunks';
 
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import { isEmail, isPassword, isRepeatPassword, minLength } from "../../../utils/validations";
+import { ApiResponse } from "../../../models/ApiResponse";
+import { TUser } from "../../../models/User";
+import { MiniTranslate } from "../../../enum/miniTranslate";
 
 function SignUp() {
   const dispatch = useDispatch<AppDispatch>();
-  //const { user, loading, error } = useSelector((state: RootState) => state.authModule)
+  const { user, loading, error } = useSelector((state: RootState) => state.authModule)
 
   const [name, setName] = useState("Denis");
   const [email, setEmail] = useState("malaiko.denis@gmail.com");
@@ -26,9 +30,19 @@ function SignUp() {
     setErrors((prev: any) => ({ ...prev, [name]: error }));
   };
 
-  const signUp = (e: React.FormEvent<HTMLFormElement>) => {
+  const signUp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    dispatch(signUpUser({ name, email, password }))
+
+    try {
+      const response: ApiResponse<TUser> = await dispatch(
+        signUpUser({ name, email, password })
+      ).unwrap();
+
+      toast.success(response.message);
+      toast.success(MiniTranslate.YouCanSignIn);
+    } catch (error: any) {
+      toast.error(error.message);
+    }
   }
 
   return (
@@ -125,6 +139,8 @@ function SignUp() {
           Have an account?{" "}
           <Link className="text-blue-600 font-medium hover:underline" to="/signIn">Sign in</Link>
         </p>
+
+        <pre>{JSON.stringify(user, null, 2)}</pre>
 
       </div>
     </section>
