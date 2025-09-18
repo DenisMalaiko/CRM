@@ -1,11 +1,20 @@
 import React from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from '../../../store';
+import { toast } from "react-toastify";
+import { signInUser } from '../../../store/auth/authThunks';
+
 import { Link } from 'react-router-dom';
 import { useState } from "react";
 import { isEmail, isPassword } from "../../../utils/validations";
+import { ApiResponse } from "../../../models/ApiResponse";
+import { TUser } from "../../../models/User";
 
 function SignIn() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const dispatch = useDispatch<AppDispatch>();
+
+  const [email, setEmail] = useState("malaiko.denis@gmail.com");
+  const [password, setPassword] = useState("Ab12345$");
   const [errors, setErrors]: any = useState({});
 
   const validateField = (name: string, data: any) => {
@@ -15,6 +24,20 @@ function SignIn() {
     setErrors((prev: any) => ({ ...prev, [name]: error }));
   };
 
+  const signIn = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+
+    try {
+      const response: ApiResponse<TUser> = await dispatch(
+        signInUser({ email, password })
+      ).unwrap();
+
+      toast.success(response.message);
+    } catch (error: any) {
+      toast.error(error.message);
+    }
+  }
+
   return (
     <section className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="w-full max-w-md bg-white shadow-lg rounded-2xl p-8">
@@ -22,7 +45,7 @@ function SignIn() {
           Sign In
         </h2>
 
-        <form className="space-y-5" action="">
+        <form className="space-y-5" onSubmit={signIn} action="">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
               Email
