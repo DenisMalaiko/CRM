@@ -39,14 +39,15 @@ export const signInUser = createAsyncThunk(
     try {
       console.log("Credentials ", credentials);
 
-
       const res = await fetch(`${API_URL}/auth/signIn`, {
         method: "POST",
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify(credentials),
       });
 
-      const data: ApiResponse<TUser> = await res.json();
+      const data = await res.json();
+
+      console.log("DATA ", data);
 
       if (!res.ok) {
         return rejectWithValue(buildError(data.message, data.statusCode, data.error));

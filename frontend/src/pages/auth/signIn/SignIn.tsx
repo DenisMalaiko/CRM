@@ -12,6 +12,7 @@ import { TUser } from "../../../models/User";
 
 function SignIn() {
   const dispatch = useDispatch<AppDispatch>();
+  const { user, accessToken } = useSelector((state: RootState) => state.authModule)
 
   const [email, setEmail] = useState("malaiko.denis@gmail.com");
   const [password, setPassword] = useState("Ab12345$");
@@ -33,6 +34,9 @@ function SignIn() {
       ).unwrap();
 
       toast.success(response.message);
+
+      // TODO: redirect to profile page
+
     } catch (error: any) {
       toast.error(error.message);
     }
@@ -108,6 +112,9 @@ function SignIn() {
           Don’t have an account?{" "}
           <Link className="text-blue-600 font-medium hover:underline" to="/signUp">Sign up</Link>
         </p>
+
+        <pre>{JSON.stringify(user, null, 2)}</pre>
+        <pre>{JSON.stringify(accessToken, null, 2)}</pre>
       </div>
     </section>
   )
