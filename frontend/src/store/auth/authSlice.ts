@@ -1,12 +1,13 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { signUpUser } from './authThunks'
+import { signUpUser, signInUser } from './authThunks'
 import { TUser } from "../../models/User";
 
 type AuthState = {
   isAuthenticated: boolean
   user: TUser | null
   loading: boolean
-  error: string | null
+  error: string | null | any
+  accessToken: string | null
 }
 
 const initialState: AuthState = {
@@ -14,21 +15,13 @@ const initialState: AuthState = {
   user: null,
   loading: false,
   error: null,
+  accessToken: null
 }
 
 const authSlice = createSlice({
   name: 'auth',
   initialState,
-  reducers: {
-    signUp: (state, action: PayloadAction<TUser>) => {
-      state.isAuthenticated = true
-
-      console.log("---------")
-      console.log("signUp ", action.payload)
-      console.log("---------")
-      //state.user.name = action.payload.name;
-    },
-  },
+  reducers: {},
   extraReducers: (builder) => {
     builder
       .addCase(signUpUser.pending, (state) => {
@@ -42,8 +35,24 @@ const authSlice = createSlice({
         state.loading = false;
         state.error = action.error.message ?? 'Error';
       })
+
+      // Sign In
+      .addCase(signInUser.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(signInUser.fulfilled, (state, action) => {
+        state.loading = false;
+        state.isAuthenticated = true;
+        state.user = action.payload.data.user;
+        // якщо в action.payload є accessToken
+        state.accessToken = action.payload.data.accessToken;
+      })
+      .addCase(signInUser.rejected, (state, action) => {
+        state.loading = false;
+        //state.error = action.payload?.message ?? 'Error';
+      });
   }
 })
 
-export const { signUp } = authSlice.actions
+export const { } = authSlice.actions
 export default authSlice.reducer
