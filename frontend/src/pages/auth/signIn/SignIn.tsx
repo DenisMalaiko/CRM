@@ -4,7 +4,7 @@ import { AppDispatch, RootState } from '../../../store';
 import { toast } from "react-toastify";
 import { signInUser } from '../../../store/auth/authThunks';
 
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useState } from "react";
 import { isEmail, isPassword } from "../../../utils/validations";
 import { ApiResponse } from "../../../models/ApiResponse";
@@ -12,7 +12,9 @@ import { TUser } from "../../../models/User";
 
 function SignIn() {
   const dispatch = useDispatch<AppDispatch>();
-  const { user, accessToken } = useSelector((state: RootState) => state.authModule)
+  const { user, accessToken } = useSelector((state: RootState) => state.authModule);
+
+  const navigate = useNavigate();
 
   const [email, setEmail] = useState("malaiko.denis@gmail.com");
   const [password, setPassword] = useState("Ab12345$");
@@ -36,7 +38,7 @@ function SignIn() {
       toast.success(response.message);
 
       // TODO: redirect to profile page
-
+      navigate("/profile");
     } catch (error: any) {
       toast.error(error.message);
     }

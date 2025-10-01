@@ -1,0 +1,70 @@
+import { Outlet, NavLink } from "react-router-dom";
+
+function Profile() {
+  return (
+    <div className="flex h-screen bg-gray-100">
+      {/* Sidebar */}
+      <aside className="w-64 bg-white shadow-md">
+        <nav className="flex-1 px-4 py-6 space-y-2">
+          <NavLink
+            to="dashboard"
+            className={({ isActive }) => `flex items-center gap-3 px-3 py-2 rounded-lg font-medium ${isActive ? "bg-blue-100 text-blue-600" : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"}`}
+          >
+            Dashboard
+          </NavLink>
+
+          <NavLink
+            to="products"
+            className={({ isActive }) => `flex items-center gap-3 px-3 py-2 rounded-lg font-medium ${isActive ? "bg-blue-100 text-blue-600" : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"}`}
+          >
+            Products
+          </NavLink>
+
+          <NavLink
+            to="clients"
+            className={({ isActive }) => `flex items-center gap-3 px-3 py-2 rounded-lg font-medium ${isActive ? "bg-blue-100 text-blue-600" : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"}`}
+          >
+            Clients
+          </NavLink>
+
+          <NavLink
+            to="orders"
+            className={({ isActive }) => `flex items-center gap-3 px-3 py-2 rounded-lg font-medium ${isActive ? "bg-blue-100 text-blue-600" : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"}`}
+          >
+            Orders
+          </NavLink>
+
+          <div className="pt-4 mt-4 border-t text-sm text-gray-400 uppercase">AI</div>
+
+          <NavLink
+            to="marketer"
+            className={({ isActive }) => `flex items-center gap-3 px-3 py-2 rounded-lg font-medium ${isActive ? "bg-blue-100 text-blue-600" : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"}`}
+          >
+            Marketer
+          </NavLink>
+
+          <NavLink
+            to="manager"
+            className={({ isActive }) => `flex items-center gap-3 px-3 py-2 rounded-lg font-medium ${isActive ? "bg-blue-100 text-blue-600" : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"}`}
+          >
+            Manager
+          </NavLink>
+
+          <NavLink
+            to="accountant"
+            className={({ isActive }) => `flex items-center gap-3 px-3 py-2 rounded-lg font-medium ${isActive ? "bg-blue-100 text-blue-600" : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"}`}
+          >
+            Accountant
+          </NavLink>
+        </nav>
+      </aside>
+
+      {/* Main content */}
+      <main className="flex-1 p-6 overflow-y-auto">
+        <Outlet />
+      </main>
+    </div>
+  )
+}
+
+export default Profile;
