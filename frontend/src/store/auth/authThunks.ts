@@ -6,8 +6,7 @@ import { buildError } from "../../utils/apiError";
 
 export const signUpUser = createAsyncThunk(
   'auth/signUpUser',
-  async (credentials: TUserSignUp, { rejectWithValue }
-  ) => {
+  async (credentials: TUserSignUp, { rejectWithValue }) => {
     const API_URL: string | undefined = process.env.REACT_APP_API;
 
     try {
@@ -32,22 +31,45 @@ export const signUpUser = createAsyncThunk(
 
 export const signInUser = createAsyncThunk(
   'auth/signInUser',
-  async (credentials: TUserSignIn, { rejectWithValue }
-  )=> {
+  async (credentials: TUserSignIn, { rejectWithValue })=> {
     const API_URL: string | undefined = process.env.REACT_APP_API;
 
     try {
-      console.log("Credentials ", credentials);
-
       const res = await fetch(`${API_URL}/auth/signIn`, {
         method: "POST",
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify(credentials),
+        credentials: "include",
       });
 
       const data = await res.json();
 
       console.log("DATA ", data);
+
+      if (!res.ok) {
+        return rejectWithValue(buildError(data.message, data.statusCode, data.error));
+      }
+
+      return data;
+    } catch (err: any) {
+      return rejectWithValue(buildError(err.message, err.statusCode, err.error));
+    }
+  }
+)
+
+export const signOutUser = createAsyncThunk(
+  'auth/signOut',
+  async (_, { rejectWithValue, getState }) => {
+    const API_URL: string | undefined = process.env.REACT_APP_API;
+
+    try {
+      console.group();
+      const res = await fetch(`${API_URL}/auth/signOut`, {
+        method: "POST",
+        credentials: 'include',
+      });
+
+      const data = await res.json();
 
       if (!res.ok) {
         return rejectWithValue(buildError(data.message, data.statusCode, data.error));

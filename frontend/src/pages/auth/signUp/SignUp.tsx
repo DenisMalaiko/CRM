@@ -139,9 +139,6 @@ function SignUp() {
           Have an account?{" "}
           <Link className="text-blue-600 font-medium hover:underline" to="/signIn">Sign in</Link>
         </p>
-
-        <pre>{JSON.stringify(user, null, 2)}</pre>
-
       </div>
     </section>
   )

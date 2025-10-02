@@ -37,8 +37,8 @@ function SignIn() {
 
       toast.success(response.message);
 
-      // TODO: redirect to profile page
       navigate("/profile");
+
     } catch (error: any) {
       toast.error(error.message);
     }

@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { signUpUser, signInUser } from './authThunks'
+import { signUpUser, signInUser, signOutUser } from './authThunks'
 import { TUser } from "../../models/User";
 
 type AuthState = {
@@ -44,13 +44,25 @@ const authSlice = createSlice({
         state.loading = false;
         state.isAuthenticated = true;
         state.user = action.payload.data.user;
-        // якщо в action.payload є accessToken
         state.accessToken = action.payload.data.accessToken;
       })
       .addCase(signInUser.rejected, (state, action) => {
         state.loading = false;
-        //state.error = action.payload?.message ?? 'Error';
-      });
+      })
+
+      // Sign Out
+      .addCase(signOutUser.pending, (state) => {
+        state.loading = true
+      })
+      .addCase(signOutUser.fulfilled, (state, action) => {
+        state.loading = false;
+        state.isAuthenticated = false;
+        state.user = null
+        state.accessToken = null;
+      })
+      .addCase(signOutUser.rejected, (state, action) => {
+        state.loading = false;
+      })
   }
 })
 
