@@ -9,7 +9,7 @@ import { useState } from "react";
 import { isEmail, isPassword, isRepeatPassword, minLength } from "../../../utils/validations";
 import { ApiResponse } from "../../../models/ApiResponse";
 import { TUser } from "../../../models/User";
-import { MiniTranslate } from "../../../enum/miniTranslate";
+import { MiniTranslate } from "../../../enum/MiniTranslate";
 
 function SignUp() {
   const dispatch = useDispatch<AppDispatch>();

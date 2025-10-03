@@ -1,8 +1,9 @@
-import {Controller, Post, Req, Body, Res} from '@nestjs/common';
+import {Controller, Post, Req, Body, Headers, Res} from '@nestjs/common';
 import type { Request as ExpressRequest } from 'express';
 import { AuthService } from './auth.service';
 import { UserDto } from "./dto/user.dto";
 import { CredentialsDto } from "./dto/credentials.dto";
+import { IdDto } from "./dto/id.dto";
 
 @Controller('auth')
 export class AuthController {
@@ -17,10 +18,17 @@ export class AuthController {
   async signIn(@Body() body: CredentialsDto, @Res() res: any) {
     const { data, ...response } = await this.authService.signIn(body);
 
-    res.cookie('refresh_token', data?.refreshToken, {
+    /*res.cookie('refresh_token', data?.refreshToken, {
       httpOnly: true,
       secure: true,
       sameSite: 'none',
+      maxAge: 1000 * 60 * 60 * 24 * 30,
+    });*/
+
+    res.cookie('refresh_token', data?.refreshToken, {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'lax',
       maxAge: 1000 * 60 * 60 * 24 * 30,
     });
 
@@ -30,6 +38,22 @@ export class AuthController {
         user: data?.user,
         accessToken: data?.accessToken,
       },
+    });
+  }
+
+  @Post("/signOut")
+  async signOut(@Res() res: any) {
+    res.clearCookie('refresh_token', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    });
+
+    return res.json({
+      statusCode: 200,
+      message: "User has been signed out!",
+      data: null,
+      error: null,
     });
   }
 }
