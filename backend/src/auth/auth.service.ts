@@ -6,6 +6,7 @@ import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from "../prisma/prisma.service";
 import { UserDto } from "./dto/user.dto";
 import { CredentialsDto } from "./dto/credentials.dto";
+
 import { User, UserResponse } from "./entities/user.entity";
 import {AuthResponse} from "../entities/authResponse.entity";
 
@@ -31,7 +32,7 @@ export class AuthService {
 
     return {
       statusCode: 200,
-      message: "User has been successfully created!",
+      message: "User has been created!",
       data: user,
     };
   }
@@ -77,7 +78,7 @@ export class AuthService {
 
     return {
       statusCode: 200,
-      message: "User has been successfully logged in!",
+      message: "User has been signed in!",
       data: {
         user: user,
         accessToken,

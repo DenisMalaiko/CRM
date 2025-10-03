@@ -1,6 +1,6 @@
 import React from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { AppDispatch, RootState } from '../../../store';
+import { useDispatch } from "react-redux";
+import { AppDispatch } from '../../../store';
 import { toast } from "react-toastify";
 import { signInUser } from '../../../store/auth/authThunks';
 
@@ -12,8 +12,6 @@ import { TUser } from "../../../models/User";
 
 function SignIn() {
   const dispatch = useDispatch<AppDispatch>();
-  const { user, accessToken } = useSelector((state: RootState) => state.authModule);
-
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("malaiko.denis@gmail.com");
@@ -37,7 +35,7 @@ function SignIn() {
 
       toast.success(response.message);
 
-      navigate("/profile");
+      navigate("/profile/dashboard");
 
     } catch (error: any) {
       toast.error(error.message);
@@ -114,9 +112,6 @@ function SignIn() {
           Don’t have an account?{" "}
           <Link className="text-blue-600 font-medium hover:underline" to="/signUp">Sign up</Link>
         </p>
-
-        <pre>{JSON.stringify(user, null, 2)}</pre>
-        <pre>{JSON.stringify(accessToken, null, 2)}</pre>
       </div>
     </section>
   )

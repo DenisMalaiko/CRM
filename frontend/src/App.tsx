@@ -1,5 +1,6 @@
 import React from 'react';
 import { Routes, Route, Link } from 'react-router-dom';
+import Guard from "./router/guard";
 import './App.css';
 
 import { ToastContainer } from 'react-toastify';
@@ -32,7 +33,14 @@ function App() {
         <Route path="/signIn" element={<SignIn />} />
         <Route path="/signUp" element={<SignUp />} />
 
-        <Route path="/profile" element={<Profile />}>
+        <Route
+          path="/profile"
+          element={
+            <Guard>
+              <Profile />
+            </Guard>
+          }
+        >
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="products" element={<Products />} />
           <Route path="clients" element={<Clients />} />
