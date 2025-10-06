@@ -4,9 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from '../../store';
 import { toast } from "react-toastify";
 import { signOutUser } from '../../store/auth/authThunks';
-
 import { ApiResponse } from "../../models/ApiResponse";
-
 
 function Header() {
   const dispatch = useDispatch<AppDispatch>();
@@ -40,7 +38,7 @@ function Header() {
         </nav>
 
         <nav>
-          {isAuthenticated && user ? <Link to="/profile/dashboard" className="text-blue-600">Welcome, { user.name }</Link> : <Link className="mr-1" to="/signIn">Sign In</Link>} /
+          {isAuthenticated && user ? <Link to="/profile/dashboard" className="text-blue-600">Welcome, { user.name }</Link> : <Link to="/signIn">Sign In</Link>} /
           {isAuthenticated && user ? <a className="ml-1 cursor-pointer" onClick={signOut}>Sign Out</a> : <Link to="/signUp" className="ml-1">Sign Up</Link>}
         </nav>
       </div>

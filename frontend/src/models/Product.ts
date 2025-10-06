@@ -1,13 +1,14 @@
 import { ProductStatus } from "../enum/ProductStatus";
+import { Categories } from "../enum/Categories";
 
-export type Product = {
+export type TProduct = {
   id?: string;
   name: string;
   description: string;
   sku: string;
   price: number;
   stock: number;
-  category: string;
+  category: Categories;
   status: ProductStatus;
   image?: string;
   updatedAt?: string;
