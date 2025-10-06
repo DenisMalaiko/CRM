@@ -21,3 +21,16 @@ model User {
   name      String
   password  String
 }
+
+model Product {
+  id        String   @id @default(uuid())
+  name      String
+  description String
+  sku       String
+  price     Float
+  stock     Int
+  category  String
+  status    String
+  image     String?
+  updatedAt DateTime @updatedAt
+}

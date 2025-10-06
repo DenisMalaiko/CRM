@@ -1,9 +1,19 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import CreateProductDlg from "./createProductDlg/CreateProductDlg";
-import { Product } from "../../../models/Product";
+import { TProduct } from "../../../models/Product";
+import {useDispatch, useSelector} from "react-redux";
+import {AppDispatch, RootState} from '../../../store';
+import {createProducts, getProducts} from "../../../store/products/productsThunks";
 
 function Products() {
+  const dispatch = useDispatch<AppDispatch>();
   const [open, setOpen] = useState(false);
+  const { products } = useSelector((state: RootState) => state.productsModule)
+
+  useEffect(() => {
+    console.log("RUN EFFECT: Products")
+    dispatch(getProducts());
+  }, [dispatch]);
 
   const header = [
     { name: "Image", key: "image" },
@@ -16,8 +26,6 @@ function Products() {
     { name: "Status", key: "status" },
     { name: "Actions", key: "actions"}
   ]
-
-  const products: Product[] = []
 
   return (
     <section>
@@ -45,7 +53,38 @@ function Products() {
               ))}
             </tr>
             </thead>
+
             <tbody className="divide-y divide-slate-100">
+              {products && products.map((item: TProduct) => (
+                <tr key={item.id} className="hover:bg-slate-50">
+                  <td className="px-4 py-3">
+                    <div className="h-10 w-10 bg-slate-200 rounded-lg" />
+                  </td>
+                  <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.name}</td>
+                  <td className="px-4 py-3 text-slate-600 text-left">{item.sku}</td>
+                  <td className="px-4 py-3 font-medium text-left">{item.price}</td>
+                  <td className="px-4 py-3 text-left">{item.stock}</td>
+                  <td className="px-4 py-3 text-slate-600 text-left">{item.category}</td>
+                  <td className="px-4 py-3 text-slate-600 text-left">2025-10-03</td>
+                  <td className="px-4 py-3 text-left">
+                    <span className="inline-flex items-start px-2 py-1 text-xs font-medium rounded-full bg-emerald-50 text-emerald-700">{item.status}</span>
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <div className="flex items-center gap-2 justify-end">
+                      <button className="h-8 w-8 flex items-center justify-center rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-50">
+                        ✎
+                      </button>
+                      <button className="h-8 w-8 flex items-center justify-center rounded-lg border border-rose-300 text-rose-600 hover:bg-rose-50">
+                        🗑
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+
+
+            {/*<tbody className="divide-y divide-slate-100">
             <tr className="hover:bg-slate-50">
               <td className="px-4 py-3">
                 <div className="h-10 w-10 bg-slate-200 rounded-lg" />
@@ -70,7 +109,7 @@ function Products() {
                 </div>
               </td>
             </tr>
-            </tbody>
+            </tbody>*/}
           </table>
         </div>
       </div>

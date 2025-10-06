@@ -1,26 +1,32 @@
 import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { AppDispatch } from "../../../../store";
-import { createProducts } from "../../../../store/products/productsThunks";
+import { createProducts, getProducts } from "../../../../store/products/productsThunks";
 
 import { ProductStatus } from "../../../../enum/ProductStatus";
+import { isRequired, minLength} from "../../../../utils/validations";
+import { Categories } from "../../../../enum/Categories";
+import { toast } from "react-toastify";
 
 function CreateProductDlg({ open, onClose }: any) {
   const dispatch = useDispatch<AppDispatch>();
   const statuses = Object.values(ProductStatus);
+  const categories = Object.values(Categories);
+
   const [form, setForm] = useState({
-    name: "",
-    description: "",
-    sku: "",
-    price: 0,
-    stock: 0,
-    category: "",
+    name: "Product Name",
+    description: "Product Description",
+    sku: "123456",
+    price: 10,
+    stock: 10,
+    category: Categories.Transport,
     status: ProductStatus.Active,
   });
+  const [errors, setErrors]: any = useState({});
 
   if (!open) return null;
 
-  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     setForm((prev) => ({
       ...prev,
@@ -28,15 +34,32 @@ function CreateProductDlg({ open, onClose }: any) {
     }));
   }
 
+  const validateField = (name: string, data: any) => {
+    let error: string | null = null;
+    if (name === "name") error = minLength(data.value, 3);
+    if (name === "description") error = minLength(data.value, 10);
+    if (name === "sku") error = minLength(data.value, 6);
+    if (name === "category") error = isRequired(data.value);
+    setErrors((prev: any) => ({ ...prev, [name]: error }));
+  };
+
   const createProduct = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
+      form.price = Number(form.price);
+      form.stock = Number(form.stock);
+
       const response = await dispatch(
         createProducts(form)
       ).unwrap();
 
+      await dispatch(getProducts());
+
+      console.log("RESPONSE ", response)
+      toast.success(response.message);
+      onClose();
     } catch (error: any) {
-      console.log("ERROR: ", error)
+      toast.error(error.message);
     }
   }
 
@@ -57,15 +80,19 @@ function CreateProductDlg({ open, onClose }: any) {
         {/* Form */}
         <form className="space-y-4" onSubmit={createProduct} action="">
           <div>
-            <label className="block text-sm font-medium text-slate-700 text-left">Product Name</label>
+            <label className="block text-sm font-medium text-slate-700 text-left">Product Name {form.name}</label>
             <input
               type="text"
               name="name"
               value={form.name}
-              onChange={handleChange}
+              onChange={(e) => {
+                handleChange(e);
+                validateField("name", { value: e.target.value })
+              }}
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
               placeholder="Enter product name"
             />
+            {errors.name && <p className="text-red-500 text-sm mt-2 text-left">{errors.name}</p>}
           </div>
 
           <div>
@@ -73,10 +100,14 @@ function CreateProductDlg({ open, onClose }: any) {
             <textarea
               name="description"
               value={form.description}
-              onChange={handleChange}
+              onChange={(e) => {
+                handleChange(e);
+                validateField("description", { value: e.target.value })
+              }}
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
               placeholder="Enter product description"
             />
+            {errors.description && <p className="text-red-500 text-sm text-left">{errors.description}</p>}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -86,15 +117,20 @@ function CreateProductDlg({ open, onClose }: any) {
                 type="text"
                 name="sku"
                 value={form.sku}
-                onChange={handleChange}
+                onChange={(e) => {
+                  handleChange(e);
+                  validateField("sku", { value: e.target.value })
+                }}
                 className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
                 placeholder="SKU123"
               />
+              {errors.sku && <p className="text-red-500 text-sm mt-2 text-left">{errors.sku}</p>}
             </div>
+
             <div>
               <label className="block text-sm font-medium text-slate-700 text-left">Price</label>
               <input
-                type="number"
+                type="text"
                 name="price"
                 value={form.price}
                 onChange={handleChange}
@@ -109,7 +145,7 @@ function CreateProductDlg({ open, onClose }: any) {
             <div>
               <label className="block text-sm font-medium text-slate-700 text-left">Stock</label>
               <input
-                type="number"
+                type="text"
                 name="stock"
                 value={form.stock}
                 onChange={handleChange}
@@ -119,14 +155,16 @@ function CreateProductDlg({ open, onClose }: any) {
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 text-left">Category</label>
-              <input
-                type="text"
+              <select
                 name="category"
                 value={form.category}
                 onChange={handleChange}
                 className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
-                placeholder="Skin care"
-              />
+              >
+                { categories.map((status: string) => (
+                  <option key={status} value={status}>{status}</option>
+                )) }
+              </select>
             </div>
           </div>
 
