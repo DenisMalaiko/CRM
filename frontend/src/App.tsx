@@ -10,6 +10,7 @@ import Header from './components/header/Header';
 import Home from './pages/home/home';
 import SignIn from './pages/auth/signIn/SignIn';
 import SignUp from './pages/auth/signUp/SignUp';
+import { useConfirmDialog } from './components/confirmDlg/ConfirmDlg';
 
 // Profile
 import Profile from "./pages/profile/Profile";
@@ -24,6 +25,8 @@ import Manager from "./pages/profile/ai/manager/Manager";
 import Marketer from "./pages/profile/ai/marketer/Marketer";
 
 function App() {
+  const ConfirmDialog = useConfirmDialog();
+
   return (
     <div className="App">
       <Header />
@@ -64,6 +67,8 @@ function App() {
         pauseOnHover
         theme="colored" // "light" | "dark" | "colored"
       />
+
+      {ConfirmDialog} {/* 👈 важливо: рендеримо тут */}
     </div>
   );
 }

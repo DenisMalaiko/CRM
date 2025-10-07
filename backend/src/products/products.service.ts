@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, InternalServerErrorException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Product, ProductResponse } from "./entities/product.entity";
 
@@ -36,5 +36,30 @@ export class ProductsService {
       message: "Products has been got!",
       data: products,
     };
+  }
+
+  async deleteProduct(id: string) {
+    if (!id) {
+      throw new NotFoundException('Product ID is required');
+    }
+
+    try {
+      const deleted = await this.prisma.product.delete({
+        where: { id },
+      });
+
+      return {
+        statusCode: 200,
+        message: 'Product has been deleted!',
+        data: deleted,
+      };
+    } catch (err: any) {
+      if (err.code === 'P2025') {
+        throw new NotFoundException(`Product with ID ${id} not found`);
+      }
+
+      console.error('DELETE ERROR:', err);
+      throw new InternalServerErrorException('Failed to delete product');
+    }
   }
 }
