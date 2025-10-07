@@ -3,7 +3,7 @@ import { TProduct } from "../../models/Product";
 import {buildError} from "../../utils/apiError";
 import {ApiResponse} from "../../models/ApiResponse";
 
-export const createProducts = createAsyncThunk(
+export const createProduct = createAsyncThunk(
   'products/createProduct',
   async (form: TProduct, { rejectWithValue }) => {
     const API_URL: string | undefined = process.env.REACT_APP_API;
@@ -28,6 +28,36 @@ export const createProducts = createAsyncThunk(
       return rejectWithValue(buildError(err.message, err.statusCode, err.error));
     }
   })
+
+
+
+export const deleteProduct = createAsyncThunk(
+  'products/deleteProduct',
+  async (id: string, { rejectWithValue }) => {
+    const API_URL: string | undefined = process.env.REACT_APP_API;
+
+    try {
+      console.log("FETCH DELETE PRODUCT", id)
+
+      const res = await fetch(`${API_URL}/products/deleteProduct/${id}`, {
+        method: "DELETE",
+        headers: {"Content-Type": "application/json"},
+      });
+
+      const data: ApiResponse<TProduct> = await res.json();
+
+      if (!res.ok) {
+        return rejectWithValue(buildError(data.message, data.statusCode, data.error));
+      }
+
+      return data;
+
+    } catch (err: any) {
+      return rejectWithValue(buildError(err.message, err.statusCode, err.error));
+    }
+  })
+
+
 
 export const getProducts = createAsyncThunk<
   ApiResponse<TProduct[]>,

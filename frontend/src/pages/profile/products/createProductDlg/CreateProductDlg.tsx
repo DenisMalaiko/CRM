@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { AppDispatch } from "../../../../store";
-import { createProducts, getProducts } from "../../../../store/products/productsThunks";
+import { createProduct, getProducts } from "../../../../store/products/productsThunks";
 
 import { ProductStatus } from "../../../../enum/ProductStatus";
 import { isRequired, minLength} from "../../../../utils/validations";
@@ -43,19 +43,18 @@ function CreateProductDlg({ open, onClose }: any) {
     setErrors((prev: any) => ({ ...prev, [name]: error }));
   };
 
-  const createProduct = async (e: React.FormEvent<HTMLFormElement>) => {
+  const create = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
       form.price = Number(form.price);
       form.stock = Number(form.stock);
 
       const response = await dispatch(
-        createProducts(form)
+        createProduct(form)
       ).unwrap();
 
       await dispatch(getProducts());
 
-      console.log("RESPONSE ", response)
       toast.success(response.message);
       onClose();
     } catch (error: any) {
@@ -78,7 +77,7 @@ function CreateProductDlg({ open, onClose }: any) {
         </div>
 
         {/* Form */}
-        <form className="space-y-4" onSubmit={createProduct} action="">
+        <form className="space-y-4" onSubmit={create} action="">
           <div>
             <label className="block text-sm font-medium text-slate-700 text-left">Product Name {form.name}</label>
             <input

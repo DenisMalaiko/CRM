@@ -46,7 +46,6 @@ export class AuthService {
       select: { id: true, email: true, name: true, password: true }
     });
 
-
     if (!response)
       throw new UnauthorizedException('Invalid credentials!');
 
