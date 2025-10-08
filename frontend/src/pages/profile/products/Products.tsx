@@ -11,6 +11,7 @@ import { ProductStatus } from "../../../enum/ProductStatus";
 function Products() {
   const dispatch = useDispatch<AppDispatch>();
   const [open, setOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<TProduct | null>(null);
   const { products } = useSelector((state: RootState) => state.productsModule)
 
   useEffect(() => {
@@ -54,6 +55,12 @@ function Products() {
     }
   }
 
+  const openEditProduct = async (item: TProduct) => {
+    console.log("PRODUCT: ", item);
+    setSelectedProduct(item);
+    setOpen(true)
+  }
+
   function getStatusClasses(status: string) {
     switch (status) {
       case ProductStatus.Active:
@@ -78,11 +85,17 @@ function Products() {
             + Add New
           </button>
 
-          <CreateProductDlg open={open} onClose={() => setOpen(false)}/>
+          <CreateProductDlg
+            open={open}
+            onClose={() => {
+              setOpen(false);
+              setSelectedProduct(null);
+            }}
+            product={selectedProduct}
+          />
         </div>
       </section>
 
-      {/* Example grid cards */}
       <div className="w-full mx-auto p-4">
         <div className="overflow-hidden rounded-xl border border-slate-200 shadow">
           <table className="min-w-full divide-y divide-slate-200">
@@ -111,7 +124,7 @@ function Products() {
                   </td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex items-center gap-2 justify-end">
-                      <button className="h-8 w-8 flex items-center justify-center rounded-lg border  text-slate-600 hover:bg-slate-50">
+                      <button onClick={() => openEditProduct(item)} className="h-8 w-8 flex items-center justify-center rounded-lg border  text-slate-600 hover:bg-slate-50">
                         ✎
                       </button>
                       <button onClick={(e) => openConfirmDlg(e, item)} className="h-8 w-8 flex items-center justify-center rounded-lg border text-rose-600 hover:bg-rose-50">

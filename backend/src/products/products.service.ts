@@ -38,6 +38,39 @@ export class ProductsService {
     };
   }
 
+  async updateProduct(id: string, body: Product) {
+    if (!id) {
+      throw new NotFoundException('Product ID is required');
+    }
+
+    try {
+      const updated = await this.prisma.product.update({
+        where: {id},
+        data: {
+          name: body.name,
+          description: body.description,
+          sku: body.sku,
+          price: body.price,
+          stock: body.stock,
+          category: body.category,
+          status: body.status,
+        }
+      });
+
+      return {
+        statusCode: 200,
+        message: 'Product has been updated!',
+        data: updated,
+      };
+    } catch (err: any) {
+      if (err.code === 'P2025') {
+        throw new NotFoundException(`Product with ID ${id} not found`);
+      }
+
+      throw new InternalServerErrorException('Failed to delete product');
+    }
+  }
+
   async deleteProduct(id: string) {
     if (!id) {
       throw new NotFoundException('Product ID is required');
@@ -58,7 +91,6 @@ export class ProductsService {
         throw new NotFoundException(`Product with ID ${id} not found`);
       }
 
-      console.error('DELETE ERROR:', err);
       throw new InternalServerErrorException('Failed to delete product');
     }
   }
