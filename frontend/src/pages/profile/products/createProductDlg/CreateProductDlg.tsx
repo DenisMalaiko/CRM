@@ -1,17 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { AppDispatch } from "../../../../store";
-import { createProduct, getProducts } from "../../../../store/products/productsThunks";
+import { createProduct, updateProduct, getProducts } from "../../../../store/products/productsThunks";
 
 import { ProductStatus } from "../../../../enum/ProductStatus";
 import { isRequired, minLength} from "../../../../utils/validations";
 import { Categories } from "../../../../enum/Categories";
 import { toast } from "react-toastify";
 
-function CreateProductDlg({ open, onClose }: any) {
+function CreateProductDlg({ open, onClose, product }: any) {
   const dispatch = useDispatch<AppDispatch>();
   const statuses = Object.values(ProductStatus);
   const categories = Object.values(Categories);
+  const isEdit = !!product;
 
   const [form, setForm] = useState({
     name: "Product Name",
@@ -23,6 +24,32 @@ function CreateProductDlg({ open, onClose }: any) {
     status: ProductStatus.Active,
   });
   const [errors, setErrors]: any = useState({});
+
+
+  useEffect(() => {
+    if (isEdit && product) {
+      setForm({
+        name: product.name,
+        description: product.description,
+        sku: product.sku,
+        price: product.price,
+        stock: product.stock,
+        category: product.category,
+        status: product.status,
+      });
+    } else {
+      setForm({
+        name: "",
+        description: "",
+        sku: "",
+        price: 0,
+        stock: 0,
+        category: Categories.Transport,
+        status: ProductStatus.Active,
+      });
+    }
+  }, [product, isEdit, open]);
+
 
   if (!open) return null;
 
@@ -46,16 +73,19 @@ function CreateProductDlg({ open, onClose }: any) {
   const create = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
+      let response;
       form.price = Number(form.price);
       form.stock = Number(form.stock);
 
-      const response = await dispatch(
-        createProduct(form)
-      ).unwrap();
+      if (isEdit) {
+        response = await dispatch(updateProduct({ id: product!.id, form })).unwrap();
+      } else {
+        response = await dispatch(createProduct(form)).unwrap();
+      }
 
       await dispatch(getProducts());
-
       toast.success(response.message);
+
       onClose();
     } catch (error: any) {
       toast.error(error.message);
