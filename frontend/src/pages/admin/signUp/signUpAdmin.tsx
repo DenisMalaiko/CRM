@@ -1,22 +1,22 @@
-import React from "react";
+import React, {useState} from 'react';
 import { useDispatch, useSelector } from "react-redux";
-import { AppDispatch, RootState } from '../../../store';
 import { toast } from "react-toastify";
-import { signUpUser } from '../../../store/auth/authThunks';
+import {AppDispatch} from "../../../store";
+import {isEmail, isPassword, isRepeatPassword, isSecret, minLength} from "../../../utils/validations";
+import {ApiResponse} from "../../../models/ApiResponse";
+import {TAdmin} from "../../../models/User";
+import { signUpAdmin } from "../../../store/admin/authThunks";
+import {MiniTranslate} from "../../../enum/MiniTranslate";
+import {Link} from "react-router-dom";
 
-import { Link } from "react-router-dom";
-import { useState } from "react";
-import { isEmail, isPassword, isRepeatPassword, minLength } from "../../../utils/validations";
-import { ApiResponse } from "../../../models/ApiResponse";
-import { TUser } from "../../../models/User";
-import { MiniTranslate } from "../../../enum/MiniTranslate";
-
-function SignUp() {
+function SignUpAdmin() {
   const dispatch = useDispatch<AppDispatch>();
+  const isAdmin = true;
   const [name, setName] = useState("Denis");
   const [email, setEmail] = useState("malaiko.denis@gmail.com");
   const [password, setPassword] = useState("Ab12345$");
   const [repeatPassword, setRepeatPassword] = useState("Ab12345$");
+  const [secret, setSecret] = useState("secret_admin_key");
   const [errors, setErrors]: any = useState({});
 
   const validateField = (name: string, data: any) => {
@@ -25,6 +25,7 @@ function SignUp() {
     if (name === "email") error = isEmail(data.value);
     if (name === "password") error = isPassword(data.value);
     if (name === "repeatPassword") error = isRepeatPassword(data.value, data.repeatPassword);
+    if (name === "secret") error = isSecret(data.value);
     setErrors((prev: any) => ({ ...prev, [name]: error }));
   };
 
@@ -34,8 +35,8 @@ function SignUp() {
     if (!window.utils.validateForm(errors)) return;
 
     try {
-      const response: ApiResponse<TUser> = await dispatch(
-        signUpUser({ name, email, password })
+      const response: ApiResponse<TAdmin> = await dispatch(
+        signUpAdmin({ name, email, password, isAdmin })
       ).unwrap();
 
       toast.success(response.message);
@@ -45,11 +46,11 @@ function SignUp() {
     }
   }
 
-  return (
+  return(
     <section className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="w-full max-w-md bg-white shadow-lg rounded-2xl p-8">
         <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">
-          Sign Up
+          Admin Sign Up
         </h2>
 
         <form className="space-y-5" onSubmit={signUp} action="">
@@ -121,6 +122,23 @@ function SignUp() {
             {errors.repeatPassword && <p className="text-red-500 text-sm mt-2 text-left">{errors.repeatPassword}</p>}
           </div>
 
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
+              Secret
+            </label>
+            <input
+              type="text"
+              value={secret}
+              onChange={(e) => {
+                setSecret(e.target.value);
+                validateField("secret", { value: e.target.value });
+              }}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            />
+            {errors.secret && <p className="text-red-500 text-sm mt-2 text-left">{errors.secret}</p>}
+          </div>
+
+
           <button
             type="submit"
             className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
@@ -129,19 +147,13 @@ function SignUp() {
           </button>
         </form>
 
-        <div className="flex items-center my-6">
-          <hr className="flex-grow border-gray-300" />
-          <span className="px-2 text-gray-400 text-sm">or</span>
-          <hr className="flex-grow border-gray-300" />
-        </div>
-
-        <p className="text-center text-sm text-gray-600">
+        <p className="text-center text-sm text-gray-600 mt-6">
           Have an account?{" "}
-          <Link className="text-blue-600 font-medium hover:underline" to="/signIn">Sign in</Link>
+          <Link className="text-blue-600 font-medium hover:underline" to="/admin/signIn">Sign in</Link>
         </p>
       </div>
     </section>
   )
 }
 
-export default SignUp;
+export default SignUpAdmin;

@@ -24,3 +24,8 @@ export const isRepeatPassword = (value: string, password: string) => {
   if (!value) return "Repeat password is required";
   return value === password ? null : "Passwords do not match";
 }
+
+export const isSecret = (value: string) => {
+  if (!value) return "Secret is required";
+  return value !== process.env.REACT_APP_SECRET_ADMIN ? "Secret phrase is not correct" : null;
+}

@@ -12,3 +12,7 @@ export type TUserSignIn = {
   email: string;
   password: string;
 }
+
+export type TAdmin = TUserSignUp & {
+  isAdmin: boolean;
+}

@@ -6,11 +6,19 @@ import './App.css';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
+
+// Components
 import Header from './components/header/Header';
+import { useConfirmDialog } from './components/confirmDlg/ConfirmDlg';
+
+// Auth
 import Home from './pages/home/home';
 import SignIn from './pages/auth/signIn/SignIn';
 import SignUp from './pages/auth/signUp/SignUp';
-import { useConfirmDialog } from './components/confirmDlg/ConfirmDlg';
+
+// Admin
+import SignInAdmin from './pages/admin/signIn/signInAdmin';
+import SignUpAdmin from './pages/admin/signUp/signUpAdmin';
 
 // Profile
 import Profile from "./pages/profile/Profile";
@@ -35,6 +43,8 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/signIn" element={<SignIn />} />
         <Route path="/signUp" element={<SignUp />} />
+        <Route path="/admin/signIn" element={<SignInAdmin />} />
+        <Route path="/admin/signOut" element={<SignUpAdmin />} />
 
         <Route
           path="/profile"
@@ -65,10 +75,10 @@ function App() {
         pauseOnFocusLoss
         draggable
         pauseOnHover
-        theme="colored" // "light" | "dark" | "colored"
+        theme="colored"
       />
 
-      {ConfirmDialog} {/* 👈 важливо: рендеримо тут */}
+      {ConfirmDialog}
     </div>
   );
 }

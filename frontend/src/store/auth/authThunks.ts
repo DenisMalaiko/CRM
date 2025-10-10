@@ -1,5 +1,5 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { TUser } from "../../models/User";
+import { TUser, TAdmin } from "../../models/User";
 import { TUserSignUp, TUserSignIn } from "../../models/User";
 import { ApiResponse } from "../../models/ApiResponse";
 import { buildError } from "../../utils/apiError";
