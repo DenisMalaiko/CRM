@@ -3,7 +3,6 @@ import type { Request as ExpressRequest } from 'express';
 import { AuthService } from './auth.service';
 import { UserDto } from "./dto/user.dto";
 import { CredentialsDto } from "./dto/credentials.dto";
-import { IdDto } from "./dto/id.dto";
 
 @Controller('auth')
 export class AuthController {

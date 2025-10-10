@@ -1,19 +1,8 @@
-import React from "react";
-import { useDispatch } from "react-redux";
-import { AppDispatch } from '../../../store';
-import { toast } from "react-toastify";
-import { signInUser } from '../../../store/auth/authThunks';
+import React, {useState} from "react";
+import {toast} from "react-toastify";
+import {isEmail, isPassword} from "../../../utils/validations";
 
-import { Link, useNavigate } from 'react-router-dom';
-import { useState } from "react";
-import { isEmail, isPassword } from "../../../utils/validations";
-import { ApiResponse } from "../../../models/ApiResponse";
-import { TUser } from "../../../models/User";
-
-function SignIn() {
-  const dispatch = useDispatch<AppDispatch>();
-  const navigate = useNavigate();
-
+function SignInAdmin() {
   const [email, setEmail] = useState("malaiko.denis@gmail.com");
   const [password, setPassword] = useState("Ab12345$");
   const [errors, setErrors]: any = useState({});
@@ -25,19 +14,13 @@ function SignIn() {
     setErrors((prev: any) => ({ ...prev, [name]: error }));
   };
 
-  const signIn = async (e: React.FormEvent<HTMLFormElement>) => {
+  const login = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (!window.utils.validateForm(errors)) return;
 
     try {
-      const response: ApiResponse<TUser> = await dispatch(
-        signInUser({ email, password })
-      ).unwrap();
-
-      toast.success(response.message);
-
-      navigate("/profile/dashboard");
+      console.log("LOGIN")
 
     } catch (error: any) {
       toast.error(error.message);
@@ -48,10 +31,10 @@ function SignIn() {
     <section className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="w-full max-w-md bg-white shadow-lg rounded-2xl p-8">
         <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">
-          Sign In
+          Admin Sign In
         </h2>
 
-        <form className="space-y-5" onSubmit={signIn} action="">
+        <form className="space-y-5" onSubmit={login} action="">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
               Email
@@ -100,23 +83,12 @@ function SignIn() {
             type="submit"
             className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
           >
-            Sign In
+            Login
           </button>
         </form>
-
-        <div className="flex items-center my-6">
-          <hr className="flex-grow border-gray-300" />
-          <span className="px-2 text-gray-400 text-sm">or</span>
-          <hr className="flex-grow border-gray-300" />
-        </div>
-
-        <p className="text-center text-sm text-gray-600">
-          Don’t have an account?{" "}
-          <Link className="text-blue-600 font-medium hover:underline" to="/signUp">Sign up</Link>
-        </p>
       </div>
     </section>
   )
 }
 
-export default SignIn;
+export default SignInAdmin;

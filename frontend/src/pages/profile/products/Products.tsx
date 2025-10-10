@@ -82,7 +82,7 @@ function Products() {
             onClick={() => setOpen(true)}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700"
           >
-            + Add New
+            Add Product
           </button>
 
           <CreateProductDlg
@@ -100,11 +100,11 @@ function Products() {
         <div className="overflow-hidden rounded-xl border border-slate-200 shadow">
           <table className="min-w-full divide-y divide-slate-200">
             <thead className="bg-slate-50">
-            <tr>
-              {header.map((item) => (
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600" key={item.key}>{ item.name }</th>
-              ))}
-            </tr>
+              <tr>
+                {header.map((item) => (
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600" key={item.key}>{ item.name }</th>
+                ))}
+              </tr>
             </thead>
 
             <tbody className="divide-y divide-slate-100">
