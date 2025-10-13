@@ -1,8 +1,18 @@
 import React, {useState} from "react";
-import {toast} from "react-toastify";
-import {isEmail, isPassword} from "../../../utils/validations";
+import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+
+import { isEmail, isPassword } from "../../../utils/validations";
+import { ApiResponse } from "../../../models/ApiResponse";
+import { TUser } from "../../../models/User";
+import { AppDispatch } from "../../../store";
+import { signInAdmin } from "../../../store/admin/adminThunks";
 
 function SignInAdmin() {
+  const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
+
   const [email, setEmail] = useState("malaiko.denis@gmail.com");
   const [password, setPassword] = useState("Ab12345$");
   const [errors, setErrors]: any = useState({});
@@ -20,7 +30,15 @@ function SignInAdmin() {
     if (!window.utils.validateForm(errors)) return;
 
     try {
-      console.log("LOGIN")
+      const response: ApiResponse<TUser> = await dispatch(
+        signInAdmin({ email, password })
+      ).unwrap();
+
+      toast.success(response.message);
+
+      console.log("NAVIGATE");
+
+      navigate("/admin/list");
 
     } catch (error: any) {
       toast.error(error.message);

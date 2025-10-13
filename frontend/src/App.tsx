@@ -1,6 +1,6 @@
 import React from 'react';
 import { Routes, Route, Link } from 'react-router-dom';
-import Guard from "./router/guard";
+import { Guard, AdminGuard } from "./router/guard";
 import './App.css';
 
 import { ToastContainer } from 'react-toastify';
@@ -19,6 +19,8 @@ import SignUp from './pages/auth/signUp/SignUp';
 // Admin
 import SignInAdmin from './pages/admin/signIn/signInAdmin';
 import SignUpAdmin from './pages/admin/signUp/signUpAdmin';
+import Panel from './pages/admin/panel/panel';
+import List from './pages/admin/list/list';
 
 // Profile
 import Profile from "./pages/profile/Profile";
@@ -62,6 +64,18 @@ function App() {
           <Route path="accountant" element={<Accountant />} />
           <Route path="manager" element={<Manager />} />
           <Route path="marketer" element={<Marketer />} />
+        </Route>
+
+
+        <Route
+          path="/admin"
+          element={
+            <AdminGuard>
+              <Panel />
+            </AdminGuard>
+          }
+        >
+          <Route path="list" element={<List />} />
         </Route>
       </Routes>
 

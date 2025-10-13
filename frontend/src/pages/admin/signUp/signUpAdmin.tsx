@@ -5,8 +5,8 @@ import {AppDispatch} from "../../../store";
 import {isEmail, isPassword, isRepeatPassword, isSecret, minLength} from "../../../utils/validations";
 import {ApiResponse} from "../../../models/ApiResponse";
 import {TAdmin} from "../../../models/User";
-import { signUpAdmin } from "../../../store/admin/authThunks";
-import {MiniTranslate} from "../../../enum/MiniTranslate";
+import { signUpAdmin } from "../../../store/admin/adminThunks";
+import {MiniTranslate} from "../../../enum/miniTranslate";
 import {Link} from "react-router-dom";
 
 function SignUpAdmin() {

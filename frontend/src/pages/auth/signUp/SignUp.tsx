@@ -9,7 +9,8 @@ import { useState } from "react";
 import { isEmail, isPassword, isRepeatPassword, minLength } from "../../../utils/validations";
 import { ApiResponse } from "../../../models/ApiResponse";
 import { TUser } from "../../../models/User";
-import { MiniTranslate } from "../../../enum/MiniTranslate";
+import { MiniTranslate } from "../../../enum/miniTranslate";
+import { BusinessIndustry } from "../../../enum/BusinessIndustry";
 
 function SignUp() {
   const dispatch = useDispatch<AppDispatch>();
@@ -17,7 +18,11 @@ function SignUp() {
   const [email, setEmail] = useState("malaiko.denis@gmail.com");
   const [password, setPassword] = useState("Ab12345$");
   const [repeatPassword, setRepeatPassword] = useState("Ab12345$");
+  const [businessName, setBusinessName] = useState("Business Name");
+  const [businessType, setBusinessType] = useState("Business Name");
+
   const [errors, setErrors]: any = useState({});
+  const Business = Object.values(BusinessIndustry);
 
   const validateField = (name: string, data: any) => {
     let error: string | null = null;
@@ -25,6 +30,7 @@ function SignUp() {
     if (name === "email") error = isEmail(data.value);
     if (name === "password") error = isPassword(data.value);
     if (name === "repeatPassword") error = isRepeatPassword(data.value, data.repeatPassword);
+    if (name === "businessName") error = minLength(data.value, 3);
     setErrors((prev: any) => ({ ...prev, [name]: error }));
   };
 
@@ -47,15 +53,16 @@ function SignUp() {
 
   return (
     <section className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="w-full max-w-md bg-white shadow-lg rounded-2xl p-8">
+      <div className="w-full max-w-lg bg-white shadow-lg rounded-2xl p-8">
         <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">
           Sign Up
         </h2>
 
         <form className="space-y-5" onSubmit={signUp} action="">
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
-              Name {name}
+              Name
             </label>
             <input
               type="name"
@@ -72,7 +79,7 @@ function SignUp() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
-              Email {email}
+              Email
             </label>
             <input
               type="email"
@@ -89,7 +96,7 @@ function SignUp() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
-              Password {password}
+              Password
             </label>
             <input
               type="password"
@@ -106,7 +113,7 @@ function SignUp() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
-              Repeat Password {repeatPassword}
+              Repeat Password
             </label>
             <input
               type="password"
@@ -120,6 +127,41 @@ function SignUp() {
             />
             {errors.repeatPassword && <p className="text-red-500 text-sm mt-2 text-left">{errors.repeatPassword}</p>}
           </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
+              Business Name
+            </label>
+            <input
+              type="businessName"
+              value={businessName}
+              onChange={(e) => {
+                setBusinessName(e.target.value);
+                validateField("name", { value: e.target.value })
+              }}
+              placeholder="you"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            />
+            {errors.businessName && <p className="text-red-500 text-sm mt-2 text-left">{errors.businessName}</p>}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 text-left">Business Type</label>
+            <select
+              name="businessType"
+              value={businessType}
+              onChange={(e) => {
+                setBusinessType(e.target.value);
+                validateField("businessType", { value: e.target.value })
+              }}
+              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
+            >
+              { Business.map((type: string) => (
+                <option key={type} value={type}>{type}</option>
+              )) }
+            </select>
+          </div>
+
 
           <button
             type="submit"

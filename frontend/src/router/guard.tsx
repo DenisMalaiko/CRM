@@ -6,8 +6,8 @@ type Props = {
   children: JSX.Element;
 };
 
-function Guard({ children }: Props) {
-  const isAuthenticated = useSelector((state: any) => state.authModule.isAuthenticated);
+export function Guard({ children }: Props) {
+  const isAuthenticated = useSelector((state: any) => state.authModule.isAuthenticatedUser);
 
   if (!isAuthenticated) {
     return <Navigate to="/signIn" replace />;
@@ -16,4 +16,12 @@ function Guard({ children }: Props) {
   return children;
 }
 
-export default Guard;
+export function AdminGuard({ children }: Props) {
+  const isAuthenticated = useSelector((state: any) => state.adminModule.isAuthenticatedAdmin);
+
+  if (!isAuthenticated) {
+    return <Navigate to="/signIn" replace />;
+  }
+
+  return children;
+}

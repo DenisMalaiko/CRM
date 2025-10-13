@@ -3,7 +3,7 @@ import { signUpUser, signInUser, signOutUser } from './authThunks'
 import { TUser } from "../../models/User";
 
 type AuthState = {
-  isAuthenticated: boolean
+  isAuthenticatedUser: boolean
   user: TUser | null
   loading: boolean
   error: string | null | any
@@ -11,7 +11,7 @@ type AuthState = {
 }
 
 const initialState: AuthState = {
-  isAuthenticated: false,
+  isAuthenticatedUser: false,
   user: null,
   loading: false,
   error: null,
@@ -42,7 +42,7 @@ const authSlice = createSlice({
       })
       .addCase(signInUser.fulfilled, (state, action) => {
         state.loading = false;
-        state.isAuthenticated = true;
+        state.isAuthenticatedUser = true;
         state.user = action.payload.data.user;
         state.accessToken = action.payload.data.accessToken;
       })
@@ -56,7 +56,7 @@ const authSlice = createSlice({
       })
       .addCase(signOutUser.fulfilled, (state, action) => {
         state.loading = false;
-        state.isAuthenticated = false;
+        state.isAuthenticatedUser = false;
         state.user = null
         state.accessToken = null;
       })
