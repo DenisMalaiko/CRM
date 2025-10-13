@@ -1,22 +1,21 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { TUser, TAdmin } from "../../models/User";
-import { TUserSignUp, TUserSignIn } from "../../models/User";
+import {TAdmin, TUserSignIn} from "../../models/User";
 import { ApiResponse } from "../../models/ApiResponse";
 import { buildError } from "../../utils/apiError";
 
-export const signUpUser = createAsyncThunk(
-  'auth/signUpUser',
-  async (credentials: TUserSignUp, { rejectWithValue }) => {
+export const signUpAdmin = createAsyncThunk(
+  'admin/signUp',
+  async (credentials: TAdmin, { rejectWithValue }) => {
     const API_URL: string | undefined = process.env.REACT_APP_API;
 
     try {
-      const res = await fetch(`${API_URL}/auth/signUp`, {
+      const res = await fetch(`${API_URL}/admin/signUp`, {
         method: "POST",
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify(credentials),
       });
 
-      const data: ApiResponse<TUser> = await res.json();
+      const data: ApiResponse<TAdmin> = await res.json();
 
       if (!res.ok) {
         return rejectWithValue(buildError(data.message, data.statusCode, data.error));
@@ -29,13 +28,16 @@ export const signUpUser = createAsyncThunk(
   }
 );
 
-export const signInUser = createAsyncThunk(
-  'auth/signInUser',
+export const signInAdmin = createAsyncThunk(
+  'admin/signInUser',
   async (credentials: TUserSignIn, { rejectWithValue })=> {
     const API_URL: string | undefined = process.env.REACT_APP_API;
 
     try {
-      const res = await fetch(`${API_URL}/auth/signIn`, {
+
+      console.log("SIGN IN ADMIN ", credentials.email, " ", credentials.password, "");
+
+      const res = await fetch(`${API_URL}/admin/signIn`, {
         method: "POST",
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify(credentials),
@@ -57,13 +59,13 @@ export const signInUser = createAsyncThunk(
   }
 )
 
-export const signOutUser = createAsyncThunk(
-  'auth/signOut',
+export const signOutAdmin = createAsyncThunk(
+  'admin/signOut',
   async (_, { rejectWithValue, getState }) => {
     const API_URL: string | undefined = process.env.REACT_APP_API;
 
     try {
-      const res = await fetch(`${API_URL}/auth/signOut`, {
+      const res = await fetch(`${API_URL}/admin/signOut`, {
         method: "POST",
         credentials: 'include',
       });

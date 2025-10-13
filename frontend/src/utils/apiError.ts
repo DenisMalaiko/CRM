@@ -1,5 +1,5 @@
 import { ApiResponse } from "../models/ApiResponse";
-import { MiniTranslate } from "../enum/MiniTranslate";
+import { MiniTranslate } from "../enum/miniTranslate";
 
 export function buildError(
   message?: string | null,
