@@ -46,7 +46,7 @@ function App() {
         <Route path="/signIn" element={<SignIn />} />
         <Route path="/signUp" element={<SignUp />} />
         <Route path="/admin/signIn" element={<SignInAdmin />} />
-        <Route path="/admin/signOut" element={<SignUpAdmin />} />
+        <Route path="/admin/signUp" element={<SignUpAdmin />} />
 
         <Route
           path="/profile"

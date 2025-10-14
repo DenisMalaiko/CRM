@@ -1,5 +1,6 @@
-export type TUser = {
-  id?: string;
+import { TBaseModel } from "./BaseModel";
+
+export type TUser = TBaseModel & {
   name: string;
   email: string;
 }
@@ -13,6 +14,10 @@ export type TUserSignIn = {
   password: string;
 }
 
-export type TAdmin = TUserSignUp & {
+export type TAdmin = {
+  id?: string;
+  name: string;
+  email: string;
+  password?: string;
   isAdmin: boolean;
 }
