@@ -1,16 +1,16 @@
-import React from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { AppDispatch, RootState } from '../../../store';
-import { toast } from "react-toastify";
-import { signUpUser } from '../../../store/auth/authThunks';
+import React, {useState} from "react";
+import {useDispatch} from "react-redux";
+import {AppDispatch} from '../../../store';
+import {toast} from "react-toastify";
+import {createBusiness} from '../../../store/business/businessThunks';
 
-import { Link } from "react-router-dom";
-import { useState } from "react";
-import { isEmail, isPassword, isRepeatPassword, minLength } from "../../../utils/validations";
-import { ApiResponse } from "../../../models/ApiResponse";
-import { TUser } from "../../../models/User";
-import { MiniTranslate } from "../../../enum/miniTranslate";
-import { BusinessIndustry } from "../../../enum/BusinessIndustry";
+import {Link} from "react-router-dom";
+import {isEmail, isPassword, isRepeatPassword, minLength} from "../../../utils/validations";
+import {ApiResponse} from "../../../models/ApiResponse";
+import {MiniTranslate} from "../../../enum/miniTranslate";
+import {BusinessIndustry} from "../../../enum/BusinessIndustry";
+import {Tiers} from "../../../enum/Tiers";
+import {TBusiness} from "../../../models/Business";
 
 function SignUp() {
   const dispatch = useDispatch<AppDispatch>();
@@ -18,11 +18,14 @@ function SignUp() {
   const [email, setEmail] = useState("malaiko.denis@gmail.com");
   const [password, setPassword] = useState("Ab12345$");
   const [repeatPassword, setRepeatPassword] = useState("Ab12345$");
+
   const [businessName, setBusinessName] = useState("Business Name");
-  const [businessType, setBusinessType] = useState("Business Name");
+  const [industry, setIndustry] = useState<BusinessIndustry>(BusinessIndustry.BeautyWellness);
+  const [tier, setTier] = useState<Tiers>(Tiers.Free);
 
   const [errors, setErrors]: any = useState({});
   const Business = Object.values(BusinessIndustry);
+  const TierList = Object.values(Tiers);
 
   const validateField = (name: string, data: any) => {
     let error: string | null = null;
@@ -30,7 +33,10 @@ function SignUp() {
     if (name === "email") error = isEmail(data.value);
     if (name === "password") error = isPassword(data.value);
     if (name === "repeatPassword") error = isRepeatPassword(data.value, data.repeatPassword);
+
     if (name === "businessName") error = minLength(data.value, 3);
+    if (name === "industry") error = minLength(data.value, 3);
+    if (name === "tier") error = minLength(data.value, 3);
     setErrors((prev: any) => ({ ...prev, [name]: error }));
   };
 
@@ -40,11 +46,19 @@ function SignUp() {
     if (!window.utils.validateForm(errors)) return;
 
     try {
-      const response: ApiResponse<TUser> = await dispatch(
-        signUpUser({ name, email, password })
+      const businessResponse: ApiResponse<TBusiness> = await dispatch(
+        createBusiness({ name: businessName, industry, tier  }),
       ).unwrap();
 
-      toast.success(response.message);
+      console.log("BUSINESS RESPONSE: ", businessResponse);
+
+
+
+      /*const response: ApiResponse<TUser> = await dispatch(
+        signUpUser({ name, email, password })
+      ).unwrap();*/
+
+      //toast.success(response.message);
       toast.success(MiniTranslate.YouCanSignIn);
     } catch (error: any) {
       toast.error(error.message);
@@ -148,16 +162,35 @@ function SignUp() {
           <div>
             <label className="block text-sm font-medium text-slate-700 text-left">Business Type</label>
             <select
-              name="businessType"
-              value={businessType}
+              name="industry"
+              value={industry}
               onChange={(e) => {
-                setBusinessType(e.target.value);
-                validateField("businessType", { value: e.target.value })
+                const selectedValue: BusinessIndustry = e.target.value as BusinessIndustry;
+                setIndustry(selectedValue);
+                validateField("industry", { value: selectedValue });
               }}
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
             >
               { Business.map((type: string) => (
                 <option key={type} value={type}>{type}</option>
+              )) }
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 text-left">Tier</label>
+            <select
+              name="tier"
+              value={tier}
+              onChange={(e) => {
+                const selectedValue: Tiers = e.target.value as Tiers;
+                setTier(selectedValue);
+                validateField("tier", { value: selectedValue })
+              }}
+              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
+            >
+              { TierList.map((tier: string) => (
+                <option key={tier} value={tier}>{tier}</option>
               )) }
             </select>
           </div>
