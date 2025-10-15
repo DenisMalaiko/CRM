@@ -11,9 +11,6 @@ export class BusinessService {
   ) {}
 
   async createBusiness(body: Business) {
-    console.log("START BUSINESSES");
-    console.log("BODY ", body)
-
     const business: BusinessResponse = await this.prisma.business.create({
       data: {
         name: body.name,
@@ -26,6 +23,16 @@ export class BusinessService {
       statusCode: 200,
       message: "Business has been created!",
       data: business,
+    };
+  }
+
+  async getBusinessList() {
+    const businessList = await this.prisma.business.findMany();
+
+    return {
+      statusCode: 200,
+      message: "Business list has been got!",
+      data: businessList,
     };
   }
 }

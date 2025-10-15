@@ -8,6 +8,7 @@ import { ApiResponse } from "../../../models/ApiResponse";
 import { TUser } from "../../../models/User";
 import { AppDispatch } from "../../../store";
 import { signInAdmin } from "../../../store/admin/adminThunks";
+import { getBusinessList } from "../../../store/business/businessThunks";
 
 function SignInAdmin() {
   const dispatch = useDispatch<AppDispatch>();
@@ -33,6 +34,8 @@ function SignInAdmin() {
       const response: ApiResponse<TUser> = await dispatch(
         signInAdmin({ email, password })
       ).unwrap();
+
+      await dispatch(getBusinessList())
 
       toast.success(response.message);
 

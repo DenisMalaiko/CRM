@@ -1,6 +1,11 @@
 import React from "react";
+import { useSelector } from "react-redux";
+import { RootState } from "../../../store";
 
 function List() {
+  const { businessList } = useSelector((state: RootState) => state.businessModule);
+
+
   return (
     <section>
       <section>
@@ -16,6 +21,8 @@ function List() {
       <div className="w-full mx-auto p-4">
         <div className="overflow-hidden rounded-xl border border-slate-200 shadow">
           <h3>Table</h3>
+
+          <pre>{JSON.stringify(businessList)}</pre>
         </div>
       </div>
     </section>

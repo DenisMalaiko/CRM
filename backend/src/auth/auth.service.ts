@@ -26,8 +26,8 @@ export class AuthService {
     const hashedPassword = await bcrypt.hash(body.password, this.SALT_ROUNDS);
 
     const user: UserResponse = await this.prisma.user.create({
-      data: { email: body.email, name: body.name, password: hashedPassword },
-      select: { id: true, email: true, name: true }
+      data: { email: body.email, name: body.name, businessId: body.businessId, password: hashedPassword },
+      select: { id: true, email: true, name: true, businessId: true }
     });
 
     return {
@@ -43,7 +43,7 @@ export class AuthService {
 
     const response: User | null = await this.prisma.user.findUnique({
       where: { email: body.email },
-      select: { id: true, email: true, name: true, password: true }
+      select: { id: true, email: true, name: true, password: true, businessId: true }
     });
 
     if (!response)
@@ -58,6 +58,7 @@ export class AuthService {
       id: response.id,
       email: response.email,
       name: response.name,
+      businessId: response.businessId
     };
 
     return await this._generateToken(user);

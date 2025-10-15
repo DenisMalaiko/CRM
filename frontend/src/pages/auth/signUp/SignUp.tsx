@@ -3,6 +3,7 @@ import {useDispatch} from "react-redux";
 import {AppDispatch} from '../../../store';
 import {toast} from "react-toastify";
 import {createBusiness} from '../../../store/business/businessThunks';
+import {signUpUser} from "../../../store/auth/authThunks";
 
 import {Link} from "react-router-dom";
 import {isEmail, isPassword, isRepeatPassword, minLength} from "../../../utils/validations";
@@ -11,6 +12,7 @@ import {MiniTranslate} from "../../../enum/miniTranslate";
 import {BusinessIndustry} from "../../../enum/BusinessIndustry";
 import {Tiers} from "../../../enum/Tiers";
 import {TBusiness} from "../../../models/Business";
+import {TUser} from "../../../models/User";
 
 function SignUp() {
   const dispatch = useDispatch<AppDispatch>();
@@ -50,16 +52,15 @@ function SignUp() {
         createBusiness({ name: businessName, industry, tier  }),
       ).unwrap();
 
-      console.log("BUSINESS RESPONSE: ", businessResponse);
+      if(businessResponse.statusCode === 200 && businessResponse.data?.id) {
+        const response: ApiResponse<TUser> = await dispatch(
+          signUpUser({ businessId: businessResponse?.data?.id, name, email, password })
+        ).unwrap();
 
-
-
-      /*const response: ApiResponse<TUser> = await dispatch(
-        signUpUser({ name, email, password })
-      ).unwrap();*/
-
-      //toast.success(response.message);
-      toast.success(MiniTranslate.YouCanSignIn);
+        toast.success(businessResponse.message);
+        toast.success(response.message);
+        toast.success(MiniTranslate.YouCanSignIn);
+      }
     } catch (error: any) {
       toast.error(error.message);
     }

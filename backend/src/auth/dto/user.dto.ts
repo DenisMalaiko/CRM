@@ -10,4 +10,7 @@ export class UserDto {
   @IsString()
   @MinLength(8)
   password: string;
+
+  @IsString()
+  businessId: string;
 }
