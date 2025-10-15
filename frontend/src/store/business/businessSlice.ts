@@ -1,5 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { TBusiness } from "../../models/Business";
+import { getBusinessList } from "./businessThunks";
 
 type BusinessState = {
   businessList: TBusiness[] | null;
@@ -20,18 +21,18 @@ const businessSlice = createSlice({
   initialState,
   reducers: {},
   extraReducers: (builder) => {
-    /*    builder
-          .addCase(signUpUser.pending, (state) => {
-            state.loading = true;
-          })
-          .addCase(signUpUser.fulfilled, (state, action) => {
-            state.loading = false;
-            state.user = action.payload.data;
-          })
-          .addCase(signUpUser.rejected, (state, action) => {
-            state.loading = false;
-            state.error = action.error.message ?? 'Error';
-          })*/
+    builder
+      .addCase(getBusinessList.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(getBusinessList.fulfilled, (state, action) => {
+        state.loading = false;
+        state.businessList = action.payload.data;
+      })
+      .addCase(getBusinessList.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message ?? 'Error';
+      })
   }
 });
 

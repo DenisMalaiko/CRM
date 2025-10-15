@@ -1,4 +1,4 @@
-import {Post, Body, Controller, Req, Res} from '@nestjs/common';
+import {Post, Get, Body, Controller, Req, Res} from '@nestjs/common';
 import type {Request as ExpressRequest} from "express";
 
 import {AdminService} from './admin.service';

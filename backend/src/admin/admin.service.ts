@@ -21,7 +21,6 @@ export class AdminService {
     private readonly jwt: JwtService
   ) {}
 
-
   async signUp(body: AdminDto): Promise<ApiResponse<AdminResponse>> {
     await this._checkExistingAdmin(body.email);
 

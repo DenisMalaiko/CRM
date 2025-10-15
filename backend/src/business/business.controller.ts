@@ -1,4 +1,4 @@
-import {Body, Controller, Post, Res} from '@nestjs/common';
+import {Body, Controller, Get, Post, Res} from '@nestjs/common';
 import {BusinessService} from "./business.service";
 import {BusinessDto} from "./dto/business.dto";
 
@@ -8,9 +8,12 @@ export class BusinessController {
 
   @Post("/createBusiness")
   async createBusiness(@Body() body: BusinessDto, @Res() res: any) {
-    console.log("CREATE BUSINESS ", body);
     const response = await this.businessService.createBusiness(body);
-
     return res.json(response);
+  }
+
+  @Get("/businessList")
+  async getBusinessList() {
+    return await this.businessService.getBusinessList();
   }
 }
