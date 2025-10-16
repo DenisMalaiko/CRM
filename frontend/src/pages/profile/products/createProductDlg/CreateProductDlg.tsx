@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useDispatch } from 'react-redux';
-import { AppDispatch } from "../../../../store";
+import { useDispatch, useSelector } from 'react-redux';
+import { AppDispatch, RootState } from "../../../../store";
 import { createProduct, updateProduct, getProducts } from "../../../../store/products/productsThunks";
 
 import { ProductStatus } from "../../../../enum/ProductStatus";
@@ -10,6 +10,7 @@ import { toast } from "react-toastify";
 
 function CreateProductDlg({ open, onClose, product }: any) {
   const dispatch = useDispatch<AppDispatch>();
+  const { user } = useSelector((state: RootState) => state.authModule);
   const statuses = Object.values(ProductStatus);
   const categories = Object.values(Categories);
   const isEdit = !!product;
@@ -22,6 +23,7 @@ function CreateProductDlg({ open, onClose, product }: any) {
     stock: 10,
     category: Categories.Transport,
     status: ProductStatus.Active,
+    businessId: user?.businessId,
   });
   const [errors, setErrors]: any = useState({});
 
@@ -36,6 +38,7 @@ function CreateProductDlg({ open, onClose, product }: any) {
         stock: product.stock,
         category: product.category,
         status: product.status,
+        businessId: product.businessId,
       });
     } else {
       setForm({
@@ -46,6 +49,7 @@ function CreateProductDlg({ open, onClose, product }: any) {
         stock: 0,
         category: Categories.Transport,
         status: ProductStatus.Active,
+        businessId: user?.businessId,
       });
     }
   }, [product, isEdit, open]);

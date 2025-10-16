@@ -5,6 +5,7 @@ import { TUser } from "../../models/User";
 type AuthState = {
   isAuthenticatedUser: boolean
   user: TUser | null
+  usersByBusinessId: TUser[] | null
   loading: boolean
   error: string | null | any
   accessToken: string | null
@@ -13,6 +14,7 @@ type AuthState = {
 const initialState: AuthState = {
   isAuthenticatedUser: false,
   user: null,
+  usersByBusinessId: null,
   loading: false,
   error: null,
   accessToken: null

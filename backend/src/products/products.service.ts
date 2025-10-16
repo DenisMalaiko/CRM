@@ -18,6 +18,7 @@ export class ProductsService {
         stock: body.stock,
         category: body.category,
         status: body.status,
+        businessId: body.businessId
       }
     })
 
@@ -54,6 +55,7 @@ export class ProductsService {
           stock: body.stock,
           category: body.category,
           status: body.status,
+          businessId: body?.businessId
         }
       });
 

@@ -1,19 +1,26 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { TUser, TAdmin } from "../../models/User";
-import { TUserSignUp, TUserSignIn } from "../../models/User";
+import { TUser, TSignUpPayload, TUserSignIn } from "../../models/User";
+import { TBusiness } from "../../models/Business";
 import { ApiResponse } from "../../models/ApiResponse";
 import { buildError } from "../../utils/apiError";
 
-export const signUpUser = createAsyncThunk(
+export const signUpUser = createAsyncThunk<
+  ApiResponse<TUser>,
+  TSignUpPayload,
+  { rejectValue: ApiResponse<null> }
+>(
   'auth/signUpUser',
-  async (credentials: TUserSignUp, { rejectWithValue }) => {
+  async ({ user, business }: TSignUpPayload, { rejectWithValue }) => {
     const API_URL: string | undefined = process.env.REACT_APP_API;
 
     try {
       const res = await fetch(`${API_URL}/auth/signUp`, {
         method: "POST",
         headers: {"Content-Type": "application/json"},
-        body: JSON.stringify(credentials),
+        body: JSON.stringify({
+          user: user,
+          business: business,
+        }),
       });
 
       const data: ApiResponse<TUser> = await res.json();
@@ -31,7 +38,7 @@ export const signUpUser = createAsyncThunk(
 
 export const signInUser = createAsyncThunk(
   'auth/signInUser',
-  async (credentials: TUserSignIn, { rejectWithValue })=> {
+  async (credentials: TUserSignIn, { rejectWithValue }) => {
     const API_URL: string | undefined = process.env.REACT_APP_API;
 
     try {
@@ -59,7 +66,7 @@ export const signInUser = createAsyncThunk(
 
 export const signOutUser = createAsyncThunk(
   'auth/signOut',
-  async (_, { rejectWithValue, getState }) => {
+  async (_, { rejectWithValue }) => {
     const API_URL: string | undefined = process.env.REACT_APP_API;
 
     try {

@@ -3,13 +3,14 @@ import type { Request as ExpressRequest } from 'express';
 import { AuthService } from './auth.service';
 import { UserDto } from "./dto/user.dto";
 import { CredentialsDto } from "./dto/credentials.dto";
+import { SignUpDto } from "./dto/signUp.dto";
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post("/signUp")
-  async signUp(@Body() body: UserDto, @Req() req: ExpressRequest) {
+  async signUp(@Body() body: SignUpDto, @Req() req: ExpressRequest) {
     return await this.authService.signUp(body);
   }
 

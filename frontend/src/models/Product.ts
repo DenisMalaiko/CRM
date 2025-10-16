@@ -1,8 +1,8 @@
+import { TBaseModel } from "./BaseModel";
 import { ProductStatus } from "../enum/ProductStatus";
 import { Categories } from "../enum/Categories";
 
-export type TProduct = {
-  id?: string;
+export type TProduct = TBaseModel & {
   name: string;
   description: string;
   sku: string;

@@ -6,28 +6,28 @@ import { ProductDto } from "./dto/product.dto";
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
-  @Post("/createProduct")
-  async createProduct(@Body() body: ProductDto, @Res() res: any) {
-    const response = await this.productsService.createProduct(body);
-
-    return res.json(response);
-  }
-
-  @Get("/getProducts")
+  @Get("/")
   async getProducts(@Res() res: any) {
     const response = await this.productsService.getProducts();
 
     return res.json(response);
   }
 
-  @Patch("/updateProduct/:id")
+  @Post("/create")
+  async createProduct(@Body() body: ProductDto, @Res() res: any) {
+    const response = await this.productsService.createProduct(body);
+
+    return res.json(response);
+  }
+
+  @Patch("/update/:id")
   async updateProduct(@Param("id") id: string, @Body() body: ProductDto, @Res() res: any) {
     const response = await this.productsService.updateProduct(id, body);
 
     return res.json(response);
   }
 
-  @Delete("/deleteProduct/:id")
+  @Delete("/delete/:id")
   async deleteProduct(@Param("id") id: string, @Res() res: any) {
     const response = await this.productsService.deleteProduct(id);
 

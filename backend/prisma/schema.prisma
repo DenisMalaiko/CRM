@@ -54,6 +54,7 @@ model Business {
 
 model Product {
   id        String   @id @default(uuid())
+  businessId String
   name      String
   description String
   sku       String

@@ -48,19 +48,15 @@ function SignUp() {
     if (!window.utils.validateForm(errors)) return;
 
     try {
-      const businessResponse: ApiResponse<TBusiness> = await dispatch(
-        createBusiness({ name: businessName, industry, tier  }),
+      const response: ApiResponse<TUser> = await dispatch(
+        signUpUser({
+          user: { name, email, password },
+          business: { name: businessName, industry, tier }
+        })
       ).unwrap();
 
-      if(businessResponse.statusCode === 200 && businessResponse.data?.id) {
-        const response: ApiResponse<TUser> = await dispatch(
-          signUpUser({ businessId: businessResponse?.data?.id, name, email, password })
-        ).unwrap();
-
-        toast.success(businessResponse.message);
-        toast.success(response.message);
-        toast.success(MiniTranslate.YouCanSignIn);
-      }
+      toast.success(response.message);
+      toast.success(MiniTranslate.YouCanSignIn);
     } catch (error: any) {
       toast.error(error.message);
     }
