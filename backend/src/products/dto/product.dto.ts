@@ -6,6 +6,10 @@ export class ProductDto {
   @IsOptional()
   id?: string;
 
+  @IsUUID()
+  @IsOptional()
+  businessId: string;
+
   @IsString()
   name: string;
 

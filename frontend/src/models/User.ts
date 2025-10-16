@@ -1,4 +1,5 @@
 import { TBaseModel } from "./BaseModel";
+import { TBusiness } from "./Business";
 
 export type TUser = TBaseModel & {
   name: string;
@@ -20,4 +21,9 @@ export type TAdmin = {
   email: string;
   password?: string;
   isAdmin: boolean;
+}
+
+export type TSignUpPayload = {
+  user: TUserSignUp;
+  business: TBusiness;
 }

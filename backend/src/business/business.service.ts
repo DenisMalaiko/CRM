@@ -27,12 +27,37 @@ export class BusinessService {
   }
 
   async getBusinessList() {
-    const businessList = await this.prisma.business.findMany();
+    const businessList: BusinessResponse[] = await this.prisma.business.findMany();
 
     return {
       statusCode: 200,
       message: "Business list has been got!",
       data: businessList,
+    };
+  }
+
+  async getBusiness(id: string) {
+    const business = await this.prisma.business.findUnique({
+      where: { id },
+    });
+
+    return {
+      statusCode: 200,
+      message: "Business has been got!",
+      data: business,
+    };
+  }
+
+  async getUsersByBusinessId(id: string) {
+    const users = await this.prisma.user.findMany({
+      where: { businessId: id },
+      select: { id: true, email: true, name: true }
+    });
+
+    return {
+      statusCode: 200,
+      message: "Users has been got!",
+      data: users,
     };
   }
 }

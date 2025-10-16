@@ -21,6 +21,7 @@ import SignInAdmin from './pages/admin/signIn/signInAdmin';
 import SignUpAdmin from './pages/admin/signUp/signUpAdmin';
 import Panel from './pages/admin/panel/panel';
 import List from './pages/admin/list/list';
+import Business from './pages/admin/business/business';
 
 // Profile
 import Profile from "./pages/profile/Profile";
@@ -76,6 +77,7 @@ function App() {
           }
         >
           <Route path="list" element={<List />} />
+          <Route path="list/:id" element={<Business />} />
         </Route>
       </Routes>
 

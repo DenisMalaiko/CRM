@@ -4,12 +4,12 @@ import {buildError} from "../../utils/apiError";
 import {ApiResponse} from "../../models/ApiResponse";
 
 export const createProduct = createAsyncThunk(
-  'products/createProduct',
+  'products/create',
   async (form: TProduct, { rejectWithValue }) => {
     const API_URL: string | undefined = process.env.REACT_APP_API;
 
     try {
-      const res = await fetch(`${API_URL}/products/createProduct`, {
+      const res = await fetch(`${API_URL}/products/create`, {
         method: "POST",
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify(form),
@@ -32,12 +32,12 @@ export const updateProduct = createAsyncThunk<
   { id: string, form: TProduct, },
   { rejectValue: ApiResponse<null> }
 >(
-  'products/updateProduct',
+  'products/update',
   async ({ id, form }, { rejectWithValue }) => {
     const API_URL: string | undefined = process.env.REACT_APP_API;
 
     try {
-      const res = await fetch(`${API_URL}/products/updateProduct/${id}`, {
+      const res = await fetch(`${API_URL}/products/update/${id}`, {
         method: "PATCH",
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify(form),
@@ -56,12 +56,12 @@ export const updateProduct = createAsyncThunk<
   })
 
 export const deleteProduct = createAsyncThunk(
-  'products/deleteProduct',
+  'products/delete',
   async (id: string, { rejectWithValue }) => {
     const API_URL: string | undefined = process.env.REACT_APP_API;
 
     try {
-      const res = await fetch(`${API_URL}/products/deleteProduct/${id}`, {
+      const res = await fetch(`${API_URL}/products/delete/${id}`, {
         method: "DELETE",
         headers: {"Content-Type": "application/json"},
       });
@@ -89,7 +89,7 @@ export const getProducts = createAsyncThunk<
     const API_URL: string | undefined = process.env.REACT_APP_API;
 
     try {
-      const res = await fetch(`${API_URL}/products/getProducts`, {
+      const res = await fetch(`${API_URL}/products/`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
       });

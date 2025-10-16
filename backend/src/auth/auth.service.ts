@@ -6,6 +6,7 @@ import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from "../prisma/prisma.service";
 import { UserDto } from "./dto/user.dto";
 import { CredentialsDto } from "./dto/credentials.dto";
+import { SignUpDto } from "./dto/signUp.dto";
 
 import { User, UserResponse } from "./entities/user.entity";
 import {AuthResponse} from "../entities/authResponse.entity";
@@ -20,21 +21,31 @@ export class AuthService {
     private readonly jwt: JwtService
   ) {}
 
-  async signUp(body: UserDto): Promise<ApiResponse<UserResponse>> {
-    await this._checkExistingUser(body.email);
+  async signUp(body: SignUpDto): Promise<ApiResponse<UserResponse>> {
+    return this.prisma.$transaction(async (tx) => {
+      await this._checkExistingUser(body.user?.email);
 
-    const hashedPassword = await bcrypt.hash(body.password, this.SALT_ROUNDS);
+      const business = await tx.business.create({
+        data: {
+          name: body.business.name,
+          industry: body.business.industry,
+          tier: body.business.tier,
+        },
+      });
 
-    const user: UserResponse = await this.prisma.user.create({
-      data: { email: body.email, name: body.name, businessId: body.businessId, password: hashedPassword },
-      select: { id: true, email: true, name: true, businessId: true }
-    });
+      const hashedPassword = await bcrypt.hash(body.user.password, this.SALT_ROUNDS);
 
-    return {
-      statusCode: 200,
-      message: "User has been created!",
-      data: user,
-    };
+      const user: UserResponse = await this.prisma.user.create({
+        data: { email: body.user.email, name: body.user.name, businessId: business.id, password: hashedPassword },
+        select: { id: true, email: true, name: true, businessId: true }
+      });
+
+      return {
+        statusCode: 200,
+        message: "User has been created!",
+        data: user,
+      };
+    })
   }
 
   async signIn(body: CredentialsDto): Promise<ApiResponse<AuthResponse<UserResponse>>> {
