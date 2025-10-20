@@ -1,6 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { TClient } from "../../models/Client";
 import {signUpUser} from "../auth/authThunks";
+import { getClients } from "./clientsThunks";
 
 type ClientsState = {
   clients: TClient[] | null;
@@ -19,17 +20,20 @@ const clientSlice = createSlice({
   initialState,
   reducers: {},
   extraReducers: (builder) => {
-/*    builder
-      .addCase(signUpUser.pending, (state) => {
+    builder
+      .addCase(getClients.pending, (state) => {
         state.loading = true;
       })
-      .addCase(signUpUser.fulfilled, (state, action) => {
+      .addCase(getClients.fulfilled, (state, action) => {
         state.loading = false;
-        state.user = action.payload.data;
+        state.clients = action.payload.data;
       })
-      .addCase(signUpUser.rejected, (state, action) => {
+      .addCase(getClients.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message ?? 'Error';
-      })*/
+      })
   }
 })
+
+export const { } = clientSlice.actions
+export default clientSlice.reducer
