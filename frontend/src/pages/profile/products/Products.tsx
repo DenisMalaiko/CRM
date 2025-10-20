@@ -56,7 +56,6 @@ function Products() {
   }
 
   const openEditProduct = async (item: TProduct) => {
-    console.log("PRODUCT: ", item);
     setSelectedProduct(item);
     setOpen(true)
   }

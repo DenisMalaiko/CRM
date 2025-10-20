@@ -65,3 +65,16 @@ model Product {
   image     String?
   updatedAt DateTime @updatedAt
 }
+
+model Client {
+  id         String   @id @default(uuid())
+  businessId String
+  firstName  String
+  lastName   String
+  email      String
+  phoneNumber String
+  address    String
+  role       String
+  isActive   Boolean
+  updatedAt  DateTime @updatedAt
+}
