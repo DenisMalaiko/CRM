@@ -14,6 +14,12 @@ export const isEmail = (value: string) => {
   return regex.test(value) ? null : "Invalid email address";
 }
 
+export const isPhoneNumber = (value: string) => {
+  if (!value) return "Phone number is required";
+  const regex = /^[+]?[\d\s().-]{9,20}$/;
+  return regex.test(value) ? null : "Invalid phone number";
+};
+
 export const isPassword = (value: string) => {
   if (!value) return "Password is required";
   const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;

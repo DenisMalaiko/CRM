@@ -1,54 +1,56 @@
 import React, { useState, useEffect } from 'react';
-import { useDispatch } from 'react-redux';
-import { AppDispatch } from "../../../../store";
-import { createProduct, updateProduct, getProducts } from "../../../../store/products/productsThunks";
+import {useDispatch, useSelector} from 'react-redux';
+import {AppDispatch, RootState} from "../../../../store";
+import { createClient, getClients } from "../../../../store/clients/clientsThunks";
 
-import { ProductStatus } from "../../../../enum/ProductStatus";
-import { isRequired, minLength} from "../../../../utils/validations";
-import { Categories } from "../../../../enum/Categories";
+import {isEmail, isPhoneNumber, isRequired, minLength} from "../../../../utils/validations";
+import { ClientRoles } from "../../../../enum/ClientRoles";
 import { toast } from "react-toastify";
 
-function CreateClientsDlg({ open, onClose, product }: any) {
+function CreateClientsDlg({ open, onClose, client }: any) {
   const dispatch = useDispatch<AppDispatch>();
-  const statuses = Object.values(ProductStatus);
-  const categories = Object.values(Categories);
-  const isEdit = !!product;
+  const { user } = useSelector((state: RootState) => state.authModule);
+  const roles = Object.values(ClientRoles);
+  const isEdit = !!client;
 
   const [form, setForm] = useState({
-    name: "Product Name",
-    description: "Product Description",
-    sku: "123456",
-    price: 10,
-    stock: 10,
-    category: Categories.Transport,
-    status: ProductStatus.Active,
+    firstName: "",
+    lastName: "",
+    email: "",
+    phoneNumber: "",
+    address: "",
+    role: ClientRoles.Customer,
+    isActive: true,
+    businessId: user?.businessId,
   });
   const [errors, setErrors]: any = useState({});
 
 
   useEffect(() => {
-    if (isEdit && product) {
+    if (isEdit && client) {
       setForm({
-        name: product.name,
-        description: product.description,
-        sku: product.sku,
-        price: product.price,
-        stock: product.stock,
-        category: product.category,
-        status: product.status,
+        firstName: client.name,
+        lastName: client.lastName,
+        businessId: client.businessId,
+        email: client.email,
+        phoneNumber: client.phoneNumber,
+        address: client.address,
+        role: client.role,
+        isActive: client.isActive,
       });
     } else {
       setForm({
-        name: "",
-        description: "",
-        sku: "",
-        price: 0,
-        stock: 0,
-        category: Categories.Transport,
-        status: ProductStatus.Active,
+        firstName: "",
+        lastName: "",
+        businessId: user?.businessId,
+        email: "",
+        phoneNumber: "",
+        address: "",
+        role: ClientRoles.Customer,
+        isActive: true,
       });
     }
-  }, [product, isEdit, open]);
+  }, [client, isEdit, open]);
 
 
   if (!open) return null;
@@ -63,10 +65,14 @@ function CreateClientsDlg({ open, onClose, product }: any) {
 
   const validateField = (name: string, data: any) => {
     let error: string | null = null;
-    if (name === "name") error = minLength(data.value, 3);
-    if (name === "description") error = minLength(data.value, 10);
-    if (name === "sku") error = minLength(data.value, 6);
-    if (name === "category") error = isRequired(data.value);
+    if (name === "firstName") error = minLength(data.value, 2);
+    if (name === "lastName") error = minLength(data.value, 2);
+    if (name === "email") error = isEmail(data.value);
+    if (name === "phoneNumber") error = isPhoneNumber(data.value);
+    if (name === "address") error = minLength(data.value, 2);
+    if (name === "role") error = minLength(data.value, 2);
+    if (name === "isActive") error = minLength(data.value, 2);
+    if (name === "businessId") error = minLength(data.value, 2);
     setErrors((prev: any) => ({ ...prev, [name]: error }));
   };
 
@@ -74,18 +80,17 @@ function CreateClientsDlg({ open, onClose, product }: any) {
     e.preventDefault();
     try {
       let response;
-      form.price = Number(form.price);
-      form.stock = Number(form.stock);
+      console.log("FORM ", form)
 
-      if (isEdit) {
-        response = await dispatch(updateProduct({ id: product!.id, form })).unwrap();
-      } else {
-        response = await dispatch(createProduct(form)).unwrap();
-      }
+      /*if (isEdit) {
+        response.message = "ERROR";
+        //response = await dispatch(updateProduct({ id: client!.id, form })).unwrap();
+      } else {*/
+        response = await dispatch(createClient(form)).unwrap();
+      //}
 
-      await dispatch(getProducts());
+      await dispatch(getClients());
       toast.success(response.message);
-
       onClose();
     } catch (error: any) {
       toast.error(error.message);
@@ -97,7 +102,7 @@ function CreateClientsDlg({ open, onClose, product }: any) {
       <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl p-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">Create Product</h2>
+          <h2 className="text-lg font-semibold">Create Client</h2>
           <button
             onClick={onClose}
             className="text-slate-500 hover:text-slate-700 rounded-full p-1 hover:bg-slate-100"
@@ -108,108 +113,99 @@ function CreateClientsDlg({ open, onClose, product }: any) {
 
         {/* Form */}
         <form className="space-y-4" onSubmit={create} action="">
-          <div>
-            <label className="block text-sm font-medium text-slate-700 text-left">Product Name {form.name}</label>
-            <input
-              type="text"
-              name="name"
-              value={form.name}
-              onChange={(e) => {
-                handleChange(e);
-                validateField("name", { value: e.target.value })
-              }}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
-              placeholder="Enter product name"
-            />
-            {errors.name && <p className="text-red-500 text-sm mt-2 text-left">{errors.name}</p>}
-          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 text-left">Client First Name</label>
+              <input
+                type="text"
+                name="firstName"
+                value={form.firstName}
+                onChange={(e) => {
+                  handleChange(e);
+                  validateField("firstName", { value: e.target.value })
+                }}
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
+                placeholder="Enter firstname"
+              />
+              {errors.firstName && <p className="text-red-500 text-sm mt-2 text-left">{errors.firstName}</p>}
+            </div>
 
-          <div>
-            <label className="block text-sm font-medium text-slate-700 text-left">Product Description</label>
-            <textarea
-              name="description"
-              value={form.description}
-              onChange={(e) => {
-                handleChange(e);
-                validateField("description", { value: e.target.value })
-              }}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
-              placeholder="Enter product description"
-            />
-            {errors.description && <p className="text-red-500 text-sm text-left">{errors.description}</p>}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 text-left">Client Last Name</label>
+              <input
+                type="text"
+                name="lastName"
+                value={form.lastName}
+                onChange={(e) => {
+                  handleChange(e);
+                  validateField("lastName", { value: e.target.value })
+                }}
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
+                placeholder="Enter lastname"
+              />
+              {errors.lastName && <p className="text-red-500 text-sm mt-2 text-left">{errors.lastName}</p>}
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 text-left">SKU</label>
+              <label className="block text-sm font-medium text-slate-700 text-left">Email</label>
               <input
                 type="text"
-                name="sku"
-                value={form.sku}
+                name="email"
+                value={form.email}
                 onChange={(e) => {
                   handleChange(e);
-                  validateField("sku", { value: e.target.value })
+                  validateField("email", { value: e.target.value })
                 }}
                 className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
-                placeholder="SKU123"
+                placeholder="Email"
               />
-              {errors.sku && <p className="text-red-500 text-sm mt-2 text-left">{errors.sku}</p>}
+              {errors.email && <p className="text-red-500 text-sm mt-2 text-left">{errors.email}</p>}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 text-left">Price</label>
+              <label className="block text-sm font-medium text-slate-700 text-left">Phone Number</label>
               <input
                 type="text"
-                name="price"
-                value={form.price}
+                name="phoneNumber"
+                value={form.phoneNumber}
                 onChange={handleChange}
                 step="0.01"
                 className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
-                placeholder="$0.00"
+                placeholder="+38 000 000 000"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 text-left">Stock</label>
+              <label className="block text-sm font-medium text-slate-700 text-left">Address</label>
               <input
                 type="text"
-                name="stock"
-                value={form.stock}
+                name="address"
+                value={form.address}
                 onChange={handleChange}
                 className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
-                placeholder="0"
+                placeholder="New York, NY"
               />
             </div>
+
             <div>
-              <label className="block text-sm font-medium text-slate-700 text-left">Category</label>
+              <label className="block text-sm font-medium text-slate-700 text-left">Role</label>
               <select
-                name="category"
-                value={form.category}
+                name="role"
+                value={form.role}
                 onChange={handleChange}
                 className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
               >
-                { categories.map((status: string) => (
-                  <option key={status} value={status}>{status}</option>
+                { roles.map((role: string) => (
+                  <option key={role} value={role}>{role}</option>
                 )) }
               </select>
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-slate-700 text-left">Status</label>
-            <select
-              name="status"
-              value={form.status}
-              onChange={handleChange}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
-            >
-              { statuses.map((status: string) => (
-                <option key={status} value={status}>{status}</option>
-              )) }
-            </select>
-          </div>
 
           {/* Actions */}
           <div className="flex justify-end gap-3 pt-4">
