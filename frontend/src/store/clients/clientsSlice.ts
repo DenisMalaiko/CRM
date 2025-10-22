@@ -1,7 +1,6 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { TClient } from "../../models/Client";
-import {signUpUser} from "../auth/authThunks";
+import { createSlice } from '@reduxjs/toolkit';
 import { getClients } from "./clientsThunks";
+import { TClient } from "../../models/Client";
 
 type ClientsState = {
   clients: TClient[] | null;
