@@ -4,6 +4,7 @@ import authModule from './auth/authSlice'
 import productsModule from './products/productsSlice'
 import businessModule from './business/businessSlice'
 import clientsModule from './clients/clientsSlice'
+import ordersModule from './orders/ordersSlice'
 
 export const store = configureStore({
   reducer: {
@@ -11,7 +12,8 @@ export const store = configureStore({
     authModule: authModule,
     productsModule: productsModule,
     businessModule: businessModule,
-    clientsModule: clientsModule
+    clientsModule: clientsModule,
+    ordersModule: ordersModule,
   }
 })
 

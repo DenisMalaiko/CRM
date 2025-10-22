@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import CreateProductDlg from "./createProductDlg/CreateProductDlg";
 import { TProduct } from "../../../models/Product";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from '../../../store';
@@ -7,6 +6,7 @@ import { getProducts, deleteProduct } from "../../../store/products/productsThun
 import { toast } from "react-toastify";
 import { confirm } from "../../../components/confirmDlg/ConfirmDlg";
 import { ProductStatus } from "../../../enum/ProductStatus";
+import CreateProductDlg from "./createProductDlg/CreateProductDlg";
 
 function Products() {
   const dispatch = useDispatch<AppDispatch>();

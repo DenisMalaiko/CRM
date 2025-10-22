@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../../../store";
-import CreateClientsDlg from "./createClientsDlg/CreateClientsDlg";
-import { getClients } from "../../../store/clients/clientsThunks";
+import { deleteClient, getClients } from "../../../store/clients/clientsThunks";
 import { TClient } from "../../../models/Client";
+import { confirm } from "../../../components/confirmDlg/ConfirmDlg";
+import { toast } from "react-toastify";
+import CreateClientsDlg from "./createClientsDlg/CreateClientsDlg";
 
 function Clients() {
   const dispatch = useDispatch<AppDispatch>();
@@ -26,6 +28,36 @@ function Clients() {
     { name: "Updated", key: "updatedAt" },
     { name: "Actions", key: "actions" }
   ];
+
+  const openConfirmDlg = async (e: any, item: TClient) => {
+    e.preventDefault();
+
+    const ok = await confirm({
+      title: "Delete Client",
+      message: "Are you sure you want to delete this client?",
+    });
+
+    if(ok) {
+      try {
+        if (item?.id != null) {
+          const response = await dispatch(
+            deleteClient(item?.id)
+          ).unwrap();
+
+          await dispatch(getClients());
+
+          toast.success(response.message);
+        }
+      } catch (error: any) {
+        toast.error(error.message);
+      }
+    }
+  }
+
+  const openEditClient = async (item: TClient) => {
+    setSelectedClient(item);
+    setOpen(true)
+  }
 
   return (
     <section>
@@ -77,10 +109,10 @@ function Clients() {
                 </td>
                 <td className="px-4 py-3 text-right">
                   <div className="flex items-center gap-2 justify-end">
-                    <button className="h-8 w-8 flex items-center justify-center rounded-lg border  text-slate-600 hover:bg-slate-50">
+                    <button onClick={() => openEditClient(item)} className="h-8 w-8 flex items-center justify-center rounded-lg border  text-slate-600 hover:bg-slate-50">
                       ✎
                     </button>
-                    <button className="h-8 w-8 flex items-center justify-center rounded-lg border text-rose-600 hover:bg-rose-50">
+                    <button onClick={(e) => openConfirmDlg(e, item)} className="h-8 w-8 flex items-center justify-center rounded-lg border text-rose-600 hover:bg-rose-50">
                       🗑
                     </button>
                   </div>

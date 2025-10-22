@@ -4,7 +4,7 @@ import { AppDispatch, RootState } from "../../../../store";
 import { createProduct, updateProduct, getProducts } from "../../../../store/products/productsThunks";
 
 import { ProductStatus } from "../../../../enum/ProductStatus";
-import { isRequired, minLength} from "../../../../utils/validations";
+import { isRequired, minLength } from "../../../../utils/validations";
 import { Categories } from "../../../../enum/Categories";
 import { toast } from "react-toastify";
 

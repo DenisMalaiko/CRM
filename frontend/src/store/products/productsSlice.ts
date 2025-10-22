@@ -1,16 +1,16 @@
-import { createSlice } from '@reduxjs/toolkit'
-import { getProducts } from './productsThunks'
+import { createSlice } from '@reduxjs/toolkit';
+import { getProducts } from './productsThunks';
 import { TProduct } from "../../models/Product";
 
 type ProductsState = {
+  products: TProduct[] | null
   loading: boolean
   error: string | null | any
-  products: TProduct[] | null
 }
 
 const initialState: ProductsState = {
-  loading: false,
   products: null,
+  loading: false,
   error: null,
 }
 

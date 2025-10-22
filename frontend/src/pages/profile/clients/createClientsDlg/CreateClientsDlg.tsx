@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import {useDispatch, useSelector} from 'react-redux';
-import {AppDispatch, RootState} from "../../../../store";
-import { createClient, getClients } from "../../../../store/clients/clientsThunks";
-
-import {isEmail, isPhoneNumber, isRequired, minLength} from "../../../../utils/validations";
+import { useDispatch, useSelector } from 'react-redux';
+import { AppDispatch, RootState } from "../../../../store";
+import { createClient, getClients, updateClient } from "../../../../store/clients/clientsThunks";
+import { isEmail, isPhoneNumber, minLength } from "../../../../utils/validations";
 import { ClientRoles } from "../../../../enum/ClientRoles";
 import { toast } from "react-toastify";
 
@@ -29,7 +28,7 @@ function CreateClientsDlg({ open, onClose, client }: any) {
   useEffect(() => {
     if (isEdit && client) {
       setForm({
-        firstName: client.name,
+        firstName: client.firstName,
         lastName: client.lastName,
         businessId: client.businessId,
         email: client.email,
@@ -80,14 +79,12 @@ function CreateClientsDlg({ open, onClose, client }: any) {
     e.preventDefault();
     try {
       let response;
-      console.log("FORM ", form)
 
-      /*if (isEdit) {
-        response.message = "ERROR";
-        //response = await dispatch(updateProduct({ id: client!.id, form })).unwrap();
-      } else {*/
+      if (isEdit) {
+        response = await dispatch(updateClient({ id: client!.id, form })).unwrap();
+      } else {
         response = await dispatch(createClient(form)).unwrap();
-      //}
+      }
 
       await dispatch(getClients());
       toast.success(response.message);
