@@ -7,10 +7,14 @@ import { isRequired, minLength } from "../../../../utils/validations";
 import { toast } from "react-toastify";
 import {PaymentMethod} from "../../../../enum/PaymentMethod";
 import {PaymentsStatus} from "../../../../enum/PaymentsStatus";
+import {getProducts} from "../../../../store/products/productsThunks";
+import {getClients} from "../../../../store/clients/clientsThunks";
 
 function CreateOrderDlg({ open, onClose, order }: any) {
   const dispatch = useDispatch<AppDispatch>();
   const { user } = useSelector((state: RootState) => state.authModule);
+  const { products } = useSelector((state: RootState) => state.productsModule);
+  const { clients } = useSelector((state: RootState) => state.clientsModule);
   const isEdit = !!order;
 
   const [form, setForm] = useState({
@@ -26,6 +30,8 @@ function CreateOrderDlg({ open, onClose, order }: any) {
   const [errors, setErrors]: any = useState({});
 
   useEffect(() => {
+    dispatch(getProducts());
+    dispatch(getClients());
     if (isEdit && order) {
       setForm({
         total: order.total,
@@ -107,8 +113,9 @@ function CreateOrderDlg({ open, onClose, order }: any) {
         {/* Form */}
         <form className="space-y-4" onSubmit={create} action="">
 
-          {/*<div>
-            <label className="block text-sm font-medium text-slate-700 text-left">Products</label>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 text-left">Products { form.productIds } </label>
+
             <select
               multiple
               name="products"
@@ -116,11 +123,13 @@ function CreateOrderDlg({ open, onClose, order }: any) {
               onChange={handleChange}
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
             >
-              { categories.map((status: string) => (
-                <option key={status} value={status}>{status}</option>
-              )) }
+              {products && products.map(product => (
+                <option key={product.id} value={product.id}>
+                  {product.name}
+                </option>
+              ))}
             </select>
-          </div>*/}
+          </div>
 
           <div>
             <label className="block text-sm font-medium text-slate-700 text-left">Order Notes</label>

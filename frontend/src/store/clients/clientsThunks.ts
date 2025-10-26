@@ -2,7 +2,7 @@ import { createAsyncThunk } from '@reduxjs/toolkit';
 import { ApiResponse } from "../../models/ApiResponse";
 import { TClient } from "../../models/Client";
 import { buildError } from "../../utils/apiError";
-import {TProduct} from "../../models/Product";
+import type { RootState } from "../../store";
 
 export const getClients = createAsyncThunk<
   ApiResponse<TClient[]>,
@@ -10,12 +10,13 @@ export const getClients = createAsyncThunk<
   { rejectValue: ApiResponse<null> }
 >(
   'clients/getClients',
-  async (_, { rejectWithValue }) => {
-    console.log("GET CLIENTS")
+  async (_, { rejectWithValue, getState }) => {
     const API_URL: string | undefined = process.env.REACT_APP_API;
+    const state = getState() as RootState;
+    const user = state.authModule.user;
 
     try {
-      const res = await fetch(`${API_URL}/clients/`, {
+      const res = await fetch(`${API_URL}/clients/${user?.businessId}`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
       });
