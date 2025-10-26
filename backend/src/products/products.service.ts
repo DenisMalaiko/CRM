@@ -8,8 +8,11 @@ export class ProductsService {
     private readonly prisma: PrismaService,
   ) {}
 
-  async getProducts() {
-    const products = await this.prisma.product.findMany();
+  async getProducts(businessId: string) {
+    const products = await this.prisma.product.findMany({
+      where: { businessId: businessId },
+      select: { id: true, businessId: true, name: true, description: true, sku: true, price: true, stock: true, category: true, status: true }
+    });
 
     return {
       statusCode: 200,
@@ -69,7 +72,7 @@ export class ProductsService {
         throw new NotFoundException(`Product with ID ${id} not found`);
       }
 
-      throw new InternalServerErrorException('Failed to delete product');
+      throw new InternalServerErrorException('Failed to update product');
     }
   }
 

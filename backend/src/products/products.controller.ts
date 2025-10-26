@@ -6,9 +6,13 @@ import { ProductDto } from "./dto/product.dto";
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
-  @Get("/")
-  async getProducts(@Res() res: any) {
-    const response = await this.productsService.getProducts();
+  @Get("/:id")
+  async getProducts(@Res() res: any, @Param() params: any) {
+    const businessId = params.id;
+
+    if(!businessId) return res.json([]);
+
+    const response = await this.productsService.getProducts(businessId);
 
     return res.json(response);
   }

@@ -2,6 +2,7 @@ import { createAsyncThunk } from '@reduxjs/toolkit';
 import { TProduct } from "../../models/Product";
 import {buildError} from "../../utils/apiError";
 import {ApiResponse} from "../../models/ApiResponse";
+import type { RootState } from "../../store";
 
 export const createProduct = createAsyncThunk(
   'products/create',
@@ -85,11 +86,13 @@ export const getProducts = createAsyncThunk<
   { rejectValue: ApiResponse<null> }
 >(
   'products/getProducts',
-  async (_, { rejectWithValue }) => {
+  async (_, { rejectWithValue, getState }) => {
     const API_URL: string | undefined = process.env.REACT_APP_API;
+    const state = getState() as RootState;
+    const user = state.authModule.user;
 
     try {
-      const res = await fetch(`${API_URL}/products/`, {
+      const res = await fetch(`${API_URL}/products/${user?.businessId}`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
       });

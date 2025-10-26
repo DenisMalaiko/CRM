@@ -1,0 +1,32 @@
+import {IsOptional, IsString, IsUUID, IsEmail, IsBoolean} from "class-validator";
+
+export class ClientDto {
+  @IsUUID()
+  @IsOptional()
+  id?: string;
+
+  @IsUUID()
+  @IsOptional()
+  businessId: string;
+
+  @IsString()
+  firstName: string;
+
+  @IsString()
+  lastName: string;
+
+  @IsEmail()
+  email: string;
+
+  @IsString()
+  phoneNumber: string;
+
+  @IsString()
+  address: string;
+
+  @IsString()
+  role: string;
+
+  @IsBoolean()
+  isActive: boolean;
+}
