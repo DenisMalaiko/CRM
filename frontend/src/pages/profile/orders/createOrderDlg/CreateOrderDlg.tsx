@@ -9,6 +9,14 @@ import {PaymentMethod} from "../../../../enum/PaymentMethod";
 import {PaymentsStatus} from "../../../../enum/PaymentsStatus";
 import {getProducts} from "../../../../store/products/productsThunks";
 import {getClients} from "../../../../store/clients/clientsThunks";
+import Select from 'react-select';
+import {TProduct} from "../../../../models/Product";
+import {TClient} from "../../../../models/Client";
+
+type OptionType = {
+  value: string | undefined;
+  label: string;
+};
 
 function CreateOrderDlg({ open, onClose, order }: any) {
   const dispatch = useDispatch<AppDispatch>();
@@ -17,11 +25,16 @@ function CreateOrderDlg({ open, onClose, order }: any) {
   const { clients } = useSelector((state: RootState) => state.clientsModule);
   const isEdit = !!order;
 
+  const productsOptions: OptionType[] = products?.map((product: TProduct) => ({
+    value: product.id,
+    label: product.name,
+  })) ?? [];
+
   const [form, setForm] = useState({
     total: 1,
     status: OrderStatus.Pending,
     productIds: [],
-    clientId: null,
+    clientId: "",
     paymentStatus: PaymentsStatus.Unpaid,
     paymentMethod: PaymentMethod.CreditCard,
     notes: "",
@@ -48,7 +61,7 @@ function CreateOrderDlg({ open, onClose, order }: any) {
         total: 1,
         status: OrderStatus.Pending,
         productIds: [],
-        clientId: null,
+        clientId: "",
         paymentStatus: PaymentsStatus.Unpaid,
         paymentMethod: PaymentMethod.CreditCard,
         notes: "",
@@ -67,12 +80,18 @@ function CreateOrderDlg({ open, onClose, order }: any) {
     }));
   }
 
+  const handleSelectChange = (name: string, selected: readonly OptionType[]) => {
+    setForm((prev) => ({
+      ...prev,
+      [name]: selected.map((opt) => opt.value),
+    }));
+  };
+
   const validateField = (name: string, data: any) => {
     let error: string | null = null;
-    if (name === "name") error = minLength(data.value, 3);
-    if (name === "description") error = minLength(data.value, 10);
-    if (name === "sku") error = minLength(data.value, 6);
-    if (name === "category") error = isRequired(data.value);
+    if (name === "notes") error = minLength(data.value, 3);
+    if (name === "clientId") error = isRequired(data.value);
+    if (name === "productsIds") error = isRequired(data.map((opt: any) => opt.value));
     setErrors((prev: any) => ({ ...prev, [name]: error }));
   };
 
@@ -114,20 +133,34 @@ function CreateOrderDlg({ open, onClose, order }: any) {
         <form className="space-y-4" onSubmit={create} action="">
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 text-left">Products { form.productIds } </label>
+            <label className="block text-sm font-medium text-slate-700 text-left">Products</label>
+            <Select<OptionType, true>
+              isMulti
+              name="colors"
+              options={productsOptions}
+              className="basic-multi-select"
+              classNamePrefix="select"
+              onChange={(selected) => {
+                handleSelectChange("productIds", selected);
+                validateField("productIds", { value: selected })
+              }}
+            />
+          </div>
 
+          <div>
+            <label className="block text-sm font-medium text-slate-700 text-left">Client</label>
             <select
-              multiple
-              name="products"
-              value={form.productIds}
-              onChange={handleChange}
+              name="clientId"
+              value={form.clientId}
+              onChange={(e) => {
+                handleChange(e);
+                validateField("clientId", { value: e.target.value })
+              }}
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
             >
-              {products && products.map(product => (
-                <option key={product.id} value={product.id}>
-                  {product.name}
-                </option>
-              ))}
+              {clients && clients.map((client: TClient) => (
+                <option key={client.id} value={client.id}>{client.firstName}</option>
+              )) }
             </select>
           </div>
 

@@ -29,6 +29,28 @@ enum Tiers {
   Premium
 }
 
+enum OrderStatus {
+  Pending
+  Processing
+  Shipped
+  Completed
+  Cancelled
+}
+
+enum PaymentsStatus {
+  Unpaid
+  Paid
+  Refund
+  Failed
+}
+
+enum PaymentMethod {
+  Cash           @map("Cash")
+  CreditCard     @map("Credit Card")
+  BankTransfer   @map("Bank Transfer")
+}
+
+
 model Admin {
   id        String   @id @default(uuid())
   email     String   @unique
@@ -42,6 +64,7 @@ model User {
   email     String   @unique
   name      String
   businessId String
+  business   Business @relation(fields: [businessId], references: [id])
   password  String
 }
 
@@ -50,6 +73,11 @@ model Business {
   name      String
   industry  String
   tier      String
+
+  users     User[]
+  products  Product[]
+  clients   Client[]
+  orders    Order[]
 }
 
 model Product {
@@ -64,6 +92,9 @@ model Product {
   status    String
   image     String?
   updatedAt DateTime @updatedAt
+
+  orders   OrderProduct[]
+  business   Business @relation(fields: [businessId], references: [id])
 }
 
 model Client {
@@ -77,4 +108,39 @@ model Client {
   role       String
   isActive   Boolean
   updatedAt  DateTime @updatedAt
+
+  business   Business @relation(fields: [businessId], references: [id])
+  orders     Order[]
+}
+
+model Order {
+  id             String           @id @default(uuid())
+  total          Float
+  status         OrderStatus
+  productIds     String[]
+  clientId       String?
+  paymentStatus  PaymentsStatus
+  paymentMethod  PaymentMethod
+  notes          String?
+
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  fulfilledAt    DateTime?
+
+  client         Client?          @relation(fields: [clientId], references: [id])
+  products       OrderProduct[]
+  businessId     String
+  business       Business         @relation(fields: [businessId], references: [id])
+}
+
+model OrderProduct {
+  orderId   String
+  productId String
+  quantity  Int       @default(1)
+  price     Float?
+
+  order     Order   @relation(fields: [orderId], references: [id])
+  product   Product @relation(fields: [productId], references: [id])
+
+  @@id([orderId, productId])
 }
