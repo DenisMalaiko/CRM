@@ -2,6 +2,37 @@ import { createAsyncThunk } from '@reduxjs/toolkit';
 import {TOrder} from "../../models/Order";
 import {ApiResponse} from "../../models/ApiResponse";
 import {buildError} from "../../utils/apiError";
+import type { RootState } from "../../store";
+
+export const getOrders = createAsyncThunk<
+  ApiResponse<TOrder[]>,
+  void,
+  { rejectValue: ApiResponse<null> }
+>(
+  'orders/getProducts',
+  async (_, { rejectWithValue, getState }) => {
+    const API_URL: string | undefined = process.env.REACT_APP_API;
+    const state = getState() as RootState;
+    const user = state.authModule.user;
+
+    try {
+      const res = await fetch(`${API_URL}/orders/${user?.businessId}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      const data: ApiResponse<TOrder[]> = await res.json();
+
+      if (!res.ok) {
+        return rejectWithValue(buildError(data.message, data.statusCode, data.error));
+      }
+
+      return data;
+    } catch (err: any) {
+      return rejectWithValue(buildError(err.message, err.statusCode, err.error));
+    }
+  }
+);
 
 export const createOrder = createAsyncThunk(
   'orders/create',
@@ -77,32 +108,3 @@ export const deleteOrder = createAsyncThunk(
       return rejectWithValue(buildError(err.message, err.statusCode, err.error));
     }
   })
-
-
-export const getOrders = createAsyncThunk<
-  ApiResponse<TOrder[]>,
-  void,
-  { rejectValue: ApiResponse<null> }
->(
-  'orders/getProducts',
-  async (_, { rejectWithValue }) => {
-    const API_URL: string | undefined = process.env.REACT_APP_API;
-
-    try {
-      const res = await fetch(`${API_URL}/orders/`, {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-      });
-
-      const data: ApiResponse<TOrder[]> = await res.json();
-
-      if (!res.ok) {
-        return rejectWithValue(buildError(data.message, data.statusCode, data.error));
-      }
-
-      return data;
-    } catch (err: any) {
-      return rejectWithValue(buildError(err.message, err.statusCode, err.error));
-    }
-  }
-);
