@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from "react-redux";
+import { toast } from "react-toastify";
+import Select from 'react-select';
+
 import { AppDispatch, RootState } from "../../../../store";
 import { createOrder, updateOrder, getOrders } from "../../../../store/orders/ordersThunks";
 import { OrderStatus } from "../../../../enum/OrderStatus";
 import { isRequired, minLength } from "../../../../utils/validations";
-import { toast } from "react-toastify";
-import {PaymentMethod} from "../../../../enum/PaymentMethod";
-import {PaymentsStatus} from "../../../../enum/PaymentsStatus";
-import {getProducts} from "../../../../store/products/productsThunks";
-import {getClients} from "../../../../store/clients/clientsThunks";
-import Select from 'react-select';
-import {TProduct} from "../../../../models/Product";
-import {TClient} from "../../../../models/Client";
+import { PaymentMethod } from "../../../../enum/PaymentMethod";
+import { PaymentsStatus } from "../../../../enum/PaymentsStatus";
+import { getProducts } from "../../../../store/products/productsThunks";
+import { getClients } from "../../../../store/clients/clientsThunks";
+import { TProduct } from "../../../../models/Product";
+import { TClient } from "../../../../models/Client";
 
 type OptionType = {
   value: string | undefined;
@@ -89,9 +90,11 @@ function CreateOrderDlg({ open, onClose, order }: any) {
 
   const validateField = (name: string, data: any) => {
     let error: string | null = null;
-    if (name === "notes") error = minLength(data.value, 3);
     if (name === "clientId") error = isRequired(data.value);
     if (name === "productsIds") error = isRequired(data.map((opt: any) => opt.value));
+    if (name === "paymentMethod") error = isRequired(data.value);
+    if (name === "paymentStatus") error = isRequired(data.value);
+    if (name === "notes") error = minLength(data.value, 3);
     setErrors((prev: any) => ({ ...prev, [name]: error }));
   };
 
@@ -115,6 +118,11 @@ function CreateOrderDlg({ open, onClose, order }: any) {
     }
   }
 
+  const paymentMethods = Object.values(PaymentMethod);
+
+  const paymentStatuses = Object.values(PaymentsStatus);
+
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50">
       <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl p-6">
@@ -133,21 +141,6 @@ function CreateOrderDlg({ open, onClose, order }: any) {
         <form className="space-y-4" onSubmit={create} action="">
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 text-left">Products</label>
-            <Select<OptionType, true>
-              isMulti
-              name="colors"
-              options={productsOptions}
-              className="basic-multi-select"
-              classNamePrefix="select"
-              onChange={(selected) => {
-                handleSelectChange("productIds", selected);
-                validateField("productIds", { value: selected })
-              }}
-            />
-          </div>
-
-          <div>
             <label className="block text-sm font-medium text-slate-700 text-left">Client</label>
             <select
               name="clientId"
@@ -163,6 +156,58 @@ function CreateOrderDlg({ open, onClose, order }: any) {
               )) }
             </select>
           </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 text-left">Products</label>
+            <Select<OptionType, true>
+              isMulti
+              name="colors"
+              options={productsOptions}
+              className="basic-multi-select"
+              classNamePrefix="select"
+              onChange={(selected) => {
+                handleSelectChange("productIds", selected);
+                validateField("productIds", { value: selected })
+              }}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 text-left">Payment Method</label>
+
+            <select
+              name="paymentMethod"
+              value={form.paymentMethod}
+              onChange={(e) => {
+                handleChange(e);
+                validateField("paymentMethod", { value: e.target.value })
+              }}
+              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
+            >
+              {paymentMethods && paymentMethods.map((method: string) => (
+                <option key={method} value={method}>{method}</option>
+              )) }
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 text-left">Payment Status</label>
+
+            <select
+              name="paymentStatus"
+              value={form.paymentStatus}
+              onChange={(e) => {
+                handleChange(e);
+                validateField("paymentStatus", { value: e.target.value })
+              }}
+              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
+            >
+              {paymentStatuses && paymentStatuses.map((status: string) => (
+                <option key={status} value={status}>{status}</option>
+              )) }
+            </select>
+          </div>
+
 
           <div>
             <label className="block text-sm font-medium text-slate-700 text-left">Order Notes</label>

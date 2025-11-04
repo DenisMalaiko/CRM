@@ -45,9 +45,9 @@ enum PaymentsStatus {
 }
 
 enum PaymentMethod {
-  Cash           @map("Cash")
-  CreditCard     @map("Credit Card")
-  BankTransfer   @map("Bank Transfer")
+  Cash
+  CreditCard
+  BankTransfer
 }
 
 
