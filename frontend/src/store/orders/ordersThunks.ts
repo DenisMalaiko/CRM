@@ -39,6 +39,8 @@ export const createOrder = createAsyncThunk(
   async (form: TOrder, { rejectWithValue }) => {
     const API_URL: string | undefined = process.env.REACT_APP_API;
 
+    console.log("SEND FORM ", form)
+
     try {
       const res = await fetch(`${API_URL}/orders/create`, {
         method: "POST",

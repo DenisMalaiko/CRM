@@ -1,13 +1,13 @@
-import { PrismaClient } from "@prisma/client";
+import { PaymentMethod } from '../../generated/prisma';
 
-export enum PaymentMethod {
+export enum PaymentMethodUI {
   Cash = "Cash",
   CreditCard = "Credit Card",
   BankTransfer = "Bank Transfer",
 }
 
-export const PaymentMethodToPrisma: Record<string, any> = {
-  "Cash": PrismaClient.Cash,
-  "Credit Card": PrismaClient.CreditCard,
-  "Bank Transfer": PrismaClient.BankTransfer,
+export const PaymentMethodToPrisma: Record<PaymentMethodUI, PaymentMethod> = {
+  [PaymentMethodUI.Cash]: PaymentMethod.Cash,
+  [PaymentMethodUI.CreditCard]: PaymentMethod.CreditCard,
+  [PaymentMethodUI.BankTransfer]: PaymentMethod.BankTransfer,
 };

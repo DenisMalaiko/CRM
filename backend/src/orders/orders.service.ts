@@ -10,8 +10,9 @@ export class OrdersService {
   ) {}
 
   async createOrder(body: Order) {
-    console.log("CREATE ORDER: ", body)
-    console.log("METHOD ", PaymentMethodToPrisma[body.paymentMethod])
+    console.log("-------------")
+    console.log("Client ID: ", body)
+    console.log("-------------")
 
     const order = await this.prisma.order.create({
       data: {
@@ -39,6 +40,8 @@ export class OrdersService {
         clientId: true,
         paymentStatus: true,
         paymentMethod: true,
+        client: true,
+        products: true
       }
     });
 
@@ -47,31 +50,5 @@ export class OrdersService {
       message: "Orders has been got!",
       data: orders,
     };
-
-    /*const clients = await this.prisma.order.findMany({
-      where: { businessId: businessId },
-      select: {
-        id: true,
-        businessId: true,
-        total: true,
-        status: true,
-        productIds: true,
-        clientId: true,
-        paymentStatus: true,
-        paymentMethod: true,
-        notes: true,
-
-        createdAt: true,
-        client: true,
-        products: true,
-        business: true,
-      }
-    });
-
-    return {
-      statusCode: 200,
-      message: "Clients has been got!",
-      data: clients,
-    };*/
   }
 }
