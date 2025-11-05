@@ -21,9 +21,11 @@ function Orders() {
     { name: "ID", key: "id" },
     { name: "Status", key: "status" },
     { name: "Total", key: "total" },
-    { name: "Product ID", key: "productId" },
+    { name: "Product ID", key: "productIds" },
     { name: "Client ID", key: "clientId" },
-    { name: "Updated At", key: "updatedAt" }
+    { name: "Client Name", key: "client" },
+    { name: "Updated At", key: "updatedAt" },
+    { name: "Actions", key: "actions" }
   ]
 
   const openConfirmDlg = async (e: any, item: TOrder) => {
@@ -83,16 +85,41 @@ function Orders() {
         <div className="overflow-hidden rounded-xl border border-slate-200 shadow">
           <table className="min-w-full divide-y divide-slate-200">
             <thead className="bg-slate-50">
-            <tr>
-              {header.map((item) => (
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600" key={item.key}>{ item.name }</th>
-              ))}
-            </tr>
+              <tr>
+                {header.map((item) => (
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600" key={item.key}>{ item.name }</th>
+                ))}
+              </tr>
             </thead>
+
+            <tbody className="divide-y divide-slate-100">
+              {orders && orders.map((item: TOrder) => (
+                <tr key={item.id} className="hover:bg-slate-50">
+                  <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.id}</td>
+                  <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.status}</td>
+                  <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.total}</td>
+                  <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.productIds}</td>
+                  <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.clientId}</td>
+                  <td className="px-4 py-3 font-medium text-slate-900 text-left">{item?.client?.name}</td>
+                  <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.updatedAt}</td>
+                  <td className="px-4 py-3 text-right">
+                    <div className="flex items-center gap-2 justify-end">
+                      <button className="h-8 w-8 flex items-center justify-center rounded-lg border  text-slate-600 hover:bg-slate-50">
+                        ✎
+                      </button>
+                      <button onClick={(e) => openConfirmDlg(e, item)} className="h-8 w-8 flex items-center justify-center rounded-lg border text-rose-600 hover:bg-rose-50">
+                        🗑
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
           </table>
         </div>
       </div>
 
+      <pre>{ JSON.stringify(orders) }</pre>
     </section>
   )
 }

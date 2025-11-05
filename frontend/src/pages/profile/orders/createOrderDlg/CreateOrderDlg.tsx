@@ -140,6 +140,8 @@ function CreateOrderDlg({ open, onClose, order }: any) {
         {/* Form */}
         <form className="space-y-4" onSubmit={create} action="">
 
+          <pre> { JSON.stringify(form?.clientId) } </pre>
+
           <div>
             <label className="block text-sm font-medium text-slate-700 text-left">Client</label>
             <select
@@ -151,6 +153,10 @@ function CreateOrderDlg({ open, onClose, order }: any) {
               }}
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
             >
+              <option value="" disabled>
+                Select Client
+              </option>
+
               {clients && clients.map((client: TClient) => (
                 <option key={client.id} value={client.id}>{client.firstName}</option>
               )) }
@@ -184,6 +190,10 @@ function CreateOrderDlg({ open, onClose, order }: any) {
               }}
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
             >
+              <option value="" disabled>
+                Select Payment Method
+              </option>
+
               {paymentMethods && paymentMethods.map((method: string) => (
                 <option key={method} value={method}>{method}</option>
               )) }
@@ -202,6 +212,10 @@ function CreateOrderDlg({ open, onClose, order }: any) {
               }}
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
             >
+              <option value="" disabled>
+                Select Payment Status
+              </option>
+
               {paymentStatuses && paymentStatuses.map((status: string) => (
                 <option key={status} value={status}>{status}</option>
               )) }

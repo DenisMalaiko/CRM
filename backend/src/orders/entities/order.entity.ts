@@ -1,6 +1,6 @@
 import { OrderStatus } from "../../enums/OrderStatus";
 import { PaymentsStatus } from "../../enums/PaymentsStatus";
-import { PaymentMethod } from "../../enums/PaymentMethod";
+import { PaymentMethodUI } from "../../enums/PaymentMethod";
 
 export type Order = {
   id?: string;
@@ -9,9 +9,9 @@ export type Order = {
   total: number;
   status: OrderStatus;
   productIds: string[];
-  clientId: string | null;
+  clientId: string;
   paymentStatus: PaymentsStatus;
-  paymentMethod: PaymentMethod;
+  paymentMethod: PaymentMethodUI;
   notes?: string;
 
   createdAt?: string;
