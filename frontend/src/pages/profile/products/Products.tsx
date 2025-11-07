@@ -114,7 +114,7 @@ function Products() {
                   </td>
                   <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.name}</td>
                   <td className="px-4 py-3 text-slate-600 text-left">{item.sku}</td>
-                  <td className="px-4 py-3 font-medium text-left">{item.price}</td>
+                  <td className="px-4 py-3 font-medium text-left">$ {item.price}</td>
                   <td className="px-4 py-3 text-left">{item.stock}</td>
                   <td className="px-4 py-3 text-slate-600 text-left">{item.category}</td>
                   <td className="px-4 py-3 text-slate-600 text-left">2025-10-03</td>

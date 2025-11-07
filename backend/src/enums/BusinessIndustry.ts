@@ -1,4 +1,6 @@
-export enum BusinessIndustry {
+import { BusinessIndustry } from '../../generated/prisma';
+
+export enum BusinessIndustryUI {
   BeautyWellness = "Beauty & Wellness",
   RetailEcommerce = "Retail & E-commerce",
   FoodBeverage = "Food & Beverage",
@@ -6,10 +8,10 @@ export enum BusinessIndustry {
   RealEstateConstruction = "Real Estate & Construction",
 }
 
-export const BusinessIndustryToPrisma: Record<BusinessIndustry, string> = {
-  [BusinessIndustry.BeautyWellness]: "BeautyWellness",
-  [BusinessIndustry.RetailEcommerce]: "RetailEcommerce",
-  [BusinessIndustry.FoodBeverage]: "FoodBeverage",
-  [BusinessIndustry.ProfessionalServices]: "ProfessionalServices",
-  [BusinessIndustry.RealEstateConstruction]: "RealEstateConstruction",
+export const BusinessIndustryToPrisma: Record<BusinessIndustryUI, BusinessIndustry> = {
+  [BusinessIndustryUI.BeautyWellness]: BusinessIndustry.BeautyWellness,
+  [BusinessIndustryUI.RetailEcommerce]: BusinessIndustry.RetailEcommerce,
+  [BusinessIndustryUI.FoodBeverage]: BusinessIndustry.FoodBeverage,
+  [BusinessIndustryUI.ProfessionalServices]: BusinessIndustry.ProfessionalServices,
+  [BusinessIndustryUI.RealEstateConstruction]: BusinessIndustry.RealEstateConstruction,
 };

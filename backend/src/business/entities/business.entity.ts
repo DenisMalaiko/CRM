@@ -1,11 +1,11 @@
-import { BusinessIndustry } from "../../enums/BusinessIndustry";
-import { Tiers } from "../../enums/Tiers";
+import { BusinessIndustryUI } from "../../enums/BusinessIndustry";
+import { TiersUI } from "../../enums/Tiers";
 
 export type Business = {
   id?: string;
   name: string;
-  industry: BusinessIndustry | string;
-  tier: Tiers | string;
+  industry: BusinessIndustryUI | string;
+  tier: TiersUI | string;
 }
 
 export type BusinessResponse = Partial<Business>

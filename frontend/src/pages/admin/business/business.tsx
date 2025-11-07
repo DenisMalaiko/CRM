@@ -3,7 +3,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { ArrowLeft } from "lucide-react";
 import { AppDispatch, RootState } from "../../../store";
-import {getBusiness, getUsersByBusinessId} from "../../../store/business/businessThunks";
+import { getBusiness, getUsersByBusinessId } from "../../../store/business/businessThunks";
+import { trimID } from "../../../utils/trimID";
 import { TUser } from "../../../models/User";
 
 function Business() {
@@ -47,7 +48,7 @@ function Business() {
           <div className="space-y-3 text-slate-700 text-sm p-6">
             <div className="flex justify-between border-b pb-2">
               <span className="font-medium">ID</span>
-              <span className="text-slate-500">{business?.id}</span>
+              <span className="text-slate-500">{trimID(business?.id)}</span>
             </div>
             <div className="flex justify-between border-b pb-2">
               <span className="font-medium">Name</span>
@@ -82,7 +83,7 @@ function Business() {
               <tbody className="divide-y divide-slate-100">
               {usersByBusinessId && usersByBusinessId.map((item: TUser) => (
                 <tr key={item.id} className="hover:bg-slate-50 cursor-pointer">
-                  <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.id}</td>
+                  <td className="px-4 py-3 font-medium text-slate-900 text-left">{trimID(item.id)}</td>
                   <td className="px-4 py-3 font-medium text-slate-600 text-left">{item.name}</td>
                   <td className="px-4 py-3 font-medium text-slate-600 text-left">{item.email}</td>
                 </tr>

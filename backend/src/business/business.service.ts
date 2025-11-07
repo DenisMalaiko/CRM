@@ -3,6 +3,7 @@ import { PrismaService } from "../prisma/prisma.service";
 import { Business } from "./entities/business.entity";
 import { BusinessResponse } from "./entities/business.entity";
 import { BusinessIndustryToPrisma } from "../enums/BusinessIndustry";
+import { TiersToPrisma } from "../enums/Tiers";
 
 @Injectable()
 export class BusinessService {
@@ -15,7 +16,7 @@ export class BusinessService {
       data: {
         name: body.name,
         industry: BusinessIndustryToPrisma[body.industry],
-        tier: body.tier
+        tier: TiersToPrisma[body.tier]
       }
     });
 

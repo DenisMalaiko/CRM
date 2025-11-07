@@ -1,4 +1,4 @@
-import {IsOptional, IsString, IsUUID, IsEmail, IsBoolean} from "class-validator";
+import {IsOptional, IsString, IsUUID, IsEmail, IsBoolean, IsDate} from "class-validator";
 
 export class ClientDto {
   @IsUUID()
@@ -29,4 +29,10 @@ export class ClientDto {
 
   @IsBoolean()
   isActive: boolean;
+
+  @IsDate()
+  createdAt: Date;
+
+  @IsDate()
+  updatedAt: Date;
 }

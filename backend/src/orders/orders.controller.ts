@@ -1,6 +1,6 @@
 import {Body, Controller, Delete, Get, Param, Patch, Post, Res} from '@nestjs/common';
 import { OrdersService } from "./orders.service";
-import {ClientDto} from "../clients/dto/client.dto";
+import { OrderDto } from "./dto/order.dto";
 
 @Controller('orders')
 export class OrdersController {
@@ -25,8 +25,8 @@ export class OrdersController {
     return res.json(response);
   }
 
-/*  @Patch("/update/:id")
-  async updateOrder(@Param("id") id: string, @Body() body: ClientDto, @Res() res: any) {
+  @Patch("/update/:id")
+  async updateOrder(@Param("id") id: string, @Body() body: OrderDto, @Res() res: any) {
     const response = await this.ordersService.updateOrder(id, body);
 
     return res.json(response);
@@ -37,5 +37,5 @@ export class OrdersController {
     const response = await this.ordersService.deleteOrder(id);
 
     return res.json(response);
-  }*/
+  }
 }
