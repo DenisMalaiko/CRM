@@ -70,7 +70,7 @@ export class ClientsService {
       };
     } catch (err: any) {
       if (err.code === 'P2025') {
-        throw new NotFoundException(`Product with ID ${id} not found`);
+        throw new NotFoundException(`Client with ID ${id} not found`);
       }
 
       throw new InternalServerErrorException('Failed to update client');

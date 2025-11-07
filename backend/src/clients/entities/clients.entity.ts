@@ -1,6 +1,7 @@
 export type Client = {
   id?: string;
   businessId: string;
+
   firstName: string;
   lastName: string;
   email: string;
@@ -8,7 +9,9 @@ export type Client = {
   address: string;
   role: string;
   isActive: boolean;
-  updatedAt?: string | Date;
+
+  createdAt: Date | undefined;
+  updatedAt: Date | undefined;
 };
 
 export type ClientResponse = Partial<Client>

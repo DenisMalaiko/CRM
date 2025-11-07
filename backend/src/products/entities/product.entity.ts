@@ -1,6 +1,7 @@
 export type Product = {
   id?: string;
   businessId: string;
+
   name: string;
   description: string;
   sku: string;
@@ -9,7 +10,9 @@ export type Product = {
   category: string;
   status: string;
   image?: string | null;
-  updatedAt?: string | Date;
+
+  createdAt: Date | undefined;
+  updatedAt: Date | undefined;
 };
 
 export type ProductResponse = Partial<Product>

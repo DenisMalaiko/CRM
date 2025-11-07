@@ -1,5 +1,5 @@
-import { OrderStatus } from "../../enums/OrderStatus";
-import { PaymentsStatus } from "../../enums/PaymentsStatus";
+import { OrderStatusUI } from "../../enums/OrderStatus";
+import { PaymentsStatusUI } from "../../enums/PaymentsStatus";
 import { PaymentMethodUI } from "../../enums/PaymentMethod";
 
 export type Order = {
@@ -7,16 +7,16 @@ export type Order = {
   businessId: string;
 
   total: number;
-  status: OrderStatus;
+  status: OrderStatusUI | string;
   productIds: string[];
   clientId: string;
-  paymentStatus: PaymentsStatus;
-  paymentMethod: PaymentMethodUI;
-  notes?: string;
+  paymentStatus: PaymentsStatusUI | string;
+  paymentMethod: PaymentMethodUI | string;
+  notes?: string | null;
 
-  createdAt?: string;
-  updatedAt?: string;
-  fulfilledAt?: string;
+  createdAt: Date | undefined;
+  updatedAt: Date | undefined;
+  fulfilledAt?: Date | null;
 }
 
 export type OrderResponse = Partial<Order>

@@ -11,5 +11,6 @@ export type TProduct = TBaseModel & {
   category: Categories;
   status: ProductStatus;
   image?: string;
-  updatedAt?: string;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
 };

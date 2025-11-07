@@ -4,12 +4,12 @@ import { Injectable, ConflictException, UnauthorizedException } from '@nestjs/co
 import { JwtService } from '@nestjs/jwt';
 
 import { PrismaService } from "../prisma/prisma.service";
-import { UserDto } from "./dto/user.dto";
 import { CredentialsDto } from "./dto/credentials.dto";
 import { SignUpDto } from "./dto/signUp.dto";
 
 import { User, UserResponse } from "./entities/user.entity";
-import {AuthResponse} from "../entities/authResponse.entity";
+import { AuthResponse } from "../entities/authResponse.entity";
+import { BusinessIndustryToPrisma } from "../enums/BusinessIndustry";
 
 @Injectable()
 export class AuthService {
@@ -28,14 +28,14 @@ export class AuthService {
       const business = await tx.business.create({
         data: {
           name: body.business.name,
-          industry: body.business.industry,
+          industry: BusinessIndustryToPrisma[body.business.industry],
           tier: body.business.tier,
         },
       });
 
       const hashedPassword = await bcrypt.hash(body.user.password, this.SALT_ROUNDS);
 
-      const user: UserResponse = await this.prisma.user.create({
+      const user: UserResponse = await tx.user.create({
         data: { email: body.user.email, name: body.user.name, businessId: business.id, password: hashedPassword },
         select: { id: true, email: true, name: true, businessId: true }
       });

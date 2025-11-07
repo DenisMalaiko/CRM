@@ -9,5 +9,6 @@ export type TClient = TBaseModel & {
   address: string;
   role: ClientRoles;
   isActive: boolean;
-  updatedAt?: string;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
 }

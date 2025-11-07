@@ -38,6 +38,8 @@ export class ProductDto {
   image?: string;
 
   @IsDate()
-  @IsOptional()
-  updatedAt?: string;
+  createdAt: Date;
+
+  @IsDate()
+  updatedAt: Date;
 }

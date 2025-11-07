@@ -5,6 +5,8 @@ import { AppDispatch, RootState } from "../../../store";
 import { getOrders, deleteOrder } from "../../../store/orders/ordersThunks";
 import { toast } from "react-toastify";
 import { confirm } from "../../../components/confirmDlg/ConfirmDlg";
+import { trimID } from "../../../utils/trimID";
+import { toDate } from "../../../utils/toDate";
 import CreateOrderDlg from "./createOrderDlg/CreateOrderDlg";
 
 function Orders() {
@@ -24,7 +26,10 @@ function Orders() {
     { name: "Product ID", key: "productIds" },
     { name: "Client ID", key: "clientId" },
     { name: "Client Name", key: "client" },
+    { name: "Created At", key: "createdAt" },
     { name: "Updated At", key: "updatedAt" },
+    { name: "Fulfilled At", key: "fulfilledAt" },
+    { name: "Notes", key: "notes" },
     { name: "Actions", key: "actions" }
   ]
 
@@ -95,16 +100,19 @@ function Orders() {
             <tbody className="divide-y divide-slate-100">
               {orders && orders.map((item: TOrder) => (
                 <tr key={item.id} className="hover:bg-slate-50">
-                  <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.id}</td>
+                  <td className="px-4 py-3 font-medium text-slate-900 text-left">{trimID(item.id)}</td>
                   <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.status}</td>
                   <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.total}</td>
-                  <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.productIds}</td>
-                  <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.clientId}</td>
-                  <td className="px-4 py-3 font-medium text-slate-900 text-left">{item?.client?.name}</td>
-                  <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.updatedAt}</td>
+                  <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.productIds.map(x => trimID(x)).join(", ")}</td>
+                  <td className="px-4 py-3 font-medium text-slate-900 text-left">{trimID(item.clientId)}</td>
+                  <td className="px-4 py-3 font-medium text-slate-900 text-left">{item?.client?.firstName} {item?.client?.lastName}</td>
+                  <td className="px-4 py-3 font-medium text-slate-900 text-left">{toDate(item.createdAt)}</td>
+                  <td className="px-4 py-3 font-medium text-slate-900 text-left">{toDate(item.updatedAt)}</td>
+                  <td className="px-4 py-3 font-medium text-slate-900 text-left">{toDate(item.fulfilledAt)}</td>
+                  <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.notes}</td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex items-center gap-2 justify-end">
-                      <button className="h-8 w-8 flex items-center justify-center rounded-lg border  text-slate-600 hover:bg-slate-50">
+                      <button onClick={() => openEditOrder(item)} className="h-8 w-8 flex items-center justify-center rounded-lg border  text-slate-600 hover:bg-slate-50">
                         ✎
                       </button>
                       <button onClick={(e) => openConfirmDlg(e, item)} className="h-8 w-8 flex items-center justify-center rounded-lg border text-rose-600 hover:bg-rose-50">
@@ -118,8 +126,6 @@ function Orders() {
           </table>
         </div>
       </div>
-
-      <pre>{ JSON.stringify(orders) }</pre>
     </section>
   )
 }

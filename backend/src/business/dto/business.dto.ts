@@ -1,6 +1,6 @@
 import { IsEnum, IsOptional, IsString } from 'class-validator';
-import { BusinessIndustry } from "../../enums/BusinessIndustry";
-import { Tiers } from "../../enums/Tiers";
+import { BusinessIndustryUI } from "../../enums/BusinessIndustry";
+import { TiersUI } from "../../enums/Tiers";
 
 export class BusinessDto {
   @IsOptional()
@@ -10,9 +10,9 @@ export class BusinessDto {
   @IsString()
   name: string;
 
-  @IsEnum(BusinessIndustry)
-  industry: BusinessIndustry;
+  @IsEnum(BusinessIndustryUI)
+  industry: BusinessIndustryUI;
 
-  @IsEnum(Tiers)
-  tier: Tiers;
+  @IsEnum(TiersUI)
+  tier: TiersUI;
 }
