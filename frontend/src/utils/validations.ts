@@ -8,6 +8,11 @@ export const minLength = (value: string, min: number) => {
   return value.length < min ? `Must be at least ${min} characters` : null;
 }
 
+export const exactLength = (value: string, length: number) => {
+  if (!value) return "This field is required";
+  return value.length !== length ? `Must be exactly ${length} characters` : null;
+}
+
 export const isEmail = (value: string) => {
   if (!value) return "Email is required";
   const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -34,4 +39,9 @@ export const isRepeatPassword = (value: string, password: string) => {
 export const isSecret = (value: string) => {
   if (!value) return "Secret is required";
   return value !== process.env.REACT_APP_SECRET_ADMIN ? "Secret phrase is not correct" : null;
+}
+
+export const isPositiveNumber = (value: number) => {
+  if (!value) return "This field is required";
+  return value < 0 ? "Must be positive number" : null;
 }

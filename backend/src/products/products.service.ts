@@ -11,7 +11,7 @@ export class ProductsService {
   async getProducts(businessId: string) {
     const products = await this.prisma.product.findMany({
       where: { businessId: businessId },
-      select: { id: true, businessId: true, name: true, description: true, sku: true, price: true, stock: true, category: true, status: true }
+      select: { id: true, businessId: true, name: true, description: true, sku: true, price: true, stock: true, reserved: true, category: true, status: true, createdAt: true, updatedAt: true }
     });
 
     return {
@@ -23,16 +23,7 @@ export class ProductsService {
 
   async createProduct(body: Product) {
     const product: ProductResponse = await this.prisma.product.create({
-      data: {
-        businessId: body.businessId,
-        name: body.name,
-        description: body.description,
-        sku: body.sku,
-        price: body.price,
-        stock: body.stock,
-        category: body.category,
-        status: body.status
-      }
+      data: { ...body }
     });
 
     return {

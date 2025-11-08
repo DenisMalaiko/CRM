@@ -7,8 +7,10 @@ export type Order = {
   businessId: string;
 
   total: number;
+  quantity: number;
+
   status: OrderStatusUI | string;
-  productIds: string[];
+  productId: string;
   clientId: string;
   paymentStatus: PaymentsStatusUI | string;
   paymentMethod: PaymentMethodUI | string;

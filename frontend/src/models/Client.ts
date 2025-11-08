@@ -5,10 +5,12 @@ export type TClient = TBaseModel & {
   firstName: string;
   lastName: string;
   email: string;
+  countryCode: string;
   phoneNumber: string;
   address: string;
   role: ClientRoles;
   isActive: boolean;
-  createdAt?: Date | string;
-  updatedAt?: Date | string;
+
+  createdAt?: string;
+  updatedAt?: string;
 }

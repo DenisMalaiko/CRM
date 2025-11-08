@@ -12,7 +12,7 @@ export class ClientsService {
   async getClients(businessId: string) {
     const clients = await this.prisma.client.findMany({
       where: { businessId: businessId },
-      select: { id: true, businessId: true, firstName: true, lastName: true, email: true, phoneNumber: true, address: true, role: true, isActive: true }
+      select: { id: true, businessId: true, firstName: true, lastName: true, email: true, countryCode: true, phoneNumber: true, address: true, role: true, isActive: true, createdAt: true, updatedAt: true }
     });
 
     return {
@@ -24,16 +24,7 @@ export class ClientsService {
 
   async createClient(body: Client) {
     const client: ClientResponse = await this.prisma.client.create({
-      data: {
-        businessId: body.businessId,
-        firstName: body.firstName,
-        lastName: body.lastName,
-        email: body.email,
-        phoneNumber: body.phoneNumber,
-        address: body.address,
-        role: body.role,
-        isActive: body.isActive,
-      }
+      data: { ...body }
     });
 
     return {
@@ -51,16 +42,7 @@ export class ClientsService {
     try {
       const updated = await this.prisma.client.update({
         where: {id},
-        data: {
-          businessId: body.businessId,
-          firstName: body.firstName,
-          lastName: body.lastName,
-          email: body.email,
-          phoneNumber: body.phoneNumber,
-          address: body.address,
-          role: body.role,
-          isActive: body.isActive,
-        }
+        data: { ...body }
       });
 
       return {

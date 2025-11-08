@@ -2,7 +2,7 @@ import {Injectable, InternalServerErrorException, NotFoundException} from '@nest
 import { PrismaService } from "../prisma/prisma.service";
 import { Order, OrderResponse } from "./entities/order.entity";
 import { PaymentMethodToPrisma } from "../enums/PaymentMethod";
-import { PaymentsStatusToPrisma } from "../enums/PaymentsStatus";
+import { PaymentsStatusToPrisma, PaymentsStatusUI } from "../enums/PaymentsStatus";
 import { OrderStatusToPrisma } from "../enums/OrderStatus";
 
 @Injectable()
@@ -18,13 +18,14 @@ export class OrdersService {
         id: true,
         businessId: true,
         total: true,
+        quantity: true,
         status: true,
-        productIds: true,
+        productId: true,
         clientId: true,
         paymentStatus: true,
         paymentMethod: true,
         client: true,
-        products: true,
+        product: true,
         createdAt: true,
         updatedAt: true,
         fulfilledAt: true,
@@ -40,54 +41,105 @@ export class OrdersService {
   }
 
   async createOrder(body: Order) {
-    const order: OrderResponse = await this.prisma.order.create({
-      data: {
-        ...body,
-        status: OrderStatusToPrisma[body.status],
-        paymentMethod: PaymentMethodToPrisma[body.paymentMethod],
-        paymentStatus: PaymentsStatusToPrisma[body.paymentStatus],
-      }
-    });
+    return this.prisma.$transaction(async (tx) => {
 
-    return {
-      statusCode: 200,
-      message: "Order has been created!",
-      data: order,
-    };
+      try {
+        const product = await tx.product.findUnique({
+          where: { id: body.productId },
+        });
+
+        if (!product) throw new Error("Product not found");
+        if (product.stock - product.reserved < body.quantity) throw new Error("Not enough stock available");
+
+        switch (body.paymentStatus) {
+          case PaymentsStatusUI.Paid:
+            await tx.product.update({
+              where: { id: product.id },
+              data: { stock: { decrement: body.quantity } },
+            });
+            break;
+
+          case PaymentsStatusUI.Unpaid:
+            await tx.product.update({
+              where: { id: product.id },
+              data: {
+                stock: { decrement: body.quantity },
+                reserved: { increment: body.quantity }
+              },
+            });
+            break;
+        }
+
+        const order: OrderResponse = await tx.order.create({
+          data: {
+            ...body,
+            status: OrderStatusToPrisma[body.status],
+            paymentMethod: PaymentMethodToPrisma[body.paymentMethod],
+            paymentStatus: PaymentsStatusToPrisma[body.paymentStatus],
+          }
+        });
+
+        return {
+          statusCode: 200,
+          message: "Order has been created!",
+          data: order,
+        };
+      }  catch (err: any) {
+        throw new InternalServerErrorException('Failed to create Order');
+      }
+    })
   }
 
   async updateOrder(id: string, body: Order) {
-    if (!id) {
-      throw new NotFoundException('Order ID is required');
-    }
+    return this.prisma.$transaction(async (tx) => {
+      try {
+        if (!id) throw new NotFoundException('Order ID is required');
 
-    try {
-      const updated: OrderResponse = await this.prisma.order.update({
-        where: {id},
-        data: {
-          total: body.total,
-          status: OrderStatusToPrisma[body.status],
-          paymentStatus: PaymentsStatusToPrisma[body.paymentStatus],
-          paymentMethod: PaymentMethodToPrisma[body.paymentMethod],
-          productIds: body.productIds,
-          clientId: body.clientId,
-          notes: body.notes,
-          fulfilledAt: body.fulfilledAt
+        const product = await tx.product.findUnique({
+          where: { id: body.productId },
+        });
+
+        if (!product) throw new Error("Product not found");
+        if (product.stock - product.reserved < body.quantity) throw new Error("Not enough stock available");
+
+        switch (body.paymentStatus) {
+          case PaymentsStatusUI.Paid:
+            await tx.product.update({
+              where: { id: product.id },
+              data: {
+                reserved: { decrement: body.quantity }
+              },
+            });
+            break;
         }
-      });
 
-      return {
-        statusCode: 200,
-        message: 'Order has been updated!',
-        data: updated,
-      };
-    } catch (err: any) {
-      if (err.code === 'P2025') {
-        throw new NotFoundException(`Order with ID ${id} not found`);
+        const updated: OrderResponse = await this.prisma.order.update({
+          where: {id},
+          data: {
+            total: body.total,
+            status: OrderStatusToPrisma[body.status],
+            paymentStatus: PaymentsStatusToPrisma[body.paymentStatus],
+            paymentMethod: PaymentMethodToPrisma[body.paymentMethod],
+            productId: body.productId,
+            clientId: body.clientId,
+            notes: body.notes,
+            fulfilledAt: body.fulfilledAt
+          }
+        });
+
+        return {
+          statusCode: 200,
+          message: 'Order has been updated!',
+          data: updated,
+        };
+      } catch (err: any) {
+        if (err.code === 'P2025') {
+          throw new NotFoundException(`Order with ID ${id} not found`);
+        }
+
+        throw new InternalServerErrorException('Failed to update Order');
       }
-
-      throw new InternalServerErrorException('Failed to update client');
-    }
+    });
   }
 
   async deleteOrder(id: string) {

@@ -93,8 +93,6 @@ export const getUsersByBusinessId = createAsyncThunk(
 
       const data = await res.json();
 
-      console.log("DATA ", data);
-
       if (!res.ok) {
         return rejectWithValue(buildError(data.message, data.statusCode, data.error));
       }

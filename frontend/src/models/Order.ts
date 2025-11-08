@@ -6,9 +6,10 @@ import { TProduct } from "./Product";
 import { TClient } from "./Client";
 
 export type TOrder = TBaseModel & {
-  total: number;
+  total: number; // Price
+  quantity: number;
   status: OrderStatus;
-  productIds: string[];
+  productId: string;
   clientId: string;
   paymentStatus: PaymentsStatus;
   paymentMethod: PaymentMethod;
@@ -19,5 +20,5 @@ export type TOrder = TBaseModel & {
   fulfilledAt?: string;
 
   client?: TClient;
-  products?: TProduct[];
+  product?: TProduct;
 }

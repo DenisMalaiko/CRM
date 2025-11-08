@@ -4,6 +4,7 @@ import { AppDispatch, RootState } from "../../../store";
 import { deleteClient, getClients } from "../../../store/clients/clientsThunks";
 import { TClient } from "../../../models/Client";
 import { confirm } from "../../../components/confirmDlg/ConfirmDlg";
+import { toDate } from "../../../utils/toDate";
 import { toast } from "react-toastify";
 import CreateClientsDlg from "./createClientsDlg/CreateClientsDlg";
 
@@ -23,9 +24,10 @@ function Clients() {
     { name: "Last Name", key: "lastName" },
     { name: "Email", key: "email" },
     { name: "Phone", key: "phoneNumber" },
+    { name: "Role", key: "role" },
     { name: "Address", key: "address" },
-    { name: "Active", key: "isActive" },
-    { name: "Updated", key: "updatedAt" },
+    { name: "Created At", key: "createdAt" },
+    { name: "Updated At", key: "updatedAt" },
     { name: "Actions", key: "actions" }
   ];
 
@@ -40,12 +42,8 @@ function Clients() {
     if(ok) {
       try {
         if (item?.id != null) {
-          const response = await dispatch(
-            deleteClient(item?.id)
-          ).unwrap();
-
+          const response = await dispatch(deleteClient(item?.id)).unwrap();
           await dispatch(getClients());
-
           toast.success(response.message);
         }
       } catch (error: any) {
@@ -99,14 +97,13 @@ function Clients() {
                   <div className="h-10 w-10 bg-slate-200 rounded-lg" />
                 </td>
                 <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.firstName}</td>
-                <td className="px-4 py-3 text-slate-600 text-left">{item.lastName}</td>
-                <td className="px-4 py-3 font-medium text-left">{item.email}</td>
-                <td className="px-4 py-3 text-left">{item.phoneNumber}</td>
-                <td className="px-4 py-3 text-slate-600 text-left">{item.address}</td>
+                <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.lastName}</td>
+                <td className="px-4 py-3 text-left">{item.email}</td>
+                <td className="px-4 py-3 text-left">{item.countryCode}{item.phoneNumber}</td>
                 <td className="px-4 py-3 text-slate-600 text-left">{item.role}</td>
-                <td className="px-4 py-3 text-left">
-                  <span className={`inline-flex items-start px-2 py-1 text-xs font-medium rounded-full`}>{item.role}</span>
-                </td>
+                <td className="px-4 py-3 text-slate-600 text-left">{item.address}</td>
+                <td className="px-4 py-3 text-slate-600 text-left">{toDate(item.createdAt)}</td>
+                <td className="px-4 py-3 text-slate-600 text-left">{toDate(item.updatedAt)}</td>
                 <td className="px-4 py-3 text-right">
                   <div className="flex items-center gap-2 justify-end">
                     <button onClick={() => openEditClient(item)} className="h-8 w-8 flex items-center justify-center rounded-lg border  text-slate-600 hover:bg-slate-50">

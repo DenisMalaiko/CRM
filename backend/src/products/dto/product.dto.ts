@@ -27,6 +27,10 @@ export class ProductDto {
   @IsNumber()
   stock: number;
 
+  @Type(() => Number)
+  @IsNumber()
+  reserved: number;
+
   @IsString()
   category: string;
 
