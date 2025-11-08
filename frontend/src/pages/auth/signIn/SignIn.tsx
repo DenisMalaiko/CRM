@@ -38,7 +38,6 @@ function SignIn() {
       toast.success(response.message);
 
       navigate("/profile/dashboard");
-      console.log("REDIRECT TO PROFILE DASHBOARD");
     } catch (error: any) {
       toast.error(error.message);
     }

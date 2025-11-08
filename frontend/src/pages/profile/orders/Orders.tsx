@@ -7,6 +7,7 @@ import { toast } from "react-toastify";
 import { confirm } from "../../../components/confirmDlg/ConfirmDlg";
 import { trimID } from "../../../utils/trimID";
 import { toDate } from "../../../utils/toDate";
+import { getStatusClass } from "../../../utils/getStatusClass";
 import CreateOrderDlg from "./createOrderDlg/CreateOrderDlg";
 
 function Orders() {
@@ -21,15 +22,15 @@ function Orders() {
 
   const header = [
     { name: "ID", key: "id" },
-    { name: "Status", key: "status" },
-    { name: "Total", key: "total" },
-    { name: "Product ID", key: "productIds" },
-    { name: "Client ID", key: "clientId" },
     { name: "Client Name", key: "client" },
+    { name: "Product ID", key: "productIds" },
+    { name: "Quantity", key: "quantity" },
+    { name: "Total", key: "total" },
+    { name: "Status", key: "status" },
+    { name: "Payment Status", key: "paymentStatus" },
     { name: "Created At", key: "createdAt" },
     { name: "Updated At", key: "updatedAt" },
     { name: "Fulfilled At", key: "fulfilledAt" },
-    { name: "Notes", key: "notes" },
     { name: "Actions", key: "actions" }
   ]
 
@@ -80,7 +81,7 @@ function Orders() {
               setOpen(false);
               setSelectedOrder(null);
             }}
-            product={selectedOrder}
+            order={selectedOrder}
           />
         </div>
       </section>
@@ -99,17 +100,21 @@ function Orders() {
 
             <tbody className="divide-y divide-slate-100">
               {orders && orders.map((item: TOrder) => (
-                <tr key={item.id} className="hover:bg-slate-50">
+                <tr key={item.id} className="hover:bg-slate-50 bg-slate-50">
                   <td className="px-4 py-3 font-medium text-slate-900 text-left">{trimID(item.id)}</td>
-                  <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.status}</td>
-                  <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.total}</td>
-                  <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.productIds.map(x => trimID(x)).join(", ")}</td>
-                  <td className="px-4 py-3 font-medium text-slate-900 text-left">{trimID(item.clientId)}</td>
                   <td className="px-4 py-3 font-medium text-slate-900 text-left">{item?.client?.firstName} {item?.client?.lastName}</td>
-                  <td className="px-4 py-3 font-medium text-slate-900 text-left">{toDate(item.createdAt)}</td>
-                  <td className="px-4 py-3 font-medium text-slate-900 text-left">{toDate(item.updatedAt)}</td>
-                  <td className="px-4 py-3 font-medium text-slate-900 text-left">{toDate(item.fulfilledAt)}</td>
-                  <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.notes}</td>
+                  <td className="px-4 py-3 font-medium text-slate-900 text-left">{item?.product?.name}</td>
+                  <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.quantity}</td>
+                  <td className="px-4 py-3 font-medium text-slate-900 text-left">$ {item.total}</td>
+                  <td className="px-4 py-3 text-left">
+                    <span className={`inline-flex items-start px-2 py-1 text-xs font-medium rounded-full ${getStatusClass(item.status)}`}>{item.status}</span>
+                  </td>
+                  <td className="px-4 py-3 text-left">
+                    <span className={`inline-flex items-start px-2 py-1 text-xs font-medium rounded-full ${getStatusClass(item.paymentStatus)}`}>{item.paymentStatus}</span>
+                  </td>
+                  <td className="px-4 py-3 text-slate-600 text-left">{toDate(item.createdAt)}</td>
+                  <td className="px-4 py-3 text-slate-600 text-left">{toDate(item.updatedAt)}</td>
+                  <td className="px-4 py-3 text-slate-600 text-left">{toDate(item.fulfilledAt)}</td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex items-center gap-2 justify-end">
                       <button onClick={() => openEditOrder(item)} className="h-8 w-8 flex items-center justify-center rounded-lg border  text-slate-600 hover:bg-slate-50">

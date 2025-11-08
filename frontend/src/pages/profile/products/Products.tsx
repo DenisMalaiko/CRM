@@ -5,7 +5,8 @@ import { AppDispatch, RootState } from '../../../store';
 import { getProducts, deleteProduct } from "../../../store/products/productsThunks";
 import { toast } from "react-toastify";
 import { confirm } from "../../../components/confirmDlg/ConfirmDlg";
-import { ProductStatus } from "../../../enum/ProductStatus";
+import { getStatusClass } from "../../../utils/getStatusClass";
+import { toDate } from "../../../utils/toDate";
 import CreateProductDlg from "./createProductDlg/CreateProductDlg";
 
 function Products() {
@@ -24,8 +25,10 @@ function Products() {
     { name: "SKU", key: "sku" },
     { name: "Price", key: "price" },
     { name: "Stock", key: "stock" },
+    { name: "Reserved", key: "reserved" },
     { name: "Category", key: "category" },
-    { name: "Updated", key: "updated" },
+    { name: "Created At", key: "createdAt" },
+    { name: "Updated At", key: "updatedAt" },
     { name: "Status", key: "status" },
     { name: "Actions", key: "actions"}
   ]
@@ -60,19 +63,6 @@ function Products() {
     setOpen(true)
   }
 
-  function getStatusClasses(status: string) {
-    switch (status) {
-      case ProductStatus.Active:
-        return "bg-emerald-50 text-emerald-700";
-      case ProductStatus.Draft:
-        return "bg-amber-50 text-amber-700";
-      case ProductStatus.Archived:
-        return "bg-slate-100 text-slate-600";
-      default:
-        return "bg-gray-50 text-gray-700";
-    }
-  }
-
   return (
     <section>
       <section>
@@ -100,8 +90,8 @@ function Products() {
           <table className="min-w-full divide-y divide-slate-200">
             <thead className="bg-slate-50">
               <tr>
-                {header.map((item) => (
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600" key={item.key}>{ item.name }</th>
+                {header.map((item, index) => (
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600c" key={item.key}>{ item.name }</th>
                 ))}
               </tr>
             </thead>
@@ -116,10 +106,12 @@ function Products() {
                   <td className="px-4 py-3 text-slate-600 text-left">{item.sku}</td>
                   <td className="px-4 py-3 font-medium text-left">$ {item.price}</td>
                   <td className="px-4 py-3 text-left">{item.stock}</td>
+                  <td className="px-4 py-3 text-left">{item.reserved ?? "-"}</td>
                   <td className="px-4 py-3 text-slate-600 text-left">{item.category}</td>
-                  <td className="px-4 py-3 text-slate-600 text-left">2025-10-03</td>
+                  <td className="px-4 py-3 text-slate-600 text-left">{toDate(item?.createdAt)}</td>
+                  <td className="px-4 py-3 text-slate-600 text-left">{toDate(item?.updatedAt)}</td>
                   <td className="px-4 py-3 text-left">
-                    <span className={`inline-flex items-start px-2 py-1 text-xs font-medium rounded-full ${getStatusClasses(item.status)}`}>{item.status}</span>
+                    <span className={`inline-flex items-start px-2 py-1 text-xs font-medium rounded-full ${getStatusClass(item.status)}`}>{item.status}</span>
                   </td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex items-center gap-2 justify-end">

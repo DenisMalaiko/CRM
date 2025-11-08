@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
-import Select from 'react-select';
 
 import { AppDispatch, RootState } from "../../../../store";
 import { createOrder, updateOrder, getOrders } from "../../../../store/orders/ordersThunks";
@@ -9,15 +8,12 @@ import { OrderStatus } from "../../../../enum/OrderStatus";
 import { isRequired, minLength } from "../../../../utils/validations";
 import { PaymentMethod } from "../../../../enum/PaymentMethod";
 import { PaymentsStatus } from "../../../../enum/PaymentsStatus";
+import { ProductStatus } from "../../../../enum/ProductStatus";
 import { getProducts } from "../../../../store/products/productsThunks";
 import { getClients } from "../../../../store/clients/clientsThunks";
 import { TProduct } from "../../../../models/Product";
 import { TClient } from "../../../../models/Client";
 
-type OptionType = {
-  value: string | undefined;
-  label: string;
-};
 
 function CreateOrderDlg({ open, onClose, order }: any) {
   const dispatch = useDispatch<AppDispatch>();
@@ -26,15 +22,11 @@ function CreateOrderDlg({ open, onClose, order }: any) {
   const { clients } = useSelector((state: RootState) => state.clientsModule);
   const isEdit = !!order;
 
-  const productsOptions: OptionType[] = products?.map((product: TProduct) => ({
-    value: product.id,
-    label: product.name,
-  })) ?? [];
-
   const [form, setForm] = useState({
-    total: 1,
+    total: 0,
     status: OrderStatus.Pending,
-    productIds: [],
+    productId: "",
+    quantity: 1,
     clientId: "",
     paymentStatus: PaymentsStatus.Unpaid,
     paymentMethod: PaymentMethod.CreditCard,
@@ -46,11 +38,14 @@ function CreateOrderDlg({ open, onClose, order }: any) {
   useEffect(() => {
     dispatch(getProducts());
     dispatch(getClients());
+
+
     if (isEdit && order) {
       setForm({
         total: order.total,
         status: order.status,
-        productIds: order.productIds,
+        productId: order.productId,
+        quantity: order.quantity,
         clientId: order.clientId,
         paymentStatus: order.paymentStatus,
         paymentMethod: order.paymentMethod,
@@ -59,9 +54,10 @@ function CreateOrderDlg({ open, onClose, order }: any) {
       });
     } else {
       setForm({
-        total: 1,
+        total: 0,
         status: OrderStatus.Pending,
-        productIds: [],
+        productId: "",
+        quantity: 1,
         clientId: "",
         paymentStatus: PaymentsStatus.Unpaid,
         paymentMethod: PaymentMethod.CreditCard,
@@ -70,6 +66,25 @@ function CreateOrderDlg({ open, onClose, order }: any) {
       });
     }
   }, [order, isEdit, open]);
+
+  useEffect(() => {
+    if (!form.productId) return;
+
+    const product = products?.find((p: TProduct) => p.id === form.productId);
+    const price = product?.price || 0;
+    const newTotal = (form.quantity || 0) * price;
+    const stock = product?.stock || 0;
+
+    if(stock < form.quantity) {
+      toast.error("Not enough stock");
+      setForm((prev) => ({ ...prev, quantity: stock }));
+    }
+
+    setForm((prev) => {
+      if (prev.total === newTotal) return prev;
+      return { ...prev, total: newTotal };
+    });
+  }, [form.productId, form.quantity, products]);
 
   if (!open) return null;
 
@@ -81,25 +96,34 @@ function CreateOrderDlg({ open, onClose, order }: any) {
     }));
   }
 
-  const handleSelectChange = (name: string, selected: readonly OptionType[]) => {
-    setForm((prev) => ({
-      ...prev,
-      [name]: selected.map((opt) => opt.value),
-    }));
-  };
-
   const validateField = (name: string, data: any) => {
     let error: string | null = null;
     if (name === "clientId") error = isRequired(data.value);
-    if (name === "productsIds") error = isRequired(data.map((opt: any) => opt.value));
+    if (name === "productId") error = isRequired(data.value);
     if (name === "paymentMethod") error = isRequired(data.value);
     if (name === "paymentStatus") error = isRequired(data.value);
     if (name === "notes") error = minLength(data.value, 3);
     setErrors((prev: any) => ({ ...prev, [name]: error }));
+    return error;
   };
 
-  const create = async (e: React.FormEvent<HTMLFormElement>) => {
+  const validateForm = (e: React.FormEvent<HTMLFormElement>): boolean => {
     e.preventDefault();
+
+    const newErrors: Record<string, string | null> = {};
+
+    Object.keys(form).forEach((field) => {
+      newErrors[field] = validateField(field, { value: form[field as keyof typeof form] });
+    });
+
+    setErrors(newErrors);
+
+    return window.utils.validateForm(newErrors);
+  }
+
+  const create = async (e: React.FormEvent<HTMLFormElement>) => {
+    if (!validateForm(e)) return;
+
     try {
       let response;
 
@@ -139,9 +163,6 @@ function CreateOrderDlg({ open, onClose, order }: any) {
 
         {/* Form */}
         <form className="space-y-4" onSubmit={create} action="">
-
-          <pre> { JSON.stringify(form?.clientId) } </pre>
-
           <div>
             <label className="block text-sm font-medium text-slate-700 text-left">Client</label>
             <select
@@ -158,25 +179,89 @@ function CreateOrderDlg({ open, onClose, order }: any) {
               </option>
 
               {clients && clients.map((client: TClient) => (
-                <option key={client.id} value={client.id}>{client.firstName}</option>
+                <option key={client.id} value={client.id}>{client.firstName} {client.lastName}</option>
               )) }
             </select>
+            {errors.clientId && <p className="text-red-500 text-sm mt-2 text-left">{errors.clientId}</p>}
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-slate-700 text-left">Products</label>
-            <Select<OptionType, true>
-              isMulti
-              name="colors"
-              options={productsOptions}
-              className="basic-multi-select"
-              classNamePrefix="select"
-              onChange={(selected) => {
-                handleSelectChange("productIds", selected);
-                validateField("productIds", { value: selected })
-              }}
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 text-left">Product</label>
+
+              <select
+                name="productId"
+                value={form.productId}
+                onChange={(e) => {
+                  handleChange(e);
+                  validateField("productId", { value: e.target.value });
+                  setForm((prev) => ({
+                    ...prev,
+                    total: (prev.quantity || 1) * (products?.find((product: TProduct) => product.id === e.target.value)?.price || 0),
+                  }))
+                }}
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="" disabled>
+                  Select Product
+                </option>
+
+                { products && products
+                  .filter((product: TProduct) => product.status === ProductStatus.Active && product.stock > 0)
+                  .map((product: TProduct) => (
+                    <option key={product.id} value={product.id}>{product.name}</option>
+                  ))
+                }
+              </select>
+              {errors.productId && <p className="text-red-500 text-sm mt-2 text-left">{errors.productId}</p>}
+            </div>
+
+            <div >
+              <label className="block text-sm font-medium text-slate-700 text-left mb-1">Quantity</label>
+
+              <div className={`flex items-center rounded-lg border border-slate-300 w-max h-[36px] ${!form.productId ? "pointer-events-none opacity-50" : ""}`}>
+                <button
+                  type="button"
+                  disabled={!form.productId}
+                  onClick={() =>
+                    setForm((prev) => ({
+                      ...prev,
+                      quantity: Math.max(1, (prev.quantity || 1) - 1),
+                    }))
+                  }
+                  className="px-2 py-1 text-slate-600 hover:text-slate-800 disabled:opacity-50"
+                >
+                  −
+                </button>
+                <input
+                  type="text"
+                  name="quantity"
+                  value={form.quantity || 1}
+                  disabled={!form.productId}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/[^0-9]/g, "");
+                    setForm((prev) => ({ ...prev, quantity: Number(value) || 1 }));
+                  }}
+                  className="w-10 text-center text-sm focus:outline-none"
+                />
+                <button
+                  type="button"
+                  disabled={!form.productId}
+                  onClick={() =>
+                    setForm((prev) => ({
+                      ...prev,
+                      quantity: (prev.quantity || 1) + 1,
+                    }))
+                  }
+                  className="px-2 py-1 text-slate-600 hover:text-slate-800"
+                >
+                  +
+                </button>
+              </div>
+            </div>
           </div>
+
+
 
           <div>
             <label className="block text-sm font-medium text-slate-700 text-left">Payment Method</label>
@@ -236,6 +321,11 @@ function CreateOrderDlg({ open, onClose, order }: any) {
               placeholder="Enter order notes"
             />
             {errors.notes && <p className="text-red-500 text-sm text-left">{errors.notes}</p>}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 text-left">Total</label>
+            <b className="block text-lg font-medium text-slate-700 text-left">$ { form.total }</b>
           </div>
 
           {/* Actions */}

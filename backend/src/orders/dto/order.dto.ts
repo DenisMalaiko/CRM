@@ -17,12 +17,14 @@ export class OrderDto {
   @IsNumber()
   total: number;
 
+  @IsNumber()
+  quantity: number;
+
   @IsEnum(OrderStatus)
   status: OrderStatus;
 
-  @IsArray()
-  @IsString({ each: true })
-  productIds: string[];
+  @IsUUID()
+  productId: string;
 
   @IsUUID()
   clientId: string;

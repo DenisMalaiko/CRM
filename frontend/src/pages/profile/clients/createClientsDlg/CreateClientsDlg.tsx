@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from "../../../../store";
 import { createClient, getClients, updateClient } from "../../../../store/clients/clientsThunks";
-import { isEmail, isPhoneNumber, minLength } from "../../../../utils/validations";
+import {exactLength, isEmail, isPhoneNumber, minLength} from "../../../../utils/validations";
 import { ClientRoles } from "../../../../enum/ClientRoles";
 import { toast } from "react-toastify";
 
@@ -11,11 +11,13 @@ function CreateClientsDlg({ open, onClose, client }: any) {
   const { user } = useSelector((state: RootState) => state.authModule);
   const roles = Object.values(ClientRoles);
   const isEdit = !!client;
+  const [countryCode, setCountryCode] = useState("+38");
 
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
     email: "",
+    countryCode: "+38",
     phoneNumber: "",
     address: "",
     role: ClientRoles.Customer,
@@ -32,6 +34,7 @@ function CreateClientsDlg({ open, onClose, client }: any) {
         lastName: client.lastName,
         businessId: client.businessId,
         email: client.email,
+        countryCode: client.countryCode,
         phoneNumber: client.phoneNumber,
         address: client.address,
         role: client.role,
@@ -43,6 +46,7 @@ function CreateClientsDlg({ open, onClose, client }: any) {
         lastName: "",
         businessId: user?.businessId,
         email: "",
+        countryCode: "+38",
         phoneNumber: "",
         address: "",
         role: ClientRoles.Customer,
@@ -56,9 +60,17 @@ function CreateClientsDlg({ open, onClose, client }: any) {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
+    let newValue: any = value;
+
+    if (["phoneNumber"].includes(name)) {
+      newValue = value.replace(/[^0-9.]/g, "").replace(/(\..*)\./g, "$1"); // лише цифри та одна крапка
+    }
+
     setForm((prev) => ({
       ...prev,
-      [name]: type === "number" ? Number(value) : value,
+      [name]: type === "number"
+        ? newValue === "" ? "" : Number(newValue)
+        : newValue
     }));
   }
 
@@ -67,16 +79,32 @@ function CreateClientsDlg({ open, onClose, client }: any) {
     if (name === "firstName") error = minLength(data.value, 2);
     if (name === "lastName") error = minLength(data.value, 2);
     if (name === "email") error = isEmail(data.value);
-    if (name === "phoneNumber") error = isPhoneNumber(data.value);
+    if (name === "phoneNumber") error = minLength(data.value, 10);
     if (name === "address") error = minLength(data.value, 2);
     if (name === "role") error = minLength(data.value, 2);
     if (name === "isActive") error = minLength(data.value, 2);
     if (name === "businessId") error = minLength(data.value, 2);
     setErrors((prev: any) => ({ ...prev, [name]: error }));
+    return error;
   };
 
-  const create = async (e: React.FormEvent<HTMLFormElement>) => {
+  const validateForm = (e: React.FormEvent<HTMLFormElement>): boolean => {
     e.preventDefault();
+
+    const newErrors: Record<string, string | null> = {};
+
+    Object.keys(form).forEach((field) => {
+      newErrors[field] = validateField(field, { value: form[field as keyof typeof form] });
+    });
+
+    setErrors(newErrors);
+
+    return window.utils.validateForm(newErrors);
+  }
+
+  const create = async (e: React.FormEvent<HTMLFormElement>) => {
+    if (!validateForm(e)) return;
+
     try {
       let response;
 
@@ -163,15 +191,32 @@ function CreateClientsDlg({ open, onClose, client }: any) {
 
             <div>
               <label className="block text-sm font-medium text-slate-700 text-left">Phone Number</label>
-              <input
-                type="text"
-                name="phoneNumber"
-                value={form.phoneNumber}
-                onChange={handleChange}
-                step="0.01"
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
-                placeholder="+38 000 000 000"
-              />
+
+              <div className="flex mt-1">
+                <select
+                  name="countryCode"
+                  value={form.countryCode}
+                  onChange={(e) => {
+                    handleChange(e);
+                    validateField("countryCode", { value: e.target.value })
+                  }}
+                  className="rounded-l-lg border border-slate-300 bg-gray-50 px-2 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="+38">+38</option>
+                  <option value="+48">+48</option>
+                  <option value="+49">+49</option>
+                </select>
+
+                <input
+                  type="tel"
+                  name="phoneNumber"
+                  value={form.phoneNumber}
+                  onChange={handleChange}
+                  className="w-full rounded-r-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="000 000 00 00"
+                />
+              </div>
+              {errors.phoneNumber && <p className="text-red-500 text-sm mt-2 text-left">{errors.phoneNumber}</p>}
             </div>
           </div>
 
@@ -186,6 +231,7 @@ function CreateClientsDlg({ open, onClose, client }: any) {
                 className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
                 placeholder="New York, NY"
               />
+              {errors.address && <p className="text-red-500 text-sm mt-2 text-left">{errors.address}</p>}
             </div>
 
             <div>

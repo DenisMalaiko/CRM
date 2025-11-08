@@ -73,11 +73,11 @@ function Business() {
           <div className="px-6 pb-6">
             <table className="min-w-full divide-y divide-slate-200 rounded-2xl shadow border overflow-hidden">
               <thead className="bg-slate-50">
-              <tr>
-                {header.map((item) => (
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600" key={item.key}>{ item.name }</th>
-                ))}
-              </tr>
+                <tr>
+                  {header.map((item) => (
+                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600" key={item.key}>{ item.name }</th>
+                  ))}
+                </tr>
               </thead>
 
               <tbody className="divide-y divide-slate-100">

@@ -7,6 +7,7 @@ export type Product = {
   sku: string;
   price: number;
   stock: number;
+  reserved: number;
   category: string;
   status: string;
   image?: string | null;

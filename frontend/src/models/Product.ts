@@ -8,9 +8,11 @@ export type TProduct = TBaseModel & {
   sku: string;
   price: number;
   stock: number;
+  reserved: number;
   category: Categories;
   status: ProductStatus;
   image?: string;
-  createdAt?: Date | string;
-  updatedAt?: Date | string;
+
+  createdAt?: string;
+  updatedAt?: string;
 };

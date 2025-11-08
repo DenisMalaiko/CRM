@@ -88,6 +88,7 @@ model Product {
   sku       String
   price     Float
   stock     Int
+  reserved  Int
   category  String
   status    String
   image     String?
@@ -95,20 +96,21 @@ model Product {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  orders   OrderProduct[]
+  orders     Order[]
   business   Business @relation(fields: [businessId], references: [id])
 }
 
 model Client {
-  id         String   @id @default(uuid())
-  businessId String
-  firstName  String
-  lastName   String
-  email      String
+  id          String   @id @default(uuid())
+  businessId  String
+  firstName   String
+  lastName    String
+  email       String
+  countryCode String
   phoneNumber String
-  address    String
-  role       String
-  isActive   Boolean
+  address     String
+  role        String
+  isActive    Boolean
 
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
@@ -119,9 +121,10 @@ model Client {
 
 model Order {
   id             String           @id @default(uuid())
+  quantity       Int
   total          Float
   status         OrderStatus
-  productIds     String[]
+  productId      String
   clientId       String
   paymentStatus  PaymentsStatus
   paymentMethod  PaymentMethod
@@ -132,19 +135,7 @@ model Order {
   fulfilledAt    DateTime?
 
   client         Client?          @relation(fields: [clientId], references: [id])
-  products       OrderProduct[]
+  product        Product          @relation(fields: [productId], references: [id])
   businessId     String
   business       Business         @relation(fields: [businessId], references: [id])
-}
-
-model OrderProduct {
-  orderId   String
-  productId String
-  quantity  Int       @default(1)
-  price     Float?
-
-  order     Order   @relation(fields: [orderId], references: [id])
-  product   Product @relation(fields: [productId], references: [id])
-
-  @@id([orderId, productId])
 }

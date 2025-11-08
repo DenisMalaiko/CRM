@@ -19,6 +19,9 @@ export class ClientDto {
   email: string;
 
   @IsString()
+  countryCode: string;
+
+  @IsString()
   phoneNumber: string;
 
   @IsString()

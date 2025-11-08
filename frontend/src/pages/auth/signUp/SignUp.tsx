@@ -2,7 +2,6 @@ import React, {useState} from "react";
 import {useDispatch} from "react-redux";
 import {AppDispatch} from '../../../store';
 import {toast} from "react-toastify";
-import {createBusiness} from '../../../store/business/businessThunks';
 import {signUpUser} from "../../../store/auth/authThunks";
 
 import {Link} from "react-router-dom";
@@ -11,7 +10,6 @@ import {ApiResponse} from "../../../models/ApiResponse";
 import {MiniTranslate} from "../../../enum/miniTranslate";
 import {BusinessIndustry} from "../../../enum/BusinessIndustry";
 import {Tiers} from "../../../enum/Tiers";
-import {TBusiness} from "../../../models/Business";
 import {TUser} from "../../../models/User";
 
 function SignUp() {
@@ -21,8 +19,8 @@ function SignUp() {
   const [password, setPassword] = useState("Ab12345$");
   const [repeatPassword, setRepeatPassword] = useState("Ab12345$");
 
-  const [businessName, setBusinessName] = useState("Business Name");
-  const [industry, setIndustry] = useState<BusinessIndustry>(BusinessIndustry.BeautyWellness);
+  const [businessName, setBusinessName] = useState("Online Store");
+  const [industry, setIndustry] = useState<BusinessIndustry>(BusinessIndustry.RetailEcommerce);
   const [tier, setTier] = useState<Tiers>(Tiers.Free);
 
   const [errors, setErrors]: any = useState({});
