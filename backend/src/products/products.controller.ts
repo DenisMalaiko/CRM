@@ -1,11 +1,13 @@
-import { Controller, Post, Get, Patch, Delete, Body, Req, Res, Param } from '@nestjs/common';
+import { Controller, Post, Get, Patch, Delete, Body, Req, Res, Param, UseGuards } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { ProductDto } from "./dto/product.dto";
+import { JwtAuthGuard } from "../guards/jwt-auth.guard";
 
 @Controller('products')
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
+  @UseGuards(JwtAuthGuard)
   @Get("/:id")
   async getProducts(@Res() res: any, @Param() params: any) {
     const businessId = params.id;

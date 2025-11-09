@@ -1,6 +1,8 @@
-import { Injectable, NotFoundException, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, NotFoundException, InternalServerErrorException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Product, ProductResponse } from "./entities/product.entity";
+import { OrderStatusUI } from "../enums/OrderStatus";
+import {Order, OrderResponse} from "../orders/entities/order.entity";
 
 @Injectable()
 export class ProductsService {
@@ -68,26 +70,55 @@ export class ProductsService {
   }
 
   async deleteProduct(id: string) {
-    if (!id) {
-      throw new NotFoundException('Product ID is required');
-    }
+    return this.prisma.$transaction(async (tx) => {
+      try {
+        if (!id) throw new NotFoundException('Product ID is required');
 
-    try {
-      const deleted = await this.prisma.product.delete({
-        where: { id },
-      });
+        // Get Orders By Product ID
+        const orders = await tx.order.findMany({
+          where: { productId: id },
+          select: {
+            id: true,
+            status: true,
+          }
+        });
 
-      return {
-        statusCode: 200,
-        message: 'Product has been deleted!',
-        data: deleted,
-      };
-    } catch (err: any) {
-      if (err.code === 'P2025') {
-        throw new NotFoundException(`Product with ID ${id} not found`);
+        // Check if product is in use
+        const isProductUse: boolean = orders.some((order: OrderResponse) => {
+          if (!order.status) return false;
+          const status = order.status as OrderStatusUI;
+          return ![OrderStatusUI.Cancelled, OrderStatusUI.Completed].includes(status);
+        });
+
+        if(isProductUse) {
+          throw new ConflictException('Product is in use! Please complete or cancel all orders before deleting the product.');
+        }
+
+        // Delete Orders By Product ID
+        await tx.order.deleteMany({ where: { productId: id } });
+
+        // Delete Product
+        const deleted = await tx.product.delete({
+          where: { id },
+        });
+
+        return {
+          statusCode: 200,
+          message: 'Product has been deleted!',
+          data: deleted,
+        };
+      } catch (err: any) {
+
+        if (err.code === 'P2025') {
+          throw new NotFoundException(`Product with ID ${id} not found`);
+        }
+
+        if (err instanceof ConflictException) {
+          throw err;
+        }
+
+        throw new InternalServerErrorException('Failed to delete product');
       }
-
-      throw new InternalServerErrorException('Failed to delete product');
-    }
+    });
   }
 }

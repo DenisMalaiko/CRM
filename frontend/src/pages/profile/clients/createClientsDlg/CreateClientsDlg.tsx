@@ -79,7 +79,7 @@ function CreateClientsDlg({ open, onClose, client }: any) {
     if (name === "firstName") error = minLength(data.value, 2);
     if (name === "lastName") error = minLength(data.value, 2);
     if (name === "email") error = isEmail(data.value);
-    if (name === "phoneNumber") error = minLength(data.value, 10);
+    if (name === "phoneNumber") error = minLength(data.value, 9);
     if (name === "address") error = minLength(data.value, 2);
     if (name === "role") error = minLength(data.value, 2);
     if (name === "isActive") error = minLength(data.value, 2);

@@ -60,7 +60,9 @@ function Clients() {
   return (
     <section>
       <section>
-        <div className="container mx-auto flex items-center justify-end px-4 py-3">
+        <div className="container mx-auto flex items-center justify-between px-4 py-3">
+          <h1 className="text-3xl font-semibold">Clients</h1>
+
           <button
             onClick={() => setOpen(true)}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700"
@@ -92,7 +94,7 @@ function Clients() {
 
             <tbody className="divide-y divide-slate-100">
             {clients && clients.map((item: TClient) => (
-              <tr key={item.id} className="hover:bg-slate-50">
+              <tr key={item.id} className="hover:bg-slate-50 bg-slate-50">
                 <td className="px-4 py-3">
                   <div className="h-10 w-10 bg-slate-200 rounded-lg" />
                 </td>

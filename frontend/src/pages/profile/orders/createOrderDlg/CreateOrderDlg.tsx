@@ -20,6 +20,9 @@ function CreateOrderDlg({ open, onClose, order }: any) {
   const { user } = useSelector((state: RootState) => state.authModule);
   const { products } = useSelector((state: RootState) => state.productsModule);
   const { clients } = useSelector((state: RootState) => state.clientsModule);
+  const paymentMethods = Object.values(PaymentMethod);
+  const paymentStatuses = Object.values(PaymentsStatus);
+  const orderStatuses = Object.values(OrderStatus);
   const isEdit = !!order;
 
   const [form, setForm] = useState({
@@ -74,8 +77,9 @@ function CreateOrderDlg({ open, onClose, order }: any) {
     const price = product?.price || 0;
     const newTotal = (form.quantity || 0) * price;
     const stock = product?.stock || 0;
+    const reserved = product?.reserved || 0;
 
-    if(stock < form.quantity) {
+    if((stock + reserved) < form.quantity) {
       toast.error("Not enough stock");
       setForm((prev) => ({ ...prev, quantity: stock }));
     }
@@ -102,6 +106,18 @@ function CreateOrderDlg({ open, onClose, order }: any) {
     if (name === "productId") error = isRequired(data.value);
     if (name === "paymentMethod") error = isRequired(data.value);
     if (name === "paymentStatus") error = isRequired(data.value);
+    if (name === "status") {
+      error = isRequired(data.value);
+
+      const paymentStatus = data.form?.paymentStatus;
+      console.log("FORM ", data.form?.paymentStatus);
+      console.log("ORDER STATUS ", paymentStatus);
+      console.log("PAYMENT STATUS ", data.value);
+
+      if (data.value === "Cancelled" && paymentStatus === "Paid") {
+        error = 'Payment status cannot be "Cancelled" when method is "Paid".';
+      }
+    }
     if (name === "notes") error = minLength(data.value, 3);
     setErrors((prev: any) => ({ ...prev, [name]: error }));
     return error;
@@ -113,7 +129,10 @@ function CreateOrderDlg({ open, onClose, order }: any) {
     const newErrors: Record<string, string | null> = {};
 
     Object.keys(form).forEach((field) => {
-      newErrors[field] = validateField(field, { value: form[field as keyof typeof form] });
+      newErrors[field] = validateField(field, {
+        value: form[field as keyof typeof form],
+        form,
+      });
     });
 
     setErrors(newErrors);
@@ -141,10 +160,6 @@ function CreateOrderDlg({ open, onClose, order }: any) {
       toast.error(error.message);
     }
   }
-
-  const paymentMethods = Object.values(PaymentMethod);
-
-  const paymentStatuses = Object.values(PaymentsStatus);
 
 
   return (
@@ -306,6 +321,33 @@ function CreateOrderDlg({ open, onClose, order }: any) {
               )) }
             </select>
           </div>
+
+
+          {isEdit &&
+            <div>
+              <label className="block text-sm font-medium text-slate-700 text-left">Order Status</label>
+
+              <select
+                name="status"
+                value={form.status}
+                onChange={(e) => {
+                  handleChange(e);
+                  validateField("status", { value: e.target.value, form })
+                }}
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="" disabled>
+                  Select Order Status
+                </option>
+
+                {orderStatuses && orderStatuses.map((status: string) => (
+                  <option key={status} value={status}>{status}</option>
+                )) }
+              </select>
+
+              {errors.status && <p className="text-red-500 text-sm text-left">{errors.status}</p>}
+            </div>
+          }
 
 
           <div>
