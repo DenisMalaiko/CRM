@@ -1,7 +1,9 @@
-import {Injectable, InternalServerErrorException, NotFoundException} from '@nestjs/common';
+import {Injectable, InternalServerErrorException, NotFoundException, ConflictException } from '@nestjs/common';
 import { PrismaService } from "../prisma/prisma.service";
 import { Client, ClientResponse } from "./entities/clients.entity";
-import {Product} from "../products/entities/product.entity";
+import { OrderStatusUI } from "../enums/OrderStatus";
+import { Order, OrderResponse } from "../orders/entities/order.entity";
+import { PaymentsStatusUI } from "../enums/PaymentsStatus";
 
 @Injectable()
 export class ClientsService {
@@ -60,26 +62,86 @@ export class ClientsService {
   }
 
   async deleteClient(id: string) {
-    if (!id) {
-      throw new NotFoundException('Client ID is required');
-    }
+    return this.prisma.$transaction(async (tx) => {
+      try {
+        if (!id) throw new NotFoundException('Client ID is required');
 
-    try {
-      const deleted = await this.prisma.client.delete({
-        where: { id },
-      });
+        // Get Orders By Product ID
+        const orders = await tx.order.findMany({
+          where: { clientId: id },
+          select: {
+            id: true,
+            status: true,
+            paymentStatus: true,
+            productId: true,
+            quantity: true,
+          }
+        });
 
-      return {
-        statusCode: 200,
-        message: 'Client has been deleted!',
-        data: deleted,
-      };
-    } catch (err: any) {
-      if (err.code === 'P2025') {
-        throw new NotFoundException(`Client with ID ${id} not found`);
+        if (!orders.length) {
+          const deleted = await tx.client.delete({ where: { id } });
+          return {
+            statusCode: 200,
+            message: 'Client has been deleted!',
+            data: deleted,
+          };
+        }
+
+        // Check if orders is in use
+        const hasActiveOrders = orders.some((order) => {
+          if (!order.status) return false;
+          const status = order.status as OrderStatusUI;
+          return ![OrderStatusUI.Cancelled, OrderStatusUI.Completed].includes(status);
+        });
+
+        if (hasActiveOrders) {
+          throw new ConflictException(
+            'Client is in use! Please complete or cancel all orders before deleting the client.'
+          );
+        }
+
+        const cancelledUnpaidOrders = orders.filter(
+          (order) =>
+            order.status === OrderStatusUI.Cancelled &&
+            order.paymentStatus === PaymentsStatusUI.Unpaid
+        );
+
+        for (const order of cancelledUnpaidOrders) {
+          if (!order.productId || !order.quantity) continue;
+
+          await tx.product.update({
+            where: { id: order.productId },
+            data: {
+              reserved: { decrement: order.quantity },
+              stock: { increment: order.quantity },
+            },
+          });
+        }
+
+        // Delete Orders By Client ID
+        await tx.order.deleteMany({ where: { clientId: id } });
+
+        // Delete Client
+        const deleted = await tx.client.delete({
+          where: { id },
+        });
+
+        return {
+          statusCode: 200,
+          message: 'Client has been deleted!',
+          data: deleted,
+        };
+      } catch (err: any) {
+        if (err.code === 'P2025') {
+          throw new NotFoundException(`Client with ID ${id} not found`);
+        }
+
+        if (err instanceof ConflictException) {
+          throw err;
+        }
+
+        throw new InternalServerErrorException('Failed to delete client');
       }
-
-      throw new InternalServerErrorException('Failed to delete client');
-    }
+    })
   }
 }

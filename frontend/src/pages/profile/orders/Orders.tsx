@@ -67,7 +67,9 @@ function Orders() {
   return (
     <section>
       <section>
-        <div className="container mx-auto flex items-center justify-end px-4 py-3">
+        <div className="container mx-auto flex items-center justify-between px-4 py-3">
+          <h1 className="text-3xl font-semibold">Orders</h1>
+
           <button
             onClick={() => setOpen(true)}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700"
