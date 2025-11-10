@@ -1,3 +1,8 @@
+export default function Business() {
+  return ("Business")
+};
+
+/*
 import React, { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -111,4 +116,4 @@ function Business() {
   )
 }
 
-export default Business;
+export default Business;*/

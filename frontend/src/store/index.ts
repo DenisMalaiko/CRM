@@ -5,6 +5,7 @@ import productsModule from './products/productsSlice'
 import businessModule from './business/businessSlice'
 import clientsModule from './clients/clientsSlice'
 import ordersModule from './orders/ordersSlice'
+import { api } from './api/api'
 
 export const store = configureStore({
   reducer: {
@@ -14,8 +15,10 @@ export const store = configureStore({
     businessModule: businessModule,
     clientsModule: clientsModule,
     ordersModule: ordersModule,
-  }
+    [api.reducerPath]: api.reducer,
+  },
+  middleware: (getDefaultMiddleware: any) => getDefaultMiddleware().concat(api.middleware),
 })
 
-export type RootState = ReturnType<typeof store.getState>
-export type AppDispatch = typeof store.dispatch
+export type RootState = ReturnType<typeof store.getState>;
+export type AppDispatch = typeof store.dispatch;

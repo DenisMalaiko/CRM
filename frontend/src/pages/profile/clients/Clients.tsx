@@ -1,3 +1,8 @@
+export default function Clients() {
+  return ("Clients")
+};
+
+/*
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../../../store";
@@ -126,4 +131,4 @@ function Clients() {
   )
 }
 
-export default Clients;
+export default Clients;*/

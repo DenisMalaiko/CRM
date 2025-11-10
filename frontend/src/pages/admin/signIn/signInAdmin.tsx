@@ -1,3 +1,8 @@
+export default function SignInAdmin() {
+  return ("SignInAdmin")
+};
+
+/*
 import React, {useState} from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -112,4 +117,4 @@ function SignInAdmin() {
   )
 }
 
-export default SignInAdmin;
+export default SignInAdmin;*/

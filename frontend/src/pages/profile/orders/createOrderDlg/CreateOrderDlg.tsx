@@ -1,3 +1,8 @@
+export default function OrderPopup() {
+  return ("OrderPopup")
+};
+
+/*
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
@@ -165,7 +170,7 @@ function CreateOrderDlg({ open, onClose, order }: any) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50">
       <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl p-6">
-        {/* Header */}
+        {/!* Header *!/}
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold">Create Order</h2>
           <button
@@ -176,7 +181,7 @@ function CreateOrderDlg({ open, onClose, order }: any) {
           </button>
         </div>
 
-        {/* Form */}
+        {/!* Form *!/}
         <form className="space-y-4" onSubmit={create} action="">
           <div>
             <label className="block text-sm font-medium text-slate-700 text-left">Client</label>
@@ -370,7 +375,7 @@ function CreateOrderDlg({ open, onClose, order }: any) {
             <b className="block text-lg font-medium text-slate-700 text-left">$ { form.total }</b>
           </div>
 
-          {/* Actions */}
+          {/!* Actions *!/}
           <div className="flex justify-end gap-3 pt-4">
             <button
               type="button"
@@ -392,4 +397,4 @@ function CreateOrderDlg({ open, onClose, order }: any) {
   )
 }
 
-export default CreateOrderDlg;
+export default CreateOrderDlg;*/

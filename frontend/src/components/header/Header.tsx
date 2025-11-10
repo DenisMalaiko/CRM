@@ -1,3 +1,8 @@
+export default function Header() {
+  return ("Header")
+};
+
+/*
 import React from "react";
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from "react-redux";
@@ -79,4 +84,4 @@ function Header() {
   )
 }
 
-export default Header;
+export default Header;*/

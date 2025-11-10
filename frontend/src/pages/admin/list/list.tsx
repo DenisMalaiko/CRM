@@ -1,3 +1,9 @@
+export default function List() {
+  return ("List")
+};
+
+
+/*
 import React from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../store";
@@ -46,4 +52,4 @@ function List() {
   )
 }
 
-export default List;
+export default List;*/
