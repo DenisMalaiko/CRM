@@ -1,5 +1,4 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { signUpUser, signInUser, signOutUser } from './authThunks'
 import { TUser } from "../../models/User";
 
 type AuthState = {
@@ -23,8 +22,28 @@ const initialState: AuthState = {
 const authSlice = createSlice({
   name: 'auth',
   initialState,
-  reducers: {},
-  extraReducers: (builder) => {
+  reducers: {
+    setUser: (state, action: PayloadAction<TUser>) => {
+      state.user = action.payload;
+      state.isAuthenticatedUser = true;
+    },
+    setAccessToken: (state, action: PayloadAction<string | null>) => {
+      state.accessToken = action.payload;
+      if (action.payload) {
+        localStorage.setItem('accessToken', action.payload);
+      } else {
+        localStorage.removeItem('accessToken');
+      }
+    },
+    logout: (state) => {
+      state.user = null;
+      state.accessToken = null;
+      state.isAuthenticatedUser = false;
+      localStorage.removeItem('accessToken');
+    },
+  },
+
+  /*extraReducers: (builder) => {
     builder
       .addCase(signUpUser.pending, (state) => {
         state.loading = true;
@@ -65,8 +84,8 @@ const authSlice = createSlice({
       .addCase(signOutUser.rejected, (state, action) => {
         state.loading = false;
       })
-  }
+  }*/
 })
 
-export const { } = authSlice.actions
-export default authSlice.reducer
+export const { setUser, setAccessToken, logout } = authSlice.actions;
+export default authSlice.reducer;

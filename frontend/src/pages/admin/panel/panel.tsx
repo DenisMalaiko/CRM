@@ -1,9 +1,15 @@
+export default function Panel() {
+  return ("Panel")
+};
+
+
+/*
 import { Outlet, NavLink } from "react-router-dom";
 
 function Panel() {
   return (
     <div className="flex h-screen bg-gray-100">
-      {/* Sidebar */}
+      {/!* Sidebar *!/}
       <aside className="w-64 bg-white shadow-md">
         <nav className="flex-1 px-4 py-6 space-y-2">
           <NavLink
@@ -15,7 +21,7 @@ function Panel() {
         </nav>
       </aside>
 
-      {/* Main content */}
+      {/!* Main content *!/}
       <main className="flex-1 p-6 overflow-y-auto">
         <Outlet />
       </main>
@@ -23,4 +29,4 @@ function Panel() {
   )
 }
 
-export default Panel;
+export default Panel;*/

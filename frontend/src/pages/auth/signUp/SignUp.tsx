@@ -1,8 +1,6 @@
 import React, {useState} from "react";
-import {useDispatch} from "react-redux";
-import {AppDispatch} from '../../../store';
 import {toast} from "react-toastify";
-import {signUpUser} from "../../../store/auth/authThunks";
+import { useSignUpUserMutation } from "../../../store/auth/authApi";
 
 import {Link} from "react-router-dom";
 import {isEmail, isPassword, isRepeatPassword, minLength} from "../../../utils/validations";
@@ -13,7 +11,8 @@ import {Tiers} from "../../../enum/Tiers";
 import {TUser} from "../../../models/User";
 
 function SignUp() {
-  const dispatch = useDispatch<AppDispatch>();
+  const [signUpUser] = useSignUpUserMutation();
+
   const [name, setName] = useState("Denis");
   const [email, setEmail] = useState("malaiko.denis@gmail.com");
   const [password, setPassword] = useState("Ab12345$");
@@ -46,12 +45,11 @@ function SignUp() {
     if (!window.utils.validateForm(errors)) return;
 
     try {
-      const response: ApiResponse<TUser> = await dispatch(
-        signUpUser({
-          user: { name, email, password },
-          business: { name: businessName, industry, tier }
-        })
-      ).unwrap();
+      const response: ApiResponse<TUser> = await signUpUser({
+        user: { name, email, password },
+        business: { name: businessName, industry, tier }
+      }).unwrap();
+      console.log("RESPONSE: ", response);
 
       toast.success(response.message);
       toast.success(MiniTranslate.YouCanSignIn);

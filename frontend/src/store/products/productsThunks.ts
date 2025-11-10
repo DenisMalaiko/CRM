@@ -14,6 +14,7 @@ export const createProduct = createAsyncThunk(
         method: "POST",
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify(form),
+        credentials: "include",
       });
 
       const data: ApiResponse<TProduct> = await res.json();
@@ -42,6 +43,7 @@ export const updateProduct = createAsyncThunk<
         method: "PATCH",
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify(form),
+        credentials: "include",
       });
 
       const data: ApiResponse<TProduct> = await res.json();
@@ -65,6 +67,7 @@ export const deleteProduct = createAsyncThunk(
       const res = await fetch(`${API_URL}/products/delete/${id}`, {
         method: "DELETE",
         headers: {"Content-Type": "application/json"},
+        credentials: "include",
       });
 
       const data: ApiResponse<TProduct> = await res.json();
@@ -95,6 +98,7 @@ export const getProducts = createAsyncThunk<
       const res = await fetch(`${API_URL}/products/${user?.businessId}`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
       });
 
       const data: ApiResponse<TProduct[]> = await res.json();

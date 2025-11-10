@@ -1,3 +1,8 @@
+export default function Orders() {
+  return ("Orders")
+};
+
+/*
 import React, { useState, useEffect } from "react";
 import { TOrder } from "../../../models/Order";
 import { useDispatch, useSelector } from "react-redux";
@@ -88,7 +93,7 @@ function Orders() {
         </div>
       </section>
 
-      {/* Example grid cards */}
+      {/!* Example grid cards *!/}
       <div className="w-full mx-auto p-4">
         <div className="overflow-hidden rounded-xl border border-slate-200 shadow">
           <table className="min-w-full divide-y divide-slate-200">
@@ -137,4 +142,4 @@ function Orders() {
   )
 }
 
-export default Orders;
+export default Orders;*/

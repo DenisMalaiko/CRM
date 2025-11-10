@@ -1,3 +1,9 @@
+export default function ClientsPopup() {
+  return ("ClientsPopup")
+};
+
+
+/*
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from "../../../../store";
@@ -125,7 +131,7 @@ function CreateClientsDlg({ open, onClose, client }: any) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50">
       <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl p-6">
-        {/* Header */}
+        {/!* Header *!/}
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold">Create Client</h2>
           <button
@@ -136,7 +142,7 @@ function CreateClientsDlg({ open, onClose, client }: any) {
           </button>
         </div>
 
-        {/* Form */}
+        {/!* Form *!/}
         <form className="space-y-4" onSubmit={create} action="">
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -250,7 +256,7 @@ function CreateClientsDlg({ open, onClose, client }: any) {
           </div>
 
 
-          {/* Actions */}
+          {/!* Actions *!/}
           <div className="flex justify-end gap-3 pt-4">
             <button
               type="button"
@@ -272,4 +278,4 @@ function CreateClientsDlg({ open, onClose, client }: any) {
   )
 }
 
-export default CreateClientsDlg;
+export default CreateClientsDlg;*/

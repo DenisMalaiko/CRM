@@ -1,3 +1,8 @@
+export default function ProductsPopup() {
+  return ("ProductsPopup")
+};
+
+/*
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from "../../../../store";
@@ -127,7 +132,7 @@ function CreateProductDlg({ open, onClose, product }: any) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50">
       <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl p-6">
-        {/* Header */}
+        {/!* Header *!/}
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold">Create Product</h2>
           <button
@@ -138,7 +143,7 @@ function CreateProductDlg({ open, onClose, product }: any) {
           </button>
         </div>
 
-        {/* Form */}
+        {/!* Form *!/}
         <form className="space-y-4" onSubmit={create} action="">
           <div>
             <label className="block text-sm font-medium text-slate-700 text-left">Product Name</label>
@@ -250,7 +255,7 @@ function CreateProductDlg({ open, onClose, product }: any) {
             </select>
           </div>
 
-          {/* Actions */}
+          {/!* Actions *!/}
           <div className="flex justify-end gap-3 pt-4">
             <button
               type="button"
@@ -272,4 +277,4 @@ function CreateProductDlg({ open, onClose, product }: any) {
   )
 }
 
-export default CreateProductDlg;
+export default CreateProductDlg;*/

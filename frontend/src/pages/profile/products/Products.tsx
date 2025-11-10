@@ -1,3 +1,8 @@
+export default function Products() {
+  return ("Products")
+};
+
+/*
 import React, { useState, useEffect } from "react";
 import { TProduct } from "../../../models/Product";
 import { useDispatch, useSelector } from "react-redux";
@@ -135,4 +140,4 @@ function Products() {
   )
 }
 
-export default Products;
+export default Products;*/

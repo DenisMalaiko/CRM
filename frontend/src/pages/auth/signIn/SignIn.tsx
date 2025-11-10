@@ -1,18 +1,19 @@
 import React from "react";
-import { useDispatch } from "react-redux";
-import { AppDispatch } from '../../../store';
 import { toast } from "react-toastify";
-import { signInUser } from '../../../store/auth/authThunks';
 
 import { Link, useNavigate } from 'react-router-dom';
 import { useState } from "react";
 import { isEmail, isPassword } from "../../../utils/validations";
-import { ApiResponse } from "../../../models/ApiResponse";
-import { TUser } from "../../../models/User";
+
+import { useAppDispatch } from "../../../store/hooks";
+import { useSignInUserMutation } from "../../../store/auth/authApi";
+import { setUser, setAccessToken } from "../../../store/auth/authSlice";
 
 function SignIn() {
-  const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
+
+  const [signInUser] = useSignInUserMutation();
+  const dispatch = useAppDispatch();
 
   const [email, setEmail] = useState("malaiko.denis@gmail.com");
   const [password, setPassword] = useState("Ab12345$");
@@ -31,12 +32,16 @@ function SignIn() {
     if (!window.utils.validateForm(errors)) return;
 
     try {
-      const response: ApiResponse<TUser> = await dispatch(
+      const response = await signInUser({ email, password }).unwrap();
+      console.log("RESPONSE: ", response);
+      dispatch(setUser(response.data.user));
+      dispatch(setAccessToken(response.data.accessToken));
+
+      /*const response: ApiResponse<TUser> = await dispatch(
         signInUser({ email, password })
-      ).unwrap();
+      ).unwrap();*/
 
       toast.success(response.message);
-
       navigate("/profile/dashboard");
     } catch (error: any) {
       toast.error(error.message);
