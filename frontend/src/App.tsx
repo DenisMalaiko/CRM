@@ -8,7 +8,7 @@ import 'react-toastify/dist/ReactToastify.css';
 
 
 // Components
-/*import Header from './components/header/Header';*/
+import Header from './components/header/Header';
 import { useConfirmDialog } from './components/confirmDlg/ConfirmDlg';
 
 // Auth
@@ -17,11 +17,11 @@ import SignIn from './pages/auth/signIn/SignIn';
 import SignUp from './pages/auth/signUp/SignUp';
 
 // Admin
-// import SignInAdmin from './pages/admin/signIn/signInAdmin';
-// import SignUpAdmin from './pages/admin/signUp/signUpAdmin';
-// import Panel from './pages/admin/panel/panel';
-// import List from './pages/admin/list/list';
-// import Business from './pages/admin/business/business';
+import SignInAdmin from './pages/admin/signIn/signInAdmin';
+import SignUpAdmin from './pages/admin/signUp/signUpAdmin';
+import Panel from './pages/admin/panel/panel';
+import List from './pages/admin/list/list';
+import Business from './pages/admin/business/business';
 
 // Profile
 import Profile from "./pages/profile/Profile";
@@ -40,14 +40,14 @@ function App() {
 
   return (
     <div className="App">
-      {/*<Header />*/}
+      <Header />
 
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/signIn" element={<SignIn />} />
         <Route path="/signUp" element={<SignUp />} />
-        {/*<Route path="/admin/signIn" element={<SignInAdmin />} />
-        <Route path="/admin/signUp" element={<SignUpAdmin />} />*/}
+        <Route path="/admin/signIn" element={<SignInAdmin />} />
+        <Route path="/admin/signUp" element={<SignUpAdmin />} />
 
         <Route
           path="/profile"
@@ -68,7 +68,7 @@ function App() {
         </Route>
 
 
-        {/*<Route
+        <Route
           path="/admin"
           element={
             <AdminGuard>
@@ -78,7 +78,7 @@ function App() {
         >
           <Route path="list" element={<List />} />
           <Route path="list/:id" element={<Business />} />
-        </Route>*/}
+        </Route>
       </Routes>
 
       <ToastContainer

@@ -1,8 +1,3 @@
-export default function Header() {
-  return ("Header")
-};
-
-/*
 import React from "react";
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from "react-redux";
@@ -12,8 +7,17 @@ import { signOutUser } from '../../store/auth/authThunks';
 import { signOutAdmin } from '../../store/admin/adminThunks';
 import { ApiResponse } from "../../models/ApiResponse";
 
+import { useAppDispatch } from "../../store/hooks";
+import { useSignOutAdminMutation } from "../../store/admin/adminApi";
+import { useSignOutUserMutation} from "../../store/auth/authApi";
+import { logout } from "../../store/auth/authSlice";
+import { logoutAdmin } from "../../store/admin/adminSlice";
+
 function Header() {
-  const dispatch = useDispatch<AppDispatch>();
+  const [ signOutUser ] = useSignOutUserMutation();
+  const [ signOutAdmin ] = useSignOutAdminMutation();
+  const dispatch = useAppDispatch();
+
   const { user, isAuthenticatedUser } = useSelector((state: RootState) => state.authModule);
   const { admin, isAuthenticatedAdmin } = useSelector((state: RootState) => state.adminModule);
   const navigate = useNavigate();
@@ -23,18 +27,16 @@ function Header() {
       let response;
 
       if(admin && isAuthenticatedAdmin) {
-        response = await dispatch(
-          signOutAdmin()
-        ).unwrap();
+        response = await signOutAdmin().unwrap();
+        dispatch(logoutAdmin());
       } else if (user && isAuthenticatedUser) {
-        response = await dispatch(
-          signOutUser()
-        ).unwrap();
+        response = await signOutUser().unwrap();
+        dispatch(logout());
       }
 
       navigate("/signIn");
 
-      toast.success(response.message);
+      toast.success(response?.message);
     } catch (error: any) {
       toast.error(error.message);
     }
@@ -84,4 +86,4 @@ function Header() {
   )
 }
 
-export default Header;*/
+export default Header;

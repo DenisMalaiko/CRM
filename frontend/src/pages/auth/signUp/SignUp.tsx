@@ -54,7 +54,7 @@ function SignUp() {
       toast.success(response.message);
       toast.success(MiniTranslate.YouCanSignIn);
     } catch (error: any) {
-      toast.error(error.message);
+      toast.error(error.data.message);
     }
   }
 

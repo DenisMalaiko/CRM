@@ -37,14 +37,10 @@ function SignIn() {
       dispatch(setUser(response.data.user));
       dispatch(setAccessToken(response.data.accessToken));
 
-      /*const response: ApiResponse<TUser> = await dispatch(
-        signInUser({ email, password })
-      ).unwrap();*/
-
       toast.success(response.message);
       navigate("/profile/dashboard");
     } catch (error: any) {
-      toast.error(error.message);
+      toast.error(error.data.message);
     }
   }
 

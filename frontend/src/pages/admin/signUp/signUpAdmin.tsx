@@ -1,12 +1,8 @@
-export default function SignUpAdmin() {
-  return ("SignUpAdmin")
-};
-
-
-/*
 import React, {useState} from 'react';
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
+import { useSignUpAdminMutation } from "../../../store/admin/adminApi";
+
 import {AppDispatch} from "../../../store";
 import {isEmail, isPassword, isRepeatPassword, isSecret, minLength} from "../../../utils/validations";
 import {ApiResponse} from "../../../models/ApiResponse";
@@ -16,6 +12,8 @@ import {MiniTranslate} from "../../../enum/miniTranslate";
 import {Link} from "react-router-dom";
 
 function SignUpAdmin() {
+  const [signUpAdmin] = useSignUpAdminMutation();
+
   const dispatch = useDispatch<AppDispatch>();
   const isAdmin = true;
   const [name, setName] = useState("Denis");
@@ -41,14 +39,16 @@ function SignUpAdmin() {
     if (!window.utils.validateForm(errors)) return;
 
     try {
-      const response: ApiResponse<TAdmin> = await dispatch(
-        signUpAdmin({ name, email, password, isAdmin })
-      ).unwrap();
+      const response: ApiResponse<TAdmin> = await signUpAdmin({ name, email, password, isAdmin }).unwrap();
+      console.log("RESPONSE: ", response);
 
       toast.success(response.message);
       toast.success(MiniTranslate.YouCanSignIn);
     } catch (error: any) {
-      toast.error(error.message);
+      console.log("ERROR: ", error);
+
+
+      toast.error(error.data.message);
     }
   }
 
@@ -162,4 +162,4 @@ function SignUpAdmin() {
   )
 }
 
-export default SignUpAdmin;*/
+export default SignUpAdmin;

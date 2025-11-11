@@ -1,6 +1,6 @@
 import * as bcrypt from 'bcrypt';
 import * as process from "node:process";
-import { Injectable, ConflictException, UnauthorizedException } from '@nestjs/common';
+import {Injectable, ConflictException, UnauthorizedException, InternalServerErrorException} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 
 import { PrismaService } from "../prisma/prisma.service";
@@ -23,28 +23,37 @@ export class AuthService {
 
   async signUp(body: SignUpDto): Promise<ApiResponse<UserResponse>> {
     return this.prisma.$transaction(async (tx) => {
-      await this._checkExistingUser(body.user?.email);
+      try {
+        await this._checkExistingUser(body.user?.email);
 
-      const business = await tx.business.create({
-        data: {
-          name: body.business.name,
-          industry: BusinessIndustryToPrisma[body.business.industry],
-          tier: body.business.tier,
-        },
-      });
+        const business = await tx.business.create({
+          data: {
+            name: body.business.name,
+            industry: BusinessIndustryToPrisma[body.business.industry],
+            tier: body.business.tier,
+          },
+        });
 
-      const hashedPassword = await bcrypt.hash(body.user.password, this.SALT_ROUNDS);
+        const hashedPassword = await bcrypt.hash(body.user.password, this.SALT_ROUNDS);
 
-      const user: UserResponse = await tx.user.create({
-        data: { email: body.user.email, name: body.user.name, businessId: business.id, password: hashedPassword },
-        select: { id: true, email: true, name: true, businessId: true }
-      });
+        const user: UserResponse = await tx.user.create({
+          data: { email: body.user.email, name: body.user.name, businessId: business.id, password: hashedPassword },
+          select: { id: true, email: true, name: true, businessId: true }
+        });
 
-      return {
-        statusCode: 200,
-        message: "User has been created!",
-        data: user,
-      };
+        return {
+          statusCode: 200,
+          message: "User has been created!",
+          data: user,
+        };
+
+      } catch(err) {
+        if (err instanceof ConflictException) {
+          throw err;
+        }
+
+        throw new InternalServerErrorException('Failed to sign up user');
+      }
     })
   }
 
@@ -77,7 +86,10 @@ export class AuthService {
 
   private async _checkExistingUser(email: string): Promise<void> {
     const user: User | null = await this.prisma.user.findUnique({ where: { email: email } });
-    if(user) throw new ConflictException("User already exists!")
+
+    if(user) {
+      throw new ConflictException("User already exists!")
+    }
   }
 
   private async _generateToken(user: UserResponse): Promise<ApiResponse<AuthResponse<UserResponse>>> {
