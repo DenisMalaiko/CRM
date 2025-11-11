@@ -31,5 +31,5 @@ export const authApi = api.injectEndpoints({
 export const {
   useSignUpUserMutation,
   useSignInUserMutation,
-  useSignOutUserMutation,
+  useSignOutUserMutation
 } = authApi;

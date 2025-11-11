@@ -10,7 +10,9 @@ export class AuthController {
 
   @Post("/signUp")
   async signUp(@Body() body: SignUpDto, @Req() req: ExpressRequest) {
-    return await this.authService.signUp(body);
+    const response = await this.authService.signUp(body);
+
+    return response;
   }
 
   @Post("/signIn")

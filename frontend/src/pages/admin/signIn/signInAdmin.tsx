@@ -1,22 +1,19 @@
-export default function SignInAdmin() {
-  return ("SignInAdmin")
-};
-
-/*
 import React, {useState} from "react";
-import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-
 import { isEmail, isPassword } from "../../../utils/validations";
-import { ApiResponse } from "../../../models/ApiResponse";
-import { TUser } from "../../../models/User";
-import { AppDispatch } from "../../../store";
-import { signInAdmin } from "../../../store/admin/adminThunks";
-import { getBusinessList } from "../../../store/business/businessThunks";
+
+import { useAppDispatch } from "../../../store/hooks";
+import { useGetBusinessListMutation } from "../../../store/business/businessApi";
+import { useSignInAdminMutation } from "../../../store/admin/adminApi";
+import { setAdmin, setAdminAccessToken } from "../../../store/admin/adminSlice";
+import { setBusinessList } from "../../../store/business/businessSlice";
 
 function SignInAdmin() {
-  const dispatch = useDispatch<AppDispatch>();
+  const [signInAdmin] = useSignInAdminMutation();
+  const [getBusinessList] = useGetBusinessListMutation();
+  const dispatch = useAppDispatch();
+
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("malaiko.denis@gmail.com");
@@ -36,20 +33,18 @@ function SignInAdmin() {
     if (!window.utils.validateForm(errors)) return;
 
     try {
-      const response: ApiResponse<TUser> = await dispatch(
-        signInAdmin({ email, password })
-      ).unwrap();
+      const response: any = await signInAdmin({ email, password }).unwrap();
+      dispatch(setAdmin(response?.data?.user));
+      dispatch(setAdminAccessToken(response?.data?.accessToken));
 
-      await dispatch(getBusinessList())
+      const businessResponse: any = await getBusinessList();
+      console.log("BUSINESS RESPONSE: ", businessResponse);
+      dispatch(setBusinessList(businessResponse?.data?.data));
 
       toast.success(response.message);
-
-      console.log("NAVIGATE");
-
       navigate("/admin/list");
-
     } catch (error: any) {
-      toast.error(error.message);
+      toast.error(error.data.message);
     }
   }
 
@@ -117,4 +112,4 @@ function SignInAdmin() {
   )
 }
 
-export default SignInAdmin;*/
+export default SignInAdmin;

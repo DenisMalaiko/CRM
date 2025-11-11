@@ -16,6 +16,8 @@ export class AdminController {
 
   @Post("/signIn")
   async signIn(@Body() body: CredentialsDto, @Res() res: any) {
+    console.log("ADMIN SIGN IN")
+
     const { data, ...response } = await this.adminService.signIn(body);
 
     /*res.cookie('refresh_token', data?.refreshToken, {

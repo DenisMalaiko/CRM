@@ -1,34 +1,48 @@
-export default function Business() {
-  return ("Business")
-};
-
-/*
 import React, { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { ArrowLeft } from "lucide-react";
 import { AppDispatch, RootState } from "../../../store";
-import { getBusiness, getUsersByBusinessId } from "../../../store/business/businessThunks";
 import { trimID } from "../../../utils/trimID";
 import { TUser } from "../../../models/User";
 
+import { useGetBusinessMutation, useGetUsersByBusinessIdMutation } from "../../../store/business/businessApi";
+import { setBusiness, setUsersByBusinessId } from "../../../store/business/businessSlice";
+import { useAppDispatch } from "../../../store/hooks";
+
 function Business() {
+  const dispatch = useAppDispatch();
+  const [ getBusiness ] = useGetBusinessMutation();
+  const [ getUsersByBusinessId ] = useGetUsersByBusinessIdMutation();
+
   const navigate = useNavigate();
-  const dispatch = useDispatch<AppDispatch>();
   const { id } = useParams<{ id: string }>();
   const { business, usersByBusinessId } = useSelector((state: RootState) => state.businessModule);
   const header = [
     { name: "ID", key: "id" },
     { name: "Name", key: "name" },
     { name: "Email", key: "email" },
-  ]
+  ];
 
   useEffect(() => {
-    if(id) {
-      dispatch(getBusiness(id))
-      dispatch(getUsersByBusinessId(id))
-    }
-  }, [dispatch]);
+    const fetchData = async () => {
+      if (id) {
+        try {
+          const response: any = await getBusiness(id);
+          console.log("RESPONSE ", response);
+          dispatch(setBusiness(response.data.data));
+
+          const responseUsers: any = await getUsersByBusinessId(id);
+          console.log("RESPONSE USERS ", responseUsers);
+          dispatch(setUsersByBusinessId(responseUsers.data.data));
+        } catch (error) {
+          console.error("Error fetching data:", error);
+        }
+      }
+    };
+
+    fetchData();
+  }, [id, dispatch]);
 
   return (
     <section>
@@ -116,4 +130,4 @@ function Business() {
   )
 }
 
-export default Business;*/
+export default Business;

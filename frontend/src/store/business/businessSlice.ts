@@ -22,48 +22,18 @@ const initialState: BusinessState = {
 const businessSlice = createSlice({
   name: "business",
   initialState,
-  reducers: {},
-  extraReducers: (builder) => {
-    builder
-      .addCase(getBusinessList.pending, (state) => {
-        state.loading = true;
-      })
-      .addCase(getBusinessList.fulfilled, (state, action) => {
-        state.loading = false;
-        state.businessList = action.payload.data;
-      })
-      .addCase(getBusinessList.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.error.message ?? 'Error';
-      })
-
-      // Get Business
-      .addCase(getBusiness.pending, (state) => {
-        state.loading = true;
-      })
-      .addCase(getBusiness.fulfilled, (state, action) => {
-        state.loading = false;
-        state.business = action.payload.data;
-      })
-      .addCase(getBusiness.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.error.message ?? 'Error';
-      })
-
-      // Get Users By Business ID
-      .addCase(getUsersByBusinessId.pending, (state) => {
-        state.loading = true;
-      })
-      .addCase(getUsersByBusinessId.fulfilled, (state, action) => {
-        state.loading = false;
-        state.usersByBusinessId = action.payload.data;
-      })
-      .addCase(getUsersByBusinessId.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.error.message ?? 'Error';
-      })
-  }
+  reducers: {
+    setBusiness: (state, action: PayloadAction<TBusiness>) => {
+      state.business = action.payload;
+    },
+    setBusinessList: (state, action: PayloadAction<TBusiness[]>) => {
+      state.businessList = action.payload;
+    },
+    setUsersByBusinessId: (state, action: PayloadAction<TUser[]>) => {
+      state.usersByBusinessId = action.payload;
+    }
+  },
 });
 
-export const { } = businessSlice.actions
-export default businessSlice.reducer
+export const { setBusiness, setBusinessList, setUsersByBusinessId } = businessSlice.actions;
+export default businessSlice.reducer;
