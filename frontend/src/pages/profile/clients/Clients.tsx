@@ -1,26 +1,39 @@
-export default function Clients() {
-  return ("Clients")
-};
-
-/*
 import React, { useState, useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { AppDispatch, RootState } from "../../../store";
-import { deleteClient, getClients } from "../../../store/clients/clientsThunks";
+import { useSelector } from "react-redux";
+import { RootState } from "../../../store";
+import { useAppDispatch } from "../../../store/hooks";
+
 import { TClient } from "../../../models/Client";
 import { confirm } from "../../../components/confirmDlg/ConfirmDlg";
 import { toDate } from "../../../utils/toDate";
 import { toast } from "react-toastify";
 import CreateClientsDlg from "./createClientsDlg/CreateClientsDlg";
 
+import { useGetClientsMutation } from "../../../store/clients/clientsApi";
+import { useDeleteClientMutation } from "../../../store/clients/clientsApi";
+import { setClients } from "../../../store/clients/clientsSlice";
+
 function Clients() {
-  const dispatch = useDispatch<AppDispatch>();
+  const dispatch = useAppDispatch();
+
+  const [ getClients ] = useGetClientsMutation();
+  const [ deleteClient ] = useDeleteClientMutation();
+
   const [open, setOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<TClient | null>(null);
   const { clients } = useSelector((state: RootState) => state.clientsModule)
 
   useEffect(() => {
-    dispatch(getClients());
+    const fetchData = async () => {
+      try {
+        const response: any = await getClients();
+        dispatch(setClients(response.data.data));
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    }
+
+    fetchData();
   }, [dispatch]);
 
   const header = [
@@ -47,8 +60,9 @@ function Clients() {
     if(ok) {
       try {
         if (item?.id != null) {
-          const response = await dispatch(deleteClient(item?.id)).unwrap();
-          await dispatch(getClients());
+          await deleteClient(item.id).unwrap();
+          const response: any = await getClients();
+          dispatch(setClients(response.data.data));
           toast.success(response.message);
         }
       } catch (error: any) {
@@ -131,4 +145,4 @@ function Clients() {
   )
 }
 
-export default Clients;*/
+export default Clients;

@@ -1,6 +1,5 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { TOrder } from "../../models/Order";
-import { getOrders } from "./ordersThunks";
 
 type OrdersState = {
   orders: TOrder[] | null;
@@ -14,24 +13,15 @@ const initialState: OrdersState = {
   error: null,
 }
 
-const orders = createSlice({
+const orderSlice = createSlice({
   name: "orders",
   initialState,
-  reducers: {},
-  extraReducers: (builder) => {
-    builder
-      .addCase(getOrders.pending, (state) => {
-        state.loading = true;
-      })
-      .addCase(getOrders.fulfilled, (state, action) => {
-        state.loading = false;
-        state.orders = action.payload.data;
-      })
-      .addCase(getOrders.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.error.message ?? 'Error';
-      })
+  reducers: {
+    setOrders: (state, action: PayloadAction<TOrder[]>) => {
+      state.orders = action.payload;
+    }
   }
 });
 
-export default orders.reducer
+export const { setOrders } = orderSlice.actions;
+export default orderSlice.reducer

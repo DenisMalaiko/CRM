@@ -1,20 +1,26 @@
-export default function ProductsPopup() {
-  return ("ProductsPopup")
-};
-
-/*
 import React, { useState, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { AppDispatch, RootState } from "../../../../store";
-import { createProduct, updateProduct, getProducts } from "../../../../store/products/productsThunks";
+import { useSelector } from 'react-redux';
+import { RootState } from "../../../../store";
 
 import { ProductStatus } from "../../../../enum/ProductStatus";
 import {isPositiveNumber, isRequired, minLength} from "../../../../utils/validations";
 import { Categories } from "../../../../enum/Categories";
 import { toast } from "react-toastify";
 
+import { useUpdateProductMutation } from "../../../../store/products/productsApi";
+import { useCreateProductMutation } from "../../../../store/products/productsApi";
+import { useGetProductsMutation } from "../../../../store/products/productsApi";
+
+import { setProducts } from "../../../../store/products/productsSlice";
+import { useAppDispatch } from "../../../../store/hooks";
+
 function CreateProductDlg({ open, onClose, product }: any) {
-  const dispatch = useDispatch<AppDispatch>();
+  const dispatch = useAppDispatch();
+
+  const [ getProducts ] = useGetProductsMutation();
+  const [ createProduct ] = useCreateProductMutation();
+  const [ updateProduct ] = useUpdateProductMutation();
+
   const { user } = useSelector((state: RootState) => state.authModule);
   const statuses = Object.values(ProductStatus);
   const categories = Object.values(Categories);
@@ -60,7 +66,6 @@ function CreateProductDlg({ open, onClose, product }: any) {
       });
     }
   }, [product, isEdit, open]);
-
 
   if (!open) return null;
 
@@ -110,19 +115,18 @@ function CreateProductDlg({ open, onClose, product }: any) {
     if (!validateForm(e)) return;
 
     try {
-      let response;
       form.price = Number(form.price);
       form.stock = Number(form.stock);
 
       if (isEdit) {
-        response = await dispatch(updateProduct({ id: product!.id, form })).unwrap();
+        await updateProduct({ id: product!.id, form })
       } else {
-        response = await dispatch(createProduct(form)).unwrap();
+        await createProduct(form);
       }
 
-      await dispatch(getProducts());
+      const response: any = await getProducts();
+      dispatch(setProducts(response.data.data));
       toast.success(response.message);
-
       onClose();
     } catch (error: any) {
       toast.error(error.message);
@@ -132,7 +136,7 @@ function CreateProductDlg({ open, onClose, product }: any) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50">
       <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl p-6">
-        {/!* Header *!/}
+
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold">Create Product</h2>
           <button
@@ -143,7 +147,7 @@ function CreateProductDlg({ open, onClose, product }: any) {
           </button>
         </div>
 
-        {/!* Form *!/}
+
         <form className="space-y-4" onSubmit={create} action="">
           <div>
             <label className="block text-sm font-medium text-slate-700 text-left">Product Name</label>
@@ -255,7 +259,6 @@ function CreateProductDlg({ open, onClose, product }: any) {
             </select>
           </div>
 
-          {/!* Actions *!/}
           <div className="flex justify-end gap-3 pt-4">
             <button
               type="button"
@@ -277,4 +280,4 @@ function CreateProductDlg({ open, onClose, product }: any) {
   )
 }
 
-export default CreateProductDlg;*/
+export default CreateProductDlg;

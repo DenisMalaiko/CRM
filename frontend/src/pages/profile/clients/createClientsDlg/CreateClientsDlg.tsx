@@ -1,19 +1,25 @@
-export default function ClientsPopup() {
-  return ("ClientsPopup")
-};
-
-
-/*
 import React, { useState, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { AppDispatch, RootState } from "../../../../store";
-import { createClient, getClients, updateClient } from "../../../../store/clients/clientsThunks";
-import {exactLength, isEmail, isPhoneNumber, minLength} from "../../../../utils/validations";
+import { useSelector } from 'react-redux';
+import { RootState } from "../../../../store";
+import { isEmail, isPhoneNumber, minLength} from "../../../../utils/validations";
 import { ClientRoles } from "../../../../enum/ClientRoles";
 import { toast } from "react-toastify";
 
+import { useUpdateClientMutation } from "../../../../store/clients/clientsApi";
+import { useCreateClientMutation } from "../../../../store/clients/clientsApi";
+import { useGetClientsMutation } from "../../../../store/clients/clientsApi";
+
+import { setClients } from "../../../../store/clients/clientsSlice";
+import { useAppDispatch } from "../../../../store/hooks";
+
+
 function CreateClientsDlg({ open, onClose, client }: any) {
-  const dispatch = useDispatch<AppDispatch>();
+  const dispatch = useAppDispatch();
+
+  const [ getClients ] = useGetClientsMutation();
+  const [ createClient ] = useCreateClientMutation();
+  const [ updateClient ] = useUpdateClientMutation();
+
   const { user } = useSelector((state: RootState) => state.authModule);
   const roles = Object.values(ClientRoles);
   const isEdit = !!client;
@@ -112,15 +118,14 @@ function CreateClientsDlg({ open, onClose, client }: any) {
     if (!validateForm(e)) return;
 
     try {
-      let response;
-
       if (isEdit) {
-        response = await dispatch(updateClient({ id: client!.id, form })).unwrap();
+        await updateClient({ id: client!.id, form });
       } else {
-        response = await dispatch(createClient(form)).unwrap();
+        await createClient(form);
       }
 
-      await dispatch(getClients());
+      const response: any = await getClients();
+      dispatch(setClients(response.data.data));
       toast.success(response.message);
       onClose();
     } catch (error: any) {
@@ -131,7 +136,6 @@ function CreateClientsDlg({ open, onClose, client }: any) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50">
       <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl p-6">
-        {/!* Header *!/}
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold">Create Client</h2>
           <button
@@ -142,7 +146,6 @@ function CreateClientsDlg({ open, onClose, client }: any) {
           </button>
         </div>
 
-        {/!* Form *!/}
         <form className="space-y-4" onSubmit={create} action="">
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -255,8 +258,6 @@ function CreateClientsDlg({ open, onClose, client }: any) {
             </div>
           </div>
 
-
-          {/!* Actions *!/}
           <div className="flex justify-end gap-3 pt-4">
             <button
               type="button"
@@ -278,4 +279,4 @@ function CreateClientsDlg({ open, onClose, client }: any) {
   )
 }
 
-export default CreateClientsDlg;*/
+export default CreateClientsDlg;

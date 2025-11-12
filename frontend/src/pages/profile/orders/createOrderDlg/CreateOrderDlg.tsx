@@ -1,8 +1,3 @@
-export default function OrderPopup() {
-  return ("OrderPopup")
-};
-
-/*
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
@@ -18,10 +13,29 @@ import { getProducts } from "../../../../store/products/productsThunks";
 import { getClients } from "../../../../store/clients/clientsThunks";
 import { TProduct } from "../../../../models/Product";
 import { TClient } from "../../../../models/Client";
+import { useAppDispatch } from "../../../../store/hooks";
+
+import { useUpdateOrderMutation } from "../../../../store/orders/ordersApi";
+import { useCreateOrderMutation } from "../../../../store/orders/ordersApi";
+import { useGetOrdersMutation } from "../../../../store/orders/ordersApi";
+import { useGetClientsMutation } from "../../../../store/clients/clientsApi";
+import { useGetProductsMutation } from "../../../../store/products/productsApi";
+
+import { setOrders } from "../../../../store/orders/ordersSlice";
+import { setProducts } from "../../../../store/products/productsSlice";
+import { setClients } from "../../../../store/clients/clientsSlice";
 
 
 function CreateOrderDlg({ open, onClose, order }: any) {
-  const dispatch = useDispatch<AppDispatch>();
+  const dispatch = useAppDispatch();
+
+  const [ getOrders ] = useGetOrdersMutation();
+  const [ createOrder ] = useCreateOrderMutation();
+  const [ updateOrder ] = useUpdateOrderMutation();
+  const [ getClients ] = useGetClientsMutation();
+  const [ getProducts ] = useGetProductsMutation();
+
+
   const { user } = useSelector((state: RootState) => state.authModule);
   const { products } = useSelector((state: RootState) => state.productsModule);
   const { clients } = useSelector((state: RootState) => state.clientsModule);
@@ -44,10 +58,24 @@ function CreateOrderDlg({ open, onClose, order }: any) {
   const [errors, setErrors]: any = useState({});
 
   useEffect(() => {
-    dispatch(getProducts());
-    dispatch(getClients());
+    const fetchData = async () => {
+      try {
+        const responseProducts: any = await getProducts();
+        dispatch(setProducts(responseProducts.data.data));
+
+        const responseClients: any = await getClients();
+        dispatch(setClients(responseClients.data.data));
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    }
+
+    fetchData();
+  }, [dispatch]);
 
 
+
+  useEffect(() => {
     if (isEdit && order) {
       setForm({
         total: order.total,
@@ -149,17 +177,16 @@ function CreateOrderDlg({ open, onClose, order }: any) {
     if (!validateForm(e)) return;
 
     try {
-      let response;
-
       if (isEdit) {
-        response = await dispatch(updateOrder({ id: order!.id, form })).unwrap();
+        await updateOrder({ id: order!.id, form });
       } else {
-        response = await dispatch(createOrder(form)).unwrap();
+        await createOrder(form);
       }
 
-      await dispatch(getOrders());
-      toast.success(response.message);
 
+      const response: any = await getOrders();
+      dispatch(setOrders(response.data.data));
+      toast.success(response.message);
       onClose();
     } catch (error: any) {
       toast.error(error.message);
@@ -170,7 +197,6 @@ function CreateOrderDlg({ open, onClose, order }: any) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50">
       <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl p-6">
-        {/!* Header *!/}
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold">Create Order</h2>
           <button
@@ -181,7 +207,6 @@ function CreateOrderDlg({ open, onClose, order }: any) {
           </button>
         </div>
 
-        {/!* Form *!/}
         <form className="space-y-4" onSubmit={create} action="">
           <div>
             <label className="block text-sm font-medium text-slate-700 text-left">Client</label>
@@ -375,7 +400,6 @@ function CreateOrderDlg({ open, onClose, order }: any) {
             <b className="block text-lg font-medium text-slate-700 text-left">$ { form.total }</b>
           </div>
 
-          {/!* Actions *!/}
           <div className="flex justify-end gap-3 pt-4">
             <button
               type="button"
@@ -397,4 +421,4 @@ function CreateOrderDlg({ open, onClose, order }: any) {
   )
 }
 
-export default CreateOrderDlg;*/
+export default CreateOrderDlg;

@@ -1,14 +1,15 @@
 import React, { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { ArrowLeft } from "lucide-react";
-import { AppDispatch, RootState } from "../../../store";
+import { useAppDispatch } from "../../../store/hooks";
+
+import { RootState } from "../../../store";
 import { trimID } from "../../../utils/trimID";
 import { TUser } from "../../../models/User";
 
 import { useGetBusinessMutation, useGetUsersByBusinessIdMutation } from "../../../store/business/businessApi";
 import { setBusiness, setUsersByBusinessId } from "../../../store/business/businessSlice";
-import { useAppDispatch } from "../../../store/hooks";
 
 function Business() {
   const dispatch = useAppDispatch();
@@ -29,11 +30,9 @@ function Business() {
       if (id) {
         try {
           const response: any = await getBusiness(id);
-          console.log("RESPONSE ", response);
-          dispatch(setBusiness(response.data.data));
-
           const responseUsers: any = await getUsersByBusinessId(id);
-          console.log("RESPONSE USERS ", responseUsers);
+
+          dispatch(setBusiness(response.data.data));
           dispatch(setUsersByBusinessId(responseUsers.data.data));
         } catch (error) {
           console.error("Error fetching data:", error);

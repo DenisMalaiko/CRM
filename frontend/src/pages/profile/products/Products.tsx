@@ -1,27 +1,40 @@
-export default function Products() {
-  return ("Products")
-};
-
-/*
 import React, { useState, useEffect } from "react";
 import { TProduct } from "../../../models/Product";
-import { useDispatch, useSelector } from "react-redux";
-import { AppDispatch, RootState } from '../../../store';
-import { getProducts, deleteProduct } from "../../../store/products/productsThunks";
+import { useSelector } from "react-redux";
+import { RootState } from '../../../store';
+import { useAppDispatch } from "../../../store/hooks";
+
 import { toast } from "react-toastify";
 import { confirm } from "../../../components/confirmDlg/ConfirmDlg";
 import { getStatusClass } from "../../../utils/getStatusClass";
 import { toDate } from "../../../utils/toDate";
 import CreateProductDlg from "./createProductDlg/CreateProductDlg";
 
+import { useGetProductsMutation } from "../../../store/products/productsApi";
+import { useDeleteProductMutation } from "../../../store/products/productsApi";
+import { setProducts } from "../../../store/products/productsSlice";
+
 function Products() {
-  const dispatch = useDispatch<AppDispatch>();
+  const dispatch = useAppDispatch();
+
+  const [ getProducts ] = useGetProductsMutation();
+  const [ deleteProduct ] = useDeleteProductMutation();
+
   const [open, setOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<TProduct | null>(null);
   const { products } = useSelector((state: RootState) => state.productsModule)
 
   useEffect(() => {
-    dispatch(getProducts());
+    const fetchData = async () => {
+      try {
+        const response: any = await getProducts();
+        dispatch(setProducts(response.data.data));
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    }
+
+    fetchData();
   }, [dispatch]);
 
   const header = [
@@ -49,12 +62,9 @@ function Products() {
     if(ok) {
       try {
         if (item?.id != null) {
-          const response = await dispatch(
-            deleteProduct(item?.id)
-          ).unwrap();
-
-          await dispatch(getProducts());
-
+          await deleteProduct(item.id);
+          const response: any = await getProducts();
+          dispatch(setProducts(response.data.data));
           toast.success(response.message);
         }
       } catch (error: any) {
@@ -140,4 +150,4 @@ function Products() {
   )
 }
 
-export default Products;*/
+export default Products;

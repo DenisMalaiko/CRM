@@ -25,10 +25,10 @@ import Business from './pages/admin/business/business';
 
 // Profile
 import Profile from "./pages/profile/Profile";
-// import Dashboard from './pages/profile/dashboard/Dashboard';
-// import Products from './pages/profile/products/Products';
-// import Clients from "./pages/profile/clients/Clients";
-// import Orders from "./pages/profile/orders/Orders"
+import Dashboard from './pages/profile/dashboard/Dashboard';
+import Products from './pages/profile/products/Products';
+import Clients from "./pages/profile/clients/Clients";
+import Orders from "./pages/profile/orders/Orders"
 
 // AI
 import Accountant from "./pages/profile/ai/accountant/Accountant";
@@ -57,10 +57,10 @@ function App() {
             </Guard>
           }
         >
-          {/*<Route path="dashboard" element={<Dashboard />} />
+          <Route path="dashboard" element={<Dashboard />} />
           <Route path="products" element={<Products />} />
           <Route path="clients" element={<Clients />} />
-          <Route path="orders" element={<Orders />} />*/}
+          <Route path="orders" element={<Orders />} />
 
           <Route path="accountant" element={<Accountant />} />
           <Route path="manager" element={<Manager />} />

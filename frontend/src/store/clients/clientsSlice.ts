@@ -1,5 +1,4 @@
-import { createSlice } from '@reduxjs/toolkit';
-import { getClients } from "./clientsThunks";
+import {createSlice, PayloadAction} from '@reduxjs/toolkit';
 import { TClient } from "../../models/Client";
 
 type ClientsState = {
@@ -17,22 +16,12 @@ const initialState: ClientsState = {
 const clientSlice = createSlice({
   name: "client",
   initialState,
-  reducers: {},
-  extraReducers: (builder) => {
-    builder
-      .addCase(getClients.pending, (state) => {
-        state.loading = true;
-      })
-      .addCase(getClients.fulfilled, (state, action) => {
-        state.loading = false;
-        state.clients = action.payload.data;
-      })
-      .addCase(getClients.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.error.message ?? 'Error';
-      })
-  }
+  reducers: {
+    setClients: (state, action: PayloadAction<TClient[]>) => {
+      state.clients = action.payload;
+    },
+  },
 })
 
-export const { } = clientSlice.actions
-export default clientSlice.reducer
+export const { setClients } = clientSlice.actions;
+export default clientSlice.reducer;
