@@ -87,7 +87,6 @@ export const updateClient = createAsyncThunk<
   })
 
 
-
 export const deleteClient = createAsyncThunk(
   'clients/delete',
   async (id: string, { rejectWithValue }) => {

@@ -1,25 +1,43 @@
-export default function Dashboard() {
-  return ("Dashboard")
-};
+import React, { useEffect } from "react";
+import { useSelector } from "react-redux";
+import { RootState } from "../../../store";
+import { useAppDispatch } from "../../../store/hooks";
 
-/*
-import React, { useState, useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { AppDispatch, RootState } from "../../../store";
-import { getOrders } from "../../../store/orders/ordersThunks";
-import { getClients } from "../../../store/clients/clientsThunks";
-import { getProducts } from "../../../store/products/productsThunks";
+import { useGetProductsMutation } from "../../../store/products/productsApi";
+import { useGetClientsMutation } from "../../../store/clients/clientsApi";
+import { useGetOrdersMutation } from "../../../store/orders/ordersApi";
+
+import { setProducts } from "../../../store/products/productsSlice";
+import { setClients } from "../../../store/clients/clientsSlice";
+import { setOrders } from "../../../store/orders/ordersSlice";
 
 function Dashboard() {
-  const dispatch = useDispatch<AppDispatch>();
+  const dispatch = useAppDispatch();
+
+  const [ getProducts ] = useGetProductsMutation();
+  const [ getClients ] = useGetClientsMutation();
+  const [ getOrders ] = useGetOrdersMutation();
+
   const { products } = useSelector((state: RootState) => state.productsModule);
   const { clients } = useSelector((state: RootState) => state.clientsModule);
   const { orders } = useSelector((state: RootState) => state.ordersModule);
 
   useEffect(() => {
-    dispatch(getProducts());
-    dispatch(getClients())
-    dispatch(getOrders())
+    const fetchData = async () => {
+      try {
+        const responseProducts: any = await getProducts();
+        const responseClients: any = await getClients();
+        const responseOrders: any = await getOrders();
+
+        dispatch(setProducts(responseProducts.data.data));
+        dispatch(setClients(responseClients.data.data));
+        dispatch(setOrders(responseOrders.data.data));
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    }
+
+    fetchData();
   }, [dispatch]);
 
   return (
@@ -30,7 +48,6 @@ function Dashboard() {
         </div>
       </section>
 
-      {/!* Example grid cards *!/}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
         <div className="bg-white p-6 rounded-xl shadow">
           <h2 className="text-lg font-bold">Products</h2>
@@ -49,4 +66,4 @@ function Dashboard() {
   )
 }
 
-export default Dashboard;*/
+export default Dashboard;

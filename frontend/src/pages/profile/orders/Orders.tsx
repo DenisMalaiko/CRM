@@ -1,8 +1,3 @@
-export default function Orders() {
-  return ("Orders")
-};
-
-/*
 import React, { useState, useEffect } from "react";
 import { TOrder } from "../../../models/Order";
 import { useDispatch, useSelector } from "react-redux";
@@ -15,14 +10,34 @@ import { toDate } from "../../../utils/toDate";
 import { getStatusClass } from "../../../utils/getStatusClass";
 import CreateOrderDlg from "./createOrderDlg/CreateOrderDlg";
 
+import { useAppDispatch } from "../../../store/hooks";
+
+import { useGetOrdersMutation } from "../../../store/orders/ordersApi";
+import { useDeleteOrderMutation } from "../../../store/orders/ordersApi";
+import { setOrders } from "../../../store/orders/ordersSlice";
+
+
 function Orders() {
-  const dispatch = useDispatch<AppDispatch>();
+  const dispatch = useAppDispatch();
+
+  const [ getOrders ] = useGetOrdersMutation();
+  const [ deleteOrder ] = useDeleteOrderMutation();
+
   const [open, setOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<TOrder | null>(null);
   const { orders } = useSelector((state: RootState) => state.ordersModule);
 
   useEffect(() => {
-    dispatch(getOrders());
+    const fetchData = async () => {
+      try {
+        const response: any = await getOrders();
+        dispatch(setOrders(response.data.data));
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    }
+
+    fetchData();
   }, [dispatch]);
 
   const header = [
@@ -50,12 +65,9 @@ function Orders() {
     if(ok) {
       try {
         if (item?.id != null) {
-          const response = await dispatch(
-            deleteOrder(item?.id)
-          ).unwrap();
-
-          await dispatch(getOrders());
-
+          await deleteOrder(item.id);
+          const response: any = await getOrders();
+          dispatch(setOrders(response.data.data));
           toast.success(response.message);
         }
       } catch (error: any) {
@@ -93,7 +105,6 @@ function Orders() {
         </div>
       </section>
 
-      {/!* Example grid cards *!/}
       <div className="w-full mx-auto p-4">
         <div className="overflow-hidden rounded-xl border border-slate-200 shadow">
           <table className="min-w-full divide-y divide-slate-200">
@@ -142,4 +153,4 @@ function Orders() {
   )
 }
 
-export default Orders;*/
+export default Orders;
