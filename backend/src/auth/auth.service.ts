@@ -84,6 +84,24 @@ export class AuthService {
     return await this._generateToken(user);
   }
 
+  async refreshToken(refreshToken: string) {
+    try {
+      const payload = await this.jwt.verifyAsync(refreshToken, {
+        secret: this.JWT_REFRESH_SECRET,
+      });
+
+      const user = await this.prisma.user.findUnique({ where: { id: payload.id } });
+
+      if (!user) {
+        throw new UnauthorizedException('User not found');
+      }
+
+      return await this._generateToken(user);
+    } catch (err) {
+      throw new UnauthorizedException('Invalid refresh token!');
+    }
+  }
+
   private async _checkExistingUser(email: string): Promise<void> {
     const user: User | null = await this.prisma.user.findUnique({ where: { email: email } });
 
@@ -96,7 +114,7 @@ export class AuthService {
     const accessToken: string = await this.jwt.signAsync(user);
     const refreshToken: string = await this.jwt.signAsync(
       { ...user, type: 'refresh' },
-      { secret: this.JWT_REFRESH_SECRET, expiresIn: '10m' },
+      { secret: this.JWT_REFRESH_SECRET, expiresIn: '1d' },
     );
 
     return {

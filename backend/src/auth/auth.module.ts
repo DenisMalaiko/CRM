@@ -9,7 +9,7 @@ import * as process from "node:process";
   imports: [
     JwtModule.register({
       secret: process.env.JWT_ACCESS_SECRET,
-      signOptions: { expiresIn: '5m' },
+      signOptions: { expiresIn: '1h' },
     })
   ],
   controllers: [AuthController],

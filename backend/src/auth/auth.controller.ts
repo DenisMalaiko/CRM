@@ -1,4 +1,4 @@
-import {Controller, Post, Req, Body, Headers, Res} from '@nestjs/common';
+import {Controller, Post, Req, Body, Headers, Res, UnauthorizedException } from '@nestjs/common';
 import type { Request as ExpressRequest } from 'express';
 import { AuthService } from './auth.service';
 import { CredentialsDto } from "./dto/credentials.dto";
@@ -55,6 +55,31 @@ export class AuthController {
       message: "User has been signed out!",
       data: null,
       error: null,
+    });
+  }
+
+  @Post("/refresh")
+  async refresh(@Req() request: ExpressRequest, @Res() res: any) {
+    const refreshToken = request.cookies['refresh_token'];
+
+    if (!refreshToken) {
+      throw new UnauthorizedException('Missing refresh token');
+    }
+
+    const { data, ...response } = await this.authService.refreshToken(refreshToken);
+
+    res.cookie('refreshToken', data?.refreshToken, {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'lax',
+      maxAge: 1000 * 60 * 60 * 24 * 30,
+    });
+
+    return res.json({
+      ...response,
+      data: {
+        accessToken: data?.accessToken,
+      },
     });
   }
 }
