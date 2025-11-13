@@ -19,6 +19,7 @@ export class ProductsController {
     return res.json(response);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post("/create")
   async createProduct(@Body() body: ProductDto, @Res() res: any) {
     const response = await this.productsService.createProduct(body);
@@ -26,6 +27,7 @@ export class ProductsController {
     return res.json(response);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Patch("/update/:id")
   async updateProduct(@Param("id") id: string, @Body() body: ProductDto, @Res() res: any) {
     const response = await this.productsService.updateProduct(id, body);
@@ -33,6 +35,7 @@ export class ProductsController {
     return res.json(response);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Delete("/delete/:id")
   async deleteProduct(@Param("id") id: string, @Res() res: any) {
     const response = await this.productsService.deleteProduct(id);

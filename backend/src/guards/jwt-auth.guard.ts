@@ -1,6 +1,6 @@
-import {Injectable, CanActivate, ExecutionContext, UnauthorizedException } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { Request } from 'express';
+import {CanActivate, ExecutionContext, Injectable, UnauthorizedException} from '@nestjs/common';
+import {JwtService} from '@nestjs/jwt';
+import {Request} from 'express';
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
@@ -10,14 +10,34 @@ export class JwtAuthGuard implements CanActivate {
     const request = context.switchToHttp().getRequest<Request>();
     const token = this.extractTokenFromHeader(request);
 
-/*    console.log("TOKEN ", token);*/
+    if (!token) {
+      throw new UnauthorizedException('Missing token');
+    }
 
-    return true;
+    try {
+      request['user'] = await this.jwt.verifyAsync(token);
+      return true;
+    } catch (err) {
+      if (err.name === 'TokenExpiredError') {
+        throw new UnauthorizedException({
+          data: null,
+          statusCode: 401,
+          message: 'ACCESS_TOKEN_EXPIRED',
+          error: 'Unauthorized',
+        });
+      }
+
+      throw new UnauthorizedException({
+        data: null,
+        statusCode: 401,
+        message: 'ACCESS_TOKEN_INVALID',
+        error: 'Unauthorized',
+      });
+    }
   }
 
   private extractTokenFromHeader(request: Request): string | null {
     const authHeader = request.headers.authorization;
-/*    console.log("AUTH HEADER ", request.headers);*/
     if (!authHeader) return null;
 
     const [type, token] = authHeader.split(' ');
