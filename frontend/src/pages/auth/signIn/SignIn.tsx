@@ -33,7 +33,6 @@ function SignIn() {
 
     try {
       const response = await signInUser({ email, password }).unwrap();
-      console.log("RESPONSE: ", response);
       dispatch(setUser(response.data.user));
       dispatch(setAccessToken(response.data.accessToken));
 

@@ -24,6 +24,15 @@ export const authApi = api.injectEndpoints({
         method: 'POST',
       }),
     }),
+    signInByToken: builder.mutation<ApiResponse<any>, string>({
+      query: (token: string) => ({
+        url: '/auth/me',
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+    })
   }),
   overrideExisting: false,
 });
@@ -31,5 +40,6 @@ export const authApi = api.injectEndpoints({
 export const {
   useSignUpUserMutation,
   useSignInUserMutation,
-  useSignOutUserMutation
+  useSignOutUserMutation,
+  useSignInByTokenMutation
 } = authApi;

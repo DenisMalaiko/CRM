@@ -1,11 +1,10 @@
-import React from 'react';
-import { Routes, Route, Link } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Routes, Route, useNavigate } from 'react-router-dom';
 import { Guard, AdminGuard } from "./router/guard";
 import './App.css';
 
-import { ToastContainer } from 'react-toastify';
+import {toast, ToastContainer} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-
 
 // Components
 import Header from './components/header/Header';
@@ -35,8 +34,36 @@ import Accountant from "./pages/profile/ai/accountant/Accountant";
 import Manager from "./pages/profile/ai/manager/Manager";
 import Marketer from "./pages/profile/ai/marketer/Marketer";
 
+import { useAppDispatch } from "./store/hooks";
+import { useSignInByTokenMutation } from "./store/auth/authApi";
+import { setUser, setAccessToken, logout } from "./store/auth/authSlice";
+
+
 function App() {
   const ConfirmDialog = useConfirmDialog();
+  const [ signInByToken ] = useSignInByTokenMutation();
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const token: string | null = localStorage.getItem('accessToken');
+    if (!token) return;
+
+    const checkAuth = async () => {
+      try {
+        const response = await signInByToken(token).unwrap();
+        dispatch(setUser(response.data.user));
+        dispatch(setAccessToken(response.data.accessToken));
+
+        toast.success(response.message);
+        navigate("/profile/dashboard");
+      } catch (error) {
+        dispatch(logout());
+      }
+    }
+
+    checkAuth();
+  }, [])
 
   return (
     <div className="App">

@@ -1,8 +1,9 @@
-import {Controller, Post, Req, Body, Headers, Res, UnauthorizedException } from '@nestjs/common';
+import {Controller, Post, Get, Req, Body, Headers, Res, UnauthorizedException, UseGuards } from '@nestjs/common';
 import type { Request as ExpressRequest } from 'express';
 import { AuthService } from './auth.service';
 import { CredentialsDto } from "./dto/credentials.dto";
 import { SignUpDto } from "./dto/signUp.dto";
+import { JwtAuthGuard } from "../guards/jwt-auth.guard";
 
 @Controller('auth')
 export class AuthController {
@@ -78,6 +79,28 @@ export class AuthController {
     return res.json({
       ...response,
       data: {
+        accessToken: data?.accessToken,
+      },
+    });
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get("/me")
+  async me(@Req() request: any,  @Res() res: any, @Headers('authorization') authorization: string) {
+    const user = request.user;
+    const { data, ...response } = await this.authService.me(user);
+
+    res.cookie('refresh_token', data?.refreshToken, {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'lax',
+      maxAge: 1000 * 60 * 60 * 24 * 30,
+    });
+
+    return res.json({
+      ...response,
+      data: {
+        user: data?.user,
         accessToken: data?.accessToken,
       },
     });
