@@ -65,14 +65,14 @@ export class AuthService {
       where: { email: body.email },
       select: { id: true, email: true, name: true, password: true, businessId: true }
     });
-
     if (!response)
       throw new UnauthorizedException('Invalid credentials!');
 
-    const isMatch = await bcrypt.compare(body.password, response.password);
 
+    const isMatch = await bcrypt.compare(body.password, response.password);
     if (!isMatch)
       throw new UnauthorizedException('Invalid credentials!');
+
 
     const user: UserResponse = {
       id: response.id,
@@ -82,6 +82,28 @@ export class AuthService {
     };
 
     return await this._generateToken(user);
+  }
+
+  async me(body: UserResponse) {
+    try {
+      const response: User | null = await this.prisma.user.findUnique({
+        where: { email: body.email },
+        select: { id: true, email: true, name: true, password: true, businessId: true }
+      });
+
+      if (!response) throw new UnauthorizedException('Invalid credentials!');
+
+      const user: UserResponse = {
+        id: response.id,
+        email: response.email,
+        name: response.name,
+        businessId: response.businessId
+      };
+
+      return await this._generateToken(user);
+    } catch (err) {
+      throw new UnauthorizedException('Invalid credentials!');
+    }
   }
 
   async refreshToken(refreshToken: string) {
