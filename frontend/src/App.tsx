@@ -6,7 +6,6 @@ import './App.css';
 import {toast, ToastContainer} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-
 // Components
 import Header from './components/header/Header';
 import { useConfirmDialog } from './components/confirmDlg/ConfirmDlg';
@@ -37,7 +36,7 @@ import Marketer from "./pages/profile/ai/marketer/Marketer";
 
 import { useAppDispatch } from "./store/hooks";
 import { useSignInByTokenMutation } from "./store/auth/authApi";
-import { setUser, setAccessToken } from "./store/auth/authSlice";
+import { setUser, setAccessToken, logout } from "./store/auth/authSlice";
 
 
 function App() {
@@ -48,9 +47,6 @@ function App() {
 
   useEffect(() => {
     const token: string | null = localStorage.getItem('accessToken');
-    console.group("TOKEN")
-    console.log(token)
-
     if (!token) return;
 
     const checkAuth = async () => {
@@ -62,9 +58,8 @@ function App() {
         toast.success(response.message);
         navigate("/profile/dashboard");
       } catch (error) {
-        console.log("LOGOUT")
+        dispatch(logout());
       }
-      console.groupEnd()
     }
 
     checkAuth();
