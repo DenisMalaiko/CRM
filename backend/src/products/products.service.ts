@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { Product, ProductResponse } from "./entities/product.entity";
 import { OrderStatusUI } from "../enums/OrderStatus";
 import {Order, OrderResponse} from "../orders/entities/order.entity";
+import { OpenAIEmbeddings } from "@langchain/openai";
 
 @Injectable()
 export class ProductsService {
@@ -24,8 +25,14 @@ export class ProductsService {
   }
 
   async createProduct(body: Product) {
+    const text = `${body.name} ${body.description}`;
+    const embeddingModel = new OpenAIEmbeddings({ model: "text-embedding-3-large" });
+    const embedding: any = await embeddingModel.embedQuery(text);
+
     const product: ProductResponse = await this.prisma.product.create({
-      data: { ...body }
+      data: {
+        ...body
+      }
     });
 
     return {
