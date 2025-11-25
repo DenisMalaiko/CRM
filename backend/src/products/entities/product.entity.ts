@@ -12,7 +12,7 @@ export type Product = {
   status: string;
   image?: string | null;
 
-  embedding: number[] | null;
+  embedding?: number[] | null;
 
   createdAt: Date | undefined;
   updatedAt: Date | undefined;

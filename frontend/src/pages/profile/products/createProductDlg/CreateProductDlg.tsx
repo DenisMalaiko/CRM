@@ -118,9 +118,11 @@ function CreateProductDlg({ open, onClose, product }: any) {
       form.price = Number(form.price);
       form.stock = Number(form.stock);
 
+
       if (isEdit) {
         await updateProduct({ id: product!.id, form })
       } else {
+        console.log("CREATE FORM ", form)
         await createProduct(form);
       }
 

@@ -31,7 +31,8 @@ export class ProductsService {
 
     const product: ProductResponse = await this.prisma.product.create({
       data: {
-        ...body
+        ...body,
+        embedding
       }
     });
 
