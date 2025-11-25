@@ -35,7 +35,6 @@ function SignIn() {
       const response = await signInUser({ email, password }).unwrap();
       dispatch(setUser(response.data.user));
       dispatch(setAccessToken(response.data.accessToken));
-
       toast.success(response.message);
       navigate("/profile/dashboard");
     } catch (error: any) {

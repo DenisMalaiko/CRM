@@ -37,8 +37,8 @@ const baseQueryWithReauth = async (args: any, api: any, extraOptions: any) => {
       api.dispatch(logout());
     }
 
-    const refreshData = refreshResult.data as RefreshResponse;
-    const token: string = refreshData.data.accessToken;
+    const refreshData = refreshResult?.data as RefreshResponse;
+    const token: string = refreshData?.data?.accessToken;
 
     if (token) {
       api.dispatch(setAccessToken(token));

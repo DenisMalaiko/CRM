@@ -31,7 +31,7 @@ export const productsApi = api.injectEndpoints({
       query: (form: TProduct) => ({
         url: `/products/create`,
         method: "POST",
-        body: JSON.stringify(form),
+        body: form,
       })
     }),
 
@@ -39,7 +39,7 @@ export const productsApi = api.injectEndpoints({
       query: ({ id, form }) => ({
         url: `/products/update/${id}`,
         method: "PATCH",
-        body: JSON.stringify(form),
+        body: form,
       })
     }),
 

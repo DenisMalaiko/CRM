@@ -22,12 +22,12 @@ services:
     ports:
       - "4000:4000"
     volumes:
+      - ./backend/generated:/app/generated
       - ./backend/src:/app/src
-      - ./backend/nest-cli.json:/app/nest-cli.json
       - ./backend/package.json:/app/package.json
-      - /app/node_modules
+      - ./backend/nest-cli.json:/app/nest-cli.json
     env_file:
-      - ./backend/.env
+      - ./backend/.env.docker
     depends_on:
       - db
     command: npm run start:dev

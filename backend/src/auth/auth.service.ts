@@ -65,14 +65,13 @@ export class AuthService {
       where: { email: body.email },
       select: { id: true, email: true, name: true, password: true, businessId: true }
     });
+
     if (!response)
       throw new UnauthorizedException('Invalid credentials!');
-
 
     const isMatch = await bcrypt.compare(body.password, response.password);
     if (!isMatch)
       throw new UnauthorizedException('Invalid credentials!');
-
 
     const user: UserResponse = {
       id: response.id,
