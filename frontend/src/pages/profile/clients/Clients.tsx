@@ -62,7 +62,7 @@ function Clients() {
         if (item?.id != null) {
           await deleteClient(item.id).unwrap();
           const response: any = await getClients();
-          dispatch(setClients(response.data.data));
+          dispatch(setClients(response.data));
           toast.success(response.message);
         }
       } catch (error: any) {

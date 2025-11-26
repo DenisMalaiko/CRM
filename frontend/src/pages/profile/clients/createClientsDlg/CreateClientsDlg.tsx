@@ -124,8 +124,8 @@ function CreateClientsDlg({ open, onClose, client }: any) {
         await createClient(form);
       }
 
-      const response: any = await getClients();
-      dispatch(setClients(response.data.data));
+      const response: any = await getClients().unwrap();
+      dispatch(setClients(response.data));
       toast.success(response.message);
       onClose();
     } catch (error: any) {

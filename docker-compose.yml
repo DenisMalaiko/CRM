@@ -30,7 +30,7 @@ services:
       - ./backend/.env.docker
     depends_on:
       - db
-    command: npm run start:dev
+    command: sh -c "npx prisma migrate deploy && npm run start:dev"
 
   frontend:
     build: ./frontend

@@ -49,8 +49,6 @@ function SignUp() {
         user: { name, email, password },
         business: { name: businessName, industry, tier }
       }).unwrap();
-      console.log("RESPONSE: ", response);
-
       toast.success(response.message);
       toast.success(MiniTranslate.YouCanSignIn);
     } catch (error: any) {

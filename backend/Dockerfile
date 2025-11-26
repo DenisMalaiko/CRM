@@ -2,15 +2,16 @@ FROM node:20-alpine
 
 WORKDIR /app
 
+# Copy package files
 COPY package*.json ./
+
 RUN npm install
 
-COPY prisma ./prisma
-RUN npx prisma generate
-
-COPY generated ./generated
-
+# Copy all files including prisma and src
 COPY . .
+
+# VERY IMPORTANT: regenerate Prisma Client with final schema
+RUN npx prisma generate
 
 EXPOSE 4000
 CMD ["npm", "run", "start:dev"]

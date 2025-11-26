@@ -18,7 +18,7 @@ function CreateProductDlg({ open, onClose, product }: any) {
   const dispatch = useAppDispatch();
 
   const [ getProducts ] = useGetProductsMutation();
-  const [ createProduct ] = useCreateProductMutation();
+  const [ createProduct, { isLoading, isSuccess } ] = useCreateProductMutation();
   const [ updateProduct ] = useUpdateProductMutation();
 
   const { user } = useSelector((state: RootState) => state.authModule);
@@ -122,12 +122,12 @@ function CreateProductDlg({ open, onClose, product }: any) {
       if (isEdit) {
         await updateProduct({ id: product!.id, form })
       } else {
-        console.log("CREATE FORM ", form)
         await createProduct(form);
       }
 
-      const response: any = await getProducts();
-      dispatch(setProducts(response.data.data));
+      const response: any = await getProducts().unwrap();
+
+      dispatch(setProducts(response.data));
       toast.success(response.message);
       onClose();
     } catch (error: any) {
@@ -265,13 +265,23 @@ function CreateProductDlg({ open, onClose, product }: any) {
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-50"
+              className="
+                px-4 py-2 rounded-lg border  text-slate-600
+                border-slate-300 hover:bg-slate-50
+                disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-slate-white
+              "
+              disabled={ isLoading }
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700"
+              className="
+                px-4 py-2 rounded-lg  text-white font-medium
+                bg-blue-600 hover:bg-blue-700
+                disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-blue-600
+              "
+              disabled={ isLoading }
             >
               Save
             </button>

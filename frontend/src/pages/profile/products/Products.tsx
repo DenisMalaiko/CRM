@@ -28,6 +28,7 @@ function Products() {
     const fetchData = async () => {
       try {
         const response: any = await getProducts();
+        console.log("RESPONSE: ", response.data.data)
         dispatch(setProducts(response.data.data));
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -63,8 +64,8 @@ function Products() {
       try {
         if (item?.id != null) {
           await deleteProduct(item.id);
-          const response: any = await getProducts();
-          dispatch(setProducts(response.data.data));
+          const response: any = await getProducts().unwrap();
+          dispatch(setProducts(response.data));
           toast.success(response.message);
         }
       } catch (error: any) {

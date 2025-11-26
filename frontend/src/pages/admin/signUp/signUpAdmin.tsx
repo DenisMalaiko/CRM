@@ -40,14 +40,10 @@ function SignUpAdmin() {
 
     try {
       const response: ApiResponse<TAdmin> = await signUpAdmin({ name, email, password, isAdmin }).unwrap();
-      console.log("RESPONSE: ", response);
-
       toast.success(response.message);
       toast.success(MiniTranslate.YouCanSignIn);
     } catch (error: any) {
       console.log("ERROR: ", error);
-
-
       toast.error(error.data.message);
     }
   }
