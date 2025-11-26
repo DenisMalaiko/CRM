@@ -184,8 +184,8 @@ function CreateOrderDlg({ open, onClose, order }: any) {
       }
 
 
-      const response: any = await getOrders();
-      dispatch(setOrders(response.data.data));
+      const response: any = await getOrders().unwrap();
+      dispatch(setOrders(response.data));
       toast.success(response.message);
       onClose();
     } catch (error: any) {

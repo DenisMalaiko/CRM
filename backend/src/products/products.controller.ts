@@ -22,8 +22,6 @@ export class ProductsController {
   @UseGuards(JwtAuthGuard)
   @Post("/create")
   async createProduct(@Body() body: ProductDto, @Res() res: any) {
-    console.log("BODY ", body);
-
     const response = await this.productsService.createProduct(body);
 
     return res.json(response);

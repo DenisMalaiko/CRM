@@ -4,6 +4,8 @@ import { Product, ProductResponse } from "./entities/product.entity";
 import { OrderStatusUI } from "../enums/OrderStatus";
 import {Order, OrderResponse} from "../orders/entities/order.entity";
 import { OpenAIEmbeddings } from "@langchain/openai";
+import { Prisma } from '../../generated/prisma';
+
 
 @Injectable()
 export class ProductsService {
@@ -14,7 +16,6 @@ export class ProductsService {
   async getProducts(businessId: string) {
     const products = await this.prisma.product.findMany({
       where: { businessId: businessId },
-      select: { id: true, businessId: true, name: true, description: true, sku: true, price: true, stock: true, reserved: true, category: true, status: true, createdAt: true, updatedAt: true }
     });
 
     return {
@@ -26,15 +27,20 @@ export class ProductsService {
 
   async createProduct(body: Product) {
     const text = `${body.name} ${body.description}`;
-    const embeddingModel = new OpenAIEmbeddings({ model: "text-embedding-3-large" });
+    const embeddingModel = new OpenAIEmbeddings({ model: "text-embedding-3-small" });
     const embedding: any = await embeddingModel.embedQuery(text);
 
     const product: ProductResponse = await this.prisma.product.create({
       data: {
         ...body,
-        embedding
       }
     });
+
+    await this.prisma.$executeRawUnsafe(
+      `UPDATE "Product" SET embedding = $1 WHERE id = $2`,
+      embedding,
+      product.id,
+    );
 
     return {
       statusCode: 200,

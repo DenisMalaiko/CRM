@@ -37,9 +37,9 @@ function SignInAdmin() {
       dispatch(setAdmin(response?.data?.user));
       dispatch(setAdminAccessToken(response?.data?.accessToken));
 
-      const businessResponse: any = await getBusinessList();
+      const businessResponse: any = await getBusinessList().unwrap();
       console.log("BUSINESS RESPONSE: ", businessResponse);
-      dispatch(setBusinessList(businessResponse?.data?.data));
+      dispatch(setBusinessList(businessResponse?.data));
 
       toast.success(response.message);
       navigate("/admin/list");
