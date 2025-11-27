@@ -3,14 +3,11 @@ import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 
 import { AppDispatch, RootState } from "../../../../store";
-import { createOrder, updateOrder, getOrders } from "../../../../store/orders/ordersThunks";
 import { OrderStatus } from "../../../../enum/OrderStatus";
 import { isRequired, minLength } from "../../../../utils/validations";
 import { PaymentMethod } from "../../../../enum/PaymentMethod";
 import { PaymentsStatus } from "../../../../enum/PaymentsStatus";
 import { ProductStatus } from "../../../../enum/ProductStatus";
-import { getProducts } from "../../../../store/products/productsThunks";
-import { getClients } from "../../../../store/clients/clientsThunks";
 import { TProduct } from "../../../../models/Product";
 import { TClient } from "../../../../models/Client";
 import { useAppDispatch } from "../../../../store/hooks";

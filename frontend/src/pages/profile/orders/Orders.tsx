@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { TOrder } from "../../../models/Order";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../../../store";
-import { getOrders, deleteOrder } from "../../../store/orders/ordersThunks";
 import { toast } from "react-toastify";
 import { confirm } from "../../../components/confirmDlg/ConfirmDlg";
 import { trimID } from "../../../utils/trimID";
