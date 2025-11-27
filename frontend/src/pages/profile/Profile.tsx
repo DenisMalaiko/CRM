@@ -37,17 +37,17 @@ function Profile() {
           <div className="pt-4 mt-4 border-t text-sm text-gray-400 uppercase">AI</div>
 
           <NavLink
-            to="marketer"
-            className={({ isActive }) => `flex items-center gap-3 px-3 py-2 rounded-lg font-medium ${isActive ? "bg-blue-100 text-blue-600" : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"}`}
-          >
-            Marketer
-          </NavLink>
-
-          <NavLink
             to="manager"
             className={({ isActive }) => `flex items-center gap-3 px-3 py-2 rounded-lg font-medium ${isActive ? "bg-blue-100 text-blue-600" : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"}`}
           >
             Manager
+          </NavLink>
+
+          <NavLink
+            to="marketer"
+            className={({ isActive }) => `flex items-center gap-3 px-3 py-2 rounded-lg font-medium ${isActive ? "bg-blue-100 text-blue-600" : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"}`}
+          >
+            Marketer
           </NavLink>
 
           <NavLink

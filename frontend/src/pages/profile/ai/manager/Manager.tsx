@@ -1,6 +1,9 @@
+import { Chat } from "./chat/Chat";
+
 function Manager() {
+
   return (
-    <section>
+    <section className="relative h-full">
       <section>
         <div className="container mx-auto flex items-center justify-between px-4 py-3">
           <h1 className="text-3xl font-semibold">Manager</h1>
@@ -12,6 +15,8 @@ function Manager() {
 
       {/* Example grid cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+
+        <Chat />
       </div>
     </section>
   )

@@ -30,7 +30,7 @@ export const ordersApi = api.injectEndpoints({
       query: (form: TOrder) => ({
         url: `/orders/create`,
         method: "POST",
-        body: JSON.stringify(form),
+        body: form,
       })
     }),
 
@@ -38,7 +38,7 @@ export const ordersApi = api.injectEndpoints({
       query: ({ id, form }) => ({
         url: `/orders/update/${id}`,
         method: "PATCH",
-        body: JSON.stringify(form),
+        body: form,
       })
     }),
 

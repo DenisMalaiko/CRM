@@ -3,8 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from '../../store';
 import { toast } from "react-toastify";
-import { signOutUser } from '../../store/auth/authThunks';
-import { signOutAdmin } from '../../store/admin/adminThunks';
 import { ApiResponse } from "../../models/ApiResponse";
 
 import { useAppDispatch } from "../../store/hooks";

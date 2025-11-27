@@ -30,7 +30,7 @@ export const clientsApi = api.injectEndpoints({
       query: (form: TClient) => ({
         url: `/clients/create`,
         method: "POST",
-        body: JSON.stringify(form),
+        body: form,
       })
     }),
 
@@ -38,7 +38,7 @@ export const clientsApi = api.injectEndpoints({
       query: ({ id, form }) => ({
         url: `/clients/update/${id}`,
         method: "PATCH",
-        body: JSON.stringify(form),
+        body: form,
       })
     }),
 
