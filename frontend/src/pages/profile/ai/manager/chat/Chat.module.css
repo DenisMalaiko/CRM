@@ -4,8 +4,92 @@
     right: 50px;
 }
 
+.chatWrapper {
+    width: 350px;
+    height: 600px;
+    background: white;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    border-radius: 5px;
+    position: relative;
+    bottom: 50px;
+    right: 25px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.chatWrapperTitle {
+    width: 100%;
+    height: 50px;
+    border-bottom: 1px solid #ccc;
+    padding: 10px 15px;
+    display: flex;
+    align-items: center;
+    font-weight: 600;
+    color: white;
+}
+
+.chatWrapperMessage {
+    width: max-content;
+    max-width: 90%;
+    max-height: max-content;
+    background: #2563EB;
+    color: white;
+    padding: 10px 15px;
+    border-radius: 5px;
+    margin: auto 0 5px auto;
+}
+
+.chatWrapperMessage.ai {
+    margin: auto auto 5px 0;
+}
+
+.chatWrapperMessages {
+    width: 100%;
+    height: 100%;
+    padding: 10px 15px;
+}
+
+.chatWrapperAction {
+    width: 100%;
+    min-height: max-content;
+    border-top: 1px solid #ccc;
+    padding: 15px;
+    display: flex;
+    align-items: flex-end;
+}
+
+.chatWrapperAction textarea {
+    width: 100%;
+    border: 1px solid #2563EB;
+    border-radius: 5px;
+    padding: 5px;
+}
+
+.chatWrapperAction button {
+    background-color: #2563EB;
+    width: 40px;
+    min-width: 40px;
+    height: 40px;
+    min-height: 40px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    margin-left: 10px;
+}
+
+
 .chatButton {
     width: 50px;
     height: 50px;
     border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    cursor: pointer;
 }

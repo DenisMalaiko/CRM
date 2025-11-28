@@ -8,6 +8,7 @@ import { ProductsModule } from "./products/products.module";
 import { BusinessModule } from "./business/business.module";
 import { ClientsModule } from "./clients/clients.module";
 import { OrdersModule } from "./orders/orders.module";
+import { AiManagerModule } from "./ai/manager/ai-manager.module";
 
 @Module({
   imports: [
@@ -17,7 +18,8 @@ import { OrdersModule } from "./orders/orders.module";
     ProductsModule,
     ClientsModule,
     PrismaModule,
-    OrdersModule
+    OrdersModule,
+    AiManagerModule
   ],
   controllers: [AppController],
   providers: [AppService],
