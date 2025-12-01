@@ -12,7 +12,6 @@ export function Chat() {
   const toggleChat = () => setIsOpen(!isOpen);
 
   const handleSend = async () => {
-    console.log("SEND ", message)
     const response = await sendMessage({ message }).unwrap();
     console.log("RESPONSE ", response);
     setMessage("");

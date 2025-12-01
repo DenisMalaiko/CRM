@@ -50,6 +50,12 @@ enum PaymentMethod {
   BankTransfer
 }
 
+enum MessageRoles {
+  User
+  Assistant
+  Client
+}
+
 
 model Admin {
   id        String   @id @default(uuid())
@@ -66,6 +72,7 @@ model User {
   businessId String
   business   Business @relation(fields: [businessId], references: [id])
   password  String
+  sessions  Session[]
 }
 
 model Business {
@@ -140,4 +147,22 @@ model Order {
   product        Product          @relation(fields: [productId], references: [id])
   businessId     String
   business       Business         @relation(fields: [businessId], references: [id])
+}
+
+
+model Session {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id])
+  messages  Message[]
+  createdAt DateTime  @default(now())
+}
+
+model Message {
+  id        String   @id @default(uuid())
+  sessionId String
+  session   Session  @relation(fields: [sessionId], references: [id])
+  role      MessageRoles
+  message   String
+  createdAt DateTime @default(now())
 }
