@@ -1,53 +1,53 @@
-import {Controller, UseGuards, Post, Get, Body} from '@nestjs/common';
+import {Controller, UseGuards, Post, Req, Get, Body, Param, Delete } from '@nestjs/common';
 import {JwtAuthGuard} from "../../guards/jwt-auth.guard";
+import { AiManagerService } from "./ai-manager.service";
 
 @Controller('ai')
 export class AiManagerController {
-  constructor() {}
+  constructor(private readonly ai: AiManagerService) {
+  }
 
   @UseGuards(JwtAuthGuard)
   @Post("/manager/sessions")
-  async createSession(@Body() body: any) {
-    console.log("CREATE SESSION ", body);
-    return {
-      data: "CREATE SESSION"
-    }
+  async createSession(@Req() req) {
+    const session = await this.ai.createSession(req.user);
+    return { data: session }
   }
 
   @UseGuards(JwtAuthGuard)
   @Get("/manager/sessions")
-  async getSessions(@Body() body: any) {
-    console.log("GET SESSIONS ", body);
-    return {
-      data: "GET SESSIONS"
-    }
+  async getSessions(@Req() req) {
+    const sessions = await this.ai.getSessions(req.user.id);
+    return { data: sessions }
   }
 
   @UseGuards(JwtAuthGuard)
   @Get("/manager/sessions/:id")
-  async getSession(@Body() body: any) {
-    console.log("GET SESSION ", body);
-    return {
-      data: "GET SESSION"
-    }
+  async getSession(@Param('id') id: string) {
+    const session = await this.ai.getSession(id);
+    return { data: session }
   }
 
   @UseGuards(JwtAuthGuard)
   @Post("/manager/sessions/:id/messages")
-  async sendMessage(@Body() body: any) {
-    console.log("SEND MESSAGE ", body);
-
-    return {
-      data: `SEND MESSAGE FROM SERVER ${body.message}`
-    }
+  async sendMessage(@Req() req, @Body() body: any) {
+    console.log("SEND MESSAGE ", body.data);
+    const message = await this.ai.sendMessage(req.user, body.data);
+    return { data: message }
   }
 
   @UseGuards(JwtAuthGuard)
   @Get("/manager/sessions/:id/messages")
-  async getMessage(@Body() body: any) {
-    console.log("GET MESSAGES ", body);
-    return {
-      data: "GET MESSAGES"
-    }
+  async getMessage(@Param('id') id: string) {
+    const messages = await this.ai.getMessages(id);
+    return { data: messages }
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete("/manager/sessions/:id")
+  async deleteSession(@Param('id') id: string) {
+    console.log("DELETE SESSION ", id);
+    const session = await this.ai.deleteSession(id);
+    return { data: session }
   }
 }
