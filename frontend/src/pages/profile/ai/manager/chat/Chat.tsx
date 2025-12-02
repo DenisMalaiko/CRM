@@ -1,10 +1,21 @@
 import React, { useState } from "react";
 import styles from "./Chat.module.css"
 import { MessageCircle, Send } from "lucide-react";
-import { useSendMessageMutation } from "../../../../../store/ai/manager/managerApi";
+import { useAppDispatch } from "../../../../../store/hooks";
+
+import { MessagesRoles } from "../../../../../enum/MessagesRoles";
+
+import { useSelector } from "react-redux";
+import { useSendMessageMutation, useCreateSessionMutation, useGetSessionsMutation } from "../../../../../store/ai/manager/managerApi";
+import { RootState } from "../../../../../store";
+import { setCurrentSession, setSessions, } from "../../../../../store/ai/manager/managerSlice";
 
 export function Chat() {
+  const dispatch = useAppDispatch();
+
   const [ sendMessage ] = useSendMessageMutation();
+  const [ createSession ] = useCreateSessionMutation();
+  const [ getSessions ] = useGetSessionsMutation();
 
   const [isOpen, setIsOpen] = useState(false);
   const [message, setMessage] = useState("");
@@ -12,8 +23,20 @@ export function Chat() {
   const toggleChat = () => setIsOpen(!isOpen);
 
   const handleSend = async () => {
-    const response = await sendMessage({ message }).unwrap();
-    console.log("RESPONSE ", response);
+    const session = await createSession().unwrap();
+    dispatch(setCurrentSession(session.data));
+
+    const sessions = await getSessions().unwrap();
+    dispatch(setSessions(sessions.data));
+
+    const data = {
+      sessionId: session.data.id,
+      role: MessagesRoles.User,
+      message: message
+    };
+
+    const response = await sendMessage({ data }).unwrap();
+
     setMessage("");
   }
 

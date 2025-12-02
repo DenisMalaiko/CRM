@@ -85,6 +85,8 @@ model Business {
   products  Product[]
   clients   Client[]
   orders    Order[]
+  sessions  Session[]
+  messages  Message[]
 }
 
 model Product {
@@ -156,6 +158,9 @@ model Session {
   user      User      @relation(fields: [userId], references: [id])
   messages  Message[]
   createdAt DateTime  @default(now())
+
+  businessId     String
+  business       Business         @relation(fields: [businessId], references: [id])
 }
 
 model Message {
@@ -165,4 +170,7 @@ model Message {
   role      MessageRoles
   message   String
   createdAt DateTime @default(now())
+
+  businessId     String
+  business       Business         @relation(fields: [businessId], references: [id])
 }
