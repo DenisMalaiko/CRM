@@ -31,7 +31,6 @@ export class AiManagerController {
   @UseGuards(JwtAuthGuard)
   @Post("/manager/sessions/:id/messages")
   async sendMessage(@Req() req, @Body() body: any) {
-    console.log("SEND MESSAGE ", body.data);
     const message = await this.ai.sendMessage(req.user, body.data);
     return { data: message }
   }
@@ -46,7 +45,6 @@ export class AiManagerController {
   @UseGuards(JwtAuthGuard)
   @Delete("/manager/sessions/:id")
   async deleteSession(@Param('id') id: string) {
-    console.log("DELETE SESSION ", id);
     const session = await this.ai.deleteSession(id);
     return { data: session }
   }

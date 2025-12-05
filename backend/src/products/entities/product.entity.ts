@@ -1,13 +1,11 @@
 export type Product = {
   id?: string;
-  businessId: string;
+  agencyId: string;
 
   name: string;
   description: string;
   sku: string;
   price: number;
-  stock: number;
-  reserved: number;
   category: string;
   status: string;
   image?: string | null;

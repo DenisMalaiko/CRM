@@ -4,14 +4,14 @@ import { toast } from "react-toastify";
 import { isEmail, isPassword } from "../../../utils/validations";
 
 import { useAppDispatch } from "../../../store/hooks";
-import { useGetBusinessListMutation } from "../../../store/business/businessApi";
+import { useGetAgencyListMutation } from "../../../store/agency/agencyApi";
 import { useSignInAdminMutation } from "../../../store/admin/adminApi";
 import { setAdmin, setAdminAccessToken } from "../../../store/admin/adminSlice";
-import { setBusinessList } from "../../../store/business/businessSlice";
+import { setAgencyList } from "../../../store/agency/agencySlice";
 
 function SignInAdmin() {
   const [signInAdmin] = useSignInAdminMutation();
-  const [getBusinessList] = useGetBusinessListMutation();
+  const [getAgencyList] = useGetAgencyListMutation();
   const dispatch = useAppDispatch();
 
   const navigate = useNavigate();
@@ -37,9 +37,9 @@ function SignInAdmin() {
       dispatch(setAdmin(response?.data?.user));
       dispatch(setAdminAccessToken(response?.data?.accessToken));
 
-      const businessResponse: any = await getBusinessList().unwrap();
+      const businessResponse: any = await getAgencyList().unwrap();
       console.log("BUSINESS RESPONSE: ", businessResponse);
-      dispatch(setBusinessList(businessResponse?.data));
+      dispatch(setAgencyList(businessResponse?.data));
 
       toast.success(response.message);
       navigate("/admin/list");

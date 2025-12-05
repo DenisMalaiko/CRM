@@ -6,7 +6,6 @@ import {Link} from "react-router-dom";
 import {isEmail, isPassword, isRepeatPassword, minLength} from "../../../utils/validations";
 import {ApiResponse} from "../../../models/ApiResponse";
 import {MiniTranslate} from "../../../enum/miniTranslate";
-import {BusinessIndustry} from "../../../enum/BusinessIndustry";
 import {Tiers} from "../../../enum/Tiers";
 import {TUser} from "../../../models/User";
 
@@ -18,12 +17,10 @@ function SignUp() {
   const [password, setPassword] = useState("Ab12345$");
   const [repeatPassword, setRepeatPassword] = useState("Ab12345$");
 
-  const [businessName, setBusinessName] = useState("Online Store");
-  const [industry, setIndustry] = useState<BusinessIndustry>(BusinessIndustry.RetailEcommerce);
+  const [agencyName, setAgencyName] = useState("Marketing Agency");
   const [tier, setTier] = useState<Tiers>(Tiers.Free);
 
   const [errors, setErrors]: any = useState({});
-  const Business = Object.values(BusinessIndustry);
   const TierList = Object.values(Tiers);
 
   const validateField = (name: string, data: any) => {
@@ -33,8 +30,7 @@ function SignUp() {
     if (name === "password") error = isPassword(data.value);
     if (name === "repeatPassword") error = isRepeatPassword(data.value, data.repeatPassword);
 
-    if (name === "businessName") error = minLength(data.value, 3);
-    if (name === "industry") error = minLength(data.value, 3);
+    if (name === "agencyName") error = minLength(data.value, 3);
     if (name === "tier") error = minLength(data.value, 3);
     setErrors((prev: any) => ({ ...prev, [name]: error }));
   };
@@ -47,7 +43,7 @@ function SignUp() {
     try {
       const response: ApiResponse<TUser> = await signUpUser({
         user: { name, email, password },
-        business: { name: businessName, industry, tier }
+        agency: { name: agencyName, tier }
       }).unwrap();
       toast.success(response.message);
       toast.success(MiniTranslate.YouCanSignIn);
@@ -135,37 +131,19 @@ function SignUp() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
-              Business Name
+              Agency Name
             </label>
             <input
-              type="businessName"
-              value={businessName}
+              type="agencyName"
+              value={agencyName}
               onChange={(e) => {
-                setBusinessName(e.target.value);
+                setAgencyName(e.target.value);
                 validateField("name", { value: e.target.value })
               }}
               placeholder="you"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
             />
             {errors.businessName && <p className="text-red-500 text-sm mt-2 text-left">{errors.businessName}</p>}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-slate-700 text-left">Business Type</label>
-            <select
-              name="industry"
-              value={industry}
-              onChange={(e) => {
-                const selectedValue: BusinessIndustry = e.target.value as BusinessIndustry;
-                setIndustry(selectedValue);
-                validateField("industry", { value: selectedValue });
-              }}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
-            >
-              { Business.map((type: string) => (
-                <option key={type} value={type}>{type}</option>
-              )) }
-            </select>
           </div>
 
           <div>

@@ -12,5 +12,5 @@ export class UserDto {
   password: string;
 
   @IsString()
-  businessId: string;
+  agencyId: string;
 }

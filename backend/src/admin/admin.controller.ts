@@ -11,6 +11,7 @@ export class AdminController {
 
   @Post("/signUp")
   async signUp(@Body() body: AdminDto, @Req() req: ExpressRequest) {
+    console.log("ADMIN SIGN UP")
     return await this.adminService.signUp(body);
   }
 

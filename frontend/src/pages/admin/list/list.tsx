@@ -1,16 +1,15 @@
 import React from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../store";
-import { TBusiness } from "../../../models/Business";
+import { TAgency } from "../../../models/Agency";
 import { useNavigate } from "react-router-dom";
 
 function List() {
   const navigate = useNavigate();
-  const { businessList } = useSelector((state: RootState) => state.businessModule);
+  const { agencyList } = useSelector((state: RootState) => state.agencyModule);
   const header = [
     { name: "ID", key: "id" },
     { name: "Name", key: "name" },
-    { name: "Industry", key: "industry" },
     { name: "Tier", key: "tier" },
   ]
 
@@ -31,11 +30,10 @@ function List() {
           </thead>
 
           <tbody className="divide-y divide-slate-100">
-            {businessList && businessList.map((item: TBusiness) => (
+            {agencyList && agencyList.map((item: TAgency) => (
               <tr onClick={() => openBusiness(item.id)} key={item.id} className="hover:bg-slate-50 cursor-pointer">
                 <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.id}</td>
                 <td className="px-4 py-3 font-medium text-slate-600 text-left">{item.name}</td>
-                <td className="px-4 py-3 font-medium text-slate-600 text-left">{item.industry}</td>
                 <td className="px-4 py-3 font-medium text-slate-600 text-left">{item.tier}</td>
               </tr>
             ))}

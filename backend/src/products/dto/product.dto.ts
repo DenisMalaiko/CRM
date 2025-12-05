@@ -8,7 +8,7 @@ export class ProductDto {
 
   @IsUUID()
   @IsOptional()
-  businessId: string;
+  agencyId: string;
 
   @IsString()
   name: string;
@@ -22,14 +22,6 @@ export class ProductDto {
   @Type(() => Number)
   @IsNumber()
   price: number;
-
-  @Type(() => Number)
-  @IsNumber()
-  stock: number;
-
-  @Type(() => Number)
-  @IsNumber()
-  reserved: number;
 
   @IsString()
   category: string;

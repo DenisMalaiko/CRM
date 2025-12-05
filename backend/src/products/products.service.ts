@@ -1,11 +1,7 @@
 import { Injectable, NotFoundException, InternalServerErrorException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Product, ProductResponse } from "./entities/product.entity";
-import { OrderStatusUI } from "../enums/OrderStatus";
-import {Order, OrderResponse} from "../orders/entities/order.entity";
 import { OpenAIEmbeddings } from "@langchain/openai";
-import { Prisma } from '../../generated/prisma';
-
 
 @Injectable()
 export class ProductsService {
@@ -13,9 +9,9 @@ export class ProductsService {
     private readonly prisma: PrismaService,
   ) {}
 
-  async getProducts(businessId: string) {
+  async getProducts(agencyId: string) {
     const products = await this.prisma.product.findMany({
-      where: { businessId: businessId },
+      where: { agencyId: agencyId },
     });
 
     return {
@@ -62,10 +58,9 @@ export class ProductsService {
           description: body.description,
           sku: body.sku,
           price: body.price,
-          stock: body.stock,
           category: body.category,
           status: body.status,
-          businessId: body?.businessId
+          agencyId: body?.agencyId
         }
       });
 
@@ -88,30 +83,6 @@ export class ProductsService {
       try {
         if (!id) throw new NotFoundException('Product ID is required');
 
-        // Get Orders By Product ID
-        const orders = await tx.order.findMany({
-          where: { productId: id },
-          select: {
-            id: true,
-            status: true,
-          }
-        });
-
-        // Check if product is in use
-        const isProductUse: boolean = orders.some((order: OrderResponse) => {
-          if (!order.status) return false;
-          const status = order.status as OrderStatusUI;
-          return ![OrderStatusUI.Cancelled, OrderStatusUI.Completed].includes(status);
-        });
-
-        if(isProductUse) {
-          throw new ConflictException('Product is in use! Please complete or cancel all orders before deleting the product.');
-        }
-
-        // Delete Orders By Product ID
-        await tx.order.deleteMany({ where: { productId: id } });
-
-        // Delete Product
         const deleted = await tx.product.delete({
           where: { id },
         });

@@ -2,7 +2,7 @@ export type User = {
   id: string;
   name: string;
   email: string;
-  businessId: string;
+  agencyId: string;
   password: string;
 }
 

@@ -7,7 +7,7 @@ export class ClientDto {
 
   @IsUUID()
   @IsOptional()
-  businessId: string;
+  agencyId: string;
 
   @IsString()
   firstName: string;

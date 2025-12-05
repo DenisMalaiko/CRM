@@ -20,14 +20,13 @@ import SignInAdmin from './pages/admin/signIn/signInAdmin';
 import SignUpAdmin from './pages/admin/signUp/signUpAdmin';
 import Panel from './pages/admin/panel/panel';
 import List from './pages/admin/list/list';
-import Business from './pages/admin/business/business';
+import Agency from './pages/admin/agency/agency';
 
 // Profile
 import Profile from "./pages/profile/Profile";
 import Dashboard from './pages/profile/dashboard/Dashboard';
 import Products from './pages/profile/products/Products';
 import Clients from "./pages/profile/clients/Clients";
-import Orders from "./pages/profile/orders/Orders"
 
 // AI
 import Accountant from "./pages/profile/ai/accountant/Accountant";
@@ -87,7 +86,6 @@ function App() {
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="products" element={<Products />} />
           <Route path="clients" element={<Clients />} />
-          <Route path="orders" element={<Orders />} />
 
           <Route path="accountant" element={<Accountant />} />
           <Route path="manager" element={<Manager />} />
@@ -104,7 +102,7 @@ function App() {
           }
         >
           <Route path="list" element={<List />} />
-          <Route path="list/:id" element={<Business />} />
+          <Route path="list/:id" element={<Agency />} />
         </Route>
       </Routes>
 

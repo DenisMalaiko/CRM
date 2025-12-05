@@ -31,11 +31,9 @@ function CreateProductDlg({ open, onClose, product }: any) {
     description: "",
     sku: "",
     price: 0,
-    stock: 0,
-    reserved: 0,
     category: Categories.Device,
     status: ProductStatus.Active,
-    businessId: user?.businessId,
+    agencyId: user?.agencyId,
   });
   const [errors, setErrors]: any = useState({});
 
@@ -46,11 +44,9 @@ function CreateProductDlg({ open, onClose, product }: any) {
         description: product.description,
         sku: product.sku,
         price: product.price,
-        stock: product.stock,
-        reserved: product.reserved,
         category: product.category,
         status: product.status,
-        businessId: product.businessId,
+        agencyId: product.agencyId,
       });
     } else {
       setForm({
@@ -58,11 +54,9 @@ function CreateProductDlg({ open, onClose, product }: any) {
         description: "",
         sku: "",
         price: 0,
-        stock: 0,
-        reserved: 0,
         category: Categories.Device,
         status: ProductStatus.Active,
-        businessId: user?.businessId,
+        agencyId: user?.agencyId,
       });
     }
   }, [product, isEdit, open]);
@@ -92,7 +86,6 @@ function CreateProductDlg({ open, onClose, product }: any) {
     if (name === "sku") error = minLength(data.value, 6);
     if (name === "category") error = isRequired(data.value);
     if (name === "price") error = isPositiveNumber(data.value);
-    if (name === "stock") error = isPositiveNumber(data.value);
     setErrors((prev: any) => ({ ...prev, [name]: error }));
     return error;
   };
@@ -116,8 +109,6 @@ function CreateProductDlg({ open, onClose, product }: any) {
 
     try {
       form.price = Number(form.price);
-      form.stock = Number(form.stock);
-
 
       if (isEdit) {
         await updateProduct({ id: product!.id, form })
@@ -220,18 +211,6 @@ function CreateProductDlg({ open, onClose, product }: any) {
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 text-left">Stock</label>
-              <input
-                type="text"
-                name="stock"
-                value={form.stock}
-                onChange={handleChange}
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
-                placeholder="0"
-              />
-              {errors.stock && <p className="text-red-500 text-sm mt-2 text-left">{errors.stock}</p>}
-            </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 text-left">Category</label>
               <select

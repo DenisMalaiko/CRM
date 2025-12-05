@@ -8,17 +8,17 @@ import { RootState } from "../../../store";
 import { trimID } from "../../../utils/trimID";
 import { TUser } from "../../../models/User";
 
-import { useGetBusinessMutation, useGetUsersByBusinessIdMutation } from "../../../store/business/businessApi";
-import { setBusiness, setUsersByBusinessId } from "../../../store/business/businessSlice";
+import { useGetAgencyMutation, useGetUsersByAgencyIdMutation } from "../../../store/agency/agencyApi";
+import { setAgency, setUsersByAgencyId } from "../../../store/agency/agencySlice";
 
-function Business() {
+function Agency() {
   const dispatch = useAppDispatch();
-  const [ getBusiness ] = useGetBusinessMutation();
-  const [ getUsersByBusinessId ] = useGetUsersByBusinessIdMutation();
+  const [ getBusiness ] = useGetAgencyMutation();
+  const [ getUsersByBusinessId ] = useGetUsersByAgencyIdMutation();
 
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const { business, usersByBusinessId } = useSelector((state: RootState) => state.businessModule);
+  const { agency, usersByAgencyId } = useSelector((state: RootState) => state.agencyModule);
   const header = [
     { name: "ID", key: "id" },
     { name: "Name", key: "name" },
@@ -32,8 +32,8 @@ function Business() {
           const response: any = await getBusiness(id);
           const responseUsers: any = await getUsersByBusinessId(id);
 
-          dispatch(setBusiness(response.data.data));
-          dispatch(setUsersByBusinessId(responseUsers.data.data));
+          dispatch(setAgency(response.data.data));
+          dispatch(setUsersByAgencyId(responseUsers.data.data));
         } catch (error) {
           console.error("Error fetching data:", error);
         }
@@ -66,19 +66,15 @@ function Business() {
           <div className="space-y-3 text-slate-700 text-sm p-6">
             <div className="flex justify-between border-b pb-2">
               <span className="font-medium">ID</span>
-              <span className="text-slate-500">{trimID(business?.id)}</span>
+              <span className="text-slate-500">{trimID(agency?.id)}</span>
             </div>
             <div className="flex justify-between border-b pb-2">
               <span className="font-medium">Name</span>
-              <span className="text-slate-500">{business?.name}</span>
-            </div>
-            <div className="flex justify-between border-b pb-2">
-              <span className="font-medium">Industry</span>
-              <span className="text-slate-500">{business?.industry}</span>
+              <span className="text-slate-500">{agency?.name}</span>
             </div>
             <div className="flex justify-between border-b pb-2">
               <span className="font-medium">Tier</span>
-              <span className="text-slate-500">{business?.tier}</span>
+              <span className="text-slate-500">{agency?.tier}</span>
             </div>
           </div>
         </div>
@@ -99,7 +95,7 @@ function Business() {
               </thead>
 
               <tbody className="divide-y divide-slate-100">
-              {usersByBusinessId && usersByBusinessId.map((item: TUser) => (
+              {usersByAgencyId && usersByAgencyId.map((item: TUser) => (
                 <tr key={item.id} className="hover:bg-slate-50 cursor-pointer">
                   <td className="px-4 py-3 font-medium text-slate-900 text-left">{trimID(item.id)}</td>
                   <td className="px-4 py-3 font-medium text-slate-600 text-left">{item.name}</td>
@@ -129,4 +125,4 @@ function Business() {
   )
 }
 
-export default Business;
+export default Agency;

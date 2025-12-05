@@ -1,4 +1,4 @@
 export type TBaseModel = {
   id?: string;
-  businessId?: string;
+  agencyId?: string;
 };

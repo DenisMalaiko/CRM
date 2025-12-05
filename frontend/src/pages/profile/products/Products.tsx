@@ -43,8 +43,6 @@ function Products() {
     { name: "Name", key: "name" },
     { name: "SKU", key: "sku" },
     { name: "Price", key: "price" },
-    { name: "Stock", key: "stock" },
-    { name: "Reserved", key: "reserved" },
     { name: "Category", key: "category" },
     { name: "Created At", key: "createdAt" },
     { name: "Updated At", key: "updatedAt" },
@@ -123,8 +121,6 @@ function Products() {
                   <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.name}</td>
                   <td className="px-4 py-3 text-slate-600 text-left">{item.sku}</td>
                   <td className="px-4 py-3 font-medium text-left">$ {item.price}</td>
-                  <td className="px-4 py-3 text-left">{item.stock}</td>
-                  <td className="px-4 py-3 text-left">{item.reserved ?? "-"}</td>
                   <td className="px-4 py-3 text-slate-600 text-left">{item.category}</td>
                   <td className="px-4 py-3 text-slate-600 text-left">{toDate(item?.createdAt)}</td>
                   <td className="px-4 py-3 text-slate-600 text-left">{toDate(item?.updatedAt)}</td>

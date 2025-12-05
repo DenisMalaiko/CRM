@@ -11,12 +11,12 @@ export const clientsApi = api.injectEndpoints({
         const state = api.getState() as RootState;
         const user: TUser | null = state.authModule.user;
 
-        if (!user?.businessId) {
+        if (!user?.agencyId) {
           return { error: { status: 400, data: 'Missing businessId' } as any };
         }
 
         const result = await baseQuery({
-          url: `/clients/${user.businessId}`,
+          url: `/clients/${user.agencyId}`,
           method: 'GET',
         });
 

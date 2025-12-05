@@ -12,7 +12,7 @@ const baseQuery = fetchBaseQuery({
   baseUrl: process.env.REACT_APP_API,
   credentials: 'include',
   prepareHeaders: (headers, { getState }) => {
-    const token = (getState() as RootState).authModule.accessToken;
+    const token = (getState() as RootState).authModule.accessToken ?? (getState() as RootState).adminModule.accessToken;
     if (token) headers.set('Authorization', `Bearer ${token}`);
     return headers;
   }
@@ -40,6 +40,7 @@ const baseQueryWithReauth = async (args: any, api: any, extraOptions: any) => {
     const refreshData = refreshResult?.data as RefreshResponse;
     const token: string = refreshData?.data?.accessToken;
 
+    // TODO: If Admin Refresh Page
     if (token) {
       api.dispatch(setAccessToken(token));
       console.log("Token refreshed, retrying request...");
