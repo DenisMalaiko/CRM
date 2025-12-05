@@ -34,7 +34,7 @@ function CreateClientsDlg({ open, onClose, client }: any) {
     address: "",
     role: ClientRoles.Customer,
     isActive: true,
-    businessId: user?.businessId,
+    agencyId: user?.agencyId,
   });
   const [errors, setErrors]: any = useState({});
 
@@ -44,7 +44,7 @@ function CreateClientsDlg({ open, onClose, client }: any) {
       setForm({
         firstName: client.firstName,
         lastName: client.lastName,
-        businessId: client.businessId,
+        agencyId: client.agencyId,
         email: client.email,
         countryCode: client.countryCode,
         phoneNumber: client.phoneNumber,
@@ -56,7 +56,7 @@ function CreateClientsDlg({ open, onClose, client }: any) {
       setForm({
         firstName: "",
         lastName: "",
-        businessId: user?.businessId,
+        agencyId: user?.agencyId,
         email: "",
         countryCode: "+38",
         phoneNumber: "",

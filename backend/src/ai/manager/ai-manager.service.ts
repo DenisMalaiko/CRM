@@ -12,7 +12,7 @@ export class AiManagerService {
     const session = await this.prisma.session.create({
       data: {
         userId: user.id,
-        businessId: user.businessId,
+        agencyId: user.businessId,
       },
       include: {
         user: true,
@@ -65,7 +65,7 @@ export class AiManagerService {
   async sendMessage(user: any, message: any) {
     const response = await this.prisma.message.create({
       data: {
-        businessId: user.businessId,
+        agencyId: user.agencyId,
         ...message
       }
     });

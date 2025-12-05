@@ -1,7 +1,7 @@
 import { UserDto } from "./user.dto";
-import { BusinessDto } from "../../business/dto/business.dto";
+import { AgencyDto } from "../../agency/dto/agency.dto";
 
 export class SignUpDto {
   user: UserDto;
-  business: BusinessDto;
+  agency: AgencyDto;
 }

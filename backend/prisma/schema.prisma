@@ -15,39 +15,10 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum BusinessIndustry {
-  BeautyWellness
-  RetailEcommerce
-  FoodBeverage
-  ProfessionalServices
-  RealEstateConstruction
-}
-
 enum Tiers {
   Free
   Basic
   Premium
-}
-
-enum OrderStatus {
-  Pending
-  Processing
-  Shipped
-  Completed
-  Cancelled
-}
-
-enum PaymentsStatus {
-  Unpaid
-  Paid
-  Refund
-  Failed
-}
-
-enum PaymentMethod {
-  Cash
-  CreditCard
-  BankTransfer
 }
 
 enum MessageRoles {
@@ -69,108 +40,73 @@ model User {
   id        String   @id @default(uuid())
   email     String   @unique
   name      String
-  businessId String
-  business   Business @relation(fields: [businessId], references: [id])
+  agencyId  String
+  agency    Agency @relation(fields: [agencyId], references: [id])
   password  String
   sessions  Session[]
 }
 
-model Business {
+model Agency {
   id        String            @id @default(cuid())
   name      String
-  industry  BusinessIndustry
   tier      Tiers
 
   users     User[]
   products  Product[]
   clients   Client[]
-  orders    Order[]
   sessions  Session[]
   messages  Message[]
 }
 
 model Product {
-  id        String   @id @default(uuid())
-  businessId String
-  name      String
-  description String
-  sku       String
-  price     Float
-  stock     Int
-  reserved  Int
-  category  String
-  status    String
-  image     String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  embedding   Unsupported("vector(1536)")?
-
-  orders     Order[]
-  business   Business @relation(fields: [businessId], references: [id])
+  id             String   @id @default(uuid())
+  agencyId       String
+  name           String
+  description    String
+  sku            String
+  price          Float
+  category       String
+  status         String
+  image          String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  embedding      Unsupported("vector(1536)")?
+  agency         Agency @relation(fields: [agencyId], references: [id])
 }
 
 model Client {
-  id          String   @id @default(uuid())
-  businessId  String
-  firstName   String
-  lastName    String
-  email       String
-  countryCode String
-  phoneNumber String
-  address     String
-  role        String
-  isActive    Boolean
-
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  business   Business @relation(fields: [businessId], references: [id])
-  orders     Order[]
+  id              String   @id @default(uuid())
+  agencyId        String
+  firstName       String
+  lastName        String
+  email           String
+  countryCode     String
+  phoneNumber     String
+  address         String
+  role            String
+  isActive        Boolean
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  business        Agency @relation(fields: [agencyId], references: [id])
 }
-
-model Order {
-  id             String           @id @default(uuid())
-  quantity       Int
-  total          Float
-  status         OrderStatus
-  productId      String
-  clientId       String
-  paymentStatus  PaymentsStatus
-  paymentMethod  PaymentMethod
-  notes          String?
-
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
-  fulfilledAt    DateTime?
-
-  client         Client?          @relation(fields: [clientId], references: [id])
-  product        Product          @relation(fields: [productId], references: [id])
-  businessId     String
-  business       Business         @relation(fields: [businessId], references: [id])
-}
-
 
 model Session {
-  id        String    @id @default(uuid())
-  userId    String
-  user      User      @relation(fields: [userId], references: [id])
-  messages  Message[]
-  createdAt DateTime  @default(now())
-
-  businessId     String
-  business       Business         @relation(fields: [businessId], references: [id])
+  id              String    @id @default(uuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id])
+  messages        Message[]
+  createdAt       DateTime  @default(now())
+  agencyId        String
+  agency          Agency    @relation(fields: [agencyId], references: [id])
 }
 
 model Message {
-  id        String   @id @default(uuid())
-  sessionId String
-  session   Session  @relation(fields: [sessionId], references: [id])
-  role      MessageRoles
-  message   String
-  createdAt DateTime @default(now())
-
-  businessId     String
-  business       Business         @relation(fields: [businessId], references: [id])
+  id              String   @id @default(uuid())
+  sessionId       String
+  session         Session  @relation(fields: [sessionId], references: [id])
+  role            MessageRoles
+  message         String
+  createdAt       DateTime @default(now())
+  agencyId        String
+  agency          Agency   @relation(fields: [agencyId], references: [id])
 }

@@ -1,6 +1,5 @@
 import {api} from "../api/api";
 import {ApiResponse} from "../../models/ApiResponse";
-import {TOrder} from "../../models/Order";
 import {RootState} from "../index";
 import {TUser} from "../../models/User";
 import {TProduct} from "../../models/Product";
@@ -12,12 +11,12 @@ export const productsApi = api.injectEndpoints({
         const state = api.getState() as RootState;
         const user: TUser | null = state.authModule.user;
 
-        if (!user?.businessId) {
+        if (!user?.agencyId) {
           return { error: { status: 400, data: 'Missing businessId' } as any };
         }
 
         const result = await baseQuery({
-          url: `/products/${user.businessId}`,
+          url: `/products/${user.agencyId}`,
           method: 'GET',
         });
 
@@ -43,7 +42,7 @@ export const productsApi = api.injectEndpoints({
       })
     }),
 
-    deleteProduct: builder.mutation<ApiResponse<TOrder>, string>({
+    deleteProduct: builder.mutation<ApiResponse<TProduct>, string>({
       query: (id: string) => ({
         url: `/products/delete/${id}`,
         method: "DELETE",

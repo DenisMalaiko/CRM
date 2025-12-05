@@ -11,11 +11,11 @@ export class ClientsController {
   @UseGuards(JwtAuthGuard)
   @Get("/:id")
   async getClients(@Res() res: any, @Param() params: any) {
-    const businessId = params.id;
+    const agencyId = params.id;
 
-    if(!businessId) return res.json([]);
+    if(!agencyId) return res.json([]);
 
-    const response = await this.clientsService.getClients(businessId);
+    const response = await this.clientsService.getClients(agencyId);
 
     return res.json(response);
   }

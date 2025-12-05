@@ -1,9 +1,6 @@
 import {Injectable, InternalServerErrorException, NotFoundException, ConflictException } from '@nestjs/common';
 import { PrismaService } from "../prisma/prisma.service";
 import { Client, ClientResponse } from "./entities/clients.entity";
-import { OrderStatusUI } from "../enums/OrderStatus";
-import { Order, OrderResponse } from "../orders/entities/order.entity";
-import { PaymentsStatusUI } from "../enums/PaymentsStatus";
 
 @Injectable()
 export class ClientsService {
@@ -11,10 +8,10 @@ export class ClientsService {
     private readonly prisma: PrismaService,
   ) {}
 
-  async getClients(businessId: string) {
+  async getClients(agencyId: string) {
     const clients = await this.prisma.client.findMany({
-      where: { businessId: businessId },
-      select: { id: true, businessId: true, firstName: true, lastName: true, email: true, countryCode: true, phoneNumber: true, address: true, role: true, isActive: true, createdAt: true, updatedAt: true }
+      where: { agencyId: agencyId },
+      select: { id: true, agencyId: true, firstName: true, lastName: true, email: true, countryCode: true, phoneNumber: true, address: true, role: true, isActive: true, createdAt: true, updatedAt: true }
     });
 
     return {
@@ -65,61 +62,6 @@ export class ClientsService {
     return this.prisma.$transaction(async (tx) => {
       try {
         if (!id) throw new NotFoundException('Client ID is required');
-
-        // Get Orders By Product ID
-        const orders = await tx.order.findMany({
-          where: { clientId: id },
-          select: {
-            id: true,
-            status: true,
-            paymentStatus: true,
-            productId: true,
-            quantity: true,
-          }
-        });
-
-        if (!orders.length) {
-          const deleted = await tx.client.delete({ where: { id } });
-          return {
-            statusCode: 200,
-            message: 'Client has been deleted!',
-            data: deleted,
-          };
-        }
-
-        // Check if orders is in use
-        const hasActiveOrders = orders.some((order) => {
-          if (!order.status) return false;
-          const status = order.status as OrderStatusUI;
-          return ![OrderStatusUI.Cancelled, OrderStatusUI.Completed].includes(status);
-        });
-
-        if (hasActiveOrders) {
-          throw new ConflictException(
-            'Client is in use! Please complete or cancel all orders before deleting the client.'
-          );
-        }
-
-        const cancelledUnpaidOrders = orders.filter(
-          (order) =>
-            order.status === OrderStatusUI.Cancelled &&
-            order.paymentStatus === PaymentsStatusUI.Unpaid
-        );
-
-        for (const order of cancelledUnpaidOrders) {
-          if (!order.productId || !order.quantity) continue;
-
-          await tx.product.update({
-            where: { id: order.productId },
-            data: {
-              reserved: { decrement: order.quantity },
-              stock: { increment: order.quantity },
-            },
-          });
-        }
-
-        // Delete Orders By Client ID
-        await tx.order.deleteMany({ where: { clientId: id } });
 
         // Delete Client
         const deleted = await tx.client.delete({

@@ -9,7 +9,6 @@ import { SignUpDto } from "./dto/signUp.dto";
 
 import { User, UserResponse } from "./entities/user.entity";
 import { AuthResponse } from "../entities/authResponse.entity";
-import { BusinessIndustryToPrisma } from "../enums/BusinessIndustry";
 
 @Injectable()
 export class AuthService {
@@ -26,19 +25,18 @@ export class AuthService {
       try {
         await this._checkExistingUser(body.user?.email);
 
-        const business = await tx.business.create({
+        const agency = await tx.agency.create({
           data: {
-            name: body.business.name,
-            industry: BusinessIndustryToPrisma[body.business.industry],
-            tier: body.business.tier,
+            name: body.agency.name,
+            tier: body.agency.tier,
           },
         });
 
         const hashedPassword = await bcrypt.hash(body.user.password, this.SALT_ROUNDS);
 
         const user: UserResponse = await tx.user.create({
-          data: { email: body.user.email, name: body.user.name, businessId: business.id, password: hashedPassword },
-          select: { id: true, email: true, name: true, businessId: true }
+          data: { email: body.user.email, name: body.user.name, agencyId: agency.id, password: hashedPassword },
+          select: { id: true, email: true, name: true, agencyId: true }
         });
 
         return {
@@ -52,6 +50,8 @@ export class AuthService {
           throw err;
         }
 
+        console.log("ERROR ", err)
+
         throw new InternalServerErrorException('Failed to sign up user');
       }
     })
@@ -63,7 +63,7 @@ export class AuthService {
 
     const response: User | null = await this.prisma.user.findUnique({
       where: { email: body.email },
-      select: { id: true, email: true, name: true, password: true, businessId: true }
+      select: { id: true, email: true, name: true, password: true, agencyId: true }
     });
 
     if (!response)
@@ -77,7 +77,7 @@ export class AuthService {
       id: response.id,
       email: response.email,
       name: response.name,
-      businessId: response.businessId
+      agencyId: response.agencyId
     };
 
     return await this._generateToken(user);
@@ -87,7 +87,7 @@ export class AuthService {
     try {
       const response: User | null = await this.prisma.user.findUnique({
         where: { email: body.email },
-        select: { id: true, email: true, name: true, password: true, businessId: true }
+        select: { id: true, email: true, name: true, password: true, agencyId: true }
       });
 
       if (!response) throw new UnauthorizedException('Invalid credentials!');
@@ -96,7 +96,7 @@ export class AuthService {
         id: response.id,
         email: response.email,
         name: response.name,
-        businessId: response.businessId
+        agencyId: response.agencyId
       };
 
       return await this._generateToken(user);
