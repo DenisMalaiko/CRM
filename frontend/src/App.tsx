@@ -87,8 +87,6 @@ function App() {
           <Route path="products" element={<Products />} />
           <Route path="clients" element={<Clients />} />
 
-          <Route path="accountant" element={<Accountant />} />
-          <Route path="manager" element={<Manager />} />
           <Route path="marketer" element={<Marketer />} />
         </Route>
 
