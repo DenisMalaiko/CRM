@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import { RootState } from "../../../store";
 import { useAppDispatch } from "../../../store/hooks";
 
@@ -8,12 +9,14 @@ import { confirm } from "../../../components/confirmDlg/ConfirmDlg";
 import { toDate } from "../../../utils/toDate";
 import { toast } from "react-toastify";
 import CreateClientsDlg from "./createClientsDlg/CreateClientsDlg";
+import { Eye, Delete } from "lucide-react";
 
 import { useGetClientsMutation } from "../../../store/clients/clientsApi";
 import { useDeleteClientMutation } from "../../../store/clients/clientsApi";
 import { setClients } from "../../../store/clients/clientsSlice";
 
 function Clients() {
+  const navigate = useNavigate();
   const dispatch = useAppDispatch();
 
   const [ getClients ] = useGetClientsMutation();
@@ -76,6 +79,11 @@ function Clients() {
     setOpen(true)
   }
 
+  const openClient = (id?: string) => {
+    console.log("OPEN CLIENT: ", id);
+    navigate(`${id}`);
+  }
+
   return (
     <section>
       <section>
@@ -127,6 +135,9 @@ function Clients() {
                 <td className="px-4 py-3 text-slate-600 text-left">{toDate(item.updatedAt)}</td>
                 <td className="px-4 py-3 text-right">
                   <div className="flex items-center gap-2 justify-end">
+                    <button onClick={() => openClient(item?.id)} className="h-8 w-8 flex items-center justify-center rounded-lg border  text-slate-600 hover:bg-slate-50">
+                      <Eye className="w-3 h-3" />
+                    </button>
                     <button onClick={() => openEditClient(item)} className="h-8 w-8 flex items-center justify-center rounded-lg border  text-slate-600 hover:bg-slate-50">
                       ✎
                     </button>

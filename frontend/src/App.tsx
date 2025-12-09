@@ -26,7 +26,10 @@ import Agency from './pages/admin/agency/agency';
 import Profile from "./pages/profile/Profile";
 import Dashboard from './pages/profile/dashboard/Dashboard';
 import Products from './pages/profile/products/Products';
+
+// Clients
 import Clients from "./pages/profile/clients/Clients";
+import Client from "./pages/profile/clients/:id/Client";
 
 // AI
 import Accountant from "./pages/profile/ai/accountant/Accountant";
@@ -85,7 +88,9 @@ function App() {
         >
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="products" element={<Products />} />
+
           <Route path="clients" element={<Clients />} />
+          <Route path="clients/:clientId" element={<Client />} />
 
           <Route path="marketer" element={<Marketer />} />
         </Route>
