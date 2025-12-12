@@ -8,8 +8,9 @@ import { toast } from "react-toastify";
 import { useUpdateClientMutation } from "../../../../store/clients/clientsApi";
 import { useCreateClientMutation } from "../../../../store/clients/clientsApi";
 import { useGetClientsMutation } from "../../../../store/clients/clientsApi";
+import { useGetClientMutation } from "../../../../store/clients/clientsApi";
 
-import { setClients } from "../../../../store/clients/clientsSlice";
+import { setClient, setClients } from "../../../../store/clients/clientsSlice";
 import { useAppDispatch } from "../../../../store/hooks";
 
 
@@ -17,6 +18,7 @@ function CreateClientsDlg({ open, onClose, client }: any) {
   const dispatch = useAppDispatch();
 
   const [ getClients ] = useGetClientsMutation();
+  const [ getClient ] = useGetClientMutation();
   const [ createClient ] = useCreateClientMutation();
   const [ updateClient ] = useUpdateClientMutation();
 
@@ -125,8 +127,14 @@ function CreateClientsDlg({ open, onClose, client }: any) {
       }
 
       const response: any = await getClients().unwrap();
+      const clientData: any = await getClient(client!.id).unwrap();
+
       dispatch(setClients(response.data));
+
+      dispatch(setClient(clientData.data));
+
       toast.success(response.message);
+
       onClose();
     } catch (error: any) {
       toast.error(error.message);

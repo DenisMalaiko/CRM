@@ -9,13 +9,25 @@ export class ClientsController {
   constructor(private readonly clientsService: ClientsService) {}
 
   @UseGuards(JwtAuthGuard)
-  @Get("/:id")
+  @Get("/list/:id")
   async getClients(@Res() res: any, @Param() params: any) {
     const agencyId = params.id;
 
     if(!agencyId) return res.json([]);
 
     const response = await this.clientsService.getClients(agencyId);
+
+    return res.json(response);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get("/:id")
+  async getClientById(@Res() res: any, @Param() params: any) {
+    const clientId = params.id;
+
+    if(!clientId) return res.json([]);
+
+    const response = await this.clientsService.getClient(clientId);
 
     return res.json(response);
   }

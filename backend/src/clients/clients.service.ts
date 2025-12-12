@@ -21,6 +21,19 @@ export class ClientsService {
     };
   }
 
+  async getClient(id: string) {
+    const client = await this.prisma.client.findUnique({
+      where: { id },
+      select: { id: true, agencyId: true, firstName: true, lastName: true, email: true, countryCode: true, phoneNumber: true, address: true, role: true, isActive: true, createdAt: true, updatedAt: true }
+    });
+
+    return {
+      statusCode: 200,
+      message: "Client has been got!",
+      data: client,
+    };
+  }
+
   async createClient(body: Client) {
     const client: ClientResponse = await this.prisma.client.create({
       data: { ...body }
