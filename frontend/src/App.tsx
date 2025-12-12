@@ -25,11 +25,18 @@ import Agency from './pages/admin/agency/agency';
 // Profile
 import Profile from "./pages/profile/Profile";
 import Dashboard from './pages/profile/dashboard/Dashboard';
-import Products from './pages/profile/products/Products';
+/*import Products from './pages/profile/products/Products';*/
 
 // Clients
 import Clients from "./pages/profile/clients/Clients";
 import Client from "./pages/profile/clients/:id/Client";
+import {BaseData} from "./pages/profile/clients/components/BaseData";
+import {ProductsData} from "./pages/profile/clients/components/Products";
+import {MetaAds} from "./pages/profile/clients/components/MetaAds";
+import {TikTokAds} from "./pages/profile/clients/components/TikTokAds";
+import {GoogleAds} from "./pages/profile/clients/components/GoogleAds";
+import {Notes} from "./pages/profile/clients/components/Notes";
+import {Settings} from "./pages/profile/clients/components/Settings";
 
 // AI
 import Accountant from "./pages/profile/ai/accountant/Accountant";
@@ -87,10 +94,18 @@ function App() {
           }
         >
           <Route path="dashboard" element={<Dashboard />} />
-          <Route path="products" element={<Products />} />
+{/*          <Route path="products" element={<Products />} />*/}
 
           <Route path="clients" element={<Clients />} />
-          <Route path="clients/:clientId" element={<Client />} />
+          <Route path="clients/:clientId" element={<Client />}>
+            <Route path="baseData" element={<BaseData />} />
+            <Route path="products" element={<ProductsData />} />
+            <Route path="metaAds" element={<MetaAds />} />
+            <Route path="tikTokAds" element={<TikTokAds />} />
+            <Route path="googleAds" element={<GoogleAds />} />
+            <Route path="notes" element={<Notes />} />
+            <Route path="settings" element={<Settings />} />
+          </Route>
 
           <Route path="marketer" element={<Marketer />} />
         </Route>

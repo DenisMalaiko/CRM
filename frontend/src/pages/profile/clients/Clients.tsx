@@ -80,8 +80,7 @@ function Clients() {
   }
 
   const openClient = (id?: string) => {
-    console.log("OPEN CLIENT: ", id);
-    navigate(`${id}`);
+    navigate(`${id}/baseData`);
   }
 
   return (

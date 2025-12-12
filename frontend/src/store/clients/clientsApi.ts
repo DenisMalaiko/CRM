@@ -16,7 +16,7 @@ export const clientsApi = api.injectEndpoints({
         }
 
         const result = await baseQuery({
-          url: `/clients/${user.agencyId}`,
+          url: `/clients/list/${user.agencyId}`,
           method: 'GET',
         });
 
@@ -24,6 +24,13 @@ export const clientsApi = api.injectEndpoints({
           data: result.data as ApiResponse<TClient>
         };
       }
+    }),
+
+    getClient: builder.mutation<ApiResponse<TClient>, string>({
+      query: (id: string) => ({
+        url: `/clients/${id}`,
+        method: "GET",
+      })
     }),
 
     createClient: builder.mutation<ApiResponse<TClient>, TClient>({
@@ -54,6 +61,7 @@ export const clientsApi = api.injectEndpoints({
 
 export const {
   useGetClientsMutation,
+  useGetClientMutation,
   useCreateClientMutation,
   useUpdateClientMutation,
   useDeleteClientMutation
