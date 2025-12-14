@@ -14,7 +14,7 @@ import { useGetProductsMutation } from "../../../store/products/productsApi";
 import { useDeleteProductMutation } from "../../../store/products/productsApi";
 import { setProducts } from "../../../store/products/productsSlice";
 
-function Products() {
+function ProductsData() {
   const dispatch = useAppDispatch();
 
   const [ getProducts ] = useGetProductsMutation();
@@ -147,4 +147,4 @@ function Products() {
   )
 }
 
-export default Products;
+export default ProductsData;

@@ -6,13 +6,7 @@ function Profile() {
       {/* Sidebar */}
       <aside className="w-64 bg-white shadow-md">
         <nav className="flex-1 px-4 py-6 space-y-2">
-          {/*<NavLink
-            to="dashboard"
-            className={({ isActive }) => `flex items-center gap-3 px-3 py-2 rounded-lg font-medium ${isActive ? "bg-blue-100 text-blue-600" : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"}`}
-          >
-            Dashboard
-          </NavLink>
-
+          {/*
           <NavLink
             to="products"
             className={({ isActive }) => `flex items-center gap-3 px-3 py-2 rounded-lg font-medium ${isActive ? "bg-blue-100 text-blue-600" : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"}`}
@@ -21,19 +15,17 @@ function Profile() {
           </NavLink>*/}
 
           <NavLink
+            to="dashboard"
+            className={({ isActive }) => `flex items-center gap-3 px-3 py-2 rounded-lg font-medium ${isActive ? "bg-blue-100 text-blue-600" : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"}`}
+          >
+            Dashboard
+          </NavLink>
+
+          <NavLink
             to="clients"
             className={({ isActive }) => `flex items-center gap-3 px-3 py-2 rounded-lg font-medium ${isActive ? "bg-blue-100 text-blue-600" : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"}`}
           >
             Clients
-          </NavLink>
-
-          <div className="pt-4 mt-4 border-t text-sm text-gray-400 uppercase">AI</div>
-
-          <NavLink
-            to="marketer"
-            className={({ isActive }) => `flex items-center gap-3 px-3 py-2 rounded-lg font-medium ${isActive ? "bg-blue-100 text-blue-600" : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"}`}
-          >
-            Marketer
           </NavLink>
         </nav>
       </aside>
