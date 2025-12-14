@@ -16,32 +16,30 @@ import SignIn from './pages/auth/signIn/SignIn';
 import SignUp from './pages/auth/signUp/SignUp';
 
 // Admin
-import SignInAdmin from './pages/admin/signIn/signInAdmin';
-import SignUpAdmin from './pages/admin/signUp/signUpAdmin';
-import Panel from './pages/admin/panel/panel';
-import List from './pages/admin/list/list';
-import Agency from './pages/admin/agency/agency';
+import SignInAdmin from './pages/adminSuper/signIn/signInAdmin';
+import SignUpAdmin from './pages/adminSuper/signUp/signUpAdmin';
+import Panel from './pages/adminSuper/panel/panel';
+import List from './pages/adminSuper/list/list';
+import Agency from './pages/adminSuper/agency/agency';
 
 // Profile
-import Profile from "./pages/profile/Profile";
-import Dashboard from './pages/profile/dashboard/Dashboard';
-/*import Products from './pages/profile/products/Products';*/
+import Profile from "./pages/admin/Profile";
+import Dashboard from './pages/admin/dashboard/Dashboard';
+/*import Products from './pages/admin/products/Products';*/
 
 // Clients
-import Clients from "./pages/profile/clients/Clients";
-import Client from "./pages/profile/clients/:id/Client";
-import {BaseData} from "./pages/profile/clients/components/BaseData";
-import {ProductsData} from "./pages/profile/clients/components/Products";
-import {MetaAds} from "./pages/profile/clients/components/MetaAds";
-import {TikTokAds} from "./pages/profile/clients/components/TikTokAds";
-import {GoogleAds} from "./pages/profile/clients/components/GoogleAds";
-import {Notes} from "./pages/profile/clients/components/Notes";
-import {Settings} from "./pages/profile/clients/components/Settings";
+import Clients from "./pages/admin/clients/Clients";
+import Client from "./pages/admin/clients/:id/Client";
+import BaseData from "./pages/admin/clients/components/BaseData/BaseData";
+import Products from "./pages/admin/clients/components/Products/Products"
+import Marketer from "./pages/admin/clients/components/Marketer/Marketer";
+import MetaAds from "./pages/admin/clients/components/MetaAds/MetaAds";
+import Settings from "./pages/admin/clients/components/Settings/Settings";
 
 // AI
-import Accountant from "./pages/profile/ai/accountant/Accountant";
-import Manager from "./pages/profile/ai/manager/Manager";
-import Marketer from "./pages/profile/ai/marketer/Marketer";
+import Accountant from "./pages/admin/ai/accountant/Accountant";
+import Manager from "./pages/admin/ai/manager/Manager";
+/*import Marketer from "./pages/admin/ai/marketer/Marketer";*/
 
 import { useAppDispatch } from "./store/hooks";
 import { useSignInByTokenMutation } from "./store/auth/authApi";
@@ -94,20 +92,16 @@ function App() {
           }
         >
           <Route path="dashboard" element={<Dashboard />} />
-{/*          <Route path="products" element={<Products />} />*/}
 
           <Route path="clients" element={<Clients />} />
+
           <Route path="clients/:clientId" element={<Client />}>
             <Route path="baseData" element={<BaseData />} />
-            <Route path="products" element={<ProductsData />} />
+            <Route path="products" element={<Products />} />
+            <Route path="marketer" element={<Marketer />} />
             <Route path="metaAds" element={<MetaAds />} />
-            <Route path="tikTokAds" element={<TikTokAds />} />
-            <Route path="googleAds" element={<GoogleAds />} />
-            <Route path="notes" element={<Notes />} />
             <Route path="settings" element={<Settings />} />
           </Route>
-
-          <Route path="marketer" element={<Marketer />} />
         </Route>
 
 

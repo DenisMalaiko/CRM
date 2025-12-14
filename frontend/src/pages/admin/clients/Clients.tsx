@@ -47,8 +47,6 @@ function Clients() {
     { name: "Phone", key: "phoneNumber" },
     { name: "Role", key: "role" },
     { name: "Address", key: "address" },
-    { name: "Created At", key: "createdAt" },
-    { name: "Updated At", key: "updatedAt" },
     { name: "Actions", key: "actions" }
   ];
 
@@ -130,8 +128,6 @@ function Clients() {
                 <td className="px-4 py-3 text-left">{item.countryCode}{item.phoneNumber}</td>
                 <td className="px-4 py-3 text-slate-600 text-left">{item.role}</td>
                 <td className="px-4 py-3 text-slate-600 text-left">{item.address}</td>
-                <td className="px-4 py-3 text-slate-600 text-left">{toDate(item.createdAt)}</td>
-                <td className="px-4 py-3 text-slate-600 text-left">{toDate(item.updatedAt)}</td>
                 <td className="px-4 py-3 text-right">
                   <div className="flex items-center gap-2 justify-end">
                     <button onClick={() => openClient(item?.id)} className="h-8 w-8 flex items-center justify-center rounded-lg border  text-slate-600 hover:bg-slate-50">

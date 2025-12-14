@@ -1,17 +1,17 @@
 import React, {useEffect, useState} from 'react';
 import { useSelector } from "react-redux";
-import { RootState } from "../../../../store";
-import { useAppDispatch } from "../../../../store/hooks";
-import { setClient } from "../../../../store/clients/clientsSlice";
+import { RootState } from "../../../../../store";
+import { useAppDispatch } from "../../../../../store/hooks";
+import { setClient } from "../../../../../store/clients/clientsSlice";
 
-import { useGetClientsMutation } from "../../../../store/clients/clientsApi";
-import { TClient } from "../../../../models/Client";
-import {trimID} from "../../../../utils/trimID";
-import {toDate} from "../../../../utils/toDate";
+import { useGetClientsMutation } from "../../../../../store/clients/clientsApi";
+import { TClient } from "../../../../../models/Client";
+import {trimID} from "../../../../../utils/trimID";
+import {toDate} from "../../../../../utils/toDate";
 
-import CreateClientsDlg from "../createClientsDlg/CreateClientsDlg";
+import CreateClientsDlg from "../../createClientsDlg/CreateClientsDlg";
 
-export function BaseData() {
+function BaseData() {
   const dispatch = useAppDispatch();
 
   const [ getClient ] = useGetClientsMutation();
@@ -112,3 +112,5 @@ export function BaseData() {
     </section>
   )
 }
+
+export default BaseData;

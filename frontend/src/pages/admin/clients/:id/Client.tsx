@@ -15,20 +15,12 @@ function Client() {
       title: "Products",
     },
     {
+      id: "marketer",
+      title: "Marketer",
+    },
+    {
       id: "metaAds",
       title: "Meta Ads",
-    },
-    {
-      id: "tikTokAds",
-      title: "Tik Tok Ads",
-    },
-    {
-      id: "googleAds",
-      title: "Google Ads",
-    },
-    {
-      id: "notes",
-      title: "Notes",
     },
     {
       id: "settings",
