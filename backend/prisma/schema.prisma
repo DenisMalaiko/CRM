@@ -15,6 +15,264 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+
+enum Plan {
+    Free
+    Basic
+    Premium
+}
+
+enum UserRole {
+    Admin
+    Marketer
+    Worker
+}
+
+enum UserStatus {
+    Active
+    Invited
+    Disabled
+}
+
+enum BusinessStatus {
+    Active
+    Paused
+    Archived
+}
+
+enum ProductType {
+    Product
+    Service
+}
+
+enum PriceSegment {
+    Low
+    Middle
+    Premium
+}
+
+enum TagType {
+    Niche
+    Hashtag
+    Pain
+    Format
+}
+
+enum AIArtifactType {
+    Idea
+    Post
+    Script
+    Angle
+}
+
+enum AIArtifactStatus {
+    Draft
+    Approved
+    Rejected
+}
+
+
+
+
+
+model Agency {
+    id        String   @id @default(uuid())
+    name      String
+    plan      Plan
+    createdAt DateTime @default(now())
+
+    users     User[]
+    clients   Client[]
+}
+
+model User {
+    id        String   @id @default(uuid())
+    agencyId  String
+    email     String   @unique
+    name      String
+    password  String
+    role      UserRole
+    status    UserStatus
+
+    agency    Agency @relation(fields: [agencyId], references: [id])
+}
+
+model Business {
+    id        String   @id @default(uuid())
+    agencyId  String
+    name      String
+    website   String
+    industry  String?
+    status    BusinessStatus
+
+    agency    Agency @relation(fields: [agencyId], references: [id])
+    products  Product[]
+    businessProfiles BusinessProfile[]
+}
+
+
+model BusinessProfile {
+    id            String   @id @default(uuid())
+    businessId    String
+    name          String
+    positioning   String
+    toneOfVoice   String
+    brandRules    String?
+    goals         String[]
+    isActive      Boolean  @default(true)
+    createdAt     DateTime @default(now())
+
+    business      Business              @relation(fields: [businessId], references: [id])
+    audiences     TargetAudience[]
+    platforms     BusinessProfilePlatform[]
+    tags          BusinessProfileTag[]
+    trendMatches  BusinessTrendMatch[]
+    aiArtifacts   AIArtifact[]
+}
+
+model Product {
+    id             String   @id @default(uuid())
+    businessId     String
+    type           ProductType
+    priceSegment   PriceSegment
+    name           String
+    description    String
+    isActive       Boolean  @default(true)
+    images         String[]
+
+    embedding      Unsupported("vector(1536)")?
+    business       Business @relation(fields: [businessId], references: [id])
+    aiArtifacts    AIArtifact[]
+}
+
+
+model TargetAudience {
+    id               String   @id @default(uuid())
+    businessProfileId String
+    ageRange         String
+    gender           String?
+    geo              String
+    pains            String[]
+    desires          String[]
+    triggers         String[]
+    incomeLevel      String?
+
+    businessProfile  BusinessProfile @relation(fields: [businessProfileId], references: [id])
+}
+
+
+model Platform {
+    id               String   @id @default(uuid())
+    code             String   @unique
+    name             String
+    trendRefreshRate Int
+    supportedFormats String[]
+    isActive         Boolean  @default(true)
+
+    trends           Trend[]
+    profiles         BusinessProfilePlatform[]
+}
+
+model BusinessProfilePlatform {
+    businessProfileId String
+    platformId        String
+    priority          Int
+    notes             String?
+
+    businessProfile BusinessProfile @relation(fields: [businessProfileId], references: [id])
+    platform        Platform        @relation(fields: [platformId], references: [id])
+
+    @@id([businessProfileId, platformId])
+}
+
+model Tag {
+    id              String   @id @default(uuid())
+    type            TagType
+    value           String
+    normalizedValue String
+
+    profiles        BusinessProfileTag[]
+}
+
+model BusinessProfileTag {
+    businessProfileId String
+    tagId             String
+    weight            Float
+
+    businessProfile BusinessProfile @relation(fields: [businessProfileId], references: [id])
+    tag             Tag             @relation(fields: [tagId], references: [id])
+
+    @@id([businessProfileId, tagId])
+}
+
+
+model Trend {
+    id          String   @id @default(uuid())
+    platformId  String
+    source      String
+    title       String
+    description String
+    format      String
+    keywords    String[]
+    publishedAt DateTime
+    metrics     Json?
+    embedding   Unsupported("vector(1536)")?
+    createdAt   DateTime @default(now())
+
+    platform    Platform @relation(fields: [platformId], references: [id])
+    matches     BusinessTrendMatch[]
+}
+
+
+model BusinessTrendMatch {
+    businessProfileId String
+    trendId           String
+    relevanceScore    Float
+    matchedAt         DateTime @default(now())
+
+    businessProfile BusinessProfile @relation(fields: [businessProfileId], references: [id])
+    trend           Trend           @relation(fields: [trendId], references: [id])
+
+    @@id([businessProfileId, trendId])
+}
+
+
+
+model AIArtifact {
+    id               String   @id @default(uuid())
+    type             AIArtifactType
+    businessProfileId String
+    productId        String?
+    trendId          String?
+    inputHash        String
+    outputJson       Json
+    score            Float?
+    status           AIArtifactStatus
+    createdAt        DateTime @default(now())
+
+    businessProfile BusinessProfile @relation(fields: [businessProfileId], references: [id])
+    product         Product?        @relation(fields: [productId], references: [id])
+    trend           Trend?          @relation(fields: [trendId], references: [id])
+}
+
+
+model PromptTemplate {
+    id           String   @id @default(uuid())
+    name         String
+    purpose      String
+    version      String
+    systemPrompt String
+    userPrompt   String
+    paramsSchema Json
+    isActive     Boolean  @default(true)
+    createdAt    DateTime @default(now())
+}
+
+
+
+
+
+
 enum Tiers {
   Free
   Basic
