@@ -1,7 +1,7 @@
-import { Tiers } from "../enum/Tiers";
+import { Plans } from "../enum/Plans";
 
 export type TAgency = {
   id?: string;
   name: string;
-  tier: Tiers;
+  plan: Plans;
 }

@@ -1,4 +1,4 @@
-export enum Tiers {
+export enum Plans {
   Free = "Free",
   Basic = "Basic",
   Premium = "Premium",

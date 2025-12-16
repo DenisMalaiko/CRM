@@ -6,7 +6,7 @@ import {Link} from "react-router-dom";
 import {isEmail, isPassword, isRepeatPassword, minLength} from "../../../utils/validations";
 import {ApiResponse} from "../../../models/ApiResponse";
 import {MiniTranslate} from "../../../enum/miniTranslate";
-import {Tiers} from "../../../enum/Tiers";
+import {Plans} from "../../../enum/Plans";
 import {TUser} from "../../../models/User";
 
 function SignUp() {
@@ -18,10 +18,10 @@ function SignUp() {
   const [repeatPassword, setRepeatPassword] = useState("Ab12345$");
 
   const [agencyName, setAgencyName] = useState("Marketing Agency");
-  const [tier, setTier] = useState<Tiers>(Tiers.Free);
+  const [plan, setPlan] = useState<Plans>(Plans.Free);
 
   const [errors, setErrors]: any = useState({});
-  const TierList = Object.values(Tiers);
+  const PlanList = Object.values(Plans);
 
   const validateField = (name: string, data: any) => {
     let error: string | null = null;
@@ -31,7 +31,7 @@ function SignUp() {
     if (name === "repeatPassword") error = isRepeatPassword(data.value, data.repeatPassword);
 
     if (name === "agencyName") error = minLength(data.value, 3);
-    if (name === "tier") error = minLength(data.value, 3);
+    if (name === "plan") error = minLength(data.value, 3);
     setErrors((prev: any) => ({ ...prev, [name]: error }));
   };
 
@@ -43,7 +43,7 @@ function SignUp() {
     try {
       const response: ApiResponse<TUser> = await signUpUser({
         user: { name, email, password },
-        agency: { name: agencyName, tier }
+        agency: { name: agencyName, plan }
       }).unwrap();
       toast.success(response.message);
       toast.success(MiniTranslate.YouCanSignIn);
@@ -147,19 +147,19 @@ function SignUp() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 text-left">Tier</label>
+            <label className="block text-sm font-medium text-slate-700 text-left">Plan</label>
             <select
-              name="tier"
-              value={tier}
+              name="plan"
+              value={plan}
               onChange={(e) => {
-                const selectedValue: Tiers = e.target.value as Tiers;
-                setTier(selectedValue);
-                validateField("tier", { value: selectedValue })
+                const selectedValue: Plans = e.target.value as Plans;
+                setPlan(selectedValue);
+                validateField("plan", { value: selectedValue })
               }}
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
             >
-              { TierList.map((tier: string) => (
-                <option key={tier} value={tier}>{tier}</option>
+              { PlanList.map((plan: string) => (
+                <option key={plan} value={plan}>{plan}</option>
               )) }
             </select>
           </div>
