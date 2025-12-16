@@ -236,8 +236,6 @@ model BusinessTrendMatch {
     @@id([businessProfileId, trendId])
 }
 
-
-
 model AIArtifact {
     id               String   @id @default(uuid())
     type             AIArtifactType
@@ -255,7 +253,6 @@ model AIArtifact {
     trend           Trend?          @relation(fields: [trendId], references: [id])
 }
 
-
 model PromptTemplate {
     id           String   @id @default(uuid())
     name         String
@@ -266,105 +263,4 @@ model PromptTemplate {
     paramsSchema Json
     isActive     Boolean  @default(true)
     createdAt    DateTime @default(now())
-}
-
-
-
-
-
-
-enum Tiers {
-  Free
-  Basic
-  Premium
-}
-
-enum MessageRoles {
-  User
-  Assistant
-  Client
-}
-
-
-model Admin {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  name      String
-  isAdmin   Boolean
-  password  String
-}
-
-model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  name      String
-  agencyId  String
-  agency    Agency @relation(fields: [agencyId], references: [id])
-  password  String
-  sessions  Session[]
-}
-
-model Agency {
-  id        String            @id @default(cuid())
-  name      String
-  tier      Tiers
-
-  users     User[]
-  products  Product[]
-  clients   Client[]
-  sessions  Session[]
-  messages  Message[]
-}
-
-model Product {
-  id             String   @id @default(uuid())
-  agencyId       String
-  name           String
-  description    String
-  sku            String
-  price          Float
-  category       String
-  status         String
-  image          String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  embedding      Unsupported("vector(1536)")?
-  agency         Agency @relation(fields: [agencyId], references: [id])
-}
-
-model Client {
-  id              String   @id @default(uuid())
-  agencyId        String
-  firstName       String
-  lastName        String
-  email           String
-  countryCode     String
-  phoneNumber     String
-  address         String
-  role            String
-  isActive        Boolean
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  business        Agency @relation(fields: [agencyId], references: [id])
-}
-
-model Session {
-  id              String    @id @default(uuid())
-  userId          String
-  user            User      @relation(fields: [userId], references: [id])
-  messages        Message[]
-  createdAt       DateTime  @default(now())
-  agencyId        String
-  agency          Agency    @relation(fields: [agencyId], references: [id])
-}
-
-model Message {
-  id              String   @id @default(uuid())
-  sessionId       String
-  session         Session  @relation(fields: [sessionId], references: [id])
-  role            MessageRoles
-  message         String
-  createdAt       DateTime @default(now())
-  agencyId        String
-  agency          Agency   @relation(fields: [agencyId], references: [id])
 }

@@ -10,7 +10,7 @@ function List() {
   const header = [
     { name: "ID", key: "id" },
     { name: "Name", key: "name" },
-    { name: "Tier", key: "tier" },
+    { name: "Plan", key: "plan" },
   ]
 
   const openBusiness = (id: string | undefined) => {
@@ -34,7 +34,7 @@ function List() {
               <tr onClick={() => openBusiness(item.id)} key={item.id} className="hover:bg-slate-50 cursor-pointer">
                 <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.id}</td>
                 <td className="px-4 py-3 font-medium text-slate-600 text-left">{item.name}</td>
-                <td className="px-4 py-3 font-medium text-slate-600 text-left">{item.tier}</td>
+                <td className="px-4 py-3 font-medium text-slate-600 text-left">{item.plan}</td>
               </tr>
             ))}
           </tbody>
