@@ -83,7 +83,7 @@ function App() {
         <Route path="/admin/signIn" element={<SignInAdmin />} />
         <Route path="/admin/signUp" element={<SignUpAdmin />} />
 
-        <Route
+        {/*<Route
           path="/profile"
           element={
             <Guard>
@@ -102,10 +102,10 @@ function App() {
             <Route path="metaAds" element={<MetaAds />} />
             <Route path="settings" element={<Settings />} />
           </Route>
-        </Route>
+        </Route>*/}
 
 
-        <Route
+        {/*<Route
           path="/admin"
           element={
             <AdminGuard>
@@ -115,7 +115,7 @@ function App() {
         >
           <Route path="list" element={<List />} />
           <Route path="list/:id" element={<Agency />} />
-        </Route>
+        </Route>*/}
       </Routes>
 
       <ToastContainer

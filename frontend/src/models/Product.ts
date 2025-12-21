@@ -1,6 +1,6 @@
 import { TBaseModel } from "./BaseModel";
-import { ProductStatus } from "../enum/ProductStatus";
-import { Categories } from "../enum/Categories";
+/*import { ProductStatus } from "../enum/ProductStatus";
+import { Categories } from "../enum/Categories";*/
 
 export type TImage = {
   url: string;
@@ -12,8 +12,6 @@ export type TProduct = TBaseModel & {
   description: string;
   sku: string;
   price: number;
-  category: Categories;
-  status: ProductStatus;
   images?: TImage[];
   createdAt?: string;
   updatedAt?: string;

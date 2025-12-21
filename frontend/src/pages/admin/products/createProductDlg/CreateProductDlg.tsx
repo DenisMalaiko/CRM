@@ -1,10 +1,19 @@
+function CreateProductDlg({ open, onClose, product }: any) {
+  return (
+    <div>CreateProductDlg</div>
+  )
+}
+
+export default CreateProductDlg;
+
+/*
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from "../../../../store";
 
-import { ProductStatus } from "../../../../enum/ProductStatus";
+/!*import { ProductStatus } from "../../../../enum/ProductStatus";*!/
 import {isPositiveNumber, isRequired, minLength} from "../../../../utils/validations";
-import { Categories } from "../../../../enum/Categories";
+/!*import { Categories } from "../../../../enum/Categories";*!/
 import { toast } from "react-toastify";
 
 import { useUpdateProductMutation } from "../../../../store/products/productsApi";
@@ -22,8 +31,8 @@ function CreateProductDlg({ open, onClose, product }: any) {
   const [ updateProduct ] = useUpdateProductMutation();
 
   const { user } = useSelector((state: RootState) => state.authModule);
-  const statuses = Object.values(ProductStatus);
-  const categories = Object.values(Categories);
+/!*  const statuses = Object.values(ProductStatus);*!/
+/!*  const categories = Object.values(Categories);*!/
   const isEdit = !!product;
 
   const [form, setForm] = useState({
@@ -31,8 +40,8 @@ function CreateProductDlg({ open, onClose, product }: any) {
     description: "",
     sku: "",
     price: 0,
-    category: Categories.Device,
-    status: ProductStatus.Active,
+/!*    category: Categories.Device,*!/
+/!*    status: ProductStatus.Active,*!/
     agencyId: user?.agencyId,
   });
   const [errors, setErrors]: any = useState({});
@@ -44,8 +53,8 @@ function CreateProductDlg({ open, onClose, product }: any) {
         description: product.description,
         sku: product.sku,
         price: product.price,
-        category: product.category,
-        status: product.status,
+/!*        category: product.category,*!/
+/!*        status: product.status,*!/
         agencyId: product.agencyId,
       });
     } else {
@@ -54,8 +63,8 @@ function CreateProductDlg({ open, onClose, product }: any) {
         description: "",
         sku: "",
         price: 0,
-        category: Categories.Device,
-        status: ProductStatus.Active,
+/!*        category: Categories.Device,*!/
+ /!*       status: ProductStatus.Active,*!/
         agencyId: user?.agencyId,
       });
     }
@@ -210,7 +219,7 @@ function CreateProductDlg({ open, onClose, product }: any) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          {/!*<div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-slate-700 text-left">Category</label>
               <select
@@ -224,9 +233,9 @@ function CreateProductDlg({ open, onClose, product }: any) {
                 )) }
               </select>
             </div>
-          </div>
+          </div>*!/}
 
-          <div>
+         {/!* <div>
             <label className="block text-sm font-medium text-slate-700 text-left">Status</label>
             <select
               name="status"
@@ -238,7 +247,7 @@ function CreateProductDlg({ open, onClose, product }: any) {
                 <option key={status} value={status}>{status}</option>
               )) }
             </select>
-          </div>
+          </div>*!/}
 
           <div className="flex justify-end gap-3 pt-4">
             <button
@@ -272,3 +281,4 @@ function CreateProductDlg({ open, onClose, product }: any) {
 }
 
 export default CreateProductDlg;
+*/

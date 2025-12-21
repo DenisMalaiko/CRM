@@ -82,7 +82,7 @@ model Agency {
     createdAt DateTime @default(now())
 
     users     User[]
-    clients   Client[]
+    businesses   Business[]
 }
 
 model User {
@@ -221,6 +221,7 @@ model Trend {
 
     platform    Platform @relation(fields: [platformId], references: [id])
     matches     BusinessTrendMatch[]
+    aiArtifacts AIArtifact[]
 }
 
 

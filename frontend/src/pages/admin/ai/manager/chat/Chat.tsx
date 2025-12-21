@@ -3,7 +3,7 @@ import styles from "./Chat.module.css"
 import { MessageCircle, Send } from "lucide-react";
 import { useAppDispatch } from "../../../../../store/hooks";
 
-import { MessagesRoles } from "../../../../../enum/MessagesRoles";
+/*import { MessagesRoles } from "../../../../../enum/MessagesRoles";*/
 
 import { useSelector } from "react-redux";
 import { useSendMessageMutation, useCreateSessionMutation, useGetSessionsMutation } from "../../../../../store/ai/manager/managerApi";
@@ -31,7 +31,7 @@ export function Chat() {
 
     const data = {
       sessionId: session.data.id,
-      role: MessagesRoles.User,
+/*      role: MessagesRoles.User,*/
       message: message
     };
 

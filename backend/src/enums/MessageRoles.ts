@@ -1,4 +1,4 @@
-import { MessageRoles } from '../../generated/prisma';
+/*import { MessageRoles } from '../../generated/prisma';*/
 
 export enum MessageRolesUI {
   Assistant = "Assistant",
@@ -6,8 +6,8 @@ export enum MessageRolesUI {
   Client = "Client",
 }
 
-export const MessageRolesToPrisma: Record<MessageRolesUI, MessageRoles> = {
+/*export const MessageRolesToPrisma: Record<MessageRolesUI, MessageRoles> = {
   [MessageRolesUI.Assistant]: MessageRoles.Assistant,
   [MessageRolesUI.User]: MessageRoles.User,
   [MessageRolesUI.Client]: MessageRoles.Client,
-}
+}*/

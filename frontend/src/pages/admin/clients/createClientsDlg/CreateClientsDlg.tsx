@@ -1,8 +1,17 @@
+function CreateClientsDlg({ open, onClose, client }: any) {
+  return (
+    <div>CreateClientsDlg</div>
+  )
+}
+
+export default CreateClientsDlg;
+
+/*
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from "../../../../store";
 import { isEmail, isPhoneNumber, minLength} from "../../../../utils/validations";
-import { ClientRoles } from "../../../../enum/ClientRoles";
+/!*import { ClientRoles } from "../../../../enum/ClientRoles";*!/
 import { toast } from "react-toastify";
 
 import { useUpdateClientMutation } from "../../../../store/clients/clientsApi";
@@ -23,7 +32,7 @@ function CreateClientsDlg({ open, onClose, client }: any) {
   const [ updateClient ] = useUpdateClientMutation();
 
   const { user } = useSelector((state: RootState) => state.authModule);
-  const roles = Object.values(ClientRoles);
+/!*  const roles = Object.values(ClientRoles);*!/
   const isEdit = !!client;
   const [countryCode, setCountryCode] = useState("+38");
 
@@ -34,7 +43,7 @@ function CreateClientsDlg({ open, onClose, client }: any) {
     countryCode: "+38",
     phoneNumber: "",
     address: "",
-    role: ClientRoles.Customer,
+/!*    role: ClientRoles.Customer,*!/
     isActive: true,
     agencyId: user?.agencyId,
   });
@@ -51,7 +60,7 @@ function CreateClientsDlg({ open, onClose, client }: any) {
         countryCode: client.countryCode,
         phoneNumber: client.phoneNumber,
         address: client.address,
-        role: client.role,
+/!*        role: client.role,*!/
         isActive: client.isActive,
       });
     } else {
@@ -63,7 +72,7 @@ function CreateClientsDlg({ open, onClose, client }: any) {
         countryCode: "+38",
         phoneNumber: "",
         address: "",
-        role: ClientRoles.Customer,
+/!*        role: ClientRoles.Customer,*!/
         isActive: true,
       });
     }
@@ -251,7 +260,7 @@ function CreateClientsDlg({ open, onClose, client }: any) {
               {errors.address && <p className="text-red-500 text-sm mt-2 text-left">{errors.address}</p>}
             </div>
 
-            <div>
+            {/!*<div>
               <label className="block text-sm font-medium text-slate-700 text-left">Role</label>
               <select
                 name="role"
@@ -263,7 +272,7 @@ function CreateClientsDlg({ open, onClose, client }: any) {
                   <option key={role} value={role}>{role}</option>
                 )) }
               </select>
-            </div>
+            </div>*!/}
           </div>
 
           <div className="flex justify-end gap-3 pt-4">
@@ -288,3 +297,4 @@ function CreateClientsDlg({ open, onClose, client }: any) {
 }
 
 export default CreateClientsDlg;
+*/
