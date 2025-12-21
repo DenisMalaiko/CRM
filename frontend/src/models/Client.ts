@@ -1,5 +1,4 @@
 import { TBaseModel } from "./BaseModel";
-import { ClientRoles } from "../enum/ClientRoles";
 
 export type TClient = TBaseModel & {
   firstName: string;
@@ -8,7 +7,6 @@ export type TClient = TBaseModel & {
   countryCode: string;
   phoneNumber: string;
   address: string;
-  role: ClientRoles;
   isActive: boolean;
 
   createdAt?: string;

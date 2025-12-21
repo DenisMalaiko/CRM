@@ -74,7 +74,7 @@ function Agency() {
             </div>
             <div className="flex justify-between border-b pb-2">
               <span className="font-medium">Tier</span>
-              <span className="text-slate-500">{agency?.tier}</span>
+              {/*<span className="text-slate-500">{agency?.tier}</span>*/}
             </div>
           </div>
         </div>

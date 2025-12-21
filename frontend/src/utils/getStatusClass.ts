@@ -1,9 +1,6 @@
-import { ProductStatus } from "../enum/ProductStatus";
-import { PaymentsStatus } from "../enum/PaymentsStatus";
-
 export const getStatusClass = (status: string) => {
   switch (status) {
-    case ProductStatus.Active:
+/*    case ProductStatus.Active:
       return "bg-emerald-50 text-emerald-700";
     case ProductStatus.Draft:
       return "bg-amber-50 text-amber-700";
@@ -17,7 +14,7 @@ export const getStatusClass = (status: string) => {
     case PaymentsStatus.Refund:
       return "bg-red-50 text-red-700";
     case PaymentsStatus.Failed:
-      return "bg-red-50 text-red-700";
+      return "bg-red-50 text-red-700";*/
 
 
     default:

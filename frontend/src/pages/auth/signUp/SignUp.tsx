@@ -8,6 +8,8 @@ import {ApiResponse} from "../../../models/ApiResponse";
 import {MiniTranslate} from "../../../enum/miniTranslate";
 import {Plans} from "../../../enum/Plans";
 import {TUser} from "../../../models/User";
+import { UserRole } from "../../../enum/UserRole";
+import { UserStatus } from "../../../enum/UserStatus";
 
 function SignUp() {
   const [signUpUser] = useSignUpUserMutation();
@@ -42,7 +44,13 @@ function SignUp() {
 
     try {
       const response: ApiResponse<TUser> = await signUpUser({
-        user: { name, email, password },
+        user: {
+          name,
+          email,
+          password,
+          role: UserRole.Marketer,
+          status: UserStatus.Active
+        },
         agency: { name: agencyName, plan }
       }).unwrap();
       toast.success(response.message);

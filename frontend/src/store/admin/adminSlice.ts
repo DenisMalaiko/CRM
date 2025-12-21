@@ -1,9 +1,10 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { TAdmin } from "../../models/User";
+import { TUser } from "../../models/User";
+/*import { TAdmin } from "../../models/User";*/
 
 type AuthState = {
   isAuthenticatedAdmin: boolean
-  admin: TAdmin | null
+  admin: TUser | null
   loading: boolean
   error: string | null | any
   accessToken: string | null
@@ -21,7 +22,7 @@ const adminSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    setAdmin: (state, action: PayloadAction<TAdmin>) => {
+    setAdmin: (state, action: PayloadAction<TUser>) => {
       state.admin = action.payload;
     },
     setAdminAccessToken: (state, action: PayloadAction<string | null>) => {

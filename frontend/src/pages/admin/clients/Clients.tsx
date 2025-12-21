@@ -126,7 +126,7 @@ function Clients() {
                 <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.lastName}</td>
                 <td className="px-4 py-3 text-left">{item.email}</td>
                 <td className="px-4 py-3 text-left">{item.countryCode}{item.phoneNumber}</td>
-                <td className="px-4 py-3 text-slate-600 text-left">{item.role}</td>
+                {/*<td className="px-4 py-3 text-slate-600 text-left">{item.role}</td>*/}
                 <td className="px-4 py-3 text-slate-600 text-left">{item.address}</td>
                 <td className="px-4 py-3 text-right">
                   <div className="flex items-center gap-2 justify-end">

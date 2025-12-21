@@ -1,3 +1,14 @@
+function SignUpAdmin() {
+  return (
+    <div>
+      SignUpAdmin
+    </div>
+  )
+}
+
+export default SignUpAdmin;
+
+/*
 import React, {useState} from 'react';
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
@@ -158,3 +169,4 @@ function SignUpAdmin() {
 }
 
 export default SignUpAdmin;
+*/

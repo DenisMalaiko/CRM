@@ -121,12 +121,12 @@ function ProductsData() {
                   <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.name}</td>
                   <td className="px-4 py-3 text-slate-600 text-left">{item.sku}</td>
                   <td className="px-4 py-3 font-medium text-left">$ {item.price}</td>
-                  <td className="px-4 py-3 text-slate-600 text-left">{item.category}</td>
+                  {/*<td className="px-4 py-3 text-slate-600 text-left">{item.category}</td>*/}
                   <td className="px-4 py-3 text-slate-600 text-left">{toDate(item?.createdAt)}</td>
                   <td className="px-4 py-3 text-slate-600 text-left">{toDate(item?.updatedAt)}</td>
-                  <td className="px-4 py-3 text-left">
+                  {/*<td className="px-4 py-3 text-left">
                     <span className={`inline-flex items-start px-2 py-1 text-xs font-medium rounded-full ${getStatusClass(item.status)}`}>{item.status}</span>
-                  </td>
+                  </td>*/}
                   <td className="px-4 py-3 text-right">
                     <div className="flex items-center gap-2 justify-end">
                       <button onClick={() => openEditProduct(item)} className="h-8 w-8 flex items-center justify-center rounded-lg border  text-slate-600 hover:bg-slate-50">

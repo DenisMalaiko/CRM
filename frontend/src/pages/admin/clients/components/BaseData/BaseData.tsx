@@ -94,7 +94,7 @@ function BaseData() {
         </div>
         <div className="flex justify-between border-b pb-2">
           <span className="font-medium">Role</span>
-          <span className="text-slate-500">{client?.role}</span>
+          {/*<span className="text-slate-500">{client?.role}</span>*/}
         </div>
         <div className="flex justify-between border-b pb-2">
           <span className="font-medium">Status</span>

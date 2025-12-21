@@ -1,5 +1,5 @@
 import { api } from "../api/api";
-import {TAdmin, TUserSignIn } from "../../models/User";
+import {TUser, TUserSignIn } from "../../models/User";
 import {ApiResponse} from "../../models/ApiResponse";
 
 export const adminApi = api.injectEndpoints({
@@ -11,7 +11,7 @@ export const adminApi = api.injectEndpoints({
         body,
       })
     }),
-    signUpAdmin: builder.mutation<ApiResponse<TAdmin>, any>({
+    signUpAdmin: builder.mutation<ApiResponse<TUser>, any>({
       query: (body) => ({
         url: '/admin/signUp',
         method: 'POST',
