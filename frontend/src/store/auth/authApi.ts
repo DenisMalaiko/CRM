@@ -4,7 +4,7 @@ import { TUser, TSignUpPayload, TUserSignIn } from '../../models/User';
 
 export const authApi = api.injectEndpoints({
   endpoints: (builder) => ({
-    signUpUser: builder.mutation<ApiResponse<TUser>, TSignUpPayload>({
+    signUpUser: builder.mutation<ApiResponse<TUser>, any>({
       query: (body) => ({
         url: '/auth/signUp',
         method: 'POST',
