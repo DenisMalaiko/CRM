@@ -1,6 +1,7 @@
 import React, {useState} from "react";
-import {toast} from "react-toastify";
+import { toast } from "react-toastify";
 import { useSignUpUserMutation } from "../../../store/auth/authApi";
+import { showError } from "../../../utils/showError";
 
 import {Link} from "react-router-dom";
 import {isEmail, isPassword, isRepeatPassword, minLength} from "../../../utils/validations";
@@ -18,7 +19,6 @@ function SignUp() {
   const [email, setEmail] = useState("malaiko.denis@gmail.com");
   const [password, setPassword] = useState("Ab12345$");
   const [repeatPassword, setRepeatPassword] = useState("Ab12345$");
-
   const [agencyName, setAgencyName] = useState("Marketing Agency");
   const [plan, setPlan] = useState<Plans>(Plans.Free);
 
@@ -49,14 +49,17 @@ function SignUp() {
           email,
           password,
           role: UserRole.Marketer,
-          status: UserStatus.Active
+          status: UserStatus.Active,
         },
-        agency: { name: agencyName, plan }
+        agency: {
+          name: agencyName,
+          plan
+        }
       }).unwrap();
+
       toast.success(response.message);
-      toast.success(MiniTranslate.YouCanSignIn);
-    } catch (error: any) {
-      toast.error(error.data.message);
+    } catch (error) {
+      showError(error);
     }
   }
 
