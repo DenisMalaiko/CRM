@@ -16,7 +16,7 @@ export class ClientsService {
 
     return {
       statusCode: 200,
-      message: "Clients has been got!",
+      message: "Businesses has been got!",
       data: clients,
     };
   }
@@ -29,7 +29,7 @@ export class ClientsService {
 
     return {
       statusCode: 200,
-      message: "Client has been got!",
+      message: "Business has been got!",
       data: client,
     };
   }
@@ -41,14 +41,14 @@ export class ClientsService {
 
     return {
       statusCode: 200,
-      message: "Client has been created!",
+      message: "Business has been created!",
       data: client,
     };
   }
 
   async updateClient(id: string, body: Client) {
     if (!id) {
-      throw new NotFoundException('Client ID is required');
+      throw new NotFoundException('Business ID is required');
     }
 
     try {
@@ -59,7 +59,7 @@ export class ClientsService {
 
       return {
         statusCode: 200,
-        message: 'Client has been updated!',
+        message: 'Business has been updated!',
         data: updated,
       };
     } catch (err: any) {
@@ -74,16 +74,16 @@ export class ClientsService {
   async deleteClient(id: string) {
     return this.prisma.$transaction(async (tx) => {
       try {
-        if (!id) throw new NotFoundException('Client ID is required');
+        if (!id) throw new NotFoundException('Business ID is required');
 
-        // Delete Client
+        // Delete Business
         const deleted = await tx.client.delete({
           where: { id },
         });
 
         return {
           statusCode: 200,
-          message: 'Client has been deleted!',
+          message: 'Business has been deleted!',
           data: deleted,
         };
       } catch (err: any) {

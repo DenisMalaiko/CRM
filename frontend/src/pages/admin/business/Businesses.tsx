@@ -3,34 +3,36 @@ import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { RootState } from "../../../store";
 import { useAppDispatch } from "../../../store/hooks";
+import { showError } from "../../../utils/showError";
 
-import { TClient } from "../../../models/Client";
+import { TBusiness } from "../../../models/Business";
 import { confirm } from "../../../components/confirmDlg/ConfirmDlg";
 import { toDate } from "../../../utils/toDate";
 import { toast } from "react-toastify";
-import CreateClientsDlg from "./createClientsDlg/CreateClientsDlg";
+import CreateBusinessDlg from "./createBusinessDlg/CreateBusinessDlg";
 import { Eye, Delete } from "lucide-react";
 
-import { useGetClientsMutation } from "../../../store/clients/clientsApi";
-import { useDeleteClientMutation } from "../../../store/clients/clientsApi";
-import { setClients } from "../../../store/clients/clientsSlice";
+import { useGetBusinessesMutation } from "../../../store/businesses/businessesApi";
+import { useDeleteBusinessMutation } from "../../../store/businesses/businessesApi";
+import { setBusinesses } from "../../../store/businesses/businessesSlice";
+import {ApiResponse} from "../../../models/ApiResponse";
 
-function Clients() {
+function Businesses() {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
 
-  const [ getClients ] = useGetClientsMutation();
-  const [ deleteClient ] = useDeleteClientMutation();
+  const [ getBusinesses ] = useGetBusinessesMutation();
+  const [ deleteBusiness ] = useDeleteBusinessMutation();
 
-  const [open, setOpen] = useState(false);
-  const [selectedClient, setSelectedClient] = useState<TClient | null>(null);
-  const { clients } = useSelector((state: RootState) => state.clientsModule)
+  const [ open, setOpen ] = useState(false);
+  const [ selectedBusiness, setSelectedBusiness ] = useState<TBusiness | null>(null);
+  const { businesses } = useSelector((state: RootState) => state.businessModule)
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response: any = await getClients();
-        dispatch(setClients(response.data.data));
+        const response: any = await getBusinesses();
+        dispatch(setBusinesses(response.data.data));
       } catch (error) {
         console.error("Error fetching data:", error);
       }
@@ -40,40 +42,41 @@ function Clients() {
   }, [dispatch]);
 
   const header = [
-    { name: "Image", key: "image" },
-    { name: "First Name", key: "firstName" },
-    { name: "Last Name", key: "lastName" },
-    { name: "Email", key: "email" },
-    { name: "Phone", key: "phoneNumber" },
-    { name: "Role", key: "role" },
-    { name: "Address", key: "address" },
+    { name: "Name", key: "name" },
+    { name: "Website", key: "website" },
+    { name: "Industry", key: "industry" },
+    { name: "Status", key: "status" },
     { name: "Actions", key: "actions" }
   ];
 
-  const openConfirmDlg = async (e: any, item: TClient) => {
+  const openConfirmDlg = async (e: any, item: TBusiness) => {
     e.preventDefault();
 
     const ok = await confirm({
-      title: "Delete Client",
-      message: "Are you sure you want to delete this client?",
+      title: "Delete Business",
+      message: "Are you sure you want to delete this business?",
     });
 
     if(ok) {
       try {
         if (item?.id != null) {
-          await deleteClient(item.id).unwrap();
-          const response: any = await getClients();
-          dispatch(setClients(response.data));
-          toast.success(response.message);
+          await deleteBusiness(item.id).unwrap();
+          const response: ApiResponse<TBusiness[]> = await getBusinesses().unwrap();
+
+          if(response && response.data) {
+            dispatch(setBusinesses(response.data));
+            toast.success(response.message);
+          }
         }
-      } catch (error: any) {
-        toast.error(error.message);
+      } catch (error) {
+        showError(error);
       }
     }
   }
 
-  const openEditClient = async (item: TClient) => {
-    setSelectedClient(item);
+  const openEditBusiness = async (item: TBusiness) => {
+    console.log("BUSINESS ", item)
+    setSelectedBusiness(item);
     setOpen(true)
   }
 
@@ -85,23 +88,23 @@ function Clients() {
     <section>
       <section>
         <div className="container mx-auto flex items-center justify-between px-4 py-3">
-          <h1 className="text-3xl font-semibold">Clients</h1>
+          <h1 className="text-3xl font-semibold">Businesses</h1>
 
           <button
             onClick={() => setOpen(true)}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700"
           >
-            Add Client
+            Add Business
           </button>
 
-          <CreateClientsDlg
+          <CreateBusinessDlg
             open={open}
             onClose={() => {
               setOpen(false);
-              setSelectedClient(null);
+              setSelectedBusiness(null);
             }}
-            client={selectedClient}
-          ></CreateClientsDlg>
+            business={selectedBusiness}
+          ></CreateBusinessDlg>
         </div>
       </section>
 
@@ -117,23 +120,18 @@ function Clients() {
             </thead>
 
             <tbody className="divide-y divide-slate-100">
-            {clients && clients.map((item: TClient) => (
+            {businesses && businesses.map((item: TBusiness) => (
               <tr key={item.id} className="hover:bg-slate-50 bg-slate-50">
-                <td className="px-4 py-3">
-                  <div className="h-10 w-10 bg-slate-200 rounded-lg" />
-                </td>
-                <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.firstName}</td>
-                <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.lastName}</td>
-                <td className="px-4 py-3 text-left">{item.email}</td>
-                <td className="px-4 py-3 text-left">{item.countryCode}{item.phoneNumber}</td>
-                {/*<td className="px-4 py-3 text-slate-600 text-left">{item.role}</td>*/}
-                <td className="px-4 py-3 text-slate-600 text-left">{item.address}</td>
+                <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.name}</td>
+                <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.website}</td>
+                <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.industry}</td>
+                <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.status}</td>
                 <td className="px-4 py-3 text-right">
                   <div className="flex items-center gap-2 justify-end">
                     <button onClick={() => openClient(item?.id)} className="h-8 w-8 flex items-center justify-center rounded-lg border  text-slate-600 hover:bg-slate-50">
                       <Eye className="w-3 h-3" />
                     </button>
-                    <button onClick={() => openEditClient(item)} className="h-8 w-8 flex items-center justify-center rounded-lg border  text-slate-600 hover:bg-slate-50">
+                    <button onClick={() => openEditBusiness(item)} className="h-8 w-8 flex items-center justify-center rounded-lg border  text-slate-600 hover:bg-slate-50">
                       ✎
                     </button>
                     <button onClick={(e) => openConfirmDlg(e, item)} className="h-8 w-8 flex items-center justify-center rounded-lg border text-rose-600 hover:bg-rose-50">
@@ -151,4 +149,4 @@ function Clients() {
   )
 }
 
-export default Clients;
+export default Businesses;

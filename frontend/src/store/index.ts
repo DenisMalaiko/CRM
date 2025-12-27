@@ -3,7 +3,7 @@ import adminModule from './admin/adminSlice'
 import authModule from './auth/authSlice'
 import productsModule from './products/productsSlice'
 import agencyModule from './agency/agencySlice'
-import clientsModule from './clients/clientsSlice'
+import businessModule from './businesses/businessesSlice'
 import managerModule from "./ai/manager/managerSlice";
 import { api } from './api/api'
 
@@ -13,7 +13,7 @@ export const store = configureStore({
     authModule: authModule,
     productsModule: productsModule,
     agencyModule: agencyModule,
-    clientsModule: clientsModule,
+    businessModule: businessModule,
     managerModule: managerModule,
     [api.reducerPath]: api.reducer,
   },

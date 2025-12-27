@@ -1,16 +1,11 @@
 import * as bcrypt from 'bcrypt';
 import * as process from "node:process";
-import {Injectable, ConflictException, UnauthorizedException, InternalServerErrorException} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { Injectable, ConflictException, UnauthorizedException, InternalServerErrorException } from '@nestjs/common';
 
 import { PrismaService } from "../prisma/prisma.service";
-/*import { CredentialsDto } from "./dto/credentials.dto";
-import { SignUpDto } from "./dto/signUp.dto";*/
-
-/*import { User, UserResponse } from "./entities/user.entity";*/
-
 import { AuthResponse } from "../entities/authResponse.entity";
-import { TUser, TSignUpPayload} from "./entities/user.entity";
+import { TUser, TUserSignIn, TSignUpPayload, TSignInPayload } from "./entities/user.entity";
 
 @Injectable()
 export class AuthService {
@@ -23,8 +18,6 @@ export class AuthService {
   ) {}
 
   async signUp(body: TSignUpPayload): Promise<ApiResponse<TUser>> {
-    console.log("SIGN UP SERVICE: ", body)
-
     return this.prisma.$transaction(async (tx) => {
       try {
         await this._checkExistingUser(body.user?.email);
@@ -57,8 +50,6 @@ export class AuthService {
           }
         });
 
-        console.log("SIGN UP RESPONSE: ", body)
-
         return {
           statusCode: 200,
           message: "User has been created!",
@@ -70,38 +61,34 @@ export class AuthService {
           throw err;
         }
 
-        console.log("SIGN UP ERROR: ", err)
-
         throw new InternalServerErrorException('Failed to sign up user');
       }
     })
   }
 
-  /*async signIn(body: CredentialsDto): Promise<ApiResponse<AuthResponse<UserResponse>>> {
-    if (!body?.email || !body?.password)
-      throw new UnauthorizedException('Invalid credentials!');
+  async signIn(body: TSignInPayload): Promise<ApiResponse<AuthResponse<TUser>>> {
+    if (!body?.email || !body?.password) throw new UnauthorizedException('Invalid credentials!');
 
-    const response: User | null = await this.prisma.user.findUnique({
+    const response: TUserSignIn | null = await this.prisma.user.findUnique({
       where: { email: body.email },
-      select: { id: true, email: true, name: true, password: true, agencyId: true }
+      select: { id: true, agencyId: true, name: true, email: true, password: true, role: true, status: true, }
     });
-
-    if (!response)
-      throw new UnauthorizedException('Invalid credentials!');
+    if (!response) throw new UnauthorizedException('Invalid credentials!');
 
     const isMatch = await bcrypt.compare(body.password, response.password);
-    if (!isMatch)
-      throw new UnauthorizedException('Invalid credentials!');
+    if (!isMatch) throw new UnauthorizedException('Invalid credentials!');
 
-    const user: UserResponse = {
+    const user: TUser = {
       id: response.id,
+      agencyId: response.agencyId,
       email: response.email,
       name: response.name,
-      agencyId: response.agencyId
+      role: response.role,
+      status: response.status
     };
 
     return await this._generateToken(user);
-  }*/
+  }
 
   async me(body: TUser) {
     try {
@@ -109,7 +96,6 @@ export class AuthService {
         where: { email: body.email },
         select: { id: true, agencyId: true, email: true, name: true, password: true, role: true, status: true }
       });
-
       if (!response) throw new UnauthorizedException('Invalid credentials!');
 
       const user: TUser = {

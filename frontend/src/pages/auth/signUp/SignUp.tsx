@@ -1,16 +1,16 @@
-import React, {useState} from "react";
+import React, { useState } from "react";
 import { toast } from "react-toastify";
+import { Link } from "react-router-dom";
+
 import { useSignUpUserMutation } from "../../../store/auth/authApi";
 import { showError } from "../../../utils/showError";
-
-import {Link} from "react-router-dom";
-import {isEmail, isPassword, isRepeatPassword, minLength} from "../../../utils/validations";
-import {ApiResponse} from "../../../models/ApiResponse";
-import {MiniTranslate} from "../../../enum/miniTranslate";
-import {Plans} from "../../../enum/Plans";
-import {TUser} from "../../../models/User";
+import { isEmail, isPassword, isRepeatPassword, minLength } from "../../../utils/validations";
+import { ApiResponse } from "../../../models/ApiResponse";
+import { Plans } from "../../../enum/Plans";
+import { TUser } from "../../../models/User";
 import { UserRole } from "../../../enum/UserRole";
 import { UserStatus } from "../../../enum/UserStatus";
+
 
 function SignUp() {
   const [signUpUser] = useSignUpUserMutation();
