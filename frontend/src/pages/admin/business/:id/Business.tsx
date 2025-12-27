@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import {ArrowLeft} from "lucide-react";
 import {Outlet, NavLink, useNavigate} from "react-router-dom";
 
-function Client() {
+function Business() {
   const navigate = useNavigate();
 
   const tabs = [
@@ -33,7 +33,7 @@ function Client() {
       <div className="w-full rounded-2xl bg-white shadow border border-slate-200 mb-4">
         <div className="w-full flex items-center p-6">
           <button
-            onClick={() => navigate("/profile/clients")}
+            onClick={() => navigate("/profile/businesses")}
             className="flex items-center gap-2 text-slate-600 hover:text-blue-600 font-medium"
           >
             <ArrowLeft size={18} strokeWidth={2} />
@@ -69,4 +69,4 @@ function Client() {
     </section>
   )
 }
-export default Client;
+export default Business;

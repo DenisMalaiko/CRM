@@ -12,3 +12,16 @@ export function isDtoError(error: unknown): error is ApiDtoError {
     Array.isArray((error as any).data?.message)
   );
 }
+
+export function isConflictException(error: unknown): error is ApiDtoError {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    (error as any).hasOwnProperty('status') &&
+    (error as any).status === 409 &&
+    (error as any).hasOwnProperty('data') &&
+    (error as any).data.error === 'Conflict' &&
+    (error as any).data.statusCode === 409 &&
+    typeof (error as any).data?.message === 'string'
+  );
+}

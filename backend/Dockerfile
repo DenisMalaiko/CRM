@@ -10,7 +10,7 @@ RUN npm install
 # Copy all files including prisma and src
 COPY . .
 
-# VERY IMPORTANT: regenerate Prisma Client with final schema
+# VERY IMPORTANT: regenerate Prisma Business with final schema
 RUN npx prisma generate
 
 EXPOSE 4000

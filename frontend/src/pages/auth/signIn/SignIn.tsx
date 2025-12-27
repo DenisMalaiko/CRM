@@ -1,12 +1,12 @@
 import React from "react";
 import { toast } from "react-toastify";
-
 import { Link, useNavigate } from 'react-router-dom';
 import { useState } from "react";
-import { isEmail, isPassword } from "../../../utils/validations";
 
 import { useAppDispatch } from "../../../store/hooks";
 import { useSignInUserMutation } from "../../../store/auth/authApi";
+import { showError } from "../../../utils/showError";
+import { isEmail, isPassword } from "../../../utils/validations";
 import { setUser, setAccessToken } from "../../../store/auth/authSlice";
 
 function SignIn() {
@@ -37,8 +37,8 @@ function SignIn() {
       dispatch(setAccessToken(response.data.accessToken));
       toast.success(response.message);
       navigate("/profile/dashboard");
-    } catch (error: any) {
-      toast.error(error.data.message);
+    } catch (error) {
+      showError(error);
     }
   }
 

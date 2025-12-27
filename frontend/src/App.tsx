@@ -27,14 +27,14 @@ import Profile from "./pages/admin/Profile";
 import Dashboard from './pages/admin/dashboard/Dashboard';
 /*import Products from './pages/admin/products/Products';*/
 
-// Clients
-import Clients from "./pages/admin/clients/Clients";
-import Client from "./pages/admin/clients/:id/Client";
-import BaseData from "./pages/admin/clients/components/BaseData/BaseData";
-import Products from "./pages/admin/clients/components/Products/Products"
-import Marketer from "./pages/admin/clients/components/Marketer/Marketer";
-import MetaAds from "./pages/admin/clients/components/MetaAds/MetaAds";
-import Settings from "./pages/admin/clients/components/Settings/Settings";
+// Businesses
+import Businesses from "./pages/admin/business/Businesses";
+import Business from "./pages/admin/business/:id/Business";
+import BaseData from "./pages/admin/business/components/BaseData/BaseData";
+import Products from "./pages/admin/business/components/Products/Products"
+import Marketer from "./pages/admin/business/components/Marketer/Marketer";
+import MetaAds from "./pages/admin/business/components/MetaAds/MetaAds";
+import Settings from "./pages/admin/business/components/Settings/Settings";
 
 // AI
 import Accountant from "./pages/admin/ai/accountant/Accountant";
@@ -83,7 +83,7 @@ function App() {
         <Route path="/admin/signIn" element={<SignInAdmin />} />
         <Route path="/admin/signUp" element={<SignUpAdmin />} />
 
-        {/*<Route
+        <Route
           path="/profile"
           element={
             <Guard>
@@ -93,16 +93,16 @@ function App() {
         >
           <Route path="dashboard" element={<Dashboard />} />
 
-          <Route path="clients" element={<Clients />} />
+          <Route path="businesses" element={<Businesses />} />
 
-          <Route path="clients/:clientId" element={<Client />}>
+          <Route path="businesses/:businessId" element={<Business />}>
             <Route path="baseData" element={<BaseData />} />
             <Route path="products" element={<Products />} />
             <Route path="marketer" element={<Marketer />} />
             <Route path="metaAds" element={<MetaAds />} />
             <Route path="settings" element={<Settings />} />
           </Route>
-        </Route>*/}
+        </Route>
 
 
         {/*<Route

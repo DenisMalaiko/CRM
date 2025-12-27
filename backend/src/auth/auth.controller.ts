@@ -1,10 +1,8 @@
-import {Controller, Post, Get, Req, Body, Headers, Res, UnauthorizedException, UseGuards } from '@nestjs/common';
+import { Controller, Post, Get, Req, Body, Headers, Res, UnauthorizedException, UseGuards } from '@nestjs/common';
 import type { Request as ExpressRequest } from 'express';
 import { AuthService } from './auth.service';
-import { TUserSignIn } from "./entities/user.entity";
-import { SignUpDto } from "./dto/user.dto";
+import { SignUpDto, SignInDto } from "./dto/user.dto";
 import { JwtAuthGuard } from "../guards/jwt-auth.guard";
-import { ApiTags, ApiOperation } from "@nestjs/swagger";
 
 @Controller('auth')
 export class AuthController {
@@ -12,26 +10,19 @@ export class AuthController {
 
   @Post("/signUp")
   async signUp(@Body() body: SignUpDto) {
-    console.log("SIGN UP CONTROLLER: ", body)
-
-    return {
-      statusCode: 200,
-      message: "User has been created!",
-      data: body.user,
-    };
-
-    //return await this.authService.signUp(body);
+    return await this.authService.signUp(body);
   }
 
-/*  @Post("/signIn")
-  async signIn(@Body() body: TUserSignIn, @Res() res: any) {
+  @Post("/signIn")
+  async signIn(@Body() body: SignInDto, @Res() res: any) {
     const { data, ...response } = await this.authService.signIn(body);
-    /!*res.cookie('refresh_token', data?.refreshToken, {
+
+    /*res.cookie('refresh_token', data?.refreshToken, {
       httpOnly: true,
       secure: true,
       sameSite: 'none',
       maxAge: 1000 * 60 * 60 * 24 * 30,
-    });*!/
+    });*/
 
     res.cookie('refresh_token', data?.refreshToken, {
       httpOnly: true,
@@ -47,7 +38,7 @@ export class AuthController {
         accessToken: data?.accessToken,
       },
     });
-  }*/
+  }
 
   @Post("/signOut")
   async signOut(@Res() res: any) {

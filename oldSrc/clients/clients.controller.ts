@@ -4,7 +4,7 @@ import {ProductDto} from "../products/dto/product.dto";
 import {ClientDto} from "./dto/client.dto";
 import { JwtAuthGuard } from "../guards/jwt-auth.guard";
 
-@Controller('clients')
+@Controller('business')
 export class ClientsController {
   constructor(private readonly clientsService: ClientsService) {}
 

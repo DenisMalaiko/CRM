@@ -9,17 +9,21 @@ export type TUser = TBaseModel & {
   status: UserStatus;
 }
 
-export type TUserSignIn = {
-  email: string;
-  password: string;
-}
-
 export type TUserSignUp = {
   name: string;
   email: string;
   password: string;
   role: UserRole;
   status: UserStatus;
+}
+
+export type TUserSignIn = TUser & {
+  password: string;
+}
+
+export type TSignInPayload = {
+  email: string;
+  password: string;
 }
 
 export type TSignUpPayload = {

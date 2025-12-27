@@ -14,7 +14,7 @@ import { useGetProductsMutation } from "../../../../../store/products/productsAp
 import { useDeleteProductMutation } from "../../../../../store/products/productsApi";
 import { setProducts } from "../../../../../store/products/productsSlice";
 import {TClient} from "../../../../../models/Client";
-import CreateClientsDlg from "../../createClientsDlg/CreateClientsDlg";
+import CreateBusinessDlg from "../../createBusinessDlg/CreateBusinessDlg";
 
 function Products() {
   const dispatch = useAppDispatch();

@@ -35,3 +35,12 @@ export class SignUpDto {
   @Type(() => AgencySignUpDto)
   agency: AgencySignUpDto;
 }
+
+export class SignInDto {
+  @IsEmail()
+  email: string;
+
+  @IsString()
+  @MinLength(8)
+  password: string;
+}
