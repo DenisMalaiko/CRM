@@ -5,14 +5,17 @@ import { PrismaModule } from './prisma/prisma.module';
 
 import { AuthModule } from './auth/auth.module';
 import { BusinessModule } from './business/business.module';
+import { ProductsModule } from './products/products.module';
 
 @Module({
   imports: [
     PrismaModule,
     AuthModule,
-    BusinessModule
+    BusinessModule,
+    ProductsModule
   ],
   controllers: [AppController],
   providers: [AppService],
 })
+
 export class AppModule {}

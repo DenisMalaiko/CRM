@@ -11,6 +11,7 @@ import { trimID } from "../../../../../utils/trimID";
 
 import CreateBusinessDlg from "../../createBusinessDlg/CreateBusinessDlg";
 import {ApiResponse} from "../../../../../models/ApiResponse";
+import {getStatusClass} from "../../../../../utils/getStatusClass";
 
 function BaseData() {
   const dispatch = useAppDispatch();
@@ -67,20 +68,41 @@ function BaseData() {
         ></CreateBusinessDlg>
       </div>
 
-      <div className="space-y-3 text-slate-700 text-sm p-6">
-        <div className="flex justify-between border-b pb-2">
-          <span className="font-medium">ID - {businessId} </span>
-          <span className="text-slate-500">{trimID(business?.id)}</span>
+      {business &&
+        <div className="space-y-3 text-slate-700 text-sm p-6">
+          <div className="flex justify-between border-b pb-2">
+            <span className="font-medium">ID </span>
+            <span className="text-slate-500">{trimID(business?.id)}</span>
+          </div>
+          <div className="flex justify-between border-b pb-2">
+            <span className="font-medium">Agency ID</span>
+            <span className="text-slate-500">{trimID(business?.agencyId)}</span>
+          </div>
+          <div className="flex justify-between border-b pb-2">
+            <span className="font-medium">Name</span>
+            <span className="text-slate-500">{business?.name}</span>
+          </div>
+          <div className="flex justify-between border-b pb-2">
+            <span className="font-medium">Website</span>
+            <span className="text-slate-500">{business?.website}</span>
+          </div>
+          <div className="flex justify-between border-b pb-2">
+            <span className="font-medium">Industry</span>
+            <span className="text-slate-500">{business?.industry}</span>
+          </div>
+          <div className="flex justify-between border-b pb-2">
+            <span className="font-medium">Status</span>
+            <span className={`
+              inline-flex items-center rounded-full px-2.5 py-1
+              text-xs font-medium
+              ${getStatusClass(business.status)}
+            `}>
+               {business?.status}
+            </span>
+          </div>
         </div>
-        <div className="flex justify-between border-b pb-2">
-          <span className="font-medium">Agency ID</span>
-          <span className="text-slate-500">{trimID(business?.agencyId)}</span>
-        </div>
-        <div className="flex justify-between border-b pb-2">
-          <span className="font-medium">Name</span>
-          <span className="text-slate-500">{business?.name}</span>
-        </div>
-      </div>
+      }
+
     </section>
   )
 }

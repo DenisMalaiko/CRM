@@ -1,18 +1,16 @@
-import { TBaseModel } from "./BaseModel";
-/*import { ProductStatus } from "../enum/ProductStatus";
-import { Categories } from "../enum/Categories";*/
+import { ProductType } from "../enum/ProductType";
+import { PriceSegment } from "../enum/PriceSegment";
 
-export type TImage = {
-  url: string;
-  thumbUrl: string;
-}
-
-export type TProduct = TBaseModel & {
+export type TProductCreate =  {
+  businessId: string;
   name: string;
   description: string;
-  sku: string;
-  price: number;
-  images?: TImage[];
-  createdAt?: string;
-  updatedAt?: string;
+  type: ProductType;
+  priceSegment: PriceSegment;
+  isActive: boolean;
 };
+
+export type TProduct = TProductCreate & {
+  id: string;
+  images?: string[];
+}

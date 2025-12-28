@@ -1,48 +1,41 @@
-function CreateProductDlg({ open, onClose, product }: any) {
-  return (
-    <div>CreateProductDlg</div>
-  )
-}
-
-export default CreateProductDlg;
-
-/*
 import React, { useState, useEffect } from 'react';
-import { useSelector } from 'react-redux';
-import { RootState } from "../../../../store";
-
-/!*import { ProductStatus } from "../../../../enum/ProductStatus";*!/
-import {isPositiveNumber, isRequired, minLength} from "../../../../utils/validations";
-/!*import { Categories } from "../../../../enum/Categories";*!/
+import { useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 
-import { useUpdateProductMutation } from "../../../../store/products/productsApi";
-import { useCreateProductMutation } from "../../../../store/products/productsApi";
-import { useGetProductsMutation } from "../../../../store/products/productsApi";
+import { ProductType } from "../../../../../../enum/ProductType";
+import { PriceSegment } from "../../../../../../enum/PriceSegment";
+import { isRequired, minLength} from "../../../../../../utils/validations";
+import { showError } from "../../../../../../utils/showError";
 
-import { setProducts } from "../../../../store/products/productsSlice";
-import { useAppDispatch } from "../../../../store/hooks";
+import { useUpdateProductMutation } from "../../../../../../store/products/productsApi";
+import { useCreateProductMutation } from "../../../../../../store/products/productsApi";
+import { useGetProductsMutation } from "../../../../../../store/products/productsApi";
+
+import { setProducts } from "../../../../../../store/products/productsSlice";
+import { useAppDispatch } from "../../../../../../store/hooks";
+import { ApiResponse } from "../../../../../../models/ApiResponse";
+import { TProduct } from "../../../../../../models/Product";
 
 function CreateProductDlg({ open, onClose, product }: any) {
   const dispatch = useAppDispatch();
+  const { businessId } = useParams<{ businessId: string }>();
 
   const [ getProducts ] = useGetProductsMutation();
   const [ createProduct, { isLoading, isSuccess } ] = useCreateProductMutation();
   const [ updateProduct ] = useUpdateProductMutation();
 
-  const { user } = useSelector((state: RootState) => state.authModule);
-/!*  const statuses = Object.values(ProductStatus);*!/
-/!*  const categories = Object.values(Categories);*!/
+  const types = Object.values(ProductType);
+  const priceSegments = Object.values(PriceSegment);
+
   const isEdit = !!product;
 
   const [form, setForm] = useState({
     name: "",
     description: "",
-    sku: "",
-    price: 0,
-/!*    category: Categories.Device,*!/
-/!*    status: ProductStatus.Active,*!/
-    agencyId: user?.agencyId,
+    type: ProductType.Product,
+    priceSegment: PriceSegment.Middle,
+    isActive: true,
+    businessId: businessId ?? "",
   });
   const [errors, setErrors]: any = useState({});
 
@@ -51,50 +44,45 @@ function CreateProductDlg({ open, onClose, product }: any) {
       setForm({
         name: product.name,
         description: product.description,
-        sku: product.sku,
-        price: product.price,
-/!*        category: product.category,*!/
-/!*        status: product.status,*!/
-        agencyId: product.agencyId,
+        type: product.type,
+        priceSegment: product.priceSegment,
+        isActive: product.isActive,
+        businessId: businessId ?? "",
       });
     } else {
       setForm({
         name: "",
         description: "",
-        sku: "",
-        price: 0,
-/!*        category: Categories.Device,*!/
- /!*       status: ProductStatus.Active,*!/
-        agencyId: user?.agencyId,
+        type: ProductType.Product,
+        priceSegment: PriceSegment.Middle,
+        isActive: true,
+        businessId: businessId ?? "",
       });
     }
   }, [product, isEdit, open]);
 
   if (!open) return null;
+  if (!businessId) return null;
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value, type } = e.target;
-    let newValue: any = value;
-
-    if (["price", "stock"].includes(name)) {
-      newValue = value.replace(/[^0-9.]/g, "").replace(/(\..*)\./g, "$1"); // лише цифри та одна крапка
-    }
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
+  ) => {
+    const { name, value, type, checked } = e.target as HTMLInputElement;
 
     setForm((prev) => ({
       ...prev,
-      [name]: type === "number"
-          ? newValue === "" ? "" : Number(newValue)
-          : newValue
+      [name]: type === "checkbox" ? checked : value,
     }));
-  }
+  };
 
   const validateField = (name: string, data: any) => {
     let error: string | null = null;
     if (name === "name") error = minLength(data.value, 3);
     if (name === "description") error = minLength(data.value, 10);
-    if (name === "sku") error = minLength(data.value, 6);
-    if (name === "category") error = isRequired(data.value);
-    if (name === "price") error = isPositiveNumber(data.value);
+    if (name === "type") error = isRequired(data.value);
+    if (name === "priceSegment") error = isRequired(data.value);
     setErrors((prev: any) => ({ ...prev, [name]: error }));
     return error;
   };
@@ -117,21 +105,21 @@ function CreateProductDlg({ open, onClose, product }: any) {
     if (!validateForm(e)) return;
 
     try {
-      form.price = Number(form.price);
-
       if (isEdit) {
         await updateProduct({ id: product!.id, form })
       } else {
         await createProduct(form);
       }
 
-      const response: any = await getProducts().unwrap();
+      const response: ApiResponse<TProduct[]> = await getProducts(businessId).unwrap();
 
-      dispatch(setProducts(response.data));
-      toast.success(response.message);
-      onClose();
-    } catch (error: any) {
-      toast.error(error.message);
+      if(response && response?.data) {
+        dispatch(setProducts(response.data));
+        toast.success(response.message);
+        onClose();
+      }
+    } catch (error) {
+      showError(error);
     }
   }
 
@@ -159,7 +147,7 @@ function CreateProductDlg({ open, onClose, product }: any) {
               value={form.name}
               onChange={(e) => {
                 handleChange(e);
-                validateField("name", { value: e.target.value })
+                validateField("name", {value: e.target.value})
               }}
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
               placeholder="Enter product name"
@@ -174,7 +162,7 @@ function CreateProductDlg({ open, onClose, product }: any) {
               value={form.description}
               onChange={(e) => {
                 handleChange(e);
-                validateField("description", { value: e.target.value })
+                validateField("description", {value: e.target.value})
               }}
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
               placeholder="Enter product description"
@@ -184,70 +172,48 @@ function CreateProductDlg({ open, onClose, product }: any) {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 text-left">SKU</label>
-              <input
-                type="text"
-                name="sku"
-                value={form.sku}
-                onChange={(e) => {
-                  handleChange(e);
-                  validateField("sku", { value: e.target.value })
-                }}
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
-                placeholder="SKU123"
-              />
-              {errors.sku && <p className="text-red-500 text-sm mt-2 text-left">{errors.sku}</p>}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-700 text-left">Price</label>
-              <div className="relative mt-1">
-                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500 text-sm">
-                  $
-                </span>
-                <input
-                  type="text"
-                  name="price"
-                  value={form.price}
-                  onChange={handleChange}
-                  step="0.01"
-                  className="w-full rounded-lg border border-slate-300 pl-7 pr-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="0.00"
-                />
-              </div>
-              {errors.price && <p className="text-red-500 text-sm mt-2 text-left">{errors.price}</p>}
-            </div>
-          </div>
-
-          {/!*<div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 text-left">Category</label>
+              <label className="block text-sm font-medium text-slate-700 text-left">Type</label>
               <select
-                name="category"
-                value={form.category}
+                name="type"
+                value={form.type}
                 onChange={handleChange}
                 className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
               >
-                { categories.map((status: string) => (
-                  <option key={status} value={status}>{status}</option>
-                )) }
+                {types.map((type: string) => (
+                  <option key={type} value={type}>{type}</option>
+                ))}
               </select>
             </div>
-          </div>*!/}
 
-         {/!* <div>
-            <label className="block text-sm font-medium text-slate-700 text-left">Status</label>
-            <select
-              name="status"
-              value={form.status}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 text-left">Price Segment</label>
+              <select
+                name="priceSegment"
+                value={form.priceSegment}
+                onChange={handleChange}
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
+              >
+                {priceSegments.map((segment: string) => (
+                  <option key={segment} value={segment}>{segment}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+
+          <label className="flex items-start gap-3 cursor-pointer select-none">
+            <input
+              name="isActive"
+              type="checkbox"
+              checked={form.isActive}
               onChange={handleChange}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
-            >
-              { statuses.map((status: string) => (
-                <option key={status} value={status}>{status}</option>
-              )) }
-            </select>
-          </div>*!/}
+              className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            />
+
+            <span className="block text-sm font-medium text-slate-700 text-left">Active Product</span>
+          </label>
+
+
 
           <div className="flex justify-end gap-3 pt-4">
             <button
@@ -258,7 +224,7 @@ function CreateProductDlg({ open, onClose, product }: any) {
                 border-slate-300 hover:bg-slate-50
                 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-slate-white
               "
-              disabled={ isLoading }
+              disabled={isLoading}
             >
               Cancel
             </button>
@@ -269,7 +235,7 @@ function CreateProductDlg({ open, onClose, product }: any) {
                 bg-blue-600 hover:bg-blue-700
                 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-blue-600
               "
-              disabled={ isLoading }
+              disabled={isLoading}
             >
               Save
             </button>
@@ -281,4 +247,3 @@ function CreateProductDlg({ open, onClose, product }: any) {
 }
 
 export default CreateProductDlg;
-*/
