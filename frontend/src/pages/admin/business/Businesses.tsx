@@ -16,6 +16,7 @@ import { useGetBusinessesMutation } from "../../../store/businesses/businessesAp
 import { useDeleteBusinessMutation } from "../../../store/businesses/businessesApi";
 import { setBusinesses } from "../../../store/businesses/businessesSlice";
 import {ApiResponse} from "../../../models/ApiResponse";
+import {getStatusClass} from "../../../utils/getStatusClass";
 
 function Businesses() {
   const navigate = useNavigate();
@@ -114,7 +115,14 @@ function Businesses() {
             <thead className="bg-slate-50">
               <tr>
                 {header.map((item) => (
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600" key={item.key}>{ item.name }</th>
+                  <th
+                    key={item.key}
+                    className={`
+                      px-4 py-3 text-xs font-semibold uppercase tracking-wide
+                      ${item.key === "actions" ? "text-right" : "text-left"}
+                      text-slate-600
+                    `}
+                  >{ item.name }</th>
                 ))}
               </tr>
             </thead>
@@ -125,7 +133,15 @@ function Businesses() {
                 <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.name}</td>
                 <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.website}</td>
                 <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.industry}</td>
-                <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.status}</td>
+                <td className="px-4 py-3 font-medium text-slate-900 text-left">
+                  <span className={`
+                    inline-flex items-center rounded-full px-2.5 py-1
+                    text-xs font-medium
+                    ${getStatusClass(item.status)}
+                  `}>
+                     {item.status}
+                  </span>
+                </td>
                 <td className="px-4 py-3 text-right">
                   <div className="flex items-center gap-2 justify-end">
                     <button onClick={() => openClient(item?.id)} className="h-8 w-8 flex items-center justify-center rounded-lg border  text-slate-600 hover:bg-slate-50">

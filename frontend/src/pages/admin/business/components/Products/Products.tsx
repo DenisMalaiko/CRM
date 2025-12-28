@@ -1,23 +1,23 @@
 import React, { useState, useEffect } from "react";
 import { TProduct} from "../../../../../models/Product";
 import { useSelector } from "react-redux";
+import { useParams } from "react-router-dom";
 import { RootState } from "../../../../../store";
 import { useAppDispatch } from "../../../../../store/hooks";
 
 import { toast } from "react-toastify";
 import { confirm } from "../../../../../components/confirmDlg/ConfirmDlg";
 import { getStatusClass } from "../../../../../utils/getStatusClass";
-import { toDate } from "../../../../../utils/toDate";
-import CreateProductDlg from "../../../products/createProductDlg/CreateProductDlg";
+import CreateProductDlg from "./createProductDlg/CreateProductDlg";
 
 import { useGetProductsMutation } from "../../../../../store/products/productsApi";
 import { useDeleteProductMutation } from "../../../../../store/products/productsApi";
 import { setProducts } from "../../../../../store/products/productsSlice";
-import {TClient} from "../../../../../models/Client";
-import CreateBusinessDlg from "../../createBusinessDlg/CreateBusinessDlg";
+import {ApiResponse} from "../../../../../models/ApiResponse";
 
 function Products() {
   const dispatch = useAppDispatch();
+  const { businessId } = useParams<{ businessId: string }>();
 
   const [ getProducts ] = useGetProductsMutation();
   const [ deleteProduct ] = useDeleteProductMutation();
@@ -29,9 +29,13 @@ function Products() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response: any = await getProducts();
-        console.log("RESPONSE: ", response.data.data)
-        dispatch(setProducts(response.data.data));
+        if(businessId) {
+          const response: ApiResponse<TProduct[]> = await getProducts(businessId).unwrap();
+
+          if(response && response?.data) {
+            dispatch(setProducts(response.data));
+          }
+        }
       } catch (error) {
         console.error("Error fetching data:", error);
       }
@@ -40,15 +44,14 @@ function Products() {
     fetchData();
   }, [dispatch]);
 
+  if(!businessId) return null;
+
   const header = [
     { name: "Image", key: "image" },
     { name: "Name", key: "name" },
-    { name: "SKU", key: "sku" },
-    { name: "Price", key: "price" },
-    { name: "Category", key: "category" },
-    { name: "Created At", key: "createdAt" },
-    { name: "Updated At", key: "updatedAt" },
-    { name: "Status", key: "status" },
+    { name: "Type", key: "type" },
+    { name: "Segment", key: "priceSegment" },
+    { name: "Active", key: "isActive" },
     { name: "Actions", key: "actions"}
   ]
 
@@ -64,7 +67,7 @@ function Products() {
       try {
         if (item?.id != null) {
           await deleteProduct(item.id);
-          const response: any = await getProducts().unwrap();
+          const response: any = await getProducts(businessId).unwrap();
           dispatch(setProducts(response.data));
           toast.success(response.message);
         }
@@ -107,11 +110,18 @@ function Products() {
         <div className="overflow-hidden rounded-xl border border-slate-200 shadow">
           <table className="min-w-full divide-y divide-slate-200">
             <thead className="bg-slate-50">
-            <tr>
-              {header.map((item, index) => (
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600c" key={item.key}>{ item.name }</th>
-              ))}
-            </tr>
+              <tr>
+                {header.map((item, index) => (
+                  <th
+                    key={item.key}
+                    className={`
+                      px-4 py-3 text-xs font-semibold uppercase tracking-wide
+                      ${item.key === "actions" ? "text-right" : "text-left"}
+                      text-slate-600
+                    `}
+                  >{ item.name }</th>
+                ))}
+              </tr>
             </thead>
 
             <tbody className="divide-y divide-slate-100">
@@ -121,14 +131,25 @@ function Products() {
                   <div className="h-10 w-10 bg-slate-200 rounded-lg" />
                 </td>
                 <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.name}</td>
-                <td className="px-4 py-3 text-slate-600 text-left">{item.sku}</td>
-                <td className="px-4 py-3 font-medium text-left">$ {item.price}</td>
-                {/*<td className="px-4 py-3 text-slate-600 text-left">{item.category}</td>*/}
-                <td className="px-4 py-3 text-slate-600 text-left">{toDate(item?.createdAt)}</td>
-                <td className="px-4 py-3 text-slate-600 text-left">{toDate(item?.updatedAt)}</td>
-                {/*<td className="px-4 py-3 text-left">
-                  <span className={`inline-flex items-start px-2 py-1 text-xs font-medium rounded-full ${getStatusClass(item.status)}`}>{item.status}</span>
-                </td>*/}
+                <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.type}</td>
+                <td className="px-4 py-3 font-medium text-slate-900 text-left">
+                  <span className={`
+                    inline-flex items-center rounded-full px-2.5 py-1
+                    text-xs font-medium
+                    ${getStatusClass(item.priceSegment)}
+                  `}>
+                     {item.priceSegment}
+                  </span>
+                </td>
+                <td className="px-4 py-3 font-medium text-slate-900 text-left">
+                  <span className={`
+                    inline-flex items-center rounded-full px-2.5 py-1
+                    text-xs font-medium
+                    ${item.isActive ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600"}
+                  `}>
+                     {item.isActive ? "Yes" : "No"}
+                  </span>
+                </td>
                 <td className="px-4 py-3 text-right">
                   <div className="flex items-center gap-2 justify-end">
                     <button onClick={() => openEditProduct(item)} className="h-8 w-8 flex items-center justify-center rounded-lg border  text-slate-600 hover:bg-slate-50">

@@ -1,40 +1,37 @@
 import {api} from "../api/api";
 import {ApiResponse} from "../../models/ApiResponse";
-import {RootState} from "../index";
-import {TUser} from "../../models/User";
-import {TProduct} from "../../models/Product";
+import {TProduct, TProductCreate} from "../../models/Product";
 
 export const productsApi = api.injectEndpoints({
   endpoints: builder => ({
-    getProducts: builder.mutation<ApiResponse<TProduct>, void>({
-      queryFn: async (_arg, api, _extraOptions, baseQuery) => {
-        const state = api.getState() as RootState;
-        const user: TUser | null = state.authModule.user;
-
-        if (!user?.agencyId) {
-          return { error: { status: 400, data: 'Missing businessId' } as any };
+    getProducts: builder.mutation<ApiResponse<TProduct[]>, string>({
+      queryFn: async (businessId, api, _extraOptions, baseQuery) => {
+        if (!businessId) {
+          return {
+            error: { status: 400, data: "Missing businessId" } as any,
+          };
         }
 
         const result = await baseQuery({
-          url: `/products/${user.agencyId}`,
+          url: `/products/${businessId}`,
           method: 'GET',
         });
 
         return {
-          data: result.data as ApiResponse<TProduct>
+          data: result.data as ApiResponse<TProduct[]>
         };
       }
     }),
 
-    createProduct: builder.mutation<ApiResponse<TProduct>, TProduct>({
-      query: (form: TProduct) => ({
+    createProduct: builder.mutation<ApiResponse<TProduct>, TProductCreate>({
+      query: (form: TProductCreate) => ({
         url: `/products/create`,
         method: "POST",
         body: form,
       })
     }),
 
-    updateProduct: builder.mutation<ApiResponse<TProduct>, { id: string, form: TProduct, }>({
+    updateProduct: builder.mutation<ApiResponse<TProduct>, { id: string, form: TProductCreate, }>({
       query: ({ id, form }) => ({
         url: `/products/update/${id}`,
         method: "PATCH",
