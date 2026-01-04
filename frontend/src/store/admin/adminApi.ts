@@ -1,17 +1,17 @@
 import { api } from "../api/api";
-import {TUser, TUserSignIn } from "../../models/User";
-import {ApiResponse} from "../../models/ApiResponse";
+import { ApiResponse } from "../../models/ApiResponse";
+import { TAdmin, TAdminCreate, TAdminSignIn } from "../../models/Admin";
 
 export const adminApi = api.injectEndpoints({
   endpoints: (builder) => ({
-    signInAdmin: builder.mutation<ApiResponse<TUserSignIn>, any>({
+    signInAdmin: builder.mutation<ApiResponse<TAdminSignIn>, any>({
       query: (body) => ({
         url: '/admin/signIn',
         method: 'POST',
         body,
       })
     }),
-    signUpAdmin: builder.mutation<ApiResponse<TUser>, any>({
+    signUpAdmin: builder.mutation<ApiResponse<TAdmin>, TAdminCreate>({
       query: (body) => ({
         url: '/admin/signUp',
         method: 'POST',

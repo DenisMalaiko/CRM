@@ -1,7 +1,6 @@
 import { UserRole } from "../../generated/prisma";
 
 export enum UserRoleUI {
-  Admin = "Admin",
   Marketer = "Marketer",
   Worker = "Worker"
 }

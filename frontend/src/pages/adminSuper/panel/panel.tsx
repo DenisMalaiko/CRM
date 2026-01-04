@@ -9,7 +9,7 @@ function Panel() {
             to="list"
             className={({ isActive }) => `flex items-center gap-3 px-3 py-2 rounded-lg font-medium ${isActive ? "bg-blue-100 text-blue-600" : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"}`}
           >
-            Businesses
+            Agencies
           </NavLink>
         </nav>
       </aside>

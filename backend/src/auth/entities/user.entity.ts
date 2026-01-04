@@ -1,5 +1,5 @@
 import { TBaseModel } from "../../entities/BaseEntity";
-import { TAgencySignUp } from "../../agency/entities/agency.entity";
+import { TAgencyCreate } from "../../agency/entities/agency.entity";
 import { UserRole, UserStatus } from "generated/prisma";
 
 export type TUser = TBaseModel & {
@@ -9,7 +9,7 @@ export type TUser = TBaseModel & {
   status: UserStatus;
 }
 
-export type TUserSignUp = {
+export type TUserCreate = {
   name: string;
   email: string;
   password: string;
@@ -27,6 +27,6 @@ export type TSignInPayload = {
 }
 
 export type TSignUpPayload = {
-  user: TUserSignUp;
-  agency: TAgencySignUp;
+  user: TUserCreate;
+  agency: TAgencyCreate;
 }

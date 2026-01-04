@@ -9,10 +9,10 @@ export type TAgency = {
   createdAt: Date;
 
   users?: TUser[];
-  businesses: TBusiness[];
+  businesses?: TBusiness[];
 }
 
-export type TAgencySignUp = {
+export type TAgencyCreate = {
   name: string;
   plan: Plan;
 }

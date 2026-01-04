@@ -105,7 +105,7 @@ function App() {
         </Route>
 
 
-        {/*<Route
+        <Route
           path="/admin"
           element={
             <AdminGuard>
@@ -115,7 +115,7 @@ function App() {
         >
           <Route path="list" element={<List />} />
           <Route path="list/:id" element={<Agency />} />
-        </Route>*/}
+        </Route>
       </Routes>
 
       <ToastContainer

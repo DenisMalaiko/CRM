@@ -23,7 +23,6 @@ enum Plan {
 }
 
 enum UserRole {
-    Admin
     Marketer
     Worker
 }
@@ -84,6 +83,14 @@ model Agency {
     users     User[]
     businesses   Business[]
 }
+
+model Admin {
+    id        String   @id @default(uuid())
+    email     String   @unique
+    name      String
+    password  String
+}
+
 
 model User {
     id        String   @id @default(uuid())

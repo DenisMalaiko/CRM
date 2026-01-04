@@ -1,25 +1,20 @@
-function SignUpAdmin() {
-  return (
-    <div>
-      SignUpAdmin
-    </div>
-  )
-}
-
-export default SignUpAdmin;
-
-/*
 import React, {useState} from 'react';
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
-import { useSignUpAdminMutation } from "../../../store/admin/adminApi";
+import { Link } from "react-router-dom";
 
-import {AppDispatch} from "../../../store";
-import {isEmail, isPassword, isRepeatPassword, isSecret, minLength} from "../../../utils/validations";
-import {ApiResponse} from "../../../models/ApiResponse";
-import {TAdmin} from "../../../models/User";
-import {MiniTranslate} from "../../../enum/miniTranslate";
-import {Link} from "react-router-dom";
+import { useSignUpAdminMutation } from "../../../store/admin/adminApi";
+import { useSignUpUserMutation } from "../../../store/auth/authApi";
+
+import { showError } from "../../../utils/showError";
+import { AppDispatch } from "../../../store";
+import { isEmail, isPassword, isRepeatPassword, isSecret, minLength } from "../../../utils/validations";
+import { ApiResponse } from "../../../models/ApiResponse";
+import { TUser } from "../../../models/User";
+import { MiniTranslate } from "../../../enum/miniTranslate";
+import { UserRole } from "../../../enum/UserRole";
+import { UserStatus } from "../../../enum/UserStatus";
+import {TAdmin} from "../../../models/Admin";
 
 function SignUpAdmin() {
   const [signUpAdmin] = useSignUpAdminMutation();
@@ -49,12 +44,15 @@ function SignUpAdmin() {
     if (!window.utils.validateForm(errors)) return;
 
     try {
-      const response: ApiResponse<TAdmin> = await signUpAdmin({ name, email, password, isAdmin }).unwrap();
+      const response: ApiResponse<TAdmin> = await signUpAdmin({
+        name,
+        email,
+        password
+      }).unwrap();
+
       toast.success(response.message);
-      toast.success(MiniTranslate.YouCanSignIn);
-    } catch (error: any) {
-      console.log("ERROR: ", error);
-      toast.error(error.data.message);
+    } catch (error) {
+      showError(error)
     }
   }
 
@@ -169,4 +167,3 @@ function SignUpAdmin() {
 }
 
 export default SignUpAdmin;
-*/
