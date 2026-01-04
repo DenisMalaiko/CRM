@@ -12,3 +12,9 @@
 ## Generate prisma schema
 ```npx prisma generate```
 
+
+
+
+# Reset DB
+- Add vector to 1st migration script ```CREATE EXTENSION IF NOT EXISTS vector;```
+- Refresh all migrations ```npx prisma migrate reset```

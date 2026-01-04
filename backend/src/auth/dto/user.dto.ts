@@ -4,7 +4,7 @@ import { Type } from 'class-transformer';
 
 import { UserRoleUI } from '../../enums/UserRole';
 import { UserStatusUI } from '../../enums/UserStatus';
-import { AgencySignUpDto } from "../../agency/dto/agency.dto";
+import { AgencyCreateDto } from "../../agency/dto/agency.dto";
 
 export class UserSignUpDto {
   @IsString()
@@ -32,8 +32,8 @@ export class SignUpDto {
 
   @IsDefined()
   @ValidateNested()
-  @Type(() => AgencySignUpDto)
-  agency: AgencySignUpDto;
+  @Type(() => AgencyCreateDto)
+  agency: AgencyCreateDto;
 }
 
 export class SignInDto {

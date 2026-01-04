@@ -1,7 +1,7 @@
 import { IsEnum, IsString } from 'class-validator';
 import { PlansUI } from "../../enums/Plans";
 
-export class AgencySignUpDto {
+export class AgencyCreateDto {
   @IsString()
   name: string;
 

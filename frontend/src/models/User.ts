@@ -1,5 +1,5 @@
 import { TBaseModel } from "./BaseModel";
-import { TAgency, TAgencySignUp } from "./Agency";
+import { TAgency, TAgencyCreate } from "./Agency";
 import { UserRole } from "../enum/UserRole";
 import { UserStatus } from "../enum/UserStatus";
 
@@ -8,7 +8,7 @@ export type TUserSignIn = {
   password: string;
 }
 
-export type TUserSignUp = {
+export type TUserCreate = {
   name: string;
   email: string;
   password: string;
@@ -18,11 +18,11 @@ export type TUserSignUp = {
 }
 
 export type TSignUpPayload = {
-  user: TUserSignUp;
-  agency: TAgencySignUp;
+  user: TUserCreate;
+  agency: TAgencyCreate;
 }
 
-export type TUser = TBaseModel & Omit<TUserSignUp, "password">;
+export type TUser = TBaseModel & Omit<TUserCreate, "password">;
 
 
 
@@ -45,7 +45,7 @@ export type TUser = TBaseModel & {
 }
 */
 
-/*export type TUserSignUp = TUser & {
+/*export type TUserCreate = TUser & {
   password: string;
 }*/
 

@@ -1,7 +1,7 @@
 import { ProductType } from "../enum/ProductType";
 import { PriceSegment } from "../enum/PriceSegment";
 
-export type TProductCreate =  {
+export type TProductCreate = {
   businessId: string;
   name: string;
   description: string;

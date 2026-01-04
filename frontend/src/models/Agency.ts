@@ -1,14 +1,13 @@
 import { Plans } from "../enum/Plans";
 import { TUser } from "./User";
 
-export type TAgencySignUp = {
+export type TAgencyCreate = {
   name: string;
   plan: Plans;
 }
 
-export type TAgency = TAgencySignUp & {
+export type TAgency = TAgencyCreate & {
   id: string;
   createdAt: Date;
   users?: TUser[];
-  /*businesses?: TBusiness[];*/
 }

@@ -3,6 +3,8 @@ import { useSelector } from "react-redux";
 import { RootState } from "../../../store";
 import { TAgency } from "../../../models/Agency";
 import { useNavigate } from "react-router-dom";
+import { trimID } from "../../../utils/trimID";
+import {toDate} from "../../../utils/toDate";
 
 function List() {
   const navigate = useNavigate();
@@ -11,6 +13,7 @@ function List() {
     { name: "ID", key: "id" },
     { name: "Name", key: "name" },
     { name: "Plan", key: "plan" },
+    { name: "Created At", key: "createdAt" },
   ]
 
   const openBusiness = (id: string | undefined) => {
@@ -32,9 +35,10 @@ function List() {
           <tbody className="divide-y divide-slate-100">
             {agencyList && agencyList.map((item: TAgency) => (
               <tr onClick={() => openBusiness(item.id)} key={item.id} className="hover:bg-slate-50 cursor-pointer">
-                <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.id}</td>
+                <td className="px-4 py-3 font-medium text-slate-900 text-left">{ trimID(item.id) }</td>
                 <td className="px-4 py-3 font-medium text-slate-600 text-left">{item.name}</td>
                 <td className="px-4 py-3 font-medium text-slate-600 text-left">{item.plan}</td>
+                <td className="px-4 py-3 font-medium text-slate-600 text-left">{ toDate(item.createdAt) }</td>
               </tr>
             ))}
           </tbody>
