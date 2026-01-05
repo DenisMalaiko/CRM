@@ -32,6 +32,8 @@ import Businesses from "./pages/admin/business/Businesses";
 import Business from "./pages/admin/business/:id/Business";
 import BaseData from "./pages/admin/business/components/BaseData/BaseData";
 import Products from "./pages/admin/business/components/Products/Products"
+import Profiles from "./pages/admin/business/components/Profiles/Profiles";
+
 import Marketer from "./pages/admin/business/components/Marketer/Marketer";
 import MetaAds from "./pages/admin/business/components/MetaAds/MetaAds";
 import Settings from "./pages/admin/business/components/Settings/Settings";
@@ -98,6 +100,9 @@ function App() {
           <Route path="businesses/:businessId" element={<Business />}>
             <Route path="baseData" element={<BaseData />} />
             <Route path="products" element={<Products />} />
+            <Route path="profiles" element={<Profiles />} />
+
+
             <Route path="marketer" element={<Marketer />} />
             <Route path="metaAds" element={<MetaAds />} />
             <Route path="settings" element={<Settings />} />

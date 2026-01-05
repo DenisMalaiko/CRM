@@ -7,7 +7,7 @@ export type TBusinessProfile = {
   positioning: string;
   toneOfVoice: string;
   brandRules: string;
-  goals: string;
+  goals: string[];
   isActive: boolean;
   createdAt: Date;
 

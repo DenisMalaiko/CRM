@@ -15,12 +15,8 @@ function Business() {
       title: "Products",
     },
     {
-      id: "marketer",
-      title: "Marketer",
-    },
-    {
-      id: "metaAds",
-      title: "Meta Ads",
+      id: "profiles",
+      title: "Profiles",
     },
     {
       id: "settings",
