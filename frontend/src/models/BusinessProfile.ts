@@ -14,3 +14,5 @@ export type TBusinessProfile = {
 
   business?: TBusiness;
 }
+
+export type TBusinessProfileCreate = Omit<TBusinessProfile, "id" | "createdAt" | "business">

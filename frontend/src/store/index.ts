@@ -5,6 +5,7 @@ import productsModule from './products/productsSlice'
 import agencyModule from './agency/agencySlice'
 import businessModule from './businesses/businessesSlice'
 import managerModule from "./ai/manager/managerSlice";
+import profileModule from "./profile/profileSlice";
 import { api } from './api/api'
 
 export const store = configureStore({
@@ -15,6 +16,7 @@ export const store = configureStore({
     agencyModule: agencyModule,
     businessModule: businessModule,
     managerModule: managerModule,
+    profileModule: profileModule,
     [api.reducerPath]: api.reducer,
   },
   middleware: (getDefaultMiddleware: any) => getDefaultMiddleware().concat(api.middleware),
