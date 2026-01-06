@@ -9,11 +9,11 @@ import { toast } from "react-toastify";
 import { confirm } from "../../../../../components/confirmDlg/ConfirmDlg";
 import { getStatusClass } from "../../../../../utils/getStatusClass";
 import CreateProductDlg from "./createProductDlg/CreateProductDlg";
+import { ApiResponse } from "../../../../../models/ApiResponse";
 
 import { useGetProductsMutation } from "../../../../../store/products/productsApi";
 import { useDeleteProductMutation } from "../../../../../store/products/productsApi";
 import { setProducts } from "../../../../../store/products/productsSlice";
-import {ApiResponse} from "../../../../../models/ApiResponse";
 
 function Products() {
   const dispatch = useAppDispatch();

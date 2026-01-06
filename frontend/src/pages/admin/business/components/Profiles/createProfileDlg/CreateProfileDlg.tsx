@@ -9,9 +9,23 @@ import { Plus, Minus } from "lucide-react";
 
 import { MiniTranslate } from "../../../../../../enum/miniTranslate";
 
+import { useCreateProfileMutation } from "../../../../../../store/profile/profileApi";
+import { useGetProfilesMutation } from "../../../../../../store/profile/profileApi";
+
+import { setProfiles } from "../../../../../../store/profile/profileSlice";
+import { useAppDispatch } from "../../../../../../store/hooks";
+import {ApiResponse} from "../../../../../../models/ApiResponse";
+import {TBusinessProfile} from "../../../../../../models/BusinessProfile";
+import {toast} from "react-toastify";
+
 function CreateProfileDlg({ open, onClose, profile }: any) {
+  const dispatch = useAppDispatch();
+
   const isEdit = !!profile;
   const { businessId } = useParams<{ businessId: string }>();
+
+  const [createProfile, { isLoading, isSuccess }] = useCreateProfileMutation();
+  const [getProfiles] = useGetProfilesMutation();
 
   const [form, setForm] = useState({
     name: "",
@@ -28,6 +42,7 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
 
 
   if (!open) return null;
+  if (!businessId) return null;
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -76,8 +91,15 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
         console.log("UPDATE PROFILE:")
         //await updateProduct({ id: product!.id, form })
       } else {
-        console.log("CREATE PROFILE:")
-        //await createProduct(form);
+        await createProfile(form);
+      }
+
+      const response: ApiResponse<TBusinessProfile[]> = await getProfiles(businessId).unwrap();
+
+      if(response && response?.data) {
+        dispatch(setProfiles(response.data));
+        toast.success(response.message);
+        onClose();
       }
     } catch (error) {
       showError(error);
