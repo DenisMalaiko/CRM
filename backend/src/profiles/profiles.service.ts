@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import {ConflictException, Injectable, InternalServerErrorException, NotFoundException} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {TProfile, TProfileCreate} from "./entities/profile.entity";
 
@@ -30,5 +30,62 @@ export class ProfilesService {
       message: "Profile has been created!",
       data: profile,
     }
+  }
+
+  async updateProfile(id: string, body: TProfileCreate) {
+    if (!id) {
+      throw new NotFoundException('Product ID is required');
+    }
+
+    try {
+      const updated = await this.prisma.businessProfile.update({
+        where: {id},
+        data: {
+          name: body.name,
+          isActive: body.isActive,
+        }
+      });
+
+      return {
+        statusCode: 200,
+        message: 'Profile has been updated!',
+        data: updated,
+      };
+    } catch (err: any) {
+      if (err.code === 'P2025') {
+        throw new NotFoundException(`Product with ID ${id} not found`);
+      }
+
+      throw new InternalServerErrorException('Failed to update product');
+    }
+  }
+
+  async deleteProfile(id: string) {
+    return this.prisma.$transaction(async (tx) => {
+      try {
+        if (!id) throw new NotFoundException('Profile ID is required');
+
+        const deleted = await tx.businessProfile.delete({
+          where: { id },
+        });
+
+        return {
+          statusCode: 200,
+          message: 'Profile has been deleted!',
+          data: deleted,
+        };
+      } catch (err: any) {
+
+        if (err.code === 'P2025') {
+          throw new NotFoundException(`Profile with ID ${id} not found`);
+        }
+
+        if (err instanceof ConflictException) {
+          throw err;
+        }
+
+        throw new InternalServerErrorException('Failed to delete profile');
+      }
+    });
   }
 }

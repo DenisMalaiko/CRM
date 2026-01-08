@@ -19,6 +19,14 @@ function Business() {
       title: "Profiles",
     },
     {
+      id: "audiences",
+      title: "Audiences",
+    },
+    {
+      id: "platforms",
+      title: "Platforms",
+    },
+    {
       id: "settings",
       title: "Settings",
     }

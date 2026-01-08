@@ -2,10 +2,7 @@ export type TProfile = {
   id: string;
   businessId: string;
   name: string;
-  positioning: string;
-  toneOfVoice: string;
-  brandRules?: string | null;
-  goals: string[];
+  profileFocus: string;
   isActive: boolean;
   createdAt: Date;
 }

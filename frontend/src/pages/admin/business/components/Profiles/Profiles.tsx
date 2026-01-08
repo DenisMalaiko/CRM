@@ -6,15 +6,21 @@ import CreateProfileDlg from "./createProfileDlg/CreateProfileDlg";
 import { useAppDispatch } from "../../../../../store/hooks";
 import { ApiResponse } from "../../../../../models/ApiResponse";
 import { TBusinessProfile } from "../../../../../models/BusinessProfile";
+import { showError } from "../../../../../utils/showError";
 
 import { useGetProfilesMutation } from "../../../../../store/profile/profileApi";
+import { useDeleteProfileMutation } from "../../../../../store/profile/profileApi";
 import { setProfiles } from "../../../../../store/profile/profileSlice";
+
+import {confirm} from "../../../../../components/confirmDlg/ConfirmDlg";
+import {toast} from "react-toastify";
 
 function Profiles() {
   const dispatch = useAppDispatch();
   const { businessId } = useParams<{ businessId: string }>();
 
   const [ getProfiles ] = useGetProfilesMutation();
+  const [ deleteProfile ] = useDeleteProfileMutation();
 
   const [open, setOpen] = useState(false);
   const [selectedProfile, setSelectedProfile] = useState<any | null>(null);
@@ -42,13 +48,40 @@ function Profiles() {
 
   const header = [
     { name: "Name", key: "name" },
-    { name: "Positioning", key: "positioning" },
-    { name: "Tone Of Voice", key: "toneOfVoice" },
-    { name: "Brand Rules", key: "brandRules" },
-    { name: "Goals", key: "Goals" },
+    { name: "Profile Focus", key: "profileFocus" },
     { name: "Active", key: "isActive" },
     { name: "Actions", key: "actions"}
   ]
+
+  const openConfirmDlg = async (e: any, item: TBusinessProfile) => {
+    e.preventDefault();
+
+    const ok = await confirm({
+      title: "Delete Profile",
+      message: "Are you sure you want to delete this profile?",
+    });
+
+    if(ok) {
+      try {
+        if (item?.id != null) {
+          await deleteProfile(item.id);
+          const response: ApiResponse<TBusinessProfile[]> = await getProfiles(businessId).unwrap();
+
+          if(response && response?.data) {
+            dispatch(setProfiles(response.data));
+            toast.success(response.message);
+          }
+        }
+      } catch (error: any) {
+        showError(error);
+      }
+    }
+  }
+
+  const openEditProfile = async (item: TBusinessProfile) => {
+    setSelectedProfile(item);
+    setOpen(true)
+  }
 
   return (
     <section>
@@ -96,10 +129,7 @@ function Profiles() {
               {profiles && profiles.map((item: any) => (
                 <tr key={item.id} className="hover:bg-slate-50 bg-slate-50">
                   <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.name}</td>
-                  <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.positioning}</td>
-                  <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.toneOfVoice}</td>
-                  <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.brandRules}</td>
-                  <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.goals.join(", ")}</td>
+                  <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.profileFocus}</td>
                   <td className="px-4 py-3 font-medium text-slate-900 text-left">
                     <span className={`
                       inline-flex items-center rounded-full px-2.5 py-1
@@ -111,10 +141,10 @@ function Profiles() {
                   </td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex items-center gap-2 justify-end">
-                      <button className="h-8 w-8 flex items-center justify-center rounded-lg border  text-slate-600 hover:bg-slate-50">
+                      <button onClick={() => openEditProfile(item)} className="h-8 w-8 flex items-center justify-center rounded-lg border  text-slate-600 hover:bg-slate-50">
                         ✎
                       </button>
-                      <button className="h-8 w-8 flex items-center justify-center rounded-lg border text-rose-600 hover:bg-rose-50">
+                      <button onClick={(e) => openConfirmDlg(e, item)} className="h-8 w-8 flex items-center justify-center rounded-lg border text-rose-600 hover:bg-rose-50">
                         🗑
                       </button>
                     </div>
