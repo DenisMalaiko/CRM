@@ -1,4 +1,4 @@
-import { Controller, UseGuards, Get, Param, Res, Post, Body } from '@nestjs/common';
+import {Controller, UseGuards, Get, Param, Res, Post, Body, Patch, Delete} from '@nestjs/common';
 import { JwtAuthGuard } from "../guards/jwt-auth.guard";
 import { ProfilesService } from "./profiles.service";
 import { ProfileDto } from "./dto/profile.dto";
@@ -22,6 +22,20 @@ export class ProfilesController {
   @Post("/create")
   async createProfile(@Body() body: ProfileDto, @Res() res: any) {
     const response = await this.profilesService.createProfile(body);
+    return res.json(response);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch("/update/:id")
+  async updateProfile(@Param("id") id: string, @Body() body: ProfileDto, @Res()res: any) {
+    const response = await this.profilesService.updateProfile(id, body);
+    return res.json(response);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete("/delete/:id")
+  async deleteProfile(@Param("id") id: string, @Res() res: any) {
+    const response = await this.profilesService.deleteProfile(id);
     return res.json(response);
   }
 }

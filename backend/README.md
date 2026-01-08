@@ -4,6 +4,9 @@
 ## Add New Table
 ```npx prisma migrate dev --name add-table-model```
 
+## Check If Prisma Schema Valid 
+```npx prisma validate```
+
 ## Reset DB
 
 #### Delete migrations

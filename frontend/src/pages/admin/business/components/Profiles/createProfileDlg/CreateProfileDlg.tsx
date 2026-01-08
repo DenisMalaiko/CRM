@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import {ProductType} from "../../../../../../enum/ProductType";
 import {PriceSegment} from "../../../../../../enum/PriceSegment";
@@ -10,6 +10,7 @@ import { Plus, Minus } from "lucide-react";
 import { MiniTranslate } from "../../../../../../enum/miniTranslate";
 
 import { useCreateProfileMutation } from "../../../../../../store/profile/profileApi";
+import { useUpdateProfileMutation } from "../../../../../../store/profile/profileApi";
 import { useGetProfilesMutation } from "../../../../../../store/profile/profileApi";
 
 import { setProfiles } from "../../../../../../store/profile/profileSlice";
@@ -25,20 +26,34 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
   const { businessId } = useParams<{ businessId: string }>();
 
   const [createProfile, { isLoading, isSuccess }] = useCreateProfileMutation();
+  const [updateProfile] = useUpdateProfileMutation();
   const [getProfiles] = useGetProfilesMutation();
 
   const [form, setForm] = useState({
     name: "",
-    positioning: "",
-    toneOfVoice: "",
-    brandRules: "",
-    goals: [
-      "Goal 1",
-    ],
+    profileFocus: "",
     isActive: true,
     businessId: businessId ?? "",
   });
   const [errors, setErrors]: any = useState({});
+
+  useEffect(() => {
+    if (isEdit && profile) {
+      setForm({
+        name: profile.name,
+        profileFocus: profile.profileFocus,
+        isActive: profile.isActive,
+        businessId: profile.businessId ?? "",
+      })
+    } else {
+      setForm({
+        name: "",
+        profileFocus: "",
+        isActive: true,
+        businessId: businessId ?? "",
+      })
+    }
+  }, [profile, isEdit, open]);
 
 
   if (!open) return null;
@@ -60,10 +75,7 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
   const validateField = (name: string, data: any) => {
     let error: string | null = null;
     if (name === "name") error = minLength(data.value, 3);
-    if (name === "positioning") error = minLength(data.value, 10);
-    if (name === "toneOfVoice") error = minLength(data.value, 10);
-    if (name === "brandRules") error = minLength(data.value, 10);
-    if (name === "goals") error = isRequired(data.value);
+    if (name === "profileFocus") error = minLength(data.value, 10);
     if (name === "isActive") error = isRequired(data.value);
     setErrors((prev: any) => ({ ...prev, [name]: error }));
     return error;
@@ -89,7 +101,7 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
     try {
       if (isEdit) {
         console.log("UPDATE PROFILE:")
-        //await updateProduct({ id: product!.id, form })
+        await updateProfile({ id: profile!.id, form })
       } else {
         await createProfile(form);
       }
@@ -106,7 +118,7 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
     }
   }
 
-  const addGoal = () => {
+  /*const addGoal = () => {
     setForm((prev) => ({
       ...prev,
       goals: [...prev.goals, "New Goal"],
@@ -127,7 +139,7 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
         i === index ? value : goal
       ),
     }));
-  };
+  };*/
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50">
@@ -166,118 +178,34 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
 
           <div>
             <div className="flex items-center gap-2 justify-between">
-              <label className="block text-sm font-medium text-slate-700 text-left">Positioning</label>
-              <Tooltip text={MiniTranslate.ProfilePositioningTooltip}/>
+              <label className="block text-sm font-medium text-slate-700 text-left">Profile Focus</label>
             </div>
 
-            <textarea
-              name="positioning"
-              value={form.positioning}
+            <input
+              type="text"
+              name="name"
+              value={form.profileFocus}
               onChange={(e) => {
                 handleChange(e);
-                validateField("positioning", {value: e.target.value})
+                validateField("profileFocus", {value: e.target.value})
               }}
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
-              placeholder="Enter positioning"
+              placeholder="Enter name"
             />
-            {errors.positioning && <p className="text-red-500 text-sm mt-2 text-left">{errors.positioning}</p>}
+            {errors.profileFocus && <p className="text-red-500 text-sm mt-2 text-left">{errors.profileFocus}</p>}
           </div>
 
-          <div>
-            <div className="flex items-center gap-2 justify-between">
-              <label className="block text-sm font-medium text-slate-700 text-left">Tone Of Voice</label>
-              <Tooltip text={MiniTranslate.ProfileToneOfVoiceTooltip}/>
-            </div>
-
-            <textarea
-              name="toneOfVoice"
-              value={form.toneOfVoice}
-              onChange={(e) => {
-                handleChange(e);
-                validateField("toneOfVoice", {value: e.target.value})
-              }}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
-              placeholder="Enter tone Of Voice"
+          <label className="flex items-start gap-3 cursor-pointer select-none">
+            <input
+              name="isActive"
+              type="checkbox"
+              checked={form.isActive}
+              onChange={handleChange}
+              className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
             />
-            {errors.toneOfVoice && <p className="text-red-500 text-sm mt-2 text-left">{errors.toneOfVoice}</p>}
-          </div>
 
-          <div>
-            <div className="flex items-center gap-2 justify-between">
-              <label className="block text-sm font-medium text-slate-700 text-left">Brand Rules</label>
-              <Tooltip text={MiniTranslate.ProfileBrandRulesTooltip}/>
-            </div>
-
-            <textarea
-              name="brandRules"
-              value={form.brandRules}
-              onChange={(e) => {
-                handleChange(e);
-                validateField("brandRules", {value: e.target.value})
-              }}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
-              placeholder="Enter brand rules"
-            />
-            {errors.brandRules && <p className="text-red-500 text-sm mt-2 text-left">{errors.brandRules}</p>}
-          </div>
-
-          <div className="flex flex-col items-start justify-start">
-            <div className="flex w-full items-center gap-2 justify-between">
-              <label className="block text-sm font-medium text-slate-700 text-left">Goals</label>
-              <Tooltip text={MiniTranslate.ProfileGoalsTooltip}/>
-            </div>
-
-            { form.goals.map((goal, index) => (
-              <div className="flex items-center gap-2 w-full" key={index}>
-                <textarea
-                  name="goal"
-                  value={goal}
-                  onChange={(e) => updateGoal(index, e.target.value)}
-                  className="mt-1 mb-2 flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
-                  placeholder="Enter goal"
-                />
-
-                {index !== 0 && (
-                  <button
-                    type="button"
-                    onClick={() => deleteGoal(index)}
-                    className="
-                    inline-flex items-center gap-1.5
-                    px-2.5 py-1.5
-                    rounded-md
-                    text-sm font-medium
-                    text-red-500
-                    border border-red-200
-                    hover:bg-red-50
-                    disabled:opacity-50 disabled:cursor-not-allowed
-                  "
-                  >
-                    Delete Goal
-                  </button>
-                )}
-              </div>
-              ))
-            }
-            {errors.goals && <p className="text-red-500 text-sm mt-2 text-left">{errors.goals}</p>}
-
-            <button
-              type="button"
-              onClick={addGoal}
-              className="
-                inline-flex items-center gap-1.5
-                px-2.5 py-1.5
-                rounded-md
-                text-sm font-medium
-                text-blue-600
-                border border-blue-200
-                hover:bg-blue-50
-                disabled:opacity-50 disabled:cursor-not-allowed
-              "
-            >
-              <Plus className="w-3 h-3"></Plus>
-              New Goal
-            </button>
-          </div>
+            <span className="block text-sm font-medium text-slate-700 text-left">Active Profile</span>
+          </label>
 
           <div className="flex justify-end gap-3 pt-4">
             <button

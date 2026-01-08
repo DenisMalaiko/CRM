@@ -91,7 +91,6 @@ model Admin {
     password  String
 }
 
-
 model User {
     id        String   @id @default(uuid())
     agencyId  String
@@ -103,6 +102,9 @@ model User {
 
     agency    Agency @relation(fields: [agencyId], references: [id])
 }
+
+
+
 
 model Business {
     id        String   @id @default(uuid())
@@ -122,20 +124,23 @@ model BusinessProfile {
     id            String   @id @default(uuid())
     businessId    String
     name          String
-    positioning   String
-    toneOfVoice   String
-    brandRules    String?
-    goals         String[]
+    profileFocus  String
     isActive      Boolean  @default(true)
     createdAt     DateTime @default(now())
 
-    business      Business              @relation(fields: [businessId], references: [id])
-    audiences     TargetAudience[]
+    business      Business @relation(fields: [businessId], references: [id])
+
+    products      BusinessProfileProduct[]
+    audiences     BusinessProfileTargetAudience[]
     platforms     BusinessProfilePlatform[]
+
     tags          BusinessProfileTag[]
     trendMatches  BusinessTrendMatch[]
     aiArtifacts   AIArtifact[]
 }
+
+
+
 
 model Product {
     id             String   @id @default(uuid())
@@ -146,16 +151,18 @@ model Product {
     description    String
     isActive       Boolean  @default(true)
     images         String[]
-
     embedding      Unsupported("vector(1536)")?
+
+    profiles       BusinessProfileProduct[]
+
+
     business       Business @relation(fields: [businessId], references: [id])
     aiArtifacts    AIArtifact[]
 }
 
-
 model TargetAudience {
     id               String   @id @default(uuid())
-    businessProfileId String
+    businessId       String
     ageRange         String
     gender           String?
     geo              String
@@ -164,12 +171,12 @@ model TargetAudience {
     triggers         String[]
     incomeLevel      String?
 
-    businessProfile  BusinessProfile @relation(fields: [businessProfileId], references: [id])
+    profiles         BusinessProfileTargetAudience[]
 }
-
 
 model Platform {
     id               String   @id @default(uuid())
+    businessId       String
     code             String   @unique
     name             String
     trendRefreshRate Int
@@ -180,20 +187,9 @@ model Platform {
     profiles         BusinessProfilePlatform[]
 }
 
-model BusinessProfilePlatform {
-    businessProfileId String
-    platformId        String
-    priority          Int
-    notes             String?
-
-    businessProfile BusinessProfile @relation(fields: [businessProfileId], references: [id])
-    platform        Platform        @relation(fields: [platformId], references: [id])
-
-    @@id([businessProfileId, platformId])
-}
-
 model Tag {
     id              String   @id @default(uuid())
+    businessId       String
     type            TagType
     value           String
     normalizedValue String
@@ -201,20 +197,10 @@ model Tag {
     profiles        BusinessProfileTag[]
 }
 
-model BusinessProfileTag {
-    businessProfileId String
-    tagId             String
-    weight            Float
-
-    businessProfile BusinessProfile @relation(fields: [businessProfileId], references: [id])
-    tag             Tag             @relation(fields: [tagId], references: [id])
-
-    @@id([businessProfileId, tagId])
-}
-
-
 model Trend {
     id          String   @id @default(uuid())
+    businessId       String
+
     platformId  String
     source      String
     title       String
@@ -229,19 +215,6 @@ model Trend {
     platform    Platform @relation(fields: [platformId], references: [id])
     matches     BusinessTrendMatch[]
     aiArtifacts AIArtifact[]
-}
-
-
-model BusinessTrendMatch {
-    businessProfileId String
-    trendId           String
-    relevanceScore    Float
-    matchedAt         DateTime @default(now())
-
-    businessProfile BusinessProfile @relation(fields: [businessProfileId], references: [id])
-    trend           Trend           @relation(fields: [trendId], references: [id])
-
-    @@id([businessProfileId, trendId])
 }
 
 model AIArtifact {
@@ -271,4 +244,64 @@ model PromptTemplate {
     paramsSchema Json
     isActive     Boolean  @default(true)
     createdAt    DateTime @default(now())
+}
+
+
+
+
+
+model BusinessProfileProduct {
+    businessProfileId String
+    productId         String
+
+    businessProfile BusinessProfile @relation(fields: [businessProfileId], references: [id], onDelete: Cascade)
+    product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+    @@id([businessProfileId, productId])
+}
+
+model BusinessProfileTargetAudience {
+    businessProfileId String
+    targetAudienceId String
+
+    businessProfile BusinessProfile @relation(fields: [businessProfileId], references: [id], onDelete: Cascade)
+    targetAudience TargetAudience @relation(fields: [targetAudienceId], references: [id], onDelete: Cascade)
+
+    @@id([businessProfileId, targetAudienceId])
+}
+
+model BusinessProfilePlatform {
+    businessProfileId String
+    platformId        String
+    priority          Int
+    notes             String?
+
+    businessProfile BusinessProfile @relation(fields: [businessProfileId], references: [id], onDelete: Cascade)
+    platform Platform @relation(fields: [platformId], references: [id], onDelete: Cascade)
+
+    @@id([businessProfileId, platformId])
+}
+
+model BusinessProfileTag {
+    businessProfileId String
+    tagId             String
+    weight            Float
+
+    businessProfile BusinessProfile @relation(fields: [businessProfileId], references: [id], onDelete: Cascade)
+    tag Tag @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+    @@id([businessProfileId, tagId])
+}
+
+
+model BusinessTrendMatch {
+    businessProfileId String
+    trendId           String
+    relevanceScore    Float
+    matchedAt         DateTime @default(now())
+
+    businessProfile BusinessProfile @relation(fields: [businessProfileId], references: [id], onDelete: Cascade)
+    trend Trend @relation(fields: [trendId], references: [id], onDelete: Cascade)
+
+    @@id([businessProfileId, trendId])
 }

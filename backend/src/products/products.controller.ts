@@ -13,7 +13,6 @@ export class ProductsController {
   async getProducts(@Param() params: any, @Res() res: any) {
     const businessId = params.id;
     if(!businessId) return res.json([]);
-
     const response = await this.productsService.getProducts(businessId);
     return res.json(response);
   }
@@ -28,9 +27,7 @@ export class ProductsController {
   @UseGuards(JwtAuthGuard)
   @Patch("/update/:id")
   async updateProduct(@Param("id") id: string, @Body() body: TProductCreate, @Res() res: any) {
-    console.log("UPDATE PRODUCT ID CONTROLLER ", id, body)
     const response = await this.productsService.updateProduct(id, body);
-    console.log("UPDATE PRODUCT ID CONTROLLER RESPONSE ", response)
     return res.json(response);
   }
 
@@ -38,7 +35,6 @@ export class ProductsController {
   @Delete("/delete/:id")
   async deleteProduct(@Param("id") id: string, @Res() res: any) {
     const response = await this.productsService.deleteProduct(id);
-
     return res.json(response);
   }
 }

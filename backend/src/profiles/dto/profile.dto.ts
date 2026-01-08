@@ -13,17 +13,7 @@ export class ProfileDto {
   name: string;
 
   @IsString()
-  positioning: string;
-
-  @IsString()
-  toneOfVoice: string;
-
-  @IsOptional()
-  @IsString()
-  brandRules: string;
-
-  @IsArray()
-  goals: string[];
+  profileFocus: string;
 
   @IsBoolean()
   isActive: boolean;

@@ -1,6 +1,7 @@
 import { api } from "../api/api"
 import {ApiResponse} from "../../models/ApiResponse";
 import {TBusinessProfile, TBusinessProfileCreate} from "../../models/BusinessProfile";
+import {TProduct, TProductCreate} from "../../models/Product";
 
 export const profileApi = api.injectEndpoints({
   endpoints: (builder) => ({
@@ -31,11 +32,27 @@ export const profileApi = api.injectEndpoints({
       })
     }),
 
+    updateProfile: builder.mutation<ApiResponse<TBusinessProfile>, { id: string, form: TBusinessProfileCreate, }>({
+      query: ({ id, form }) => ({
+        url: `/profiles/update/${id}`,
+        method: "PATCH",
+        body: form,
+      })
+    }),
+
+    deleteProfile: builder.mutation<ApiResponse<TBusinessProfile>, string>({
+      query: (id: string) => ({
+        url: `/profiles/delete/${id}`,
+        method: "DELETE",
+      })
+    }),
   }),
   overrideExisting: false,
 });
 
 export const {
   useGetProfilesMutation,
-  useCreateProfileMutation
+  useCreateProfileMutation,
+  useUpdateProfileMutation,
+  useDeleteProfileMutation
 } = profileApi;

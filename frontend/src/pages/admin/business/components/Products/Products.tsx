@@ -4,6 +4,7 @@ import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { RootState } from "../../../../../store";
 import { useAppDispatch } from "../../../../../store/hooks";
+import { showError } from "../../../../../utils/showError";
 
 import { toast } from "react-toastify";
 import { confirm } from "../../../../../components/confirmDlg/ConfirmDlg";
@@ -68,11 +69,14 @@ function Products() {
         if (item?.id != null) {
           await deleteProduct(item.id);
           const response: any = await getProducts(businessId).unwrap();
-          dispatch(setProducts(response.data));
-          toast.success(response.message);
+
+          if(response && response?.data) {
+            dispatch(setProducts(response.data));
+            toast.success(response.message);
+          }
         }
       } catch (error: any) {
-        toast.error(error.message);
+        showError(error);
       }
     }
   }

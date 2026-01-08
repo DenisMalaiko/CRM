@@ -1,17 +1,12 @@
 import { TBusiness } from "./Business";
 
 export type TBusinessProfile = {
-  id: number;
+  id: string;
   businessId: string;
   name: string;
-  positioning: string;
-  toneOfVoice: string;
-  brandRules: string;
-  goals: string[];
+  profileFocus: string;
   isActive: boolean;
   createdAt: Date;
-
-
   business?: TBusiness;
 }
 
