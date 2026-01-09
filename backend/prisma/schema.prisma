@@ -163,6 +163,7 @@ model Product {
 model TargetAudience {
     id               String   @id @default(uuid())
     businessId       String
+    name             String
     ageRange         String
     gender           String?
     geo              String

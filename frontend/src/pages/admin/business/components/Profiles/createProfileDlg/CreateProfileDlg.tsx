@@ -1,11 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import {ProductType} from "../../../../../../enum/ProductType";
-import {PriceSegment} from "../../../../../../enum/PriceSegment";
 import { showError } from "../../../../../../utils/showError";
 import {isRequired, minLength} from "../../../../../../utils/validations";
 import Tooltip from "../../../../../../components/tooltip/Tooltip";
-import { Plus, Minus } from "lucide-react";
 
 import { MiniTranslate } from "../../../../../../enum/miniTranslate";
 

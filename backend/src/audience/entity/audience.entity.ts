@@ -1,9 +1,7 @@
-import { Gender } from "../enum/Gender";
-
 export type TAudienceCreate = {
   name: string;
   ageRange: string;
-  gender: Gender;
+  gender: string;
   geo: string;
   pains: string[];
   desires: string[];
