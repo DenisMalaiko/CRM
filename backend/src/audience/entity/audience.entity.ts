@@ -1,15 +1,14 @@
-export type TAudienceCreate = {
+export type TAudience = {
+  id: string;
+  businessId: string;
   name: string;
   ageRange: string;
-  gender: string;
+  gender?: string | null;
   geo: string;
   pains: string[];
   desires: string[];
   triggers: string[];
-  incomeLevel?: string;
+  incomeLevel?: string | null;
 }
 
-export type TAudience = TAudienceCreate & {
-  id: string;
-  businessId: string;
-}
+export type TAudienceCreate = Omit<TAudience, 'id'>;

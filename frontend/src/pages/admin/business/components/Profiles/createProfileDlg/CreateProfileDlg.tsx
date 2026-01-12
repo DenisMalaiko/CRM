@@ -6,9 +6,11 @@ import Tooltip from "../../../../../../components/tooltip/Tooltip";
 
 import { MiniTranslate } from "../../../../../../enum/miniTranslate";
 
-import { useCreateProfileMutation } from "../../../../../../store/profile/profileApi";
-import { useUpdateProfileMutation } from "../../../../../../store/profile/profileApi";
-import { useGetProfilesMutation } from "../../../../../../store/profile/profileApi";
+import {
+  useCreateProfileMutation,
+  useUpdateProfileMutation,
+  useGetProfilesMutation
+} from "../../../../../../store/profile/profileApi";
 
 import { setProfiles } from "../../../../../../store/profile/profileSlice";
 import { useAppDispatch } from "../../../../../../store/hooks";
