@@ -6,14 +6,19 @@ import Tooltip from "../../../../../../components/tooltip/Tooltip";
 
 import { MiniTranslate } from "../../../../../../enum/miniTranslate";
 
+import {
+  useCreateAudienceMutation,
+  useUpdateAudienceMutation,
+  useGetAudiencesMutation
+} from "../../../../../../store/audience/audienceApi";
+
+import { setAudiences } from "../../../../../../store/audience/audienceSlice";
+
 import { useAppDispatch } from "../../../../../../store/hooks";
 import {ApiResponse} from "../../../../../../models/ApiResponse";
 import { TAudience } from "../../../../../../models/Audience";
 import { toast } from "react-toastify";
-import {TBusinessProfile} from "../../../../../../models/BusinessProfile";
-import {setProfiles} from "../../../../../../store/profile/profileSlice";
-import {Plans} from "../../../../../../enum/Plans";
-import {Gender} from "../../../../../../enum/Gender";
+import { Gender } from "../../../../../../enum/Gender";
 import { Plus } from "lucide-react";
 
 function CreateAudienceDlg({ open, onClose, audience }: any) {
@@ -21,6 +26,10 @@ function CreateAudienceDlg({ open, onClose, audience }: any) {
 
   const isEdit = !!audience;
   const { businessId } = useParams<{ businessId: string }>();
+
+  const [ createAudience, { isLoading: isCreateLoading } ] = useCreateAudienceMutation();
+  const [ updateAudience, { isLoading: isUpdateLoading } ] = useUpdateAudienceMutation();
+  const [ getAudiences ] = useGetAudiencesMutation();
 
   const GenderList = Object.values(Gender);
 
@@ -87,9 +96,12 @@ function CreateAudienceDlg({ open, onClose, audience }: any) {
     if (name === "ageRange") error = minLength(data.value, 3);
     if (name === "gender") error = minLength(data.value, 3);
     if (name === "geo") error = minLength(data.value, 3);
-    if (name === "pains") error = minLength(data.value, 3);
-    if (name === "desires") error = minLength(data.value, 3);
-    if (name === "triggers") error = minLength(data.value, 3);
+    if (name === "pains") {
+      console.log("DATA VALUE ", data.value)
+      error = isRequired(data.value);
+    }
+    if (name === "desires") error = isRequired(data.value);
+    if (name === "triggers") error = isRequired(data.value);
     if (name === "incomeLevel") error = minLength(data.value, 3);
     setErrors((prev: any) => ({ ...prev, [name]: error }));
     return error;
@@ -113,20 +125,21 @@ function CreateAudienceDlg({ open, onClose, audience }: any) {
     if (!validateForm(e)) return;
 
     try {
-      /*if (isEdit) {
+      if (isEdit) {
         console.log("UPDATE PROFILE:")
-        await updateProfile({ id: profile!.id, form })
+        await updateAudience({ id: audience!.id, form })
       } else {
-        await createProfile(form);
+        console.log("FORM ", form)
+        await createAudience(form);
       }
 
-      const response: ApiResponse<TBusinessProfile[]> = await getProfiles(businessId).unwrap();
+      const response: ApiResponse<TAudience[]> = await getAudiences(businessId).unwrap();
 
       if(response && response?.data) {
-        dispatch(setProfiles(response.data));
+        dispatch(setAudiences(response.data));
         toast.success(response.message);
         onClose();
-      }*/
+      }
     } catch (error) {
       showError(error);
     }

@@ -1,4 +1,6 @@
-export type TPlatformCreate = {
+export type TPlatform = {
+  id: string;
+  businessId: string;
   code: string;
   name: string;
   trendRefreshRate: number;
@@ -6,7 +8,4 @@ export type TPlatformCreate = {
   isActive: boolean;
 };
 
-export type TPlatform = TPlatformCreate & {
-  id: string;
-  businessId: string;
-};
+export type TPlatformCreate = Omit<TPlatform, "id">

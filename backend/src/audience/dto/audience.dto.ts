@@ -1,6 +1,14 @@
-import { IsString, IsArray, IsOptional } from "class-validator";
+import {IsString, IsArray, IsOptional, IsUUID} from "class-validator";
 
 export class AudienceDto {
+  @IsUUID()
+  @IsOptional()
+  id?: string;
+
+  @IsUUID()
+  @IsOptional()
+  businessId: string;
+
   @IsString()
   name: string;
 

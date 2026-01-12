@@ -9,6 +9,7 @@ import { AgencyModule } from './agency/agency.module';
 import { BusinessModule } from './business/business.module';
 import { ProductsModule } from './products/products.module';
 import { ProfilesModule } from "./profiles/profiles.module";
+import { AudienceModule } from "./audience/audience.module";
 
 @Module({
   imports: [
@@ -18,7 +19,8 @@ import { ProfilesModule } from "./profiles/profiles.module";
     AgencyModule,
     BusinessModule,
     ProductsModule,
-    ProfilesModule
+    ProfilesModule,
+    AudienceModule
   ],
   controllers: [AppController],
   providers: [AppService],

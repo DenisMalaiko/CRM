@@ -8,14 +8,14 @@ import { ApiResponse } from "../../../../../models/ApiResponse";
 import { TAudience } from "../../../../../models/Audience";
 import { showError } from "../../../../../utils/showError";
 
-import { useGetAudiencesMutation } from "../../../../../store/audience/audienceApi";
-import { useDeleteAudienceMutation } from "../../../../../store/audience/audienceApi";
+import {
+  useGetAudiencesMutation,
+  useDeleteAudienceMutation
+} from "../../../../../store/audience/audienceApi";
 import { setAudiences } from "../../../../../store/audience/audienceSlice";
 
 import { confirm } from "../../../../../components/confirmDlg/ConfirmDlg";
 import { toast } from "react-toastify";
-import {TBusinessProfile} from "../../../../../models/BusinessProfile";
-import {setProfiles} from "../../../../../store/profile/profileSlice";
 
 function Audiences() {
   const dispatch = useAppDispatch();
@@ -56,7 +56,8 @@ function Audiences() {
     { name: "Pains", key: "pains"},
     { name: "Desires", key: "desires"},
     { name: "Triggers", key: "triggers"},
-    { name: "IncomeLevel", key: "incomeLevel"}
+    { name: "IncomeLevel", key: "incomeLevel"},
+    { name: "Actions", key: "actions"}
   ]
 
   const openConfirmDlg = async (e: any, item: TAudience) => {
@@ -118,18 +119,18 @@ function Audiences() {
         <div className="overflow-hidden rounded-xl border border-slate-200 shadow">
           <table className="min-w-full divide-y divide-slate-200">
             <thead className="bg-slate-50">
-            <tr>
-              {header.map((item, index) => (
-                <th
-                  key={item.key}
-                  className={`
-                      px-4 py-3 text-xs font-semibold uppercase tracking-wide
-                      ${item.key === "actions" ? "text-right" : "text-left"}
-                      text-slate-600
-                    `}
-                >{ item.name }</th>
-              ))}
-            </tr>
+              <tr>
+                {header.map((item, index) => (
+                  <th
+                    key={item.key}
+                    className={`
+                        px-4 py-3 text-xs font-semibold uppercase tracking-wide
+                        ${item.key === "actions" ? "text-right" : "text-left"}
+                        text-slate-600
+                      `}
+                  >{ item.name }</th>
+                ))}
+              </tr>
             </thead>
 
             <tbody className="divide-y divide-slate-100">
