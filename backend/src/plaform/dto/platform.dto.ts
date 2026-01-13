@@ -1,6 +1,14 @@
-import {IsString, IsNumber, IsArray, IsBoolean} from "class-validator";
+import {IsString, IsNumber, IsArray, IsBoolean, IsUUID, IsOptional} from "class-validator";
 
 export class PlatformDto {
+  @IsUUID()
+  @IsOptional()
+  id?: string;
+
+  @IsUUID()
+  @IsOptional()
+  businessId: string;
+
   @IsString()
   code: string;
 
@@ -8,9 +16,11 @@ export class PlatformDto {
   name: string;
 
   @IsNumber()
+  @IsOptional()
   trendRefreshRate: number;
 
   @IsArray()
+  @IsOptional()
   supportedFormats: string[];
 
   @IsBoolean()

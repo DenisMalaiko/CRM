@@ -10,6 +10,7 @@ import { BusinessModule } from './business/business.module';
 import { ProductsModule } from './products/products.module';
 import { ProfilesModule } from "./profiles/profiles.module";
 import { AudienceModule } from "./audience/audience.module";
+import { PlatformModule } from "./plaform/platform.module";
 
 @Module({
   imports: [
@@ -20,7 +21,8 @@ import { AudienceModule } from "./audience/audience.module";
     BusinessModule,
     ProductsModule,
     ProfilesModule,
-    AudienceModule
+    AudienceModule,
+    PlatformModule
   ],
   controllers: [AppController],
   providers: [AppService],

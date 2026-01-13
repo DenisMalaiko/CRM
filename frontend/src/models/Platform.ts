@@ -1,10 +1,12 @@
+import { Platforms } from "../enum/Platforms";
+
 export type TPlatform = {
   id: string;
   businessId: string;
-  code: string;
+  code: Platforms;
   name: string;
-  trendRefreshRate: number;
-  supportedFormats: string[];
+  trendRefreshRate?: number;
+  supportedFormats?: string[];
   isActive: boolean;
 };
 

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { showError } from "../../../../../../utils/showError";
 import { isRequired, minLength } from "../../../../../../utils/validations";
-import Tooltip from "../../../../../../components/tooltip/Tooltip";
+import { Platforms } from "../../../../../../enum/Platforms";
 
 import { MiniTranslate } from "../../../../../../enum/miniTranslate";
 
@@ -19,8 +19,6 @@ import { ApiResponse } from "../../../../../../models/ApiResponse";
 import { TPlatform } from "../../../../../../models/Platform";
 import { toast } from "react-toastify";
 import { Plus } from "lucide-react";
-import {TAudience} from "../../../../../../models/Audience";
-import {setAudiences} from "../../../../../../store/audience/audienceSlice";
 
 function CreatePlatformDlg({ open, onClose, platform }: any) {
   const dispatch = useAppDispatch();
@@ -32,11 +30,11 @@ function CreatePlatformDlg({ open, onClose, platform }: any) {
   const [updatePlatform] = useUpdatePlatformMutation();
   const [getPlatforms] = useGetPlatformsMutation();
 
+  const PlatformsList = Object.values(Platforms);
+
   const [form, setForm] = useState({
     name: "",
-    code: "",
-    trendRefreshRate: 0,
-    supportedFormats: [""],
+    code: Platforms.TikTok,
     isActive: true,
     businessId: businessId ?? "",
   });
@@ -47,17 +45,13 @@ function CreatePlatformDlg({ open, onClose, platform }: any) {
       setForm({
         name: platform.name,
         code: platform.code,
-        trendRefreshRate: platform.trendRefreshRate,
-        supportedFormats: platform.supportedFormats,
         isActive: platform.isActive,
         businessId: platform.businessId ?? businessId,
       })
     } else {
       setForm({
         name: "",
-        code: "",
-        trendRefreshRate: 0,
-        supportedFormats: [""],
+        code: Platforms.TikTok,
         isActive: true,
         businessId: businessId ?? "",
       })
@@ -84,9 +78,6 @@ function CreatePlatformDlg({ open, onClose, platform }: any) {
     let error: string | null = null;
     if (name === "name") error = minLength(data.value, 3);
     if (name === "code") error = minLength(data.value, 3);
-    if (name === "trendRefreshRate") error = isRequired(data.value);
-    if (name === "supportedFormats") error = isRequired(data.value);
-    if (name === "isActive") error = isRequired(data.value);
     setErrors((prev: any) => ({ ...prev, [name]: error }));
     return error;
   }
@@ -111,10 +102,8 @@ function CreatePlatformDlg({ open, onClose, platform }: any) {
 
     try {
       if (isEdit) {
-        console.log("UPDATE PROFILE:")
         await updatePlatform({ id: platform!.id, form })
       } else {
-        console.log("FORM ", form)
         await createPlatform(form);
       }
 
@@ -145,6 +134,57 @@ function CreatePlatformDlg({ open, onClose, platform }: any) {
         </div>
 
         <form className="space-y-4" onSubmit={create} action="">
+          <div>
+            <div className="flex items-center gap-2 justify-between">
+              <label className="block text-sm font-medium text-slate-700 text-left">Name</label>
+            </div>
+
+            <input
+              type="text"
+              name="name"
+              value={form.name}
+              onChange={(e) => {
+                handleChange(e);
+                validateField("name", {value: e.target.value})
+              }}
+              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
+              placeholder="Enter name"
+            />
+            {errors.name && <p className="text-red-500 text-sm mt-2 text-left">{errors.name}</p>}
+          </div>
+
+          <div>
+            <div className="flex items-center gap-2 justify-between">
+              <label className="block text-sm font-medium text-slate-700 text-left">Code</label>
+            </div>
+
+            <select
+              name="code"
+              value={form.code}
+              onChange={(e) => {
+                handleChange(e);
+                validateField("code", { value: e.target.value })
+              }}
+              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
+            >
+              { PlatformsList.map((platform: string) => (
+                <option key={platform} value={platform}>{platform}</option>
+              )) }
+            </select>
+          </div>
+
+          <label className="flex items-start gap-3 cursor-pointer select-none">
+            <input
+              name="isActive"
+              type="checkbox"
+              checked={form.isActive}
+              onChange={handleChange}
+              className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            />
+
+            <span className="block text-sm font-medium text-slate-700 text-left">Active Platform</span>
+          </label>
+
 
           <div className="flex justify-end gap-3 pt-4">
             <button

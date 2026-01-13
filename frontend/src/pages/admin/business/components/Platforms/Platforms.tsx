@@ -52,8 +52,6 @@ function Platforms() {
   const header = [
     { name: "Name", key: "name" },
     { name: "Code", key: "code" },
-    { name: "Trend Refresh Rate", key: "trendRefreshRate" },
-    { name: "Supported Formats", key: "supportedFormats"},
     { name: "Active", key: "isActive"},
     { name: "Actions", key: "actions"}
 
@@ -108,7 +106,7 @@ function Platforms() {
               setOpen(false);
               setSelectedPlatform(null);
             }}
-            audience={selectedPlatform}
+            platform={selectedPlatform}
           ></CreatePlatformDlg>
         </div>
       </section>
@@ -136,9 +134,15 @@ function Platforms() {
                 <tr key={item.id} className="hover:bg-slate-50 bg-slate-50">
                   <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.name}</td>
                   <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.code}</td>
-                  <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.trendRefreshRate}</td>
-                  <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.supportedFormats}</td>
-                  <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.isActive}</td>
+                  <td className="px-4 py-3 font-medium text-slate-900 text-left">
+                    <span className={`
+                      inline-flex items-center rounded-full px-2.5 py-1
+                      text-xs font-medium
+                      ${item.isActive ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600"}
+                    `}>
+                       {item.isActive ? "Yes" : "No"}
+                    </span>
+                  </td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex items-center gap-2 justify-end">
                       <button onClick={() => openEditProfile(item)} className="h-8 w-8 flex items-center justify-center rounded-lg border  text-slate-600 hover:bg-slate-50">
