@@ -75,7 +75,6 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
     let error: string | null = null;
     if (name === "name") error = minLength(data.value, 3);
     if (name === "profileFocus") error = minLength(data.value, 10);
-    if (name === "isActive") error = isRequired(data.value);
     setErrors((prev: any) => ({ ...prev, [name]: error }));
     return error;
   };
