@@ -1,19 +1,28 @@
 import React, { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
+import { toast } from "react-toastify";
 
 import CreateProfileDlg from "./createProfileDlg/CreateProfileDlg";
 import { useAppDispatch } from "../../../../../store/hooks";
+import { showError } from "../../../../../utils/showError";
+import { confirm } from "../../../../../components/confirmDlg/ConfirmDlg";
 import { ApiResponse } from "../../../../../models/ApiResponse";
 import { TBusinessProfile } from "../../../../../models/BusinessProfile";
-import { showError } from "../../../../../utils/showError";
+import { TProduct } from "../../../../../models/Product";
+import { TAudience } from "../../../../../models/Audience";
+import { TPlatform } from "../../../../../models/Platform";
 
 import { useGetProfilesMutation } from "../../../../../store/profile/profileApi";
 import { useDeleteProfileMutation } from "../../../../../store/profile/profileApi";
-import { setProfiles } from "../../../../../store/profile/profileSlice";
+import { useGetProductsMutation } from "../../../../../store/products/productsApi";
+import { useGetAudiencesMutation } from "../../../../../store/audience/audienceApi";
+import { useGetPlatformsMutation } from "../../../../../store/platform/platformApi";
 
-import {confirm} from "../../../../../components/confirmDlg/ConfirmDlg";
-import {toast} from "react-toastify";
+import { setProfiles } from "../../../../../store/profile/profileSlice";
+import { setProducts } from "../../../../../store/products/productsSlice";
+import { setAudiences } from "../../../../../store/audience/audienceSlice";
+import { setPlatforms } from "../../../../../store/platform/platformSlice";
 
 function Profiles() {
   const dispatch = useAppDispatch();
@@ -21,20 +30,28 @@ function Profiles() {
 
   const [ getProfiles ] = useGetProfilesMutation();
   const [ deleteProfile ] = useDeleteProfileMutation();
+  const [ getProducts ] = useGetProductsMutation();
+  const [ getAudiences ] = useGetAudiencesMutation();
+  const [ getPlatforms ] = useGetPlatformsMutation();
+
+  const { profiles } = useSelector((state: any) => state.profileModule);
 
   const [open, setOpen] = useState(false);
   const [selectedProfile, setSelectedProfile] = useState<any | null>(null);
-  const { profiles } = useSelector((state: any) => state.profileModule)
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         if(businessId) {
           const response: ApiResponse<TBusinessProfile[]> = await getProfiles(businessId).unwrap();
+          const productsResponse: ApiResponse<TProduct[]> = await getProducts(businessId).unwrap();
+          const audiencesResponse: ApiResponse<TAudience[]> = await getAudiences(businessId).unwrap();
+          const platformsResponse: ApiResponse<TPlatform[]> = await getPlatforms(businessId).unwrap();
 
-          if(response && response?.data) {
-            dispatch(setProfiles(response.data))
-          }
+          if(response && response?.data) dispatch(setProfiles(response.data));
+          if(productsResponse && productsResponse?.data) dispatch(setProducts(productsResponse.data));
+          if(audiencesResponse && audiencesResponse?.data) dispatch(setAudiences(audiencesResponse.data));
+          if(platformsResponse && platformsResponse?.data) dispatch(setPlatforms(platformsResponse.data));
         }
       } catch (error) {
         console.error("Error fetching data:", error);

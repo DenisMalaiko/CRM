@@ -15,6 +15,15 @@ export class ProfileDto {
   @IsString()
   profileFocus: string;
 
+  @IsArray()
+  productsIds: string[];
+
+  @IsArray()
+  audiencesIds: string[];
+
+  @IsArray()
+  platformsIds: string[];
+
   @IsBoolean()
   isActive: boolean;
 }

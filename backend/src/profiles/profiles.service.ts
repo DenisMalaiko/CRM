@@ -21,14 +21,19 @@ export class ProfilesService {
   }
 
   async createProfile(body: TProfileCreate) {
-    const profile: any = await this.prisma.businessProfile.create({
+    /*const profile: any = await this.prisma.businessProfile.create({
       data: body
-    });
+    });*/
+
+    console.log("------")
+    console.log("CREATE PROFILE: ")
+    console.log(body)
+    console.log("------")
 
     return {
       statusCode: 200,
       message: "Profile has been created!",
-      data: profile,
+      data: [],
     }
   }
 

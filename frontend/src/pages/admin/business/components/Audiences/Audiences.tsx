@@ -56,7 +56,7 @@ function Audiences() {
     { name: "Pains", key: "pains"},
     { name: "Desires", key: "desires"},
     { name: "Triggers", key: "triggers"},
-    { name: "IncomeLevel", key: "incomeLevel"},
+    { name: "Income Level", key: "incomeLevel"},
     { name: "Actions", key: "actions"}
   ]
 

@@ -21,6 +21,10 @@ export class ProfilesController {
   @UseGuards(JwtAuthGuard)
   @Post("/create")
   async createProfile(@Body() body: ProfileDto, @Res() res: any) {
+    console.log("---------")
+    console.log("CREATE PROFILE: ")
+    console.log(body)
+    console.log("---------")
     const response = await this.profilesService.createProfile(body);
     return res.json(response);
   }
