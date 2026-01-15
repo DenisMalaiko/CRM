@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { toast } from "react-toastify";
 import { showError } from "../../../../../../utils/showError";
-import {isRequired, minLength} from "../../../../../../utils/validations";
+import { isRequired, minLength } from "../../../../../../utils/validations";
 import Tooltip from "../../../../../../components/tooltip/Tooltip";
+import Select from "react-select";
 
 import { MiniTranslate } from "../../../../../../enum/miniTranslate";
 
@@ -16,10 +19,13 @@ import { setProfiles } from "../../../../../../store/profile/profileSlice";
 import { useAppDispatch } from "../../../../../../store/hooks";
 import {ApiResponse} from "../../../../../../models/ApiResponse";
 import {TBusinessProfile} from "../../../../../../models/BusinessProfile";
-import {toast} from "react-toastify";
 
 function CreateProfileDlg({ open, onClose, profile }: any) {
   const dispatch = useAppDispatch();
+
+  const { products } = useSelector((state: any) => state.productsModule);
+  const { audiences } = useSelector((state: any) => state.audienceModule);
+  const { platforms } = useSelector((state: any) => state.platformModule);
 
   const isEdit = !!profile;
   const { businessId } = useParams<{ businessId: string }>();
@@ -28,9 +34,16 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
   const [updateProfile] = useUpdateProfileMutation();
   const [getProfiles] = useGetProfilesMutation();
 
+  const productsOptions = products?.map((product: any) => ({ value: product.id, label: product.name })) ?? [];
+  const audiencesOptions = audiences?.map((audience: any) => ({ value: audience.id, label: audience.name })) ?? [];
+  const platformsOptions = platforms?.map((platform: any) => ({ value: platform.id, label: platform.name })) ?? [];
+
   const [form, setForm] = useState({
     name: "",
     profileFocus: "",
+    productsIds: [] as string[],
+    audiencesIds: [] as string[],
+    platformsIds: [] as string[],
     isActive: true,
     businessId: businessId ?? "",
   });
@@ -41,6 +54,9 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
       setForm({
         name: profile.name,
         profileFocus: profile.profileFocus,
+        productsIds: [""],
+        audiencesIds: [""],
+        platformsIds: [""],
         isActive: profile.isActive,
         businessId: profile.businessId ?? "",
       })
@@ -48,6 +64,9 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
       setForm({
         name: "",
         profileFocus: "",
+        productsIds: [""],
+        audiencesIds: [""],
+        platformsIds: [""],
         isActive: true,
         businessId: businessId ?? "",
       })
@@ -116,29 +135,6 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
     }
   }
 
-  /*const addGoal = () => {
-    setForm((prev) => ({
-      ...prev,
-      goals: [...prev.goals, "New Goal"],
-    }));
-  }
-
-  const deleteGoal = (index: number) => {
-    setForm((prev) => ({
-      ...prev,
-      goals: prev.goals.filter((_, i) => i !== index),
-    }));
-  }
-
-  const updateGoal = (index: number, value: string) => {
-    setForm(prev => ({
-      ...prev,
-      goals: prev.goals.map((goal, i) =>
-        i === index ? value : goal
-      ),
-    }));
-  };*/
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50">
       <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl p-6">
@@ -181,16 +177,76 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
 
             <input
               type="text"
-              name="name"
+              name="profileFocus"
               value={form.profileFocus}
               onChange={(e) => {
                 handleChange(e);
                 validateField("profileFocus", {value: e.target.value})
               }}
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
-              placeholder="Enter name"
+              placeholder="Enter profile focus"
             />
             {errors.profileFocus && <p className="text-red-500 text-sm mt-2 text-left">{errors.profileFocus}</p>}
+          </div>
+
+          <div>
+            <div className="flex items-center gap-2 justify-between">
+              <label className="block text-sm font-medium text-slate-700 text-left">Products</label>
+            </div>
+
+            <Select
+              isMulti
+              options={productsOptions}
+              value={productsOptions.filter((option: any) =>
+                form.productsIds.includes(option.value)
+              )}
+              onChange={(selected) =>
+                setForm(prev => ({
+                  ...prev,
+                  productsIds: selected.map(option => option.value),
+                }))
+              }
+            />
+          </div>
+
+          <div>
+            <div className="flex items-center gap-2 justify-between">
+              <label className="block text-sm font-medium text-slate-700 text-left">Audiences</label>
+            </div>
+
+            <Select
+              isMulti
+              options={audiencesOptions}
+              value={audiencesOptions.filter((option: any) =>
+                form.audiencesIds.includes(option.value)
+              )}
+              onChange={(selected) =>
+                setForm(prev => ({
+                  ...prev,
+                  audiencesIds: selected.map(option => option.value),
+                }))
+              }
+            />
+          </div>
+
+          <div>
+            <div className="flex items-center gap-2 justify-between">
+              <label className="block text-sm font-medium text-slate-700 text-left">Platforms</label>
+            </div>
+
+            <Select
+              isMulti
+              options={platformsOptions}
+              value={platformsOptions.filter((option: any) =>
+                form.platformsIds.includes(option.value)
+              )}
+              onChange={(selected) =>
+                setForm(prev => ({
+                  ...prev,
+                  platformsIds: selected.map(option => option.value),
+                }))
+              }
+            />
           </div>
 
           <label className="flex items-start gap-3 cursor-pointer select-none">

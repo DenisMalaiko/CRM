@@ -19,6 +19,7 @@ import {ApiResponse} from "../../../../../../models/ApiResponse";
 import { TAudience } from "../../../../../../models/Audience";
 import { toast } from "react-toastify";
 import { Gender } from "../../../../../../enum/Gender";
+import { IncomeLevel } from "../../../../../../enum/IncomeLevel";
 import { Plus } from "lucide-react";
 
 function CreateAudienceDlg({ open, onClose, audience }: any) {
@@ -32,6 +33,7 @@ function CreateAudienceDlg({ open, onClose, audience }: any) {
   const [ getAudiences ] = useGetAudiencesMutation();
 
   const GenderList = Object.values(Gender);
+  const IncomeLevelList = Object.values(IncomeLevel);
 
   const [form, setForm] = useState({
     name: "",
@@ -41,7 +43,7 @@ function CreateAudienceDlg({ open, onClose, audience }: any) {
     pains: [""],
     desires: [""],
     triggers: [""],
-    incomeLevel: "",
+    incomeLevel: IncomeLevel.Low,
     businessId: businessId ?? "",
   });
   const [errors, setErrors]: any = useState({});
@@ -68,7 +70,7 @@ function CreateAudienceDlg({ open, onClose, audience }: any) {
         pains: [""],
         desires: [""],
         triggers: [""],
-        incomeLevel: "",
+        incomeLevel: IncomeLevel.Low,
         businessId: businessId ?? "",
       })
     }
@@ -464,17 +466,20 @@ function CreateAudienceDlg({ open, onClose, audience }: any) {
               <label className="block text-sm font-medium text-slate-700 text-left">Income Level</label>
             </div>
 
-            <input
-              type="text"
+            <select
               name="incomeLevel"
               value={form.incomeLevel}
               onChange={(e) => {
                 handleChange(e);
-                validateField("incomeLevel", {value: e.target.value})
+                validateField("incomeLevel", { value: e.target.value })
               }}
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
-              placeholder="Enter Income Level"
-            />
+            >
+              { IncomeLevelList.map((level: string) => (
+                <option key={level} value={level}>{level}</option>
+              )) }
+            </select>
+
             {errors.incomeLevel && <p className="text-red-500 text-sm mt-2 text-left">{errors.incomeLevel}</p>}
           </div>
 

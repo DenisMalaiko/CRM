@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { showError } from "../../../../../../utils/showError";
-import { isRequired, minLength } from "../../../../../../utils/validations";
+import { minLength } from "../../../../../../utils/validations";
 import { Platforms } from "../../../../../../enum/Platforms";
-
-import { MiniTranslate } from "../../../../../../enum/miniTranslate";
 
 import {
   useCreatePlatformMutation,
@@ -18,7 +16,6 @@ import { useAppDispatch } from "../../../../../../store/hooks";
 import { ApiResponse } from "../../../../../../models/ApiResponse";
 import { TPlatform } from "../../../../../../models/Platform";
 import { toast } from "react-toastify";
-import { Plus } from "lucide-react";
 
 function CreatePlatformDlg({ open, onClose, platform }: any) {
   const dispatch = useAppDispatch();
@@ -36,6 +33,7 @@ function CreatePlatformDlg({ open, onClose, platform }: any) {
     name: "",
     code: Platforms.TikTok,
     isActive: true,
+    trendRefreshRate: 0,
     businessId: businessId ?? "",
   });
   const [errors, setErrors]: any = useState({});
@@ -46,6 +44,7 @@ function CreatePlatformDlg({ open, onClose, platform }: any) {
         name: platform.name,
         code: platform.code,
         isActive: platform.isActive,
+        trendRefreshRate: 0,
         businessId: platform.businessId ?? businessId,
       })
     } else {
@@ -53,6 +52,7 @@ function CreatePlatformDlg({ open, onClose, platform }: any) {
         name: "",
         code: Platforms.TikTok,
         isActive: true,
+        trendRefreshRate: 0,
         businessId: businessId ?? "",
       })
     }

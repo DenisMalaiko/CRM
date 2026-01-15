@@ -1,4 +1,5 @@
 import { Gender } from "../enum/Gender";
+import { IncomeLevel } from "../enum/IncomeLevel";
 
 export type TAudienceCreate = {
   name: string;
@@ -8,7 +9,7 @@ export type TAudienceCreate = {
   pains: string[];
   desires: string[];
   triggers: string[];
-  incomeLevel?: string;
+  incomeLevel?: IncomeLevel;
 }
 
 export type TAudience = TAudienceCreate & {
