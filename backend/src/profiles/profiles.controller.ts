@@ -21,10 +21,6 @@ export class ProfilesController {
   @UseGuards(JwtAuthGuard)
   @Post("/create")
   async createProfile(@Body() body: ProfileDto, @Res() res: any) {
-    console.log("---------")
-    console.log("CREATE PROFILE: ")
-    console.log(body)
-    console.log("---------")
     const response = await this.profilesService.createProfile(body);
     return res.json(response);
   }
@@ -40,6 +36,13 @@ export class ProfilesController {
   @Delete("/delete/:id")
   async deleteProfile(@Param("id") id: string, @Res() res: any) {
     const response = await this.profilesService.deleteProfile(id);
+    return res.json(response);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post("/generatePosts/:id")
+  async generatePosts(@Param("id") id: string, @Res() res: any) {
+    const response = await this.profilesService.generateProfilePosts(id);
     return res.json(response);
   }
 }

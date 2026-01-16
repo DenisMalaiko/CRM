@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
+import { Plus } from "lucide-react";
+import Select from "react-select";
+import { toast } from "react-toastify";
+
 import { showError } from "../../../../../../utils/showError";
 import {isRequired, minLength} from "../../../../../../utils/validations";
 import Tooltip from "../../../../../../components/tooltip/Tooltip";
@@ -17,10 +21,9 @@ import { setAudiences } from "../../../../../../store/audience/audienceSlice";
 import { useAppDispatch } from "../../../../../../store/hooks";
 import {ApiResponse} from "../../../../../../models/ApiResponse";
 import { TAudience } from "../../../../../../models/Audience";
-import { toast } from "react-toastify";
 import { Gender } from "../../../../../../enum/Gender";
 import { IncomeLevel } from "../../../../../../enum/IncomeLevel";
-import { Plus } from "lucide-react";
+import { GeoList } from "../../../../../../const/Geo";
 
 function CreateAudienceDlg({ open, onClose, audience }: any) {
   const dispatch = useAppDispatch();
@@ -97,7 +100,7 @@ function CreateAudienceDlg({ open, onClose, audience }: any) {
     if (name === "name") error = minLength(data.value, 3);
     if (name === "ageRange") error = minLength(data.value, 3);
     if (name === "gender") error = minLength(data.value, 3);
-    if (name === "geo") error = minLength(data.value, 3);
+    if (name === "geo") error = isRequired(data.value);
     if (name === "pains") {
       console.log("DATA VALUE ", data.value)
       error = isRequired(data.value);
@@ -260,17 +263,19 @@ function CreateAudienceDlg({ open, onClose, audience }: any) {
               <label className="block text-sm font-medium text-slate-700 text-left">Geo</label>
             </div>
 
-            <input
-              type="text"
-              name="geo"
-              value={form.geo}
-              onChange={(e) => {
-                handleChange(e);
-                validateField("geo", {value: e.target.value})
-              }}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
-              placeholder="Enter Geo"
+            <Select
+              options={GeoList}
+              value={GeoList.filter((option: any) =>
+                form.geo.includes(option.value)
+              )}
+              onChange={(selected) =>
+                setForm(prev => ({
+                  ...prev,
+                  geo: selected?.value ?? "",
+                }))
+              }
             />
+
             {errors.geo && <p className="text-red-500 text-sm mt-2 text-left">{errors.geo}</p>}
           </div>
 
@@ -399,7 +404,7 @@ function CreateAudienceDlg({ open, onClose, audience }: any) {
             </button>
           </div>
 
-          <div className="flex flex-col items-start justify-start">
+          {/*<div className="flex flex-col items-start justify-start">
             <div className="flex w-full items-center justify-between gap-2">
               <label className="block text-sm font-medium text-slate-700">
                 Triggers
@@ -459,7 +464,7 @@ function CreateAudienceDlg({ open, onClose, audience }: any) {
               <Plus className="h-3 w-3" />
               New Trigger
             </button>
-          </div>
+          </div>*/}
 
           <div>
             <div className="flex items-center gap-2 justify-between">

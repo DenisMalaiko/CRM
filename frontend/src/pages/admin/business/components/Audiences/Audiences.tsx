@@ -55,7 +55,6 @@ function Audiences() {
     { name: "Geo", key: "geo" },
     { name: "Pains", key: "pains"},
     { name: "Desires", key: "desires"},
-    { name: "Triggers", key: "triggers"},
     { name: "Income Level", key: "incomeLevel"},
     { name: "Actions", key: "actions"}
   ]
@@ -142,7 +141,6 @@ function Audiences() {
                   <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.geo}</td>
                   <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.pains}</td>
                   <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.desires}</td>
-                  <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.triggers}</td>
                   <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.incomeLevel}</td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex items-center gap-2 justify-end">
