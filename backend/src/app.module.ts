@@ -11,6 +11,7 @@ import { ProductsModule } from './products/products.module';
 import { ProfilesModule } from "./profiles/profiles.module";
 import { AudienceModule } from "./audience/audience.module";
 import { PlatformModule } from "./plaform/platform.module";
+import { IngestionModule } from "./ingestion/ingestion.module";
 
 @Module({
   imports: [
@@ -22,7 +23,8 @@ import { PlatformModule } from "./plaform/platform.module";
     ProductsModule,
     ProfilesModule,
     AudienceModule,
-    PlatformModule
+    PlatformModule,
+    IngestionModule
   ],
   controllers: [AppController],
   providers: [AppService],

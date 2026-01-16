@@ -46,6 +46,13 @@ export const profileApi = api.injectEndpoints({
         method: "DELETE",
       })
     }),
+
+    generatePosts: builder.mutation<ApiResponse<any>, string>({
+      query: (id: string) => ({
+        url: `/profiles/generatePosts/${id}`,
+        method: "POST",
+      })
+    })
   }),
   overrideExisting: false,
 });
@@ -54,5 +61,6 @@ export const {
   useGetProfilesMutation,
   useCreateProfileMutation,
   useUpdateProfileMutation,
-  useDeleteProfileMutation
+  useDeleteProfileMutation,
+  useGeneratePostsMutation
 } = profileApi;

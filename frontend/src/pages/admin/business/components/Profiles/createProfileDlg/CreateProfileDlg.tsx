@@ -2,10 +2,11 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
+import Select from "react-select";
+
 import { showError } from "../../../../../../utils/showError";
 import { isRequired, minLength } from "../../../../../../utils/validations";
 import Tooltip from "../../../../../../components/tooltip/Tooltip";
-import Select from "react-select";
 
 import { MiniTranslate } from "../../../../../../enum/miniTranslate";
 
@@ -17,8 +18,11 @@ import {
 
 import { setProfiles } from "../../../../../../store/profile/profileSlice";
 import { useAppDispatch } from "../../../../../../store/hooks";
-import {ApiResponse} from "../../../../../../models/ApiResponse";
-import {TBusinessProfile} from "../../../../../../models/BusinessProfile";
+import { ApiResponse } from "../../../../../../models/ApiResponse";
+import { TBusinessProfile } from "../../../../../../models/BusinessProfile";
+import {TProduct} from "../../../../../../models/Product";
+import {TAudience} from "../../../../../../models/Audience";
+import {TPlatform} from "../../../../../../models/Platform";
 
 function CreateProfileDlg({ open, onClose, profile }: any) {
   const dispatch = useAppDispatch();
@@ -54,9 +58,9 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
       setForm({
         name: profile.name,
         profileFocus: profile.profileFocus,
-        productsIds: [""],
-        audiencesIds: [""],
-        platformsIds: [""],
+        productsIds: profile.products.map((x: TProduct) => x.id) ?? [],
+        audiencesIds: profile.audiences.map((x: TAudience) => x.id) ?? [],
+        platformsIds: profile.platforms.map((x: TPlatform) => x.id) ?? [],
         isActive: profile.isActive,
         businessId: profile.businessId ?? "",
       })
@@ -193,6 +197,8 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
             <div className="flex items-center gap-2 justify-between">
               <label className="block text-sm font-medium text-slate-700 text-left">Products</label>
             </div>
+
+            <p></p>
 
             <Select
               isMulti

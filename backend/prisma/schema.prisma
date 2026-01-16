@@ -188,16 +188,6 @@ model Platform {
     profiles         BusinessProfilePlatform[]
 }
 
-model Tag {
-    id              String   @id @default(uuid())
-    businessId       String
-    type            TagType
-    value           String
-    normalizedValue String
-
-    profiles        BusinessProfileTag[]
-}
-
 model Trend {
     id          String   @id @default(uuid())
     businessId       String
@@ -218,6 +208,10 @@ model Trend {
     aiArtifacts AIArtifact[]
 }
 
+
+
+
+
 model AIArtifact {
     id               String   @id @default(uuid())
     type             AIArtifactType
@@ -233,6 +227,16 @@ model AIArtifact {
     businessProfile BusinessProfile @relation(fields: [businessProfileId], references: [id])
     product         Product?        @relation(fields: [productId], references: [id])
     trend           Trend?          @relation(fields: [trendId], references: [id])
+}
+
+model Tag {
+    id              String   @id @default(uuid())
+    businessId       String
+    type            TagType
+    value           String
+    normalizedValue String
+
+    profiles        BusinessProfileTag[]
 }
 
 model PromptTemplate {

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { toast } from "react-toastify";
+import { RefreshCcw } from "lucide-react";
 
 import CreateProfileDlg from "./createProfileDlg/CreateProfileDlg";
 import { useAppDispatch } from "../../../../../store/hooks";
@@ -13,8 +14,7 @@ import { TProduct } from "../../../../../models/Product";
 import { TAudience } from "../../../../../models/Audience";
 import { TPlatform } from "../../../../../models/Platform";
 
-import { useGetProfilesMutation } from "../../../../../store/profile/profileApi";
-import { useDeleteProfileMutation } from "../../../../../store/profile/profileApi";
+import { useGetProfilesMutation, useDeleteProfileMutation, useGeneratePostsMutation } from "../../../../../store/profile/profileApi";
 import { useGetProductsMutation } from "../../../../../store/products/productsApi";
 import { useGetAudiencesMutation } from "../../../../../store/audience/audienceApi";
 import { useGetPlatformsMutation } from "../../../../../store/platform/platformApi";
@@ -33,6 +33,7 @@ function Profiles() {
   const [ getProducts ] = useGetProductsMutation();
   const [ getAudiences ] = useGetAudiencesMutation();
   const [ getPlatforms ] = useGetPlatformsMutation();
+  const [ generatePosts ] = useGeneratePostsMutation();
 
   const { profiles } = useSelector((state: any) => state.profileModule);
 
@@ -100,6 +101,16 @@ function Profiles() {
     setOpen(true)
   }
 
+  const generateNewPosts = async (item: TBusinessProfile) => {
+    console.log("GENERATE NEW POSTS")
+    try {
+      const response: ApiResponse<TBusinessProfile[]> = await generatePosts(item.id).unwrap();
+      console.log("RESPONSE: ", response)
+    } catch (error: any) {
+      showError(error);
+    }
+  }
+
   return (
     <section>
       <section>
@@ -158,6 +169,10 @@ function Profiles() {
                   </td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex items-center gap-2 justify-end">
+                      <button onClick={() => generateNewPosts(item)} className="h-8 w-8 flex items-center justify-center rounded-lg border  text-slate-600 hover:bg-slate-50">
+                        <RefreshCcw width="20" height="20"></RefreshCcw>
+                      </button>
+
                       <button onClick={() => openEditProfile(item)} className="h-8 w-8 flex items-center justify-center rounded-lg border  text-slate-600 hover:bg-slate-50">
                         ✎
                       </button>
