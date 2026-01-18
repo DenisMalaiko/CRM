@@ -12,6 +12,7 @@ import { ProfilesModule } from "./profiles/profiles.module";
 import { AudienceModule } from "./audience/audience.module";
 import { PlatformModule } from "./plaform/platform.module";
 import { IngestionModule } from "./ingestion/ingestion.module";
+import { AiModule } from "./ai/ai.module";
 
 @Module({
   imports: [
@@ -24,7 +25,8 @@ import { IngestionModule } from "./ingestion/ingestion.module";
     ProfilesModule,
     AudienceModule,
     PlatformModule,
-    IngestionModule
+    IngestionModule,
+    AiModule
   ],
   controllers: [AppController],
   providers: [AppService],

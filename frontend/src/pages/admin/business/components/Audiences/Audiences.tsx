@@ -139,8 +139,8 @@ function Audiences() {
                   <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.ageRange}</td>
                   <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.gender}</td>
                   <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.geo}</td>
-                  <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.pains}</td>
-                  <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.desires}</td>
+                  <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.pains.join(", ")}</td>
+                  <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.desires.join(", ")}</td>
                   <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.incomeLevel}</td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex items-center gap-2 justify-end">

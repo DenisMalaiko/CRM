@@ -11,12 +11,12 @@ function Business() {
       title: "Base Data",
     },
     {
-      id: "products",
-      title: "Products",
-    },
-    {
       id: "profiles",
       title: "Profiles",
+    },
+    {
+      id: "products",
+      title: "Products",
     },
     {
       id: "audiences",
