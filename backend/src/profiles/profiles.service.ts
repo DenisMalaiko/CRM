@@ -16,7 +16,8 @@ export class ProfilesService {
       include: {
         products: { include: { product: true } },
         audiences: { include: { targetAudience: true } },
-        platforms: { include: { platform: true } }
+        platforms: { include: { platform: true } },
+        business: true
       },
     });
 
@@ -27,6 +28,7 @@ export class ProfilesService {
       profileFocus: profile.profileFocus,
       isActive: profile.isActive,
       createdAt: profile.createdAt,
+      business: profile?.business,
       products: profile.products.map(p => p.product),
       audiences: profile.audiences.map(a => a.targetAudience),
       platforms: profile.platforms.map(p => p.platform),
@@ -145,7 +147,8 @@ export class ProfilesService {
       include: {
         products: { include: { product: true } },
         audiences: { include: { targetAudience: true } },
-        platforms: { include: { platform: true } }
+        platforms: { include: { platform: true } },
+        business: true
       },
     });
 
@@ -157,6 +160,7 @@ export class ProfilesService {
         profileFocus: profile.profileFocus,
         isActive: profile.isActive,
         createdAt: profile.createdAt,
+        business: profile?.business,
         products: profile.products.map(p => p.product),
         audiences: profile.audiences.map(a => a.targetAudience),
         platforms: profile.platforms.map(p => p.platform),

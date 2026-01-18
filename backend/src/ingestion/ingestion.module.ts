@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { PLATFORM_ADAPTERS_TOKEN } from "./ingestion.tokens";
 import { PLATFORM_ADAPTERS } from "./adapters";
 import { IngestionService } from "./ingestion.service";
+import { AiModule } from "../ai/ai.module";
 
 @Module({
   providers: [
@@ -11,8 +12,13 @@ import { IngestionService } from "./ingestion.service";
       useFactory: (...adapters) => adapters,
       inject: PLATFORM_ADAPTERS,
     },
-    IngestionService
+    IngestionService,
   ],
-  exports: [IngestionService],
+  exports: [
+    IngestionService,
+  ],
+  imports: [
+    AiModule
+  ]
 })
 export class IngestionModule {}
