@@ -26,7 +26,7 @@ export class IngestionService {
       const search = await this.aiService.normalizeForFacebook(profile);
       console.log("SEARCH ", search)
 
-      const signals = await adapter.fetchTrends(profile);
+      const signals = await adapter.fetchTrends(profile, search);
       console.log("----------")
 
       //await this.trendService.saveSignals(signals);

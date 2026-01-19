@@ -4,6 +4,7 @@ export interface PlatformIngestionAdapter {
   readonly platformCode: string;
 
   fetchTrends(
-    context: IngestionContext
+    context: any,
+    search: string[]
   ): Promise<any[]>;
 }
