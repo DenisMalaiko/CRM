@@ -20,16 +20,11 @@ export class IngestionService {
       const adapter = this.adapterMap.get(platform.code);
       if (!adapter) continue;
 
-      console.log("----------")
-      console.log("INGEST PROFILE: ", profile)
-
       const search = await this.aiService.normalizeForFacebook(profile);
-      console.log("SEARCH ", search)
 
       const signals = await adapter.fetchTrends(profile, search);
-      console.log("----------")
 
-      //await this.trendService.saveSignals(signals);
+      return signals;
     }
   }
 }

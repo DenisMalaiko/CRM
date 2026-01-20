@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ChatOpenAI } from "@langchain/openai";
+import {toArray} from "rxjs";
 
 @Injectable()
 export class AiService {
@@ -16,13 +17,13 @@ export class AiService {
   async normalizeForFacebook(profile: any) {
     const prompt = this.buildPrompt(profile);
     const response = await this.model.invoke(prompt);
-    return response.content;
+    return JSON.parse(response.content);
   }
 
   private buildPrompt(profile: any): string {
     return `
       You are a Facebook Ads search expert.
-      
+    
       Business: ${profile.business.industry}
       Geo: ${profile.audiences[0]?.geo}
       
@@ -35,16 +36,29 @@ export class AiService {
       Audience expectations:
       ${profile.audiences[0]?.desires.join('\n')}
       
-      Generate 10 short Facebook Ads search phrases.
-      Rules:
-      - max 4 words
-      - service-oriented
-      - no emotional language
-      - realistic ad wording
+      Generate 10 Facebook Ads search words that would help people find your business on Facebook.
+      
+      Rules:s
+      - service-oriented wording
+      - realistic ad wording used in real ads
+      - NO emotional or promotional language
+      - each word MUST clearly relate to the business products or services listed above
+      - avoid generic phrases that could apply to any business
       - output as plain list
       
-      Do NOT use words like:
-      fast, quick, reliable, efficient, prompt, speedy, guaranteed, convenient, hassle-free
+      CRITICAL OUTPUT RULES:
+      - Output ONLY a valid JSON array of strings
+      - Do NOT include markdown
+      - Do NOT include code blocks
+      - Do NOT include explanations
+      - Do NOT include labels
+      - Do NOT include backticks
+      - The response must start with '[' and end with ']'
+      
+      Example of VALID output:
+      ["engine oil change service","car oil filter replacement"]
+      
+      Return ONLY the JSON array.
     `;
   }
 }
