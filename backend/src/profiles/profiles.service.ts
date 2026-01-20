@@ -166,7 +166,13 @@ export class ProfilesService {
         platforms: profile.platforms.map(p => p.platform),
       };
 
-      this.ingestionService.ingestProfile(mappedProfiles);
+      const posts = await this.ingestionService.ingestProfile(mappedProfiles);
+
+      return {
+        statusCode: 200,
+        message: 'Posts has been gotten!',
+        data: posts,
+      };
     }
   }
 }
