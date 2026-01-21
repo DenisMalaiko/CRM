@@ -23,10 +23,6 @@ function Business() {
       title: "Audiences",
     },
     {
-      id: "platforms",
-      title: "Platforms",
-    },
-    {
       id: "settings",
       title: "Settings",
     }

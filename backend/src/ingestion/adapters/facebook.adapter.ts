@@ -20,40 +20,52 @@ export class FacebookAdsAdapter implements PlatformIngestionAdapter {
     const geo = context.audiences[0].geo;
     const adReachedCountries = this.normalizeGeo(geo);
 
-    console.log("SEARCH ", search)
+    const allAds: any[] = [];
 
-    const params = new URLSearchParams({
-      access_token: process.env.FACEBOOK_ACCESS_TOKEN!,
-      ad_active_status: 'ACTIVE',
-      ad_type: 'ALL',
-      search_terms: search[0],
-      ad_reached_countries: adReachedCountries,
-      fields: 'id,page_name,ad_snapshot_url,ad_delivery_start_time,ad_delivery_stop_time,ad_creative_bodies,ad_creative_link_titles,ad_creative_link_descriptions,publisher_platforms',
-      limit: String(limit),
-    });
+    for (const term of search) {
+      console.log("TERM: ", term);
 
-    // search_terms: search[0],
+      const params = new URLSearchParams({
+        access_token: process.env.FACEBOOK_ACCESS_TOKEN!,
+        ad_active_status: 'ACTIVE',
+        ad_type: 'FINANCIAL_PRODUCTS_AND_SERVICES_ADS',
+        search_terms: term,
+        search_type: 'KEYWORD_EXACT_PHRASE',
+        ad_reached_countries: adReachedCountries,
+        publisher_platforms: 'FACEBOOK',
+        fields: [
+          'id',
+          'page_name',
+          'ad_snapshot_url',
+          'ad_delivery_start_time',
+          'ad_delivery_stop_time',
+          'ad_creative_bodies',
+          'ad_creative_link_titles',
+          'ad_creative_link_descriptions',
+          'publisher_platforms',
+        ].join(','),
+        limit: String(limit),
+      });
 
-    const url = `${process.env.FACEBOOK_BASE_URL}/${process.env.FACEBOOK_GRAPH_VERSION}/ads_archive?${params.toString()}`;
+      const url = `${process.env.FACEBOOK_BASE_URL}/${process.env.FACEBOOK_GRAPH_VERSION}/ads_archive?${params.toString()}`;
 
-    console.log("URL ", url)
+      const response = await fetch(url);
 
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`Facebook API error for term "${term}"`, errorText);
+        continue;
+      }
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(errorText);
+      const data = await response.json();
+
+      console.log("RESPONSE: ", data)
+
+      if (data?.data?.length) {
+        allAds.push(...data.data);
+      }
     }
 
-    const data = await response.json();
-
-    console.log('DATA:', data);
-
-    return data;
+    return allAds;
   }
 }
