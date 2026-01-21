@@ -6,5 +6,5 @@ export interface PlatformIngestionAdapter {
   fetchTrends(
     context: any,
     search: string[]
-  ): Promise<any[]>;
+  ): Promise<any>;
 }

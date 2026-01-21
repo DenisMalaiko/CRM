@@ -33,11 +33,7 @@ import Business from "./pages/admin/business/:id/Business";
 import BaseData from "./pages/admin/business/components/BaseData/BaseData";
 import Products from "./pages/admin/business/components/Products/Products"
 import Profiles from "./pages/admin/business/components/Profiles/Profiles";
-import Platforms from "./pages/admin/business/components/Platforms/Platforms";
 import Audiences from "./pages/admin/business/components/Audiences/Audiences";
-
-import Marketer from "./pages/admin/business/components/Marketer/Marketer";
-import MetaAds from "./pages/admin/business/components/MetaAds/MetaAds";
 import Settings from "./pages/admin/business/components/Settings/Settings";
 
 // AI
@@ -104,10 +100,6 @@ function App() {
             <Route path="products" element={<Products />} />
             <Route path="profiles" element={<Profiles />} />
             <Route path="audiences" element={<Audiences />} />
-            <Route path="platforms" element={<Platforms />} />
-
-            <Route path="marketer" element={<Marketer />} />
-            <Route path="metaAds" element={<MetaAds />} />
             <Route path="settings" element={<Settings />} />
           </Route>
         </Route>

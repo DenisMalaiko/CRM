@@ -20,14 +20,23 @@ export class AiService {
     return JSON.parse(response.content);
   }
 
+  async generateResultForFacebook(result) {
+    const prompt = this.buildResultPrompt(result);
+    const response = await this.model.invoke(prompt);
+    return JSON.parse(response.content);
+  }
+
   private buildPrompt(profile: any): string {
     return `
-      You are a Facebook Ads search expert.
-    
-      Business: ${profile.business.industry}
-      Geo: ${profile.audiences[0]?.geo}
+       You are a Facebook Ads copy and search expert.
       
-      Products:
+      Your task is to generate Facebook Ads search PHRASES
+      that closely match how REAL Facebook ads are written.
+      
+      Business industry:
+      ${profile.business.industry}
+      
+      Products / services:
       ${profile.products.map(p => `- ${p.name}`).join('\n')}
       
       Audience problems:
@@ -36,29 +45,97 @@ export class AiService {
       Audience expectations:
       ${profile.audiences[0]?.desires.join('\n')}
       
-      Generate 10 Facebook Ads search words that would help people find your business on Facebook.
-      
-      Rules:s
-      - service-oriented wording
-      - realistic ad wording used in real ads
-      - NO emotional or promotional language
-      - each word MUST clearly relate to the business products or services listed above
-      - avoid generic phrases that could apply to any business
-      - output as plain list
+      INSTRUCTIONS:
+      - Generate between 50 and 100 search phrases
+      - EACH phrase MUST be between 15 and 45 characters long
+      - Phrases MUST look like real Facebook ad headlines or short ad text
+      - Focus on SERVICE intent, not product catalog wording
+      - Use simple, common words used by real advertisers
+      - Prefer short combinations like:
+        - service + object
+        - repair + object
+        - maintenance + object
+      - Avoid long sentences
+      - Avoid descriptive or explanatory language
+      - Avoid emotional or promotional words
+      - Avoid prices, discounts, free offers
+      - Avoid geo names
       
       CRITICAL OUTPUT RULES:
       - Output ONLY a valid JSON array of strings
       - Do NOT include markdown
-      - Do NOT include code blocks
       - Do NOT include explanations
       - Do NOT include labels
       - Do NOT include backticks
       - The response must start with '[' and end with ']'
+      - No duplicates or near-duplicates
+      - Each string must be under 45 characters
       
       Example of VALID output:
-      ["engine oil change service","car oil filter replacement"]
+      [
+        "oil change service",
+        "car maintenance service",
+        "engine oil replacement",
+        "vehicle inspection service"
+      ]
       
       Return ONLY the JSON array.
     `;
+  }
+
+  private buildResultPrompt(result: any) {
+    return `
+      You are a Facebook Ads copywriter.
+
+      Your task is to generate READY-TO-PUBLISH Facebook ad creatives.
+      
+      Business industry:
+      ${result.industry}
+      
+      Campaign focus:
+      ${result.profile_focus}
+      
+      Business services:
+      ${result.products}
+      
+      Audience priorities:
+      ${result.goals}
+      
+      Reference Facebook ads copy (for style and wording only):
+      ${result.facebookAds}
+      
+      INSTRUCTIONS:
+      - Generate 3 Facebook ad creatives
+      - Ads must be ready for immediate use
+      - Do NOT copy competitor ads directly
+      - Use similar wording style and tone as the reference ads
+      - Focus on services, not physical products
+      - Emphasize audience priorities when relevant
+      - Keep language simple and realistic, like real Facebook ads
+      
+      CONTENT RULES:
+      - No prices
+      - No discounts
+      - No coupons
+      - No emojis
+      - No hashtags
+      - No URLs
+      - No brand names from competitors
+      
+      FORMAT RULES:
+      - Headline: max 30 characters
+      - Primary text: max 120 characters
+      - CTA: must match the campaign focus
+      
+      Return ONLY a valid JSON array in this format:
+      
+      [
+        {
+          "headline": "",
+          "primary_text": "",
+          "cta": ""
+        }
+      ]
+    `
   }
 }

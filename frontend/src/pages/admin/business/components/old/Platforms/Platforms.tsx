@@ -3,20 +3,20 @@ import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import CreatePlatformDlg from "./createPlatformDlg/CreatePlatformDlg";
 
-import { useAppDispatch } from "../../../../../store/hooks";
-import { ApiResponse } from "../../../../../models/ApiResponse";
-import { TPlatform } from "../../../../../models/Platform";
-import { showError } from "../../../../../utils/showError";
+import { useAppDispatch } from "../../../../../../store/hooks";
+import { ApiResponse } from "../../../../../../models/ApiResponse";
+import { TPlatform } from "../../../../../../models/Platform";
+import { showError } from "../../../../../../utils/showError";
 
 import {
   useGetPlatformsMutation,
   useDeletePlatformMutation
-} from "../../../../../store/platform/platformApi";
-import { setPlatforms } from "../../../../../store/platform/platformSlice";
+} from "../../../../../../store/platform/platformApi";
+import { setPlatforms } from "../../../../../../store/platform/platformSlice";
 
-import { confirm } from "../../../../../components/confirmDlg/ConfirmDlg";
+import { confirm } from "../../../../../../components/confirmDlg/ConfirmDlg";
 import { toast } from "react-toastify";
-import CreateAudienceDlg from "../Audiences/createAudienceDlg/CreateAudienceDlg";
+import CreateAudienceDlg from "../../Audiences/createAudienceDlg/CreateAudienceDlg";
 
 function Platforms() {
   const dispatch = useAppDispatch();

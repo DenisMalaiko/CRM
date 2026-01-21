@@ -235,26 +235,6 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
             />
           </div>
 
-          <div>
-            <div className="flex items-center gap-2 justify-between">
-              <label className="block text-sm font-medium text-slate-700 text-left">Platforms</label>
-            </div>
-
-            <Select
-              isMulti
-              options={platformsOptions}
-              value={platformsOptions.filter((option: any) =>
-                form.platformsIds.includes(option.value)
-              )}
-              onChange={(selected) =>
-                setForm(prev => ({
-                  ...prev,
-                  platformsIds: selected.map(option => option.value),
-                }))
-              }
-            />
-          </div>
-
           <label className="flex items-start gap-3 cursor-pointer select-none">
             <input
               name="isActive"

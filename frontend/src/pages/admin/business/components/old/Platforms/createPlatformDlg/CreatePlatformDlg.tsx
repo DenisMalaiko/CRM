@@ -1,20 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { showError } from "../../../../../../utils/showError";
-import { minLength } from "../../../../../../utils/validations";
-import { Platforms } from "../../../../../../enum/Platforms";
+import { showError } from "../../../../../../../utils/showError";
+import { minLength } from "../../../../../../../utils/validations";
+import { Platforms } from "../../../../../../../enum/Platforms";
 
 import {
   useCreatePlatformMutation,
   useUpdatePlatformMutation,
   useGetPlatformsMutation
-} from "../../../../../../store/platform/platformApi";
+} from "../../../../../../../store/platform/platformApi";
 
-import { setPlatforms } from "../../../../../../store/platform/platformSlice";
+import { setPlatforms } from "../../../../../../../store/platform/platformSlice";
 
-import { useAppDispatch } from "../../../../../../store/hooks";
-import { ApiResponse } from "../../../../../../models/ApiResponse";
-import { TPlatform } from "../../../../../../models/Platform";
+import { useAppDispatch } from "../../../../../../../store/hooks";
+import { ApiResponse } from "../../../../../../../models/ApiResponse";
+import { TPlatform } from "../../../../../../../models/Platform";
 import { toast } from "react-toastify";
 
 function CreatePlatformDlg({ open, onClose, platform }: any) {
