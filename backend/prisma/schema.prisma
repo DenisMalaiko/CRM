@@ -153,10 +153,9 @@ model Product {
     embedding      Unsupported("vector(1536)")?
 
     profiles       BusinessProfileProduct[]
-
+    aiArtifacts    AIArtifactProduct[]
 
     business       Business @relation(fields: [businessId], references: [id])
-    aiArtifacts    AIArtifact[]
 }
 
 model TargetAudience {
@@ -214,18 +213,21 @@ model Trend {
 model AIArtifact {
     id               String   @id @default(uuid())
     type             AIArtifactType
+    businessId        String
     businessProfileId String
-    productId        String?
+
     trendId          String?
-    inputHash        String
     outputJson       Json
     score            Float?
     status           AIArtifactStatus
     createdAt        DateTime @default(now())
 
+    products         AIArtifactProduct[]
+
     businessProfile BusinessProfile @relation(fields: [businessProfileId], references: [id])
-    product         Product?        @relation(fields: [productId], references: [id])
     trend           Trend?          @relation(fields: [trendId], references: [id])
+
+    @@index([businessId])
 }
 
 model Tag {
@@ -252,6 +254,15 @@ model PromptTemplate {
 
 
 
+
+model AIArtifactProduct {
+  aiArtifactId String
+  productId    String
+
+  aiArtifact AIArtifact @relation(fields: [aiArtifactId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  @@id([aiArtifactId, productId])
+}
 
 
 model BusinessProfileProduct {
