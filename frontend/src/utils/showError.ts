@@ -1,5 +1,5 @@
 import { toast } from "react-toastify";
-import { MiniTranslate } from "../enum/miniTranslate";
+import { MiniTranslate } from "../enum/MiniTranslate";
 import { isDtoError, isConflictException } from "./handleError";
 
 export const showError = (error: unknown) => {

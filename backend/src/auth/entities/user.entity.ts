@@ -1,6 +1,6 @@
 import { TBaseModel } from "../../entities/BaseEntity";
 import { TAgencyCreate } from "../../agency/entities/agency.entity";
-import { UserRole, UserStatus } from "generated/prisma";
+import { UserRole, UserStatus } from "@prisma/client";
 
 export type TUser = TBaseModel & {
   name: string;

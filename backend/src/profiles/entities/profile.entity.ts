@@ -14,7 +14,7 @@ export type TProfile = TProfileBase & {
   id: string;
   createdAt: Date;
   products: TProduct[];
-  platforms: TPlatform[];
+/*  platforms: TPlatform[];*/
   audiences: TAudience[];
   business?: TBusiness;
 }
@@ -22,5 +22,5 @@ export type TProfile = TProfileBase & {
 export type TProfileCreate = TProfileBase & {
   productsIds: string[];
   audiencesIds: string[];
-  platformsIds: string[];
+/*  platformsIds: string[];*/
 };

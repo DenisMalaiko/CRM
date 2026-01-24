@@ -1,4 +1,4 @@
-import { ProductType, PriceSegment } from "generated/prisma";
+import { ProductType, PriceSegment } from "@prisma/client"
 
 export type TProduct = {
   id: string;

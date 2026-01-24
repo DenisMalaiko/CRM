@@ -16,11 +16,11 @@ export type TBusinessProfile = TBusinessProfileBase & {
   products: TProduct[];
   platforms: TPlatform[];
   audiences: TAudience[];
-  business?: TBusiness;
+  /*business?: TBusiness;*/
 };
 
 export type TBusinessProfileCreate = TBusinessProfileBase & {
   productsIds: string[];
-  platformsIds: string[];
+  /*platformsIds: string[];*/
   audiencesIds: string[];
 };

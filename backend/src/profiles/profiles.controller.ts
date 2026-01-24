@@ -11,8 +11,8 @@ export class ProfilesController {
 
   @UseGuards(JwtAuthGuard)
   @Get("/:id")
-  async getProfiles(@Param() params: any, @Res() res: any) {
-    const businessId = params.id;
+  async getProfiles(@Param("id") id: string, @Res() res: any) {
+    const businessId = id;
     if(!businessId) return res.json([]);
     const response = await this.profilesService.getProfiles(businessId);
     return res.json(response);
@@ -20,7 +20,7 @@ export class ProfilesController {
 
   @UseGuards(JwtAuthGuard)
   @Post("/create")
-  async createProfile(@Body() body: ProfileDto, @Res() res: any) {
+  async createProfile(@Body() body: any, @Res() res: any) {
     const response = await this.profilesService.createProfile(body);
     return res.json(response);
   }

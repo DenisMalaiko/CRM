@@ -1,4 +1,4 @@
-import { Plan } from "generated/prisma";
+import { Plan } from "@prisma/client"
 import { TUser } from "../../auth/entities/user.entity";
 import { TBusiness } from "../../business/entities/business.entity";
 

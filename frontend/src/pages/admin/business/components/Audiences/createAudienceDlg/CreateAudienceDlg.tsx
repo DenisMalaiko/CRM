@@ -8,7 +8,7 @@ import { showError } from "../../../../../../utils/showError";
 import {isRequired, minLength} from "../../../../../../utils/validations";
 import Tooltip from "../../../../../../components/tooltip/Tooltip";
 
-import { MiniTranslate } from "../../../../../../enum/miniTranslate";
+import { MiniTranslate } from "../../../../../../enum/MiniTranslate";
 
 import {
   useCreateAudienceMutation,

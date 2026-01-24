@@ -32,6 +32,7 @@ import Businesses from "./pages/admin/business/Businesses";
 import Business from "./pages/admin/business/:id/Business";
 import BaseData from "./pages/admin/business/components/BaseData/BaseData";
 import Products from "./pages/admin/business/components/Products/Products"
+import Platforms from "./pages/admin/business/components/old/Platforms/Platforms"
 import Profiles from "./pages/admin/business/components/Profiles/Profiles";
 import Audiences from "./pages/admin/business/components/Audiences/Audiences";
 import Settings from "./pages/admin/business/components/Settings/Settings";
@@ -99,6 +100,7 @@ function App() {
             <Route path="baseData" element={<BaseData />} />
             <Route path="products" element={<Products />} />
             <Route path="profiles" element={<Profiles />} />
+            <Route path="platforms" element={<Platforms />} />
             <Route path="audiences" element={<Audiences />} />
             <Route path="settings" element={<Settings />} />
           </Route>

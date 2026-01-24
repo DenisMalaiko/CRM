@@ -1,6 +1,6 @@
 import { TBaseModel } from "../../entities/BaseEntity";
 import { TAgency } from "../../agency/entities/agency.entity";
-import { BusinessStatus } from "generated/prisma";
+import { BusinessStatus } from "@prisma/client";
 
 export type TBusiness = TBaseModel & {
   name: string;

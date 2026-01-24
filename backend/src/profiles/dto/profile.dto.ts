@@ -21,8 +21,9 @@ export class ProfileDto {
   @IsArray()
   audiencesIds: string[];
 
+/*  @IsOptional()
   @IsArray()
-  platformsIds: string[];
+  platformsIds: string[];*/
 
   @IsBoolean()
   isActive: boolean;

@@ -1,13 +1,13 @@
 import { ConflictException, Injectable, InternalServerErrorException, NotFoundException} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { IngestionService } from '../ingestion/ingestion.service';
+import { AiService } from "../ai/ai.service";
 import { TProfile, TProfileCreate } from "./entities/profile.entity";
 
 @Injectable()
 export class ProfilesService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly ingestionService: IngestionService
+    private readonly aiService: AiService
   ) {}
 
   async getProfiles(businessId: string): Promise<ApiResponse<TProfile[]>> {
@@ -16,7 +16,6 @@ export class ProfilesService {
       include: {
         products: { include: { product: true } },
         audiences: { include: { targetAudience: true } },
-        platforms: { include: { platform: true } },
         business: true
       },
     });
@@ -31,7 +30,6 @@ export class ProfilesService {
       business: profile?.business,
       products: profile.products.map(p => p.product),
       audiences: profile.audiences.map(a => a.targetAudience),
-      platforms: profile.platforms.map(p => p.platform),
     }));
 
     return {
@@ -45,7 +43,6 @@ export class ProfilesService {
     const {
       productsIds,
       audiencesIds,
-      platformsIds,
       ...profileData
     } = body;
 
@@ -63,14 +60,6 @@ export class ProfilesService {
           createMany: {
             data: audiencesIds.map(targetAudienceId => ({
               targetAudienceId,
-            })),
-          },
-        },
-        platforms: {
-          createMany: {
-            data: platformsIds.map(platformId => ({
-              platformId,
-              priority: 0
             })),
           },
         },
@@ -147,13 +136,12 @@ export class ProfilesService {
       include: {
         products: { include: { product: true } },
         audiences: { include: { targetAudience: true } },
-        platforms: { include: { platform: true } },
         business: true
       },
     });
 
     if(profile) {
-      const mappedProfiles: TProfile = {
+      const mappedProfile: TProfile = {
         id: profile.id,
         businessId: profile.businessId,
         name: profile.name,
@@ -163,10 +151,9 @@ export class ProfilesService {
         business: profile?.business,
         products: profile.products.map(p => p.product),
         audiences: profile.audiences.map(a => a.targetAudience),
-        platforms: profile.platforms.map(p => p.platform),
       };
 
-      const posts = await this.ingestionService.ingestProfile(mappedProfiles);
+      const posts = await this.aiService.generatePostsBasedOnBusinessProfile(mappedProfile);
 
       return {
         statusCode: 200,

@@ -8,7 +8,7 @@ import { showError } from "../../../../../../utils/showError";
 import { isRequired, minLength } from "../../../../../../utils/validations";
 import Tooltip from "../../../../../../components/tooltip/Tooltip";
 
-import { MiniTranslate } from "../../../../../../enum/miniTranslate";
+import { MiniTranslate } from "../../../../../../enum/MiniTranslate";
 
 import {
   useCreateProfileMutation,
@@ -47,7 +47,6 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
     profileFocus: "",
     productsIds: [] as string[],
     audiencesIds: [] as string[],
-    platformsIds: [] as string[],
     isActive: true,
     businessId: businessId ?? "",
   });
@@ -60,7 +59,6 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
         profileFocus: profile.profileFocus,
         productsIds: profile.products.map((x: TProduct) => x.id) ?? [],
         audiencesIds: profile.audiences.map((x: TAudience) => x.id) ?? [],
-        platformsIds: profile.platforms.map((x: TPlatform) => x.id) ?? [],
         isActive: profile.isActive,
         businessId: profile.businessId ?? "",
       })
@@ -68,9 +66,8 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
       setForm({
         name: "",
         profileFocus: "",
-        productsIds: [""],
-        audiencesIds: [""],
-        platformsIds: [""],
+        productsIds: [],
+        audiencesIds: [],
         isActive: true,
         businessId: businessId ?? "",
       })
@@ -124,6 +121,7 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
         console.log("UPDATE PROFILE:")
         await updateProfile({ id: profile!.id, form })
       } else {
+        console.log("CREATE PROFILE: ", form);
         await createProfile(form);
       }
 

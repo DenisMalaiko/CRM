@@ -11,7 +11,7 @@ import { AppDispatch } from "../../../store";
 import { isEmail, isPassword, isRepeatPassword, isSecret, minLength } from "../../../utils/validations";
 import { ApiResponse } from "../../../models/ApiResponse";
 import { TUser } from "../../../models/User";
-import { MiniTranslate } from "../../../enum/miniTranslate";
+import { MiniTranslate } from "../../../enum/MiniTranslate";
 import { UserRole } from "../../../enum/UserRole";
 import { UserStatus } from "../../../enum/UserStatus";
 import {TAdmin} from "../../../models/Admin";
