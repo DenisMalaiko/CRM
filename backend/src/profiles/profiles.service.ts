@@ -2,6 +2,9 @@ import { ConflictException, Injectable, InternalServerErrorException, NotFoundEx
 import { PrismaService } from '../prisma/prisma.service';
 import { AiService } from "../ai/ai.service";
 import { TProfile, TProfileCreate } from "./entities/profile.entity";
+import { AIArtifactType, AIArtifactStatus } from "@prisma/client";
+import {AiPost} from "../ai/entities/aiPost.entity";
+import {AIArtifactBase} from "../aiArtifact/entities/aiArtifact.entity";
 
 @Injectable()
 export class ProfilesService {
@@ -153,12 +156,44 @@ export class ProfilesService {
         audiences: profile.audiences.map(a => a.targetAudience),
       };
 
-      const posts = await this.aiService.generatePostsBasedOnBusinessProfile(mappedProfile);
+      const posts: AiPost[] = await this.aiService.generatePostsBasedOnBusinessProfile(mappedProfile);
+
+      console.log("AFTER GENERATING")
+      console.log("POSTS: ", posts)
+      console.log("-------------")
+
+      const createdArtifacts: AIArtifactBase[] = [];
+
+      for (const post of posts) {
+        const artifact: AIArtifactBase = await this.prisma.aIArtifact.create({
+          data: {
+            businessId: profile.businessId,
+            businessProfileId: profile.id,
+            type: AIArtifactType.Post,
+            outputJson: post,
+            status: AIArtifactStatus.Draft,
+            products: {
+              create: profile.products.map(p => ({
+                productId: p.product.id,
+              })),
+            },
+          },
+          include: {
+            products: {
+              include: {
+                product: true,
+              },
+            },
+          }
+        });
+
+        createdArtifacts.push(artifact);
+      }
 
       return {
         statusCode: 200,
         message: 'Posts has been gotten!',
-        data: posts,
+        data: createdArtifacts,
       };
     }
   }

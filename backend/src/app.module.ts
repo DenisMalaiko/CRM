@@ -13,6 +13,7 @@ import { AudienceModule } from "./audience/audience.module";
 import { PlatformModule } from "./plaform/platform.module";
 import { IngestionModule } from "./ingestion/ingestion.module";
 import { AiModule } from "./ai/ai.module";
+import { AIArtifactModule } from "./aiArtifact/aiArtifact.module";
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { AiModule } from "./ai/ai.module";
     AudienceModule,
     PlatformModule,
     IngestionModule,
+    AIArtifactModule,
     AiModule
   ],
   controllers: [AppController],
