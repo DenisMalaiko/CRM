@@ -8,6 +8,7 @@ import managerModule from "./ai/manager/managerSlice";
 import profileModule from "./profile/profileSlice";
 import audienceModule from "./audience/audienceSlice";
 import platformModule from "./platform/platformSlice";
+import artifactModule from "./artifact/artifactSlice"
 import { api } from './api/api'
 
 export const store = configureStore({
@@ -21,6 +22,7 @@ export const store = configureStore({
     profileModule: profileModule,
     audienceModule: audienceModule,
     platformModule: platformModule,
+    artifactModule: artifactModule,
     [api.reducerPath]: api.reducer,
   },
   middleware: (getDefaultMiddleware: any) => getDefaultMiddleware().concat(api.middleware),
