@@ -129,7 +129,7 @@ function Businesses() {
 
             <tbody className="divide-y divide-slate-100">
             {businesses && businesses.map((item: TBusiness) => (
-              <tr key={item.id} className="hover:bg-slate-50 bg-slate-50">
+              <tr key={item.id} onClick={() => openClient(item?.id)} className="bg-white hover:bg-slate-50 cursor-pointer transition-colors">
                 <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.name}</td>
                 <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.website}</td>
                 <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.industry}</td>
@@ -144,13 +144,17 @@ function Businesses() {
                 </td>
                 <td className="px-4 py-3 text-right">
                   <div className="flex items-center gap-2 justify-end">
-                    <button onClick={() => openClient(item?.id)} className="h-8 w-8 flex items-center justify-center rounded-lg border  text-slate-600 hover:bg-slate-50">
-                      <Eye className="w-3 h-3" />
-                    </button>
-                    <button onClick={() => openEditBusiness(item)} className="h-8 w-8 flex items-center justify-center rounded-lg border  text-slate-600 hover:bg-slate-50">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        openEditBusiness(item)
+                      }} className="h-8 w-8 flex items-center justify-center rounded-lg border  text-slate-600 hover:bg-slate-50">
                       ✎
                     </button>
-                    <button onClick={(e) => openConfirmDlg(e, item)} className="h-8 w-8 flex items-center justify-center rounded-lg border text-rose-600 hover:bg-rose-50">
+                    <button onClick={(e) => {
+                        e.stopPropagation()
+                        openConfirmDlg(e, item)
+                    }} className="h-8 w-8 flex items-center justify-center rounded-lg border text-rose-600 hover:bg-rose-50">
                       🗑
                     </button>
                   </div>

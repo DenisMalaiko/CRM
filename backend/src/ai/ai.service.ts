@@ -1,6 +1,5 @@
-import { Injectable } from '@nestjs/common';
-import { ChatOpenAI } from "@langchain/openai";
-import {toArray} from "rxjs";
+import {Injectable} from '@nestjs/common';
+import {ChatOpenAI} from "@langchain/openai";
 import {TProfile} from "../profiles/entities/profile.entity";
 import {AiPost} from "./entities/aiPost.entity";
 
@@ -17,13 +16,9 @@ export class AiService {
   }
 
   async generatePostsBasedOnBusinessProfile(profile: TProfile): Promise<AiPost[]> {
-    console.log("-------------")
-    console.log("GENERATE POSTS FOR PROFILE: ", profile);
     const prompt = this.buildPromptForPosts(profile);
-    console.log("PROMPT: ", prompt);
     const response = await this.model.invoke(prompt);
-    console.log("RESPONSE: ", response.content);
-    return JSON.parse(response.content);
+    return JSON.parse(response.content)?.posts;
   }
 
   private buildPromptForPosts(profile) {

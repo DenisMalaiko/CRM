@@ -3,8 +3,8 @@ import { PrismaService } from '../prisma/prisma.service';
 import { AiService } from "../ai/ai.service";
 import { TProfile, TProfileCreate } from "./entities/profile.entity";
 import { AIArtifactType, AIArtifactStatus } from "@prisma/client";
-import {AiPost} from "../ai/entities/aiPost.entity";
-import {AIArtifactBase} from "../aiArtifact/entities/aiArtifact.entity";
+import { AiPost } from "../ai/entities/aiPost.entity";
+import { AIArtifactBase } from "../aiArtifact/entities/aiArtifact.entity";
 
 @Injectable()
 export class ProfilesService {
@@ -158,11 +158,9 @@ export class ProfilesService {
 
       const posts: AiPost[] = await this.aiService.generatePostsBasedOnBusinessProfile(mappedProfile);
 
-      console.log("AFTER GENERATING")
-      console.log("POSTS: ", posts)
-      console.log("-------------")
-
       const createdArtifacts: AIArtifactBase[] = [];
+
+      console.log("POSTS ", posts)
 
       for (const post of posts) {
         const artifact: AIArtifactBase = await this.prisma.aIArtifact.create({
@@ -189,6 +187,8 @@ export class ProfilesService {
 
         createdArtifacts.push(artifact);
       }
+
+      console.log("CREATED ARTIFACTS: ", createdArtifacts)
 
       return {
         statusCode: 200,

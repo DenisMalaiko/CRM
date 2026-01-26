@@ -55,7 +55,7 @@ function Profiles() {
           if(platformsResponse && platformsResponse?.data) dispatch(setPlatforms(platformsResponse.data));
         }
       } catch (error) {
-        console.error("Error fetching data:", error);
+        showError(error);
       }
     }
 
@@ -155,7 +155,7 @@ function Profiles() {
 
             <tbody className="divide-y divide-slate-100">
               {profiles && profiles.map((item: any) => (
-                <tr key={item.id} className="hover:bg-slate-50 bg-slate-50">
+                <tr key={item.id} className="bg-white hover:bg-slate-50">
                   <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.name}</td>
                   <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.profileFocus}</td>
                   <td className="px-4 py-3 font-medium text-slate-900 text-left">
@@ -169,8 +169,11 @@ function Profiles() {
                   </td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex items-center gap-2 justify-end">
-                      <button onClick={() => generateNewPosts(item)} className="h-8 w-8 flex items-center justify-center rounded-lg border  text-slate-600 hover:bg-slate-50">
-                        <RefreshCcw width="20" height="20"></RefreshCcw>
+                      <button
+                        onClick={() => generateNewPosts(item)}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700"
+                      >
+                        Create Creatives
                       </button>
 
                       <button onClick={() => openEditProfile(item)} className="h-8 w-8 flex items-center justify-center rounded-lg border  text-slate-600 hover:bg-slate-50">

@@ -134,7 +134,7 @@ function Audiences() {
 
             <tbody className="divide-y divide-slate-100">
               {audiences && audiences.map((item: any) => (
-                <tr key={item.id} className="hover:bg-slate-50 bg-slate-50">
+                <tr key={item.id} className="bg-white hover:bg-slate-50">
                   <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.name}</td>
                   <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.ageRange}</td>
                   <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.gender}</td>
