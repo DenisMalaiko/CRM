@@ -4,23 +4,31 @@ import { useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { RefreshCcw } from "lucide-react";
 
+import CreateCreativeDlg from "./createCreativeDlg/CreateCreativeDlg";
 import { useAppDispatch } from "../../../../../store/hooks";
 import { showError } from "../../../../../utils/showError";
+import { confirm } from "../../../../../components/confirmDlg/ConfirmDlg";
 import { ApiResponse } from "../../../../../models/ApiResponse";
 import { TAIArtifact } from "../../../../../models/AIArtifact";
 import { getStatusClass } from "../../../../../utils/getStatusClass";
 
-import { useGetCreativesMutation } from "../../../../../store/artifact/artifactApi";
+import { useGetCreativesMutation, useUpdateCreativeMutation, useDeleteCreativeMutation } from "../../../../../store/artifact/artifactApi";
 
 import { setCreatives } from "../../../../../store/artifact/artifactSlice";
+import {TBusinessProfile} from "../../../../../models/BusinessProfile";
 
 function Creatives() {
   const dispatch = useAppDispatch();
   const { businessId } = useParams<{ businessId: string }>();
 
   const [ getCreatives ] = useGetCreativesMutation();
+  const [ updateCreative ] = useUpdateCreativeMutation();
+  const [ deleteCreative ] = useDeleteCreativeMutation();
 
   const { creatives } = useSelector((state: any) => state.artifactModule);
+
+  const [open, setOpen] = useState(false);
+  const [selectedCreative, setSelectedCreative] = useState<any | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -41,6 +49,36 @@ function Creatives() {
   }, [dispatch]);
 
   if(!businessId) return null;
+
+  const openConfirmDlg = async (e: any, item: TAIArtifact) => {
+    e.preventDefault();
+
+    const ok = await confirm({
+      title: "Delete Artifact",
+      message: "Are you sure you want to delete this artifact?",
+    });
+
+    if(ok) {
+      try {
+        if (item?.id != null) {
+          await deleteCreative(item.id);
+          const response: any = await getCreatives(businessId).unwrap();
+
+          if(response && response?.data) {
+            dispatch(setCreatives(response.data));
+            toast.success(response.message);
+          }
+        }
+      } catch (error: any) {
+        showError(error);
+      }
+    }
+  }
+
+  const openEditCreative = async (item: TAIArtifact) => {
+    setSelectedCreative(item);
+    setOpen(true)
+  }
 
 
   return (
@@ -95,13 +133,14 @@ function Creatives() {
                   ✏️ Edit
                 </button>*/}
 
-                <button className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700">
-                  Delete
-                </button>
-
-                <button className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700">
-                  Edit
-                </button>
+                <div className="flex items-center gap-3">
+                  <button onClick={() => openEditCreative(item)} className="h-8 w-8 flex items-center justify-center rounded-lg border  text-slate-600 hover:bg-slate-50">
+                    ✎
+                  </button>
+                  <button onClick={(e) => openConfirmDlg(e, item)} className="h-8 w-8 flex items-center justify-center rounded-lg border text-rose-600 hover:bg-rose-50">
+                    🗑
+                  </button>
+                </div>
               </div>
 
               {/* Content */}
@@ -156,6 +195,14 @@ function Creatives() {
         </div>
       </div>
 
+      <CreateCreativeDlg
+        open={open}
+        onClose={() => {
+          setOpen(false);
+          setSelectedCreative(null);
+        }}
+        creative={selectedCreative}
+      ></CreateCreativeDlg>
     </section>
   )
 }
