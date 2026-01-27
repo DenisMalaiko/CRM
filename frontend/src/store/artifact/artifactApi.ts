@@ -21,11 +21,28 @@ export const artifactApi = api.injectEndpoints({
           data: result.data as ApiResponse<TAIArtifact[]>
         };
       }
-    })
+    }),
+
+    updateCreative: builder.mutation<ApiResponse<TAIArtifact>, { id: string, form: any }>({
+      query: ({ id, form }) => ({
+        url: `/ai-artifact/update/${id}`,
+        method: "PATCH",
+        body: form,
+      })
+    }),
+
+    deleteCreative: builder.mutation<ApiResponse<TAIArtifact>, string>({
+      query: (id: string) => ({
+        url: `/ai-artifact/delete/${id}`,
+        method: "DELETE",
+      })
+    }),
   }),
   overrideExisting: false,
 })
 
 export const {
-  useGetCreativesMutation
+  useGetCreativesMutation,
+  useUpdateCreativeMutation,
+  useDeleteCreativeMutation
 } = artifactApi;
