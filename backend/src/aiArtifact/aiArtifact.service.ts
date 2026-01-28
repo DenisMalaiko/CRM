@@ -10,6 +10,9 @@ export class AiArtifactService {
   async getAiArtifacts(businessId: string) {
     const artifacts = await this.prisma.aIArtifact.findMany({
       where: { businessId: businessId },
+      include: {
+        products: { include: { product: true } },
+      }
     });
 
     return {
