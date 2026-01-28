@@ -108,5 +108,4 @@ export class AiService {
       Return ONLY the JSON object. No extra text.
     `
   }
-
 }

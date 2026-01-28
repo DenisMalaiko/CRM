@@ -27,6 +27,10 @@ function Business() {
       title: "Audiences",
     },
     {
+      id: "prompts",
+      title: "Prompts",
+    },
+    {
       id: "settings",
       title: "Settings",
     }
