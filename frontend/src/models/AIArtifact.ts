@@ -10,4 +10,7 @@ export type TAIArtifact = {
   outputJson: any,
   status: AIArtifactStatus;
   products: TProduct[] | any;
+  createdAt?: string | Date;
+  imageUrl?: string;
+  imagePrompt?: string;
 }

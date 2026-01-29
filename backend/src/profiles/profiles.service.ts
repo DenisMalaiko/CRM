@@ -19,6 +19,7 @@ export class ProfilesService {
       include: {
         products: { include: { product: true } },
         audiences: { include: { targetAudience: true } },
+        prompts: { include: { prompt: true } },
         business: true
       },
     });
@@ -33,6 +34,7 @@ export class ProfilesService {
       business: profile?.business,
       products: profile.products.map(p => p.product),
       audiences: profile.audiences.map(a => a.targetAudience),
+      prompts: profile.prompts.map(p => p.prompt),
     }));
 
     return {
@@ -46,6 +48,7 @@ export class ProfilesService {
     const {
       productsIds,
       audiencesIds,
+      promptsIds,
       ...profileData
     } = body;
 
@@ -63,6 +66,13 @@ export class ProfilesService {
           createMany: {
             data: audiencesIds.map(targetAudienceId => ({
               targetAudienceId,
+            })),
+          },
+        },
+        prompts: {
+          createMany: {
+            data: promptsIds.map(promptId => ({
+              promptId,
             })),
           },
         },
@@ -139,6 +149,7 @@ export class ProfilesService {
       include: {
         products: { include: { product: true } },
         audiences: { include: { targetAudience: true } },
+        prompts: { include: { prompt: true } },
         business: true
       },
     });
@@ -154,13 +165,15 @@ export class ProfilesService {
         business: profile?.business,
         products: profile.products.map(p => p.product),
         audiences: profile.audiences.map(a => a.targetAudience),
+        prompts: profile.prompts.map(p => p.prompt),
       };
 
       const posts: AiPost[] = await this.aiService.generatePostsBasedOnBusinessProfile(mappedProfile);
 
-      const createdArtifacts: AIArtifactBase[] = [];
 
-      console.log("POSTS ", posts)
+      console.log("RESULT OF POSTS GENERATION: ", posts)
+
+      const createdArtifacts: AIArtifactBase[] = [];
 
       for (const post of posts) {
         const artifact: AIArtifactBase = await this.prisma.aIArtifact.create({
@@ -170,6 +183,8 @@ export class ProfilesService {
             type: AIArtifactType.Post,
             outputJson: post,
             status: AIArtifactStatus.Draft,
+            imageUrl: post.imageUrl,
+            imagePrompt: post.image_prompt,
             products: {
               create: profile.products.map(p => ({
                 productId: p.product.id,
@@ -188,7 +203,7 @@ export class ProfilesService {
         createdArtifacts.push(artifact);
       }
 
-      console.log("CREATED ARTIFACTS: ", createdArtifacts)
+      console.log("SUCCESSFULLY GENERATED POSTS!")
 
       return {
         statusCode: 200,

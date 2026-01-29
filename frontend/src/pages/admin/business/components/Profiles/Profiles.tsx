@@ -18,11 +18,13 @@ import { useGetProfilesMutation, useDeleteProfileMutation, useGeneratePostsMutat
 import { useGetProductsMutation } from "../../../../../store/products/productsApi";
 import { useGetAudiencesMutation } from "../../../../../store/audience/audienceApi";
 import { useGetPlatformsMutation } from "../../../../../store/platform/platformApi";
+import { useGetPromptsMutation } from "../../../../../store/prompts/promptApi";
 
 import { setProfiles } from "../../../../../store/profile/profileSlice";
 import { setProducts } from "../../../../../store/products/productsSlice";
 import { setAudiences } from "../../../../../store/audience/audienceSlice";
 import { setPlatforms } from "../../../../../store/platform/platformSlice";
+import { setPrompts } from "../../../../../store/prompts/promptSlice";
 
 function Profiles() {
   const dispatch = useAppDispatch();
@@ -34,6 +36,7 @@ function Profiles() {
   const [ getAudiences ] = useGetAudiencesMutation();
   const [ getPlatforms ] = useGetPlatformsMutation();
   const [ generatePosts ] = useGeneratePostsMutation();
+  const [ getPrompts ] = useGetPromptsMutation();
 
   const { profiles } = useSelector((state: any) => state.profileModule);
 
@@ -48,11 +51,13 @@ function Profiles() {
           const productsResponse: ApiResponse<TProduct[]> = await getProducts(businessId).unwrap();
           const audiencesResponse: ApiResponse<TAudience[]> = await getAudiences(businessId).unwrap();
           const platformsResponse: ApiResponse<TPlatform[]> = await getPlatforms(businessId).unwrap();
+          const promptsResponse: ApiResponse<any[]> = await getPrompts(businessId).unwrap();
 
           if(response && response?.data) dispatch(setProfiles(response.data));
           if(productsResponse && productsResponse?.data) dispatch(setProducts(productsResponse.data));
           if(audiencesResponse && audiencesResponse?.data) dispatch(setAudiences(audiencesResponse.data));
           if(platformsResponse && platformsResponse?.data) dispatch(setPlatforms(platformsResponse.data));
+          if(promptsResponse && promptsResponse?.data) dispatch(setPrompts(promptsResponse.data));
         }
       } catch (error) {
         showError(error);
@@ -102,10 +107,13 @@ function Profiles() {
   }
 
   const generateNewPosts = async (item: TBusinessProfile) => {
-    console.log("GENERATE NEW POSTS")
     try {
       const response: ApiResponse<TBusinessProfile[]> = await generatePosts(item.id).unwrap();
       console.log("RESPONSE: ", response)
+
+      if(response && response?.data) {
+        toast.success(response.message);
+      }
     } catch (error: any) {
       showError(error);
     }
@@ -154,38 +162,49 @@ function Profiles() {
             </thead>
 
             <tbody className="divide-y divide-slate-100">
-              {profiles && profiles.map((item: any) => (
-                <tr key={item.id} className="bg-white hover:bg-slate-50">
-                  <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.name}</td>
-                  <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.profileFocus}</td>
-                  <td className="px-4 py-3 font-medium text-slate-900 text-left">
-                    <span className={`
-                      inline-flex items-center rounded-full px-2.5 py-1
-                      text-xs font-medium
-                      ${item.isActive ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600"}
-                    `}>
-                      {item.isActive ? "Yes" : "No"}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <div className="flex items-center gap-2 justify-end">
-                      <button
-                        onClick={() => generateNewPosts(item)}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700"
-                      >
-                        Create Creatives
-                      </button>
-
-                      <button onClick={() => openEditProfile(item)} className="h-8 w-8 flex items-center justify-center rounded-lg border  text-slate-600 hover:bg-slate-50">
-                        ✎
-                      </button>
-                      <button onClick={(e) => openConfirmDlg(e, item)} className="h-8 w-8 flex items-center justify-center rounded-lg border text-rose-600 hover:bg-rose-50">
-                        🗑
-                      </button>
-                    </div>
+              {profiles?.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={header.length}
+                    className="py-6 text-center text-slate-400"
+                  >
+                    No data
                   </td>
                 </tr>
-              ))}
+              ) : (
+                profiles && profiles.map((item: any) => (
+                  <tr key={item.id} className="bg-white hover:bg-slate-50">
+                    <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.name}</td>
+                    <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.profileFocus}</td>
+                    <td className="px-4 py-3 font-medium text-slate-900 text-left">
+                      <span className={`
+                        inline-flex items-center rounded-full px-2.5 py-1
+                        text-xs font-medium
+                        ${item.isActive ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600"}
+                      `}>
+                        {item.isActive ? "Yes" : "No"}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <div className="flex items-center gap-2 justify-end">
+                        <button
+                          onClick={() => generateNewPosts(item)}
+                          className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700"
+                        >
+                          Create Creatives
+                        </button>
+
+                        <button onClick={() => openEditProfile(item)} className="h-8 w-8 flex items-center justify-center rounded-lg border  text-slate-600 hover:bg-slate-50">
+                          ✎
+                        </button>
+                        <button onClick={(e) => openConfirmDlg(e, item)} className="h-8 w-8 flex items-center justify-center rounded-lg border text-rose-600 hover:bg-rose-50">
+                          🗑
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

@@ -210,6 +210,10 @@ model AIArtifact {
     outputJson       Json
     score            Float?
     status           AIArtifactStatus
+
+    imageUrl         String?
+    imagePrompt      String?
+
     createdAt        DateTime @default(now())
 
     products         AIArtifactProduct[]

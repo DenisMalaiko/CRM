@@ -21,6 +21,10 @@ export class ProfileDto {
   @IsArray()
   audiencesIds: string[];
 
+  @IsArray()
+  @IsOptional()
+  promptsIds: string[];
+
 /*  @IsOptional()
   @IsArray()
   platformsIds: string[];*/

@@ -1,7 +1,6 @@
 import { api } from "../api/api"
 import {ApiResponse} from "../../models/ApiResponse";
 import {TBusinessProfile, TBusinessProfileCreate} from "../../models/BusinessProfile";
-import {TProduct, TProductCreate} from "../../models/Product";
 
 export const profileApi = api.injectEndpoints({
   endpoints: (builder) => ({
