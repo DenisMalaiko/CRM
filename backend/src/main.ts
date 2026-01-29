@@ -1,16 +1,31 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import * as cookieParser from 'cookie-parser';
+import { join } from 'path';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  app.enableShutdownHooks();
 
-  process.on('SIGINT', () => {
-    console.log('Close server...');
-    process.exit();
-  });
+  app.useStaticAssets(join(process.cwd(), 'public'));
+
+  const closeApp = async (signal: string) => {
+    console.log(`Received ${signal}. Closing...`);
+
+    try {
+      await app.close();
+    } catch (err) {
+      console.error('Error during shutdown', err);
+    } finally {
+      process.exit(0);
+    }
+  };
+
+  process.on('SIGINT', closeApp);
+  process.on('SIGTERM', closeApp);
 
   const settings = new DocumentBuilder()
     .setTitle('CRM API')

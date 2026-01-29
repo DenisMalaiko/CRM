@@ -4,18 +4,32 @@ import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
 
 import { showError } from "../../../../../../utils/showError";
-import {isRequired, minLength} from "../../../../../../utils/validations";
+import { isRequired, minLength } from "../../../../../../utils/validations";
+import { PromptPurpose } from "../../../../../../enum/PromptPurpose";
 
+
+import {
+  useCreatePromptMutation,
+  useUpdatePromptMutation,
+  useGetPromptsMutation
+} from "../../../../../../store/prompts/promptApi";
+
+import { setPrompts } from "../../../../../../store/prompts/promptSlice";
 import { useAppDispatch } from "../../../../../../store/hooks";
 import { ApiResponse } from "../../../../../../models/ApiResponse";
 import { TPrompt } from "../../../../../../models/Prompt";
-import {PromptPurpose} from "../../../../../../enum/PromptPurpose";
 
 function CreatePromptDlg({ open, onClose, prompt }: any) {
   const dispatch = useAppDispatch();
 
+  const { prompts } = useSelector((state: any) => state.promptModule);
+
   const isEdit = !!prompt;
   const { businessId } = useParams<{ businessId: string }>();
+
+  const [createPrompt, { isLoading, isSuccess }] = useCreatePromptMutation();
+  const [updatePrompt] = useUpdatePromptMutation();
+  const [getPrompts] = useGetPromptsMutation();
 
   const promptPurposesOptions = Object.values(PromptPurpose);
 
@@ -93,9 +107,17 @@ function CreatePromptDlg({ open, onClose, prompt }: any) {
 
     try {
       if (isEdit) {
-        console.log("UPDATE PROMPT")
+        await updatePrompt({ id: prompt!.id, form });
       } else {
-        console.log("CREATE PROMPT")
+        await createPrompt(form);
+      }
+
+      const response: ApiResponse<TPrompt[]> = await getPrompts(businessId).unwrap();
+
+      if(response && response?.data) {
+        dispatch(setPrompts(response.data));
+        toast.success(response.message);
+        onClose();
       }
     } catch (error) {
       showError(error);
@@ -107,7 +129,7 @@ function CreatePromptDlg({ open, onClose, prompt }: any) {
       <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl p-6">
 
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">Create Profile</h2>
+          <h2 className="text-lg font-semibold">Create Prompt</h2>
           <button
             onClick={onClose}
             className="text-slate-500 hover:text-slate-700 rounded-full p-1 hover:bg-slate-100"

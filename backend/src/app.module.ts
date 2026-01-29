@@ -14,6 +14,7 @@ import { PlatformModule } from "./plaform/platform.module";
 import { IngestionModule } from "./ingestion/ingestion.module";
 import { AiModule } from "./ai/ai.module";
 import { AIArtifactModule } from "./aiArtifact/aiArtifact.module";
+import { PromptModule } from './prompt/prompt.module';
 
 @Module({
   imports: [
@@ -28,7 +29,8 @@ import { AIArtifactModule } from "./aiArtifact/aiArtifact.module";
     PlatformModule,
     IngestionModule,
     AIArtifactModule,
-    AiModule
+    AiModule,
+    PromptModule
   ],
   controllers: [AppController],
   providers: [AppService],

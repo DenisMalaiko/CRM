@@ -8,15 +8,36 @@ import { useAppDispatch } from "../../../../../store/hooks";
 import { showError } from "../../../../../utils/showError";
 import { confirm } from "../../../../../components/confirmDlg/ConfirmDlg";
 import { ApiResponse } from "../../../../../models/ApiResponse";
-
 import { TPrompt } from "../../../../../models/Prompt";
+
+import { useGetPromptsMutation, useDeletePromptMutation } from "../../../../../store/prompts/promptApi";
+
+import { setPrompts } from "../../../../../store/prompts/promptSlice";
 
 function Prompts() {
   const dispatch = useAppDispatch();
   const { businessId } = useParams<{ businessId: string }>();
 
+  const [ getPrompts ] = useGetPromptsMutation();
+  const [ deletePrompt ] = useDeletePromptMutation();
+
+  const { prompts } = useSelector((state: any) => state.promptModule);
+
   const [open, setOpen] = useState(false);
   const [selectedPrompt, setSelectedPrompt] = useState<TPrompt | null>(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        if (businessId) {
+        }
+      } catch (error) {
+        showError(error);
+      }
+    }
+
+    fetchData();
+  }, [dispatch]);
 
   if(!businessId) return null;
 
@@ -27,6 +48,36 @@ function Prompts() {
     { name: "Active", key: "isActive" },
     { name: "Actions", key: "actions"}
   ];
+
+  const openConfirmDlg = async (e: any, item: TPrompt) => {
+    e.preventDefault();
+
+    const ok = await confirm({
+      title: "Delete Prompt",
+      message: "Are you sure you want to delete this prompt?",
+    });
+
+    if(ok) {
+      try {
+        if (item?.id != null) {
+          await deletePrompt(item.id);
+          const response: ApiResponse<TPrompt[]> = await getPrompts(businessId).unwrap();
+
+          if(response && response?.data) {
+            dispatch(setPrompts(response.data));
+            toast.success(response.message);
+          }
+        }
+      } catch (error: any) {
+        showError(error);
+      }
+    }
+  }
+
+  const openEditPrompt = async (item: TPrompt) => {
+    setSelectedPrompt(item);
+    setOpen(true)
+  }
 
   return (
     <section>
@@ -47,7 +98,7 @@ function Prompts() {
               setOpen(false);
               setSelectedPrompt(null);
             }}
-            profile={selectedPrompt}
+            prompt={selectedPrompt}
           ></CreatePromptDlg>
         </div>
       </section>
@@ -69,6 +120,46 @@ function Prompts() {
                 ))}
               </tr>
             </thead>
+
+            <tbody className="divide-y divide-slate-100">
+              {prompts?.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={header.length}
+                    className="py-6 text-center text-slate-400"
+                  >
+                    No data
+                  </td>
+                </tr>
+              ) : (
+                prompts.map((item: TPrompt) => (
+                  <tr key={item.id} className="bg-white hover:bg-slate-50">
+                    <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.name}</td>
+                    <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.purpose}</td>
+                    <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.text}</td>
+                    <td className="px-4 py-3 font-medium text-slate-900 text-left">
+                    <span className={`
+                      inline-flex items-center rounded-full px-2.5 py-1
+                      text-xs font-medium
+                      ${item.isActive ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600"}
+                    `}>
+                      {item.isActive ? "Yes" : "No"}
+                    </span>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <div className="flex items-center gap-2 justify-end">
+                        <button onClick={() => openEditPrompt(item)} className="h-8 w-8 flex items-center justify-center rounded-lg border  text-slate-600 hover:bg-slate-50">
+                          ✎
+                        </button>
+                        <button onClick={(e) => openConfirmDlg(e, item)} className="h-8 w-8 flex items-center justify-center rounded-lg border text-rose-600 hover:bg-rose-50">
+                          🗑
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
           </table>
         </div>
       </div>

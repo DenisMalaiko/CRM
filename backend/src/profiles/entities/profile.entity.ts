@@ -2,6 +2,7 @@ import { TProduct } from "../../products/entities/product.entity";
 import { TPlatform } from "../../plaform/entity/platform.entity";
 import { TAudience } from "../../audience/entity/audience.entity";
 import { TBusiness } from "../../business/entities/business.entity";
+import { TPrompt } from "../../prompt/entities/prompt.entity";
 
 type TProfileBase = {
   businessId: string;
@@ -16,11 +17,13 @@ export type TProfile = TProfileBase & {
   products: TProduct[];
 /*  platforms: TPlatform[];*/
   audiences: TAudience[];
+  prompts: TPrompt[];
   business?: TBusiness;
 }
 
 export type TProfileCreate = TProfileBase & {
   productsIds: string[];
   audiencesIds: string[];
+  promptsIds: string[];
 /*  platformsIds: string[];*/
 };

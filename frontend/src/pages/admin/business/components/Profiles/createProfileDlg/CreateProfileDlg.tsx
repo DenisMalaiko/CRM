@@ -18,9 +18,9 @@ import { setProfiles } from "../../../../../../store/profile/profileSlice";
 import { useAppDispatch } from "../../../../../../store/hooks";
 import { ApiResponse } from "../../../../../../models/ApiResponse";
 import { TBusinessProfile } from "../../../../../../models/BusinessProfile";
-import {TProduct} from "../../../../../../models/Product";
-import {TAudience} from "../../../../../../models/Audience";
-import {TPlatform} from "../../../../../../models/Platform";
+import { TProduct } from "../../../../../../models/Product";
+import { TAudience } from "../../../../../../models/Audience";
+import { TPrompt } from "../../../../../../models/Prompt";
 
 function CreateProfileDlg({ open, onClose, profile }: any) {
   const dispatch = useAppDispatch();
@@ -28,10 +28,10 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
   const { products } = useSelector((state: any) => state.productsModule);
   const { audiences } = useSelector((state: any) => state.audienceModule);
   const { platforms } = useSelector((state: any) => state.platformModule);
+  const { prompts } = useSelector((state: any) => state.promptModule);
 
   const isEdit = !!profile;
   const { businessId } = useParams<{ businessId: string }>();
-
   const [createProfile, { isLoading, isSuccess }] = useCreateProfileMutation();
   const [updateProfile] = useUpdateProfileMutation();
   const [getProfiles] = useGetProfilesMutation();
@@ -39,6 +39,7 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
   const productsOptions = products?.map((product: any) => ({ value: product.id, label: product.name })) ?? [];
   const audiencesOptions = audiences?.map((audience: any) => ({ value: audience.id, label: audience.name })) ?? [];
   const platformsOptions = platforms?.map((platform: any) => ({ value: platform.id, label: platform.name })) ?? [];
+  const promptsOptions = prompts?.map((prompt: any) => ({ value: prompt.id, label: `${prompt.name} | ${prompt.purpose}` })) ?? [];
   const profileFocusOptions = Object.values(BusinessProfileFocus);
 
   const [form, setForm] = useState({
@@ -46,6 +47,7 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
     profileFocus: BusinessProfileFocus.GeneratePosts,
     productsIds: [] as string[],
     audiencesIds: [] as string[],
+    promptsIds: [] as string[],
     isActive: true,
     businessId: businessId ?? "",
   });
@@ -58,6 +60,7 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
         profileFocus: profile.profileFocus,
         productsIds: profile.products.map((x: TProduct) => x.id) ?? [],
         audiencesIds: profile.audiences.map((x: TAudience) => x.id) ?? [],
+        promptsIds: profile.prompts.map((x: TPrompt) => x.id) ?? [],
         isActive: profile.isActive,
         businessId: profile.businessId ?? "",
       })
@@ -67,6 +70,7 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
         profileFocus: BusinessProfileFocus.GeneratePosts,
         productsIds: [],
         audiencesIds: [],
+        promptsIds: [],
         isActive: true,
         businessId: businessId ?? "",
       })
@@ -195,8 +199,6 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
               <label className="block text-sm font-medium text-slate-700 text-left">Products</label>
             </div>
 
-            <p></p>
-
             <Select
               isMulti
               options={productsOptions}
@@ -227,6 +229,26 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
                 setForm(prev => ({
                   ...prev,
                   audiencesIds: selected.map(option => option.value),
+                }))
+              }
+            />
+          </div>
+
+          <div>
+            <div className="flex items-center gap-2 justify-between">
+              <label className="block text-sm font-medium text-slate-700 text-left">Prompts</label>
+            </div>
+
+            <Select
+              isMulti
+              options={promptsOptions}
+              value={promptsOptions.filter((option: any) =>
+                form.promptsIds.includes(option.value)
+              )}
+              onChange={(selected) =>
+                setForm(prev => ({
+                  ...prev,
+                  promptsIds: selected.map(option => option.value),
                 }))
               }
             />
