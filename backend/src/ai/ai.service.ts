@@ -69,14 +69,28 @@ export class AiService {
         `)
       .join('\n');
 
-    const promptsBlock = profile.prompts
-      .filter(p => p.isActive)
-      .map((p, i) => `
-        Prompt ${i + 1}:
-        - Text: ${p.text}
-      `).join('\n');
+    const buildPromptsBlock = (prompts: any[]) =>
+      prompts
+        .filter(p => p.isActive)
+        .map((p, i) => `
+          Prompt ${i + 1}:
+          - ${p.text}
+          `)
+        .join('\n');
 
-    console.log("PROMPTS BLOCK: ", promptsBlock)
+    const textPromptsBlock = buildPromptsBlock(
+      profile.prompts.filter(p => p.purpose === 'Text')
+    );
+
+    const imagePromptsBlock = buildPromptsBlock(
+      profile.prompts.filter(p => p.purpose === 'Image')
+    );
+
+    console.log("PROFILE PROMPTS ", profile.prompts)
+
+    console.log("PROMPTS BLOCK: ", textPromptsBlock)
+
+    console.log("IMAGE BLOCK: ", imagePromptsBlock)
 
     return `
       You are a senior performance marketer and creative strategist.
@@ -93,11 +107,35 @@ export class AiService {
       - Profile name: ${profile.name}
       - Profile focus: ${profile.profileFocus}
       
-      Marketing strategist instructions:
-      The following prompts were written by a professional marketer.
-      You MUST follow them strictly when generating posts.
-      If there are conflicts, prioritize these instructions over general guidelines.
-      ${promptsBlock}
+      ### TEXT GENERATION INSTRUCTIONS (CRITICAL)
+
+      The following instructions apply ONLY to:
+      - hook
+      - body
+      - cta
+      - emotional_angle
+      
+      You MUST strictly follow them when generating textual content.
+      If there is any conflict, these instructions have higher priority.
+      
+      ${textPromptsBlock}
+      
+      ### IMAGE GENERATION INSTRUCTIONS (CRITICAL)
+
+      The following instructions apply ONLY to:
+      - image_prompt
+      
+      They MUST influence visual style, mood, composition, camera, lighting, scene,
+      but MUST NOT affect the textual content.
+      
+      Image prompt generation rules (MANDATORY):
+
+      When generating "image_prompt", you MUST:
+      1. Start from the ${imagePromptsBlock} above
+      2. Explicitly incorporate their visual requirements (style, mood, lighting, composition)
+      3. Describe ONLY visual elements (no marketing text, no CTAs, no emotions as words)
+      4. Write image_prompt as if it will be sent directly to an image generation model
+      5. If image instructions exist, image_prompt MUST reflect them clearly
       
       Target audience:
       ${audienceBlock}

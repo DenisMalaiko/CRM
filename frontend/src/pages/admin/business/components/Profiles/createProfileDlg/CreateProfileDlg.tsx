@@ -119,8 +119,11 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
   const create = async (e: React.FormEvent<HTMLFormElement>) => {
     if (!validateForm(e)) return;
 
+    console.log("CREATE")
+
     try {
       if (isEdit) {
+        console.log("UPDATE FORM ", form)
         await updateProfile({ id: profile!.id, form })
       } else {
         await createProfile(form);

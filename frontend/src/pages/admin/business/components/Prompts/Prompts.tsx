@@ -30,6 +30,11 @@ function Prompts() {
     const fetchData = async () => {
       try {
         if (businessId) {
+          const response: ApiResponse<TPrompt[]> = await getPrompts(businessId).unwrap();
+
+          if(response && response?.data) {
+            dispatch(setPrompts(response.data));
+          }
         }
       } catch (error) {
         showError(error);
@@ -122,7 +127,7 @@ function Prompts() {
             </thead>
 
             <tbody className="divide-y divide-slate-100">
-              {prompts?.length === 0 ? (
+              { prompts && prompts?.length === 0 ? (
                 <tr>
                   <td
                     colSpan={header.length}
@@ -132,7 +137,7 @@ function Prompts() {
                   </td>
                 </tr>
               ) : (
-                prompts.map((item: TPrompt) => (
+                prompts && prompts?.map((item: TPrompt) => (
                   <tr key={item.id} className="bg-white hover:bg-slate-50">
                     <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.name}</td>
                     <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.purpose}</td>

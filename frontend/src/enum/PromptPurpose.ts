@@ -1,3 +1,4 @@
 export enum PromptPurpose {
-  GeneratePosts = "Generate Posts",
+  Text = "Text",
+  Image = "Image",
 }
