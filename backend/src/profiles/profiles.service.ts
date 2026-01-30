@@ -91,14 +91,61 @@ export class ProfilesService {
       throw new NotFoundException('Product ID is required');
     }
 
+    console.log("--------")
+    console.log("UPDATE PROFILE ", body)
+
     try {
+      const {
+        productsIds,
+        audiencesIds,
+        promptsIds,
+        ...profileData
+      } = body;
+
       const updated = await this.prisma.businessProfile.update({
         where: {id},
         data: {
-          name: body.name,
-          isActive: body.isActive,
-        }
+          ...profileData,
+
+          products: productsIds
+            ? {
+              deleteMany: {}, // ⬅️ КРИТИЧНО
+              createMany: {
+                data: productsIds.map(productId => ({ productId })),
+              },
+            }
+            : undefined,
+
+          audiences: audiencesIds
+            ? {
+              deleteMany: {},
+              createMany: {
+                data: audiencesIds.map(targetAudienceId => ({
+                  targetAudienceId,
+                })),
+              },
+            }
+            : undefined,
+
+          prompts: promptsIds
+            ? {
+              deleteMany: {},
+              createMany: {
+                data: promptsIds.map(promptId => ({ promptId })),
+              },
+            }
+            : undefined,
+        },
+
+        include: {
+          products: true,
+          audiences: true,
+          prompts: true,
+        },
       });
+
+      console.log("UPDATED PROFILE: ", updated)
+      console.log("--------")
 
       return {
         statusCode: 200,

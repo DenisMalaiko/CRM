@@ -54,7 +54,7 @@ function CreatePromptDlg({ open, onClose, prompt }: any) {
     } else {
       setForm({
         name: "",
-        purpose: PromptPurpose.GeneratePosts,
+        purpose: PromptPurpose.Text,
         text: "",
         isActive: true,
         businessId: businessId ?? ""

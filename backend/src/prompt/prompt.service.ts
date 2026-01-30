@@ -16,7 +16,7 @@ export class PromptService {
 
     return {
       statusCode: 200,
-      message: "Profiles has been got!",
+      message: "Prompts has been got!",
       data: prompts,
     };
   }

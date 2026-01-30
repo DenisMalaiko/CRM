@@ -3,10 +3,6 @@ import {IsOptional, IsString, IsUUID, IsArray, IsBoolean, IsDate } from "class-v
 export class ProfileDto {
   @IsUUID()
   @IsOptional()
-  id?: string;
-
-  @IsUUID()
-  @IsOptional()
   businessId: string;
 
   @IsString()
@@ -24,10 +20,6 @@ export class ProfileDto {
   @IsArray()
   @IsOptional()
   promptsIds: string[];
-
-/*  @IsOptional()
-  @IsArray()
-  platformsIds: string[];*/
 
   @IsBoolean()
   isActive: boolean;
