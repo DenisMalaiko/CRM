@@ -1,13 +1,16 @@
 import {ConflictException, Injectable, InternalServerErrorException, NotFoundException} from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { StorageUrlService } from "../shared/storage/storage-url.service";
+import {AIArtifactBase} from "./entities/aiArtifact.entity";
 
 @Injectable()
 export class AiArtifactService {
   constructor(
     private readonly prisma: PrismaService,
+    private readonly storageUrlService: StorageUrlService
   ) {}
 
-  async getAiArtifacts(businessId: string) {
+  async getAiArtifacts(businessId: string): Promise<ApiResponse<AIArtifactBase[]>> {
     const artifacts = await this.prisma.aIArtifact.findMany({
       where: { businessId: businessId },
       include: {
@@ -15,10 +18,17 @@ export class AiArtifactService {
       }
     });
 
+    const artifactsMapped: AIArtifactBase[] = artifacts.map((artifact) => {
+      return {
+        ...artifact,
+        imageUrl: artifact.imageUrl ? this.storageUrlService.getPublicUrl(artifact.imageUrl) : null,
+      }
+    })
+
     return {
       statusCode: 200,
       message: "AI Artifacts has been got!",
-      data: artifacts,
+      data: artifactsMapped,
     };
   }
 

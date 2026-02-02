@@ -15,6 +15,7 @@ import { IngestionModule } from "./ingestion/ingestion.module";
 import { AiModule } from "./ai/ai.module";
 import { AIArtifactModule } from "./aiArtifact/aiArtifact.module";
 import { PromptModule } from './prompt/prompt.module';
+import { StorageModule } from "./shared/storage/storage.module";
 
 @Module({
   imports: [
@@ -30,7 +31,8 @@ import { PromptModule } from './prompt/prompt.module';
     IngestionModule,
     AIArtifactModule,
     AiModule,
-    PromptModule
+    PromptModule,
+    StorageModule
   ],
   controllers: [AppController],
   providers: [AppService],

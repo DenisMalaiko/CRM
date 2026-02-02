@@ -262,7 +262,7 @@ function Creatives() {
                   {/* Hook */}
                   {item?.imageUrl && (
                     <img
-                      src={`http://localhost:4000${item.imageUrl}`}
+                      src={`${item.imageUrl}`}
                       alt="AI generated"
                       className="w-full rounded-xl border border-slate-200"
                     />
