@@ -21,12 +21,8 @@ export class AiService {
   async generatePostsBasedOnBusinessProfile(profile: TProfile): Promise<AiPost[]> {
     const prompt = this.buildPromptForPosts(profile);
     const response = await this.model.invoke(prompt);
-
     const rawText = this.extractTextContent(response.content);
-    console.log("RAW TEXT: ", rawText)
-
     const posts: AiPost[] = JSON.parse(rawText)?.posts ?? [];
-    console.log("POSTS READY: ", posts)
 
     for (const post of posts) {
       if (post.image_prompt) {
@@ -85,12 +81,6 @@ export class AiService {
     const imagePromptsBlock = buildPromptsBlock(
       profile.prompts.filter(p => p.purpose === 'Image')
     );
-
-    console.log("PROFILE PROMPTS ", profile.prompts)
-
-    console.log("PROMPTS BLOCK: ", textPromptsBlock)
-
-    console.log("IMAGE BLOCK: ", imagePromptsBlock)
 
     return `
       You are a senior performance marketer and creative strategist.

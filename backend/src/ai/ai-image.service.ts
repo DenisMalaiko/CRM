@@ -1,13 +1,21 @@
 import OpenAI from "openai";
 import { Injectable } from "@nestjs/common";
 import { randomUUID } from "crypto";
-import { writeFile, mkdir } from "fs/promises";
-import * as path from "path";
+
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 
 @Injectable()
 export class AiImageService {
   private readonly openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY
+  });
+
+  private readonly s3 = new S3Client({
+    region: process.env.AWS_REGION!,
+    credentials: {
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+    },
   });
 
   async generateImage(prompt: string): Promise<string> {
@@ -18,9 +26,7 @@ export class AiImageService {
       size: "1024x1024",
     });
 
-    console.log("FINISH GENERATE IMAGE")
-    console.log(result)
-    console.log("------------")
+    console.log("SUCCESSFULLY FINISHED GENERATING IMAGE")
 
     const b64 = result.data?.[0]?.b64_json;
 
@@ -35,23 +41,17 @@ export class AiImageService {
     const buffer = Buffer.from(b64, "base64");
     const fileName = `${randomUUID()}.png`;
 
-    // 👇 1. Директорія для картинок
-    const imagesDir = path.join(
-      process.cwd(),
-      "public",
-      "images"
+    const key = `ai-images/${fileName}`;
+
+    await this.s3.send(
+      new PutObjectCommand({
+        Bucket: process.env.AWS_S3_BUCKET!,
+        Key: key,
+        Body: buffer,
+        ContentType: "image/png",
+      })
     );
 
-    // 👇 2. Гарантуємо, що вона існує (ВАЖЛИВО для Docker)
-    await mkdir(imagesDir, { recursive: true });
-
-    // 👇 3. Повний шлях до файлу
-    const filePath = path.join(imagesDir, fileName);
-
-    // 👇 4. Запис файлу
-    await writeFile(filePath, buffer);
-
-    // 👇 5. Public URL (через static assets)
-    return `/images/${fileName}`;
+    return key;
   }
 }
