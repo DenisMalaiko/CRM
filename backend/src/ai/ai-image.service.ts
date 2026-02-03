@@ -18,8 +18,9 @@ export class AiImageService {
     },
   });
 
-  async generateImage(prompt: string): Promise<string> {
+  async generateImage(prompt: string, businessId: string): Promise<string> {
     console.log("GENERATE IMAGE...")
+
     const result = await this.openai.images.generate({
       model: "gpt-image-1",
       prompt,
@@ -34,14 +35,14 @@ export class AiImageService {
       throw new Error("Image generation failed");
     }
 
-    return this.saveBase64Image(b64);
+    return this.saveBase64Image(b64, businessId);
   }
 
-  async saveBase64Image(b64: string): Promise<string> {
+  async saveBase64Image(b64: string, businessId: string): Promise<string> {
     const buffer = Buffer.from(b64, "base64");
     const fileName = `${randomUUID()}.png`;
 
-    const key = `ai-images/${fileName}`;
+    const key = `ai-images/${businessId}/${fileName}`;
 
     await this.s3.send(
       new PutObjectCommand({

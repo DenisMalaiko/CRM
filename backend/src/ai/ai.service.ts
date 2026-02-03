@@ -26,7 +26,7 @@ export class AiService {
 
     for (const post of posts) {
       if (post.image_prompt) {
-        post.imageUrl = await this.aiImageService.generateImage(post.image_prompt);
+        post.imageUrl = await this.aiImageService.generateImage(post.image_prompt, profile.businessId);
       }
     }
 

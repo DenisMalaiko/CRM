@@ -91,9 +91,6 @@ export class ProfilesService {
       throw new NotFoundException('Product ID is required');
     }
 
-    console.log("--------")
-    console.log("UPDATE PROFILE ", body)
-
     try {
       const {
         productsIds,
@@ -143,9 +140,6 @@ export class ProfilesService {
           prompts: true,
         },
       });
-
-      console.log("UPDATED PROFILE: ", updated)
-      console.log("--------")
 
       return {
         statusCode: 200,
@@ -216,9 +210,6 @@ export class ProfilesService {
       };
 
       const posts: AiPost[] = await this.aiService.generatePostsBasedOnBusinessProfile(mappedProfile);
-
-
-      console.log("RESULT OF POSTS GENERATION: ", posts)
 
       const createdArtifacts: AIArtifactBase[] = [];
 

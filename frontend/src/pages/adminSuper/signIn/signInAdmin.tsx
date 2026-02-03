@@ -16,8 +16,11 @@ function SignInAdmin() {
 
   const navigate = useNavigate();
 
-  const [email, setEmail] = useState("malaiko.denis@gmail.com");
-  const [password, setPassword] = useState("Ab12345$");
+  /*const [email, setEmail] = useState("malaiko.denis@gmail.com");
+  const [password, setPassword] = useState("Ab12345$");*/
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [errors, setErrors]: any = useState({});
 
   const validateField = (name: string, data: any) => {

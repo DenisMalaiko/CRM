@@ -15,8 +15,11 @@ function SignIn() {
   const [signInUser] = useSignInUserMutation();
   const dispatch = useAppDispatch();
 
-  const [email, setEmail] = useState("malaiko.denis@gmail.com");
-  const [password, setPassword] = useState("Ab12345$");
+  /*const [email, setEmail] = useState("malaiko.denis@gmail.com");
+  const [password, setPassword] = useState("Ab12345$");*/
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [errors, setErrors]: any = useState({});
 
   const validateField = (name: string, data: any) => {
@@ -84,7 +87,7 @@ function SignIn() {
             {errors.password && <p className="text-red-500 text-sm mt-2 text-left">{errors.password}</p>}
           </div>
 
-          <div className="flex items-center justify-between text-sm">
+          {/*<div className="flex items-center justify-between text-sm">
             <label className="flex items-center space-x-2">
               <input type="checkbox" className="h-4 w-4 text-blue-600 border-gray-300 rounded" />
               <span className="text-gray-600">Remember me</span>
@@ -92,7 +95,7 @@ function SignIn() {
             <a href="#" className="text-blue-600 hover:underline">
               Forgot password?
             </a>
-          </div>
+          </div>*/}
 
           <button
             type="submit"

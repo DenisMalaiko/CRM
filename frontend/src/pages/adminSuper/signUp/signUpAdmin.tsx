@@ -21,11 +21,17 @@ function SignUpAdmin() {
 
   const dispatch = useDispatch<AppDispatch>();
   const isAdmin = true;
-  const [name, setName] = useState("Denis");
+  /*const [name, setName] = useState("Denis");
   const [email, setEmail] = useState("malaiko.denis@gmail.com");
   const [password, setPassword] = useState("Ab12345$");
   const [repeatPassword, setRepeatPassword] = useState("Ab12345$");
-  const [secret, setSecret] = useState("secret_admin_key");
+  const [secret, setSecret] = useState("secret_admin_key");*/
+
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [repeatPassword, setRepeatPassword] = useState("");
+  const [secret, setSecret] = useState("");
   const [errors, setErrors]: any = useState({});
 
   const validateField = (name: string, data: any) => {

@@ -29,10 +29,6 @@ function Business() {
     {
       id: "prompts",
       title: "Prompts",
-    },
-    {
-      id: "settings",
-      title: "Settings",
     }
   ]
 

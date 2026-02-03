@@ -4,7 +4,7 @@ import { Injectable } from '@nestjs/common';
 export class AppService {
   getHello(): {} {
     return {
-      message: 'Hello World! 222'
+      message: 'CRM API'
     };
   }
 }
