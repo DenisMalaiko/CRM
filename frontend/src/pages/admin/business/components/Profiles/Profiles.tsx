@@ -35,13 +35,15 @@ function Profiles() {
   const [ getProducts ] = useGetProductsMutation();
   const [ getAudiences ] = useGetAudiencesMutation();
   const [ getPlatforms ] = useGetPlatformsMutation();
-  const [ generatePosts ] = useGeneratePostsMutation();
+  const [ generatePosts, { isLoading } ] = useGeneratePostsMutation();
   const [ getPrompts ] = useGetPromptsMutation();
 
   const { profiles } = useSelector((state: any) => state.profileModule);
 
   const [open, setOpen] = useState(false);
   const [selectedProfile, setSelectedProfile] = useState<any | null>(null);
+  const [loadingProfileId, setLoadingProfileId] = useState<string | null>(null);
+  const isGenerating = loadingProfileId !== null;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -108,14 +110,17 @@ function Profiles() {
 
   const generateNewPosts = async (item: TBusinessProfile) => {
     try {
+      setLoadingProfileId(item.id);
+
       const response: ApiResponse<TBusinessProfile[]> = await generatePosts(item.id).unwrap();
-      console.log("RESPONSE: ", response)
 
       if(response && response?.data) {
         toast.success(response.message);
       }
     } catch (error: any) {
       showError(error);
+    } finally {
+      setLoadingProfileId(null);
     }
   }
 
@@ -172,38 +177,63 @@ function Profiles() {
                   </td>
                 </tr>
               ) : (
-                profiles && profiles.map((item: any) => (
-                  <tr key={item.id} className="bg-white hover:bg-slate-50">
-                    <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.name}</td>
-                    <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.profileFocus}</td>
-                    <td className="px-4 py-3 font-medium text-slate-900 text-left">
-                      <span className={`
-                        inline-flex items-center rounded-full px-2.5 py-1
-                        text-xs font-medium
-                        ${item.isActive ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600"}
-                      `}>
-                        {item.isActive ? "Yes" : "No"}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <div className="flex items-center gap-2 justify-end">
-                        <button
-                          onClick={() => generateNewPosts(item)}
-                          className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700"
-                        >
-                          Create Creatives
-                        </button>
+                profiles && profiles.map((item: any) => {
+                  const isThisRowLoading = loadingProfileId === item.id;
 
-                        <button onClick={() => openEditProfile(item)} className="h-8 w-8 flex items-center justify-center rounded-lg border  text-slate-600 hover:bg-slate-50">
-                          ✎
-                        </button>
-                        <button onClick={(e) => openConfirmDlg(e, item)} className="h-8 w-8 flex items-center justify-center rounded-lg border text-rose-600 hover:bg-rose-50">
-                          🗑
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                  return (
+                    <tr key={item.id} className="bg-white hover:bg-slate-50">
+                      <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.name}</td>
+                      <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.profileFocus}</td>
+                      <td className="px-4 py-3 font-medium text-slate-900 text-left">
+                    <span className={`
+                      inline-flex items-center rounded-full px-2.5 py-1
+                      text-xs font-medium
+                      ${item.isActive ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600"}
+                    `}>
+                      {item.isActive ? "Yes" : "No"}
+                    </span>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <div className="flex items-center gap-2 justify-end">
+                          <button
+                            onClick={() => generateNewPosts(item)}
+                            disabled={isGenerating}
+                            className={`
+                          px-4 py-2 rounded-lg shadow text-white
+                          flex items-center gap-2 justify-center min-w-[170px]
+                          ${
+                              isThisRowLoading
+                                ? "bg-blue-400 cursor-not-allowed"
+                                : isGenerating
+                                  ? "bg-blue-300 cursor-not-allowed"
+                                  : "bg-blue-600 hover:bg-blue-700"
+                            }
+                        `}
+                          >
+                            {isThisRowLoading ? (
+                              <>
+                                <span
+                                  className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"/>
+                                Generating...
+                              </>
+                            ) : (
+                              "Create Creatives"
+                            )}
+                          </button>
+
+                          <button onClick={() => openEditProfile(item)}
+                                  className="h-8 w-8 flex items-center justify-center rounded-lg border  text-slate-600 hover:bg-slate-50">
+                            ✎
+                          </button>
+                          <button onClick={(e) => openConfirmDlg(e, item)}
+                                  className="h-8 w-8 flex items-center justify-center rounded-lg border text-rose-600 hover:bg-rose-50">
+                            🗑
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })
               )}
             </tbody>
           </table>

@@ -15,11 +15,17 @@ import { UserStatus } from "../../../enum/UserStatus";
 function SignUp() {
   const [signUpUser] = useSignUpUserMutation();
 
-  const [name, setName] = useState("Denis");
+  /*const [name, setName] = useState("Denis");
   const [email, setEmail] = useState("malaiko.denis@gmail.com");
   const [password, setPassword] = useState("Ab12345$");
   const [repeatPassword, setRepeatPassword] = useState("Ab12345$");
-  const [agencyName, setAgencyName] = useState("Marketing Agency");
+  const [agencyName, setAgencyName] = useState("Marketing Agency");*/
+
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [repeatPassword, setRepeatPassword] = useState("");
+  const [agencyName, setAgencyName] = useState("");
   const [plan, setPlan] = useState<Plans>(Plans.Free);
 
   const [errors, setErrors]: any = useState({});
