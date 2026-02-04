@@ -38,7 +38,7 @@ async function bootstrap() {
   SwaggerModule.setup('docs', app, document);
 
   app.enableCors({
-    origin: ['http://localhost:3000', 'http://localhost:3001'],
+    origin: ['http://localhost:3000', 'http://localhost:3001', 'http://crm-marketing-ai-frontend.s3-website.eu-north-1.amazonaws.com'],
     credentials: true,
   });
 
