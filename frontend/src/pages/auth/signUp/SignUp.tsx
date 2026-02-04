@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { toast } from "react-toastify";
 import { Link } from "react-router-dom";
+import {Eye, EyeOff} from "lucide-react";
 
 import { useSignUpUserMutation } from "../../../store/auth/authApi";
 import { showError } from "../../../utils/showError";
@@ -24,7 +25,9 @@ function SignUp() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [repeatPassword, setRepeatPassword] = useState("");
+  const [showRepeatPassword, setShowRepeatPassword] = useState(false);
   const [agencyName, setAgencyName] = useState("");
   const [plan, setPlan] = useState<Plans>(Plans.Free);
 
@@ -116,16 +119,28 @@ function SignUp() {
             <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
               Password
             </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                validateField("password", { value: e.target.value });
-              }}
-              placeholder="••••••••"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            />
+
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  validateField("password", { value: e.target.value });
+                }}
+                placeholder="••••••••"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              />
+
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="absolute inset-y-0 right-3 flex items-center text-gray-500
+                 hover:text-gray-700"
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            </div>
             {errors.password && <p className="text-red-500 text-sm mt-2 text-left">{errors.password}</p>}
           </div>
 
@@ -133,16 +148,29 @@ function SignUp() {
             <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
               Repeat Password
             </label>
-            <input
-              type="password"
-              value={repeatPassword}
-              onChange={(e) => {
-                setRepeatPassword(e.target.value);
-                validateField("repeatPassword", { value: e.target.value, repeatPassword: password });
-              }}
-              placeholder="••••••••"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            />
+
+            <div className="relative">
+              <input
+                type={showRepeatPassword ? "text" : "password"}
+                value={repeatPassword}
+                onChange={(e) => {
+                  setRepeatPassword(e.target.value);
+                  validateField("repeatPassword", { value: e.target.value, repeatPassword: password });
+                }}
+                placeholder="••••••••"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              />
+
+              <button
+                type="button"
+                onClick={() => setShowRepeatPassword((prev) => !prev)}
+                className="absolute inset-y-0 right-3 flex items-center text-gray-500
+                 hover:text-gray-700"
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            </div>
+
             {errors.repeatPassword && <p className="text-red-500 text-sm mt-2 text-left">{errors.repeatPassword}</p>}
           </div>
 
