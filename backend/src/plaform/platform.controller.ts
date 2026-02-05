@@ -15,6 +15,7 @@ export class PlatformController {
     const businessId = params.id;
     if(!businessId) return res.json([]);
     const response = await this.platformService.getPlatforms(businessId);
+    console.log("PLATFORMS ", response)
     return res.json(response);
   }
 

@@ -14,6 +14,7 @@ export class ProductsController {
     const businessId = params.id;
     if(!businessId) return res.json([]);
     const response = await this.productsService.getProducts(businessId);
+    console.log("PRODUCTS ", response)
     return res.json(response);
   }
 

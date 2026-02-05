@@ -1,7 +1,6 @@
 import React, { useEffect } from "react";
-import { useSelector } from "react-redux";
-import { RootState } from "../../../store";
 import { useAppDispatch } from "../../../store/hooks";
+import {showError} from "../../../utils/showError";
 
 
 function Dashboard() {
@@ -13,6 +12,7 @@ function Dashboard() {
         console.log("GET USER DATA")
       } catch (error) {
         console.error("Error fetching data:", error);
+        showError(error);
       }
     }
 

@@ -1,6 +1,7 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import type { RootState } from '../index';
 import { setAccessToken, logout } from '../auth/authSlice';
+import { toast } from 'react-toastify';
 
 type RefreshResponse = {
   data: {
@@ -20,6 +21,10 @@ const baseQuery = fetchBaseQuery({
 
 const baseQueryWithReauth = async (args: any, api: any, extraOptions: any) => {
   let result = await baseQuery(args, api, extraOptions);
+
+  if (result.error && result.error.status === 429) {
+    toast.error('Too many requests. Please wait and try again.');
+  }
 
   if (result.error && result.error.status === 401) {
     console.warn("Access token expired, trying refresh...")

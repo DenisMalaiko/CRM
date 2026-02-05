@@ -12,6 +12,7 @@ import { trimID } from "../../../../../utils/trimID";
 import CreateBusinessDlg from "../../createBusinessDlg/CreateBusinessDlg";
 import {ApiResponse} from "../../../../../models/ApiResponse";
 import {getStatusClass} from "../../../../../utils/getStatusClass";
+import {showError} from "../../../../../utils/showError";
 
 function BaseData() {
   const dispatch = useAppDispatch();
@@ -35,6 +36,7 @@ function BaseData() {
         }
       } catch (error) {
         console.error("Error fetching data:", error);
+        showError(error);
       }
     }
 

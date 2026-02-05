@@ -15,6 +15,7 @@ export class ProfilesController {
     const businessId = id;
     if(!businessId) return res.json([]);
     const response = await this.profilesService.getProfiles(businessId);
+    console.log("PROFILES ", response)
     return res.json(response);
   }
 
