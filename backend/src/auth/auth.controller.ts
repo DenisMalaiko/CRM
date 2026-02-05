@@ -1,12 +1,14 @@
 import { Controller, Post, Get, Req, Body, Headers, Res, UnauthorizedException, UseGuards } from '@nestjs/common';
-import type { Request as ExpressRequest } from 'express';
+import type { Request as ExpressRequest, Response} from 'express';
 import { AuthService } from './auth.service';
 import { SignUpDto, SignInDto } from "./dto/user.dto";
 import { JwtAuthGuard } from "../guards/jwt-auth.guard";
+import * as process from "node:process";
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
+  private readonly isProd = process.env.NODE_ENV === 'production';
 
   @Post("/signUp")
   async signUp(@Body() body: SignUpDto) {
@@ -14,38 +16,31 @@ export class AuthController {
   }
 
   @Post("/signIn")
-  async signIn(@Body() body: SignInDto, @Res() res: any) {
+  async signIn(@Body() body: SignInDto, @Res({ passthrough: true }) res: Response) {
     const { data, ...response } = await this.authService.signIn(body);
-
-    /*res.cookie('refresh_token', data?.refreshToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'none',
-      maxAge: 1000 * 60 * 60 * 24 * 30,
-    });*/
 
     res.cookie('refresh_token', data?.refreshToken, {
       httpOnly: true,
-      secure: false,
-      sameSite: 'lax',
+      secure: this.isProd,
+      sameSite: this.isProd ? 'none' : 'lax',
       maxAge: 1000 * 60 * 60 * 24 * 30,
     });
 
-    return res.json({
+    return {
       ...response,
       data: {
         user: data?.user,
         accessToken: data?.accessToken,
       },
-    });
+    };
   }
 
   @Post("/signOut")
   async signOut(@Res() res: any) {
     res.clearCookie('refresh_token', {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      secure: this.isProd,
+      sameSite: this.isProd ? 'none' : 'lax',
     });
 
     return res.json({
@@ -68,8 +63,8 @@ export class AuthController {
 
     res.cookie('refreshToken', data?.refreshToken, {
       httpOnly: true,
-      secure: false,
-      sameSite: 'lax',
+      secure: this.isProd,
+      sameSite: this.isProd ? 'none' : 'lax',
       maxAge: 1000 * 60 * 60 * 24 * 30,
     });
 
@@ -89,8 +84,8 @@ export class AuthController {
 
     res.cookie('refresh_token', data?.refreshToken, {
       httpOnly: true,
-      secure: false,
-      sameSite: 'lax',
+      secure: this.isProd,
+      sameSite: this.isProd ? 'none' : 'lax',
       maxAge: 1000 * 60 * 60 * 24 * 30,
     });
 

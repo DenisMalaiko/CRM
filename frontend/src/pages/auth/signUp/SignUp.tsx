@@ -11,38 +11,34 @@ import { Plans } from "../../../enum/Plans";
 import { TUser } from "../../../models/User";
 import { UserRole } from "../../../enum/UserRole";
 import { UserStatus } from "../../../enum/UserStatus";
-
+import { useForm } from "../../../hooks/useForm";
 
 function SignUp() {
   const [signUpUser] = useSignUpUserMutation();
 
-  /*const [name, setName] = useState("Denis");
-  const [email, setEmail] = useState("malaiko.denis@gmail.com");
-  const [password, setPassword] = useState("Ab12345$");
-  const [repeatPassword, setRepeatPassword] = useState("Ab12345$");
-  const [agencyName, setAgencyName] = useState("Marketing Agency");*/
+  const { form, handleChange } = useForm({
+    name: "",
+    email: "",
+    password: "",
+    repeatPassword: "",
+    agencyName: "",
+    plan: Plans.Free,
+  });
 
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [repeatPassword, setRepeatPassword] = useState("");
   const [showRepeatPassword, setShowRepeatPassword] = useState(false);
-  const [agencyName, setAgencyName] = useState("");
-  const [plan, setPlan] = useState<Plans>(Plans.Free);
 
   const [errors, setErrors]: any = useState({});
   const PlanList = Object.values(Plans);
 
   const validateField = (name: string, data: any) => {
     let error: string | null = null;
-    if (name === "name") error = minLength(data.value, 3);
-    if (name === "email") error = isEmail(data.value);
-    if (name === "password") error = isPassword(data.value);
-    if (name === "repeatPassword") error = isRepeatPassword(data.value, data.repeatPassword);
-
-    if (name === "agencyName") error = minLength(data.value, 3);
-    if (name === "plan") error = minLength(data.value, 3);
+    if (name === "name") error = minLength(data, 3);
+    if (name === "email") error = isEmail(data);
+    if (name === "password") error = isPassword(data);
+    if (name === "repeatPassword") error = isRepeatPassword(data, data.repeatPassword);
+    if (name === "agencyName") error = minLength(data, 3);
+    if (name === "plan") error = minLength(data, 3);
     setErrors((prev: any) => ({ ...prev, [name]: error }));
   };
 
@@ -52,6 +48,7 @@ function SignUp() {
     if (!window.utils.validateForm(errors)) return;
 
     try {
+      const { name, email, password, agencyName, plan } = form;
       const response: ApiResponse<TUser> = await signUpUser({
         user: {
           name,
@@ -72,6 +69,31 @@ function SignUp() {
     }
   }
 
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    handleChange(e);
+    validateField("name", e.target.value);
+  }
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    handleChange(e);
+    validateField("email", e.target.value);
+  }
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    handleChange(e);
+    validateField("password", e.target.value);
+  }
+
+  const handleRepeatPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    handleChange(e);
+    validateField("repeatPassword", { value: e.target.value, repeatPassword: form.password });
+  }
+
+  const handleAgencyNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    handleChange(e);
+    validateField("agencyName", e.target.value);
+  }
+
   return (
     <section className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="w-full max-w-lg bg-white shadow-lg rounded-2xl p-8">
@@ -86,12 +108,9 @@ function SignUp() {
               Name
             </label>
             <input
-              type="name"
-              value={name}
-              onChange={(e) => {
-                setName(e.target.value);
-                validateField("name", { value: e.target.value })
-              }}
+              name="name"
+              value={form.name}
+              onChange={handleNameChange}
               placeholder="you"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
             />
@@ -104,11 +123,9 @@ function SignUp() {
             </label>
             <input
               type="email"
-              value={email}
-              onChange={(e) => {
-                setEmail(e.target.value);
-                validateField("email", { value: e.target.value });
-              }}
+              name="email"
+              value={form.email}
+              onChange={handleEmailChange}
               placeholder="you@example.com"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
             />
@@ -123,11 +140,9 @@ function SignUp() {
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                  validateField("password", { value: e.target.value });
-                }}
+                name="password"
+                value={form.password}
+                onChange={handlePasswordChange}
                 placeholder="••••••••"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
               />
@@ -152,11 +167,9 @@ function SignUp() {
             <div className="relative">
               <input
                 type={showRepeatPassword ? "text" : "password"}
-                value={repeatPassword}
-                onChange={(e) => {
-                  setRepeatPassword(e.target.value);
-                  validateField("repeatPassword", { value: e.target.value, repeatPassword: password });
-                }}
+                name="repeatPassword"
+                value={form.repeatPassword}
+                onChange={handleRepeatPasswordChange}
                 placeholder="••••••••"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
               />
@@ -167,7 +180,7 @@ function SignUp() {
                 className="absolute inset-y-0 right-3 flex items-center text-gray-500
                  hover:text-gray-700"
               >
-                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                {showRepeatPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
 
@@ -179,12 +192,9 @@ function SignUp() {
               Agency Name
             </label>
             <input
-              type="agencyName"
-              value={agencyName}
-              onChange={(e) => {
-                setAgencyName(e.target.value);
-                validateField("name", { value: e.target.value })
-              }}
+              name="agencyName"
+              value={form.agencyName}
+              onChange={handleAgencyNameChange}
               placeholder="you"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
             />
@@ -195,10 +205,10 @@ function SignUp() {
             <label className="block text-sm font-medium text-slate-700 text-left">Plan</label>
             <select
               name="plan"
-              value={plan}
+              value={form.plan}
               onChange={(e) => {
                 const selectedValue: Plans = e.target.value as Plans;
-                setPlan(selectedValue);
+                handleChange(e);
                 validateField("plan", { value: selectedValue })
               }}
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
@@ -208,7 +218,6 @@ function SignUp() {
               )) }
             </select>
           </div>
-
 
           <button
             type="submit"

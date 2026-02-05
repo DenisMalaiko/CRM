@@ -15,6 +15,7 @@ export class AudienceController {
     const businessId = params.id;
     if(!businessId) return res.json([]);
     const response = await this.audienceService.getAudiences(businessId);
+    console.log("AUDIENCES ", response)
     return res.json(response);
   }
 

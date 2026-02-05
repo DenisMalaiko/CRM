@@ -101,10 +101,7 @@ function CreateAudienceDlg({ open, onClose, audience }: any) {
     if (name === "ageRange") error = minLength(data.value, 3);
     if (name === "gender") error = minLength(data.value, 3);
     if (name === "geo") error = isRequired(data.value);
-    if (name === "pains") {
-      console.log("DATA VALUE ", data.value)
-      error = isRequired(data.value);
-    }
+    if (name === "pains") error = isRequired(data.value);
     if (name === "desires") error = isRequired(data.value);
     if (name === "triggers") error = isRequired(data.value);
     if (name === "incomeLevel") error = minLength(data.value, 3);
