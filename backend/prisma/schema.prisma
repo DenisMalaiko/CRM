@@ -114,7 +114,9 @@ model Business {
     status    BusinessStatus
 
     agency    Agency @relation(fields: [agencyId], references: [id])
+
     products  Product[]
+    prompts   Prompt[]
     businessProfiles BusinessProfile[]
 }
 
@@ -132,14 +134,26 @@ model BusinessProfile {
     products      BusinessProfileProduct[]
     audiences     BusinessProfileTargetAudience[]
     platforms     BusinessProfilePlatform[]
+    prompts       BusinessProfilePrompt[]
 
     tags          BusinessProfileTag[]
     trendMatches  BusinessTrendMatch[]
     aiArtifacts   AIArtifact[]
 }
 
+model Prompt {
+    id           String   @id @default(uuid())
+    businessId   String
+    name         String
+    purpose      String
+    text         String
+    isActive     Boolean  @default(true)
+    createdAt    DateTime @default(now())
 
+    profiles     BusinessProfilePrompt[]
 
+    business     Business @relation(fields: [businessId], references: [id])
+}
 
 model Product {
     id             String   @id @default(uuid())
@@ -153,10 +167,9 @@ model Product {
     embedding      Unsupported("vector(1536)")?
 
     profiles       BusinessProfileProduct[]
-
+    aiArtifacts    AIArtifactProduct[]
 
     business       Business @relation(fields: [businessId], references: [id])
-    aiArtifacts    AIArtifact[]
 }
 
 model TargetAudience {
@@ -187,6 +200,32 @@ model Platform {
     profiles         BusinessProfilePlatform[]
 }
 
+model AIArtifact {
+    id               String   @id @default(uuid())
+    type             AIArtifactType
+    businessId        String
+    businessProfileId String
+
+    trendId          String?
+    outputJson       Json
+    score            Float?
+    status           AIArtifactStatus
+
+    imageUrl         String?
+    imagePrompt      String?
+
+    createdAt        DateTime @default(now())
+
+    products         AIArtifactProduct[]
+
+    businessProfile BusinessProfile @relation(fields: [businessProfileId], references: [id])
+    trend           Trend?          @relation(fields: [trendId], references: [id])
+
+    @@index([businessId])
+}
+
+
+
 model Trend {
     id          String   @id @default(uuid())
     businessId       String
@@ -208,26 +247,6 @@ model Trend {
 }
 
 
-
-
-
-model AIArtifact {
-    id               String   @id @default(uuid())
-    type             AIArtifactType
-    businessProfileId String
-    productId        String?
-    trendId          String?
-    inputHash        String
-    outputJson       Json
-    score            Float?
-    status           AIArtifactStatus
-    createdAt        DateTime @default(now())
-
-    businessProfile BusinessProfile @relation(fields: [businessProfileId], references: [id])
-    product         Product?        @relation(fields: [productId], references: [id])
-    trend           Trend?          @relation(fields: [trendId], references: [id])
-}
-
 model Tag {
     id              String   @id @default(uuid())
     businessId       String
@@ -238,20 +257,19 @@ model Tag {
     profiles        BusinessProfileTag[]
 }
 
-model PromptTemplate {
-    id           String   @id @default(uuid())
-    name         String
-    purpose      String
-    version      String
-    systemPrompt String
-    userPrompt   String
-    paramsSchema Json
-    isActive     Boolean  @default(true)
-    createdAt    DateTime @default(now())
+
+
+
+
+
+model AIArtifactProduct {
+  aiArtifactId String
+  productId    String
+
+  aiArtifact AIArtifact @relation(fields: [aiArtifactId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  @@id([aiArtifactId, productId])
 }
-
-
-
 
 
 model BusinessProfileProduct {
@@ -272,6 +290,16 @@ model BusinessProfileTargetAudience {
     targetAudience TargetAudience @relation(fields: [targetAudienceId], references: [id], onDelete: Cascade)
 
     @@id([businessProfileId, targetAudienceId])
+}
+
+model BusinessProfilePrompt {
+    businessProfileId String
+    promptId          String
+
+    businessProfile BusinessProfile @relation(fields: [businessProfileId], references: [id], onDelete: Cascade)
+    prompt Prompt @relation(fields: [promptId], references: [id], onDelete: Cascade)
+
+    @@id([businessProfileId, promptId])
 }
 
 model BusinessProfilePlatform {
@@ -296,7 +324,6 @@ model BusinessProfileTag {
 
     @@id([businessProfileId, tagId])
 }
-
 
 model BusinessTrendMatch {
     businessProfileId String

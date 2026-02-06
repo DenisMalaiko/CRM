@@ -2,6 +2,9 @@ import { ConflictException, Injectable, InternalServerErrorException, NotFoundEx
 import { PrismaService } from '../prisma/prisma.service';
 import { AiService } from "../ai/ai.service";
 import { TProfile, TProfileCreate } from "./entities/profile.entity";
+import { AIArtifactType, AIArtifactStatus } from "@prisma/client";
+import { AiPost } from "../ai/entities/aiPost.entity";
+import { AIArtifactBase } from "../aiArtifact/entities/aiArtifact.entity";
 
 @Injectable()
 export class ProfilesService {
@@ -16,6 +19,7 @@ export class ProfilesService {
       include: {
         products: { include: { product: true } },
         audiences: { include: { targetAudience: true } },
+        prompts: { include: { prompt: true } },
         business: true
       },
     });
@@ -30,6 +34,7 @@ export class ProfilesService {
       business: profile?.business,
       products: profile.products.map(p => p.product),
       audiences: profile.audiences.map(a => a.targetAudience),
+      prompts: profile.prompts.map(p => p.prompt),
     }));
 
     return {
@@ -43,6 +48,7 @@ export class ProfilesService {
     const {
       productsIds,
       audiencesIds,
+      promptsIds,
       ...profileData
     } = body;
 
@@ -63,6 +69,13 @@ export class ProfilesService {
             })),
           },
         },
+        prompts: {
+          createMany: {
+            data: promptsIds.map(promptId => ({
+              promptId,
+            })),
+          },
+        },
       }
     });
 
@@ -79,12 +92,53 @@ export class ProfilesService {
     }
 
     try {
+      const {
+        productsIds,
+        audiencesIds,
+        promptsIds,
+        ...profileData
+      } = body;
+
       const updated = await this.prisma.businessProfile.update({
         where: {id},
         data: {
-          name: body.name,
-          isActive: body.isActive,
-        }
+          ...profileData,
+
+          products: productsIds
+            ? {
+              deleteMany: {}, // ⬅️ КРИТИЧНО
+              createMany: {
+                data: productsIds.map(productId => ({ productId })),
+              },
+            }
+            : undefined,
+
+          audiences: audiencesIds
+            ? {
+              deleteMany: {},
+              createMany: {
+                data: audiencesIds.map(targetAudienceId => ({
+                  targetAudienceId,
+                })),
+              },
+            }
+            : undefined,
+
+          prompts: promptsIds
+            ? {
+              deleteMany: {},
+              createMany: {
+                data: promptsIds.map(promptId => ({ promptId })),
+              },
+            }
+            : undefined,
+        },
+
+        include: {
+          products: true,
+          audiences: true,
+          prompts: true,
+        },
       });
 
       return {
@@ -136,6 +190,7 @@ export class ProfilesService {
       include: {
         products: { include: { product: true } },
         audiences: { include: { targetAudience: true } },
+        prompts: { include: { prompt: true } },
         business: true
       },
     });
@@ -151,14 +206,47 @@ export class ProfilesService {
         business: profile?.business,
         products: profile.products.map(p => p.product),
         audiences: profile.audiences.map(a => a.targetAudience),
+        prompts: profile.prompts.map(p => p.prompt),
       };
 
-      const posts = await this.aiService.generatePostsBasedOnBusinessProfile(mappedProfile);
+      const posts: AiPost[] = await this.aiService.generatePostsBasedOnBusinessProfile(mappedProfile);
+
+      const createdArtifacts: AIArtifactBase[] = [];
+
+      for (const post of posts) {
+        const artifact: AIArtifactBase = await this.prisma.aIArtifact.create({
+          data: {
+            businessId: profile.businessId,
+            businessProfileId: profile.id,
+            type: AIArtifactType.Post,
+            outputJson: post,
+            status: AIArtifactStatus.Draft,
+            imageUrl: post.imageUrl,
+            imagePrompt: post.image_prompt,
+            products: {
+              create: profile.products.map(p => ({
+                productId: p.product.id,
+              })),
+            },
+          },
+          include: {
+            products: {
+              include: {
+                product: true,
+              },
+            },
+          }
+        });
+
+        createdArtifacts.push(artifact);
+      }
+
+      console.log("SUCCESSFULLY GENERATED POSTS!")
 
       return {
         statusCode: 200,
         message: 'Posts has been gotten!',
-        data: posts,
+        data: createdArtifacts,
       };
     }
   }

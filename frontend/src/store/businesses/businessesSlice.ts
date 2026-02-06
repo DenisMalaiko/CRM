@@ -9,7 +9,7 @@ type BusinessState = {
 }
 
 const initialState: BusinessState = {
-  businesses: null,
+  businesses: [],
   business: null,
   loading: false,
   error: null,

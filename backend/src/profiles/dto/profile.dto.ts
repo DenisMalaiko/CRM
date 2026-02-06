@@ -3,10 +3,6 @@ import {IsOptional, IsString, IsUUID, IsArray, IsBoolean, IsDate } from "class-v
 export class ProfileDto {
   @IsUUID()
   @IsOptional()
-  id?: string;
-
-  @IsUUID()
-  @IsOptional()
   businessId: string;
 
   @IsString()
@@ -21,9 +17,9 @@ export class ProfileDto {
   @IsArray()
   audiencesIds: string[];
 
-/*  @IsOptional()
   @IsArray()
-  platformsIds: string[];*/
+  @IsOptional()
+  promptsIds: string[];
 
   @IsBoolean()
   isActive: boolean;

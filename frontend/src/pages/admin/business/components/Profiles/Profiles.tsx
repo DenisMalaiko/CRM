@@ -199,21 +199,20 @@ function Profiles() {
                             onClick={() => generateNewPosts(item)}
                             disabled={isGenerating}
                             className={`
-                          px-4 py-2 rounded-lg shadow text-white
-                          flex items-center gap-2 justify-center min-w-[170px]
-                          ${
-                              isThisRowLoading
-                                ? "bg-blue-400 cursor-not-allowed"
-                                : isGenerating
-                                  ? "bg-blue-300 cursor-not-allowed"
-                                  : "bg-blue-600 hover:bg-blue-700"
-                            }
-                        `}
+                              px-4 py-2 rounded-lg shadow text-white
+                              flex items-center gap-2 justify-center min-w-[170px]
+                              ${
+                                  isThisRowLoading
+                                    ? "bg-blue-400 cursor-not-allowed"
+                                    : isGenerating
+                                      ? "bg-blue-300 cursor-not-allowed"
+                                      : "bg-blue-600 hover:bg-blue-700"
+                                }
+                            `}
                           >
                             {isThisRowLoading ? (
                               <>
-                                <span
-                                  className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"/>
+                                <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"/>
                                 Generating...
                               </>
                             ) : (

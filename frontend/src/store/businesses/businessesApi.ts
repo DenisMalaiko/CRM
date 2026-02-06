@@ -21,6 +21,10 @@ export const businessesApi = api.injectEndpoints({
           method: 'GET',
         });
 
+        if (result.error) {
+          return { error: result.error };
+        }
+
         return {
           data: result.data as ApiResponse<TBusiness[]>
         };
@@ -36,7 +40,7 @@ export const businessesApi = api.injectEndpoints({
 
     createBusiness: builder.mutation<ApiResponse<TBusiness>, TBusinessCreate>({
       query: (form: TBusiness) => ({
-        url: `/business/create`,
+        url: `/business`,
         method: "POST",
         body: form,
       })
@@ -44,7 +48,7 @@ export const businessesApi = api.injectEndpoints({
 
     updateBusiness: builder.mutation<ApiResponse<TBusiness>, { id: string, form: TBusinessCreate, }>({
       query: ({ id, form }) => ({
-        url: `/business/update/${id}`,
+        url: `/business/${id}`,
         method: "PATCH",
         body: form,
       })
@@ -52,7 +56,7 @@ export const businessesApi = api.injectEndpoints({
 
     deleteBusiness: builder.mutation<ApiResponse<TBusiness>, string>({
       query: (id: string) => ({
-        url: `/business/delete/${id}`,
+        url: `/business/${id}`,
         method: "DELETE",
       })
     }),

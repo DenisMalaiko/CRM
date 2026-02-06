@@ -20,8 +20,8 @@ function CreateBusinessDlg({ open, onClose, business }: any) {
   const dispatch = useAppDispatch();
 
   const [ getBusinesses ] = useGetBusinessesMutation();
-  const [ createBusiness ] = useCreateBusinessMutation();
-  const [ updateBusiness ] = useUpdateBusinessMutation();
+  const [ createBusiness, { isLoading: isLoadingCreating } ] = useCreateBusinessMutation();
+  const [ updateBusiness, { isLoading: isLoadingUpdating } ] = useUpdateBusinessMutation();
 
   const { user } = useSelector((state: RootState) => state.authModule);
   const isEdit = !!business;
@@ -109,17 +109,18 @@ function CreateBusinessDlg({ open, onClose, business }: any) {
         const response: ApiResponse<TBusiness> = await updateBusiness({ id: business!.id, form }).unwrap();
         if(response && response.data) {
           dispatch(setBusiness(response.data));
+          toast.success(response.message);
         }
       } else {
         const response: ApiResponse<TBusiness> = await createBusiness(form).unwrap();
         if(response && response?.data) {
           dispatch(setBusiness(response.data));
+          toast.success(response.message);
         }
       }
 
       const response: any = await getBusinesses().unwrap();
       dispatch(setBusinesses(response.data));
-      toast.success(response.message);
       onClose();
     } catch (error) {
       showError(error);
@@ -130,7 +131,7 @@ function CreateBusinessDlg({ open, onClose, business }: any) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50">
       <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl p-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">Create Business</h2>
+          <h2 className="text-lg font-semibold">{ isEdit ? "Edit" : "Create"} Business</h2>
           <button
             onClick={onClose}
             className="text-slate-500 hover:text-slate-700 rounded-full p-1 hover:bg-slate-100"
@@ -153,6 +154,7 @@ function CreateBusinessDlg({ open, onClose, business }: any) {
                 }}
                 className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
                 placeholder="Enter name"
+                autoComplete="off"
               />
               {errors.name && <p className="text-red-500 text-sm mt-2 text-left">{errors.name}</p>}
             </div>
@@ -169,6 +171,7 @@ function CreateBusinessDlg({ open, onClose, business }: any) {
                 }}
                 className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
                 placeholder="Enter website"
+                autoComplete="off"
               />
               {errors.website && <p className="text-red-500 text-sm mt-2 text-left">{errors.website}</p>}
             </div>
@@ -187,6 +190,7 @@ function CreateBusinessDlg({ open, onClose, business }: any) {
                 }}
                 className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
                 placeholder="Enter industry"
+                autoComplete="off"
               />
               {errors.industry && <p className="text-red-500 text-sm mt-2 text-left">{errors.industry}</p>}
             </div>
@@ -216,9 +220,20 @@ function CreateBusinessDlg({ open, onClose, business }: any) {
             </button>
             <button
               type="submit"
-              className="px-4 py-2 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700"
+              disabled={isLoadingCreating || isLoadingUpdating}
+              className="
+                px-4 py-2 rounded-lg bg-blue-600 text-white
+                flex items-center gap-2 justify-center"
             >
-              Save
+              { isLoadingCreating || isLoadingUpdating ? (
+                <>
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"/>
+                  Saving...
+                </>
+                ) : (
+                  "Save"
+                )
+              }
             </button>
           </div>
         </form>

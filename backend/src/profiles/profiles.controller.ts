@@ -15,6 +15,7 @@ export class ProfilesController {
     const businessId = id;
     if(!businessId) return res.json([]);
     const response = await this.profilesService.getProfiles(businessId);
+    console.log("PROFILES ", response)
     return res.json(response);
   }
 
@@ -27,7 +28,7 @@ export class ProfilesController {
 
   @UseGuards(JwtAuthGuard)
   @Patch("/update/:id")
-  async updateProfile(@Param("id") id: string, @Body() body: ProfileDto, @Res()res: any) {
+  async updateProfile(@Param("id") id: string, @Body() body: ProfileDto, @Res() res: any) {
     const response = await this.profilesService.updateProfile(id, body);
     return res.json(response);
   }
