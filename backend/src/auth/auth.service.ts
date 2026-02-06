@@ -17,7 +17,7 @@ export class AuthService {
     private readonly jwt: JwtService
   ) {}
 
-  async signUp(body: TSignUpPayload): Promise<ApiResponse<TUser>> {
+  async signUp(body: TSignUpPayload): Promise<TUser> {
     return this.prisma.$transaction(async (tx) => {
       try {
         await this._checkExistingUser(body.user?.email);
@@ -50,12 +50,7 @@ export class AuthService {
           }
         });
 
-        return {
-          statusCode: 200,
-          message: "User has been created!",
-          data: user,
-        };
-
+        return user;
       } catch(err) {
         if (err instanceof ConflictException) {
           throw err;
@@ -66,7 +61,7 @@ export class AuthService {
     })
   }
 
-  async signIn(body: TSignInPayload): Promise<ApiResponse<AuthResponse<TUser>>> {
+  async signIn(body: TSignInPayload): Promise<AuthResponse<TUser>> {
     if (!body?.email || !body?.password) throw new UnauthorizedException('Invalid credentials!');
 
     const response: TUserSignIn | null = await this.prisma.user.findUnique({
@@ -90,7 +85,7 @@ export class AuthService {
     return await this._generateToken(user);
   }
 
-  async me(body: TUser) {
+  async me(body: TUser): Promise<AuthResponse<TUser>> {
     try {
       const response: TUser | null = await this.prisma.user.findUnique({
         where: { email: body.email },
@@ -113,7 +108,7 @@ export class AuthService {
     }
   }
 
-  async refreshToken(refreshToken: string) {
+  async refreshToken(refreshToken: string): Promise<AuthResponse<TUser>> {
     try {
       const payload = await this.jwt.verifyAsync(refreshToken, {
         secret: this.JWT_REFRESH_SECRET,
@@ -139,7 +134,7 @@ export class AuthService {
     }
   }
 
-  private async _generateToken(user: TUser): Promise<ApiResponse<AuthResponse<TUser>>> {
+  private async _generateToken(user: TUser): Promise<AuthResponse<TUser>> {
     const accessToken: string = await this.jwt.signAsync(user);
     const refreshToken: string = await this.jwt.signAsync(
       { ...user, type: 'refresh' },
@@ -147,14 +142,9 @@ export class AuthService {
     );
 
     return {
-      statusCode: 200,
-      message: "User has been signed in!",
-      data: {
-        user: user,
-        accessToken,
-        refreshToken,
-      },
-      error: null,
+      user: user,
+      accessToken,
+      refreshToken,
     }
   }
 }

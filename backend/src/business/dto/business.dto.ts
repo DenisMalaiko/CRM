@@ -1,13 +1,8 @@
-import {IsOptional, IsString, IsUUID, IsEmail, IsBoolean, IsDate, IsEnum} from "class-validator";
+import { IsString, IsUUID, IsEnum } from "class-validator";
 import { BusinessStatusUI } from "../../enums/BusinessStatus";
 
-export class BusinessDto {
+export class BusinessBaseDto {
   @IsUUID()
-  @IsOptional()
-  id?: string;
-
-  @IsUUID()
-  @IsOptional()
   agencyId: string;
 
   @IsString()
@@ -20,10 +15,14 @@ export class BusinessDto {
   industry: string;
 
   @IsEnum(BusinessStatusUI)
-  status: BusinessStatusUI = BusinessStatusUI.Active;
+  status: BusinessStatusUI;
 }
 
-export class BusinessParamsDto {
+export class CreateBusinessDto extends BusinessBaseDto {}
+
+export class UpdateBusinessDto extends BusinessBaseDto {}
+
+export class BusinessIdParamDto {
   @IsUUID()
   id: string;
 }
