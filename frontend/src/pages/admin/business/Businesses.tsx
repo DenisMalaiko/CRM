@@ -7,16 +7,14 @@ import { showError } from "../../../utils/showError";
 
 import { TBusiness } from "../../../models/Business";
 import { confirm } from "../../../components/confirmDlg/ConfirmDlg";
-import { toDate } from "../../../utils/toDate";
 import { toast } from "react-toastify";
 import CreateBusinessDlg from "./createBusinessDlg/CreateBusinessDlg";
-import { Eye, Delete } from "lucide-react";
 
 import { useGetBusinessesMutation } from "../../../store/businesses/businessesApi";
 import { useDeleteBusinessMutation } from "../../../store/businesses/businessesApi";
 import { setBusinesses } from "../../../store/businesses/businessesSlice";
-import {ApiResponse} from "../../../models/ApiResponse";
-import {getStatusClass} from "../../../utils/getStatusClass";
+import { ApiResponse } from "../../../models/ApiResponse";
+import { getStatusClass } from "../../../utils/getStatusClass";
 
 function Businesses() {
   const navigate = useNavigate();
@@ -32,10 +30,9 @@ function Businesses() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response: any = await getBusinesses();
-        dispatch(setBusinesses(response.data.data));
+        const response: any = await getBusinesses().unwrap();
+        if(response && response.data) dispatch(setBusinesses(response.data));
       } catch (error) {
-        console.error("Error fetching data:", error);
         showError(error);
       }
     }
@@ -62,13 +59,11 @@ function Businesses() {
     if(ok) {
       try {
         if (item?.id != null) {
-          await deleteBusiness(item.id).unwrap();
-          const response: ApiResponse<TBusiness[]> = await getBusinesses().unwrap();
+          const responseBusiness = await deleteBusiness(item.id).unwrap();
+          if(responseBusiness && responseBusiness.data) toast.success(responseBusiness.message);
 
-          if(response && response.data) {
-            dispatch(setBusinesses(response.data));
-            toast.success(response.message);
-          }
+          const response: ApiResponse<TBusiness[]> = await getBusinesses().unwrap();
+          if(response && response.data) dispatch(setBusinesses(response.data));
         }
       } catch (error) {
         showError(error);
@@ -77,12 +72,11 @@ function Businesses() {
   }
 
   const openEditBusiness = async (item: TBusiness) => {
-    console.log("BUSINESS ", item)
     setSelectedBusiness(item);
     setOpen(true)
   }
 
-  const openClient = (id?: string) => {
+  const openBusiness = (id?: string) => {
     navigate(`${id}/baseData`);
   }
 
@@ -129,39 +123,51 @@ function Businesses() {
             </thead>
 
             <tbody className="divide-y divide-slate-100">
-            {businesses && businesses.map((item: TBusiness) => (
-              <tr key={item.id} onClick={() => openClient(item?.id)} className="bg-white hover:bg-slate-50 cursor-pointer transition-colors">
-                <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.name}</td>
-                <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.website}</td>
-                <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.industry}</td>
-                <td className="px-4 py-3 font-medium text-slate-900 text-left">
-                  <span className={`
-                    inline-flex items-center rounded-full px-2.5 py-1
-                    text-xs font-medium
-                    ${getStatusClass(item.status)}
-                  `}>
-                     {item.status}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-right">
-                  <div className="flex items-center gap-2 justify-end">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        openEditBusiness(item)
-                      }} className="h-8 w-8 flex items-center justify-center rounded-lg border  text-slate-600 hover:bg-slate-50">
-                      ✎
-                    </button>
-                    <button onClick={(e) => {
-                        e.stopPropagation()
-                        openConfirmDlg(e, item)
-                    }} className="h-8 w-8 flex items-center justify-center rounded-lg border text-rose-600 hover:bg-rose-50">
-                      🗑
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
+              {businesses && businesses.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={header.length}
+                    className="py-6 text-center text-slate-400"
+                  >
+                    No data
+                  </td>
+                </tr>
+                ) : (
+                  businesses && businesses.map((item: TBusiness) => (
+                    <tr key={item.id} onClick={() => openBusiness(item?.id)} className="bg-white hover:bg-slate-50 cursor-pointer transition-colors">
+                      <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.name}</td>
+                      <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.website}</td>
+                      <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.industry}</td>
+                      <td className="px-4 py-3 font-medium text-slate-900 text-left">
+                    <span className={`
+                      inline-flex items-center rounded-full px-2.5 py-1
+                      text-xs font-medium
+                      ${getStatusClass(item.status)}
+                    `}>
+                       {item.status}
+                    </span>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <div className="flex items-center gap-2 justify-end">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              openEditBusiness(item)
+                            }} className="h-8 w-8 flex items-center justify-center rounded-lg border  text-slate-600 hover:bg-slate-50">
+                            ✎
+                          </button>
+                          <button onClick={(e) => {
+                            e.stopPropagation()
+                            openConfirmDlg(e, item)
+                          }} className="h-8 w-8 flex items-center justify-center rounded-lg border text-rose-600 hover:bg-rose-50">
+                            🗑
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )
+              }
             </tbody>
           </table>
         </div>

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { toast } from "react-toastify";
-import { Link } from "react-router-dom";
-import {Eye, EyeOff} from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Eye, EyeOff } from "lucide-react";
 
 import { useSignUpUserMutation } from "../../../store/auth/authApi";
 import { showError } from "../../../utils/showError";
@@ -14,7 +14,12 @@ import { UserStatus } from "../../../enum/UserStatus";
 import { useForm } from "../../../hooks/useForm";
 
 function SignUp() {
+  const navigate = useNavigate();
   const [signUpUser] = useSignUpUserMutation();
+  const [showPassword, setShowPassword] = useState(false);
+  const [showRepeatPassword, setShowRepeatPassword] = useState(false);
+  const [errors, setErrors]: any = useState({});
+  const PlanList = Object.values(Plans);
 
   const { form, handleChange } = useForm({
     name: "",
@@ -25,18 +30,12 @@ function SignUp() {
     plan: Plans.Free,
   });
 
-  const [showPassword, setShowPassword] = useState(false);
-  const [showRepeatPassword, setShowRepeatPassword] = useState(false);
-
-  const [errors, setErrors]: any = useState({});
-  const PlanList = Object.values(Plans);
-
   const validateField = (name: string, data: any) => {
     let error: string | null = null;
     if (name === "name") error = minLength(data, 3);
     if (name === "email") error = isEmail(data);
     if (name === "password") error = isPassword(data);
-    if (name === "repeatPassword") error = isRepeatPassword(data, data.repeatPassword);
+    if (name === "repeatPassword") error = isRepeatPassword(data.value, data.repeatPassword);
     if (name === "agencyName") error = minLength(data, 3);
     if (name === "plan") error = minLength(data, 3);
     setErrors((prev: any) => ({ ...prev, [name]: error }));
@@ -64,6 +63,7 @@ function SignUp() {
       }).unwrap();
 
       toast.success(response.message);
+      navigate(`/signIn`);
     } catch (error) {
       showError(error);
     }
@@ -113,6 +113,7 @@ function SignUp() {
               onChange={handleNameChange}
               placeholder="you"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              autoComplete="off"
             />
             {errors.name && <p className="text-red-500 text-sm mt-2 text-left">{errors.name}</p>}
           </div>
@@ -196,6 +197,7 @@ function SignUp() {
               value={form.agencyName}
               onChange={handleAgencyNameChange}
               placeholder="you"
+              autoComplete="off"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
             />
             {errors.businessName && <p className="text-red-500 text-sm mt-2 text-left">{errors.businessName}</p>}

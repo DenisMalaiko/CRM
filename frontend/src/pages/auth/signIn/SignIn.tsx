@@ -43,7 +43,7 @@ function SignIn() {
       const response = await signInUser({ email, password }).unwrap();
       dispatch(setUser(response.data.user));
       dispatch(setAccessToken(response.data.accessToken));
-      toast.success(response.message);
+      toast.success(response.data.message);
       navigate("/profile/businesses");
     } catch (error) {
       showError(error);

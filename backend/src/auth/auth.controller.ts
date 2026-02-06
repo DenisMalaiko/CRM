@@ -1,9 +1,11 @@
 import { Controller, Post, Get, Req, Body, Headers, Res, UnauthorizedException, UseGuards } from '@nestjs/common';
 import type { Request as ExpressRequest, Response} from 'express';
+import * as process from "node:process";
+
 import { AuthService } from './auth.service';
 import { SignUpDto, SignInDto } from "./dto/user.dto";
 import { JwtAuthGuard } from "../guards/jwt-auth.guard";
-import * as process from "node:process";
+import { ResponseMessage } from "../common/decorators/response-message.decorator";
 
 @Controller('auth')
 export class AuthController {
@@ -11,31 +13,28 @@ export class AuthController {
   private readonly isProd = process.env.NODE_ENV === 'production';
 
   @Post("/signUp")
-  async signUp(@Body() body: SignUpDto) {
-    return await this.authService.signUp(body);
+  @ResponseMessage('User has been signed up!')
+  signUp(@Body() body: SignUpDto) {
+    return this.authService.signUp(body);
   }
 
   @Post("/signIn")
+  @ResponseMessage('User has been signed in!')
   async signIn(@Body() body: SignInDto, @Res({ passthrough: true }) res: Response) {
-    const { data, ...response } = await this.authService.signIn(body);
+    const response = await this.authService.signIn(body);
 
-    res.cookie('refresh_token', data?.refreshToken, {
+    res.cookie('refresh_token', response?.refreshToken, {
       httpOnly: true,
       secure: this.isProd,
       sameSite: this.isProd ? 'none' : 'lax',
       maxAge: 1000 * 60 * 60 * 24 * 30,
     });
 
-    return {
-      ...response,
-      data: {
-        user: data?.user,
-        accessToken: data?.accessToken,
-      },
-    };
+    return response;
   }
 
   @Post("/signOut")
+  @ResponseMessage('User has been signed out!')
   async signOut(@Res() res: any) {
     res.clearCookie('refresh_token', {
       httpOnly: true,
@@ -59,9 +58,9 @@ export class AuthController {
       throw new UnauthorizedException('Missing refresh token');
     }
 
-    const { data, ...response } = await this.authService.refreshToken(refreshToken);
+    const response = await this.authService.refreshToken(refreshToken);
 
-    res.cookie('refreshToken', data?.refreshToken, {
+    res.cookie('refreshToken', response?.refreshToken, {
       httpOnly: true,
       secure: this.isProd,
       sameSite: this.isProd ? 'none' : 'lax',
@@ -69,10 +68,7 @@ export class AuthController {
     });
 
     return res.json({
-      ...response,
-      data: {
-        accessToken: data?.accessToken,
-      },
+      ...response
     });
   }
 
@@ -80,9 +76,9 @@ export class AuthController {
   @Get("/me")
   async me(@Req() request: any,  @Res() res: any, @Headers('authorization') authorization: string) {
     const user = request.user;
-    const { data, ...response } = await this.authService.me(user);
+    const response = await this.authService.me(user);
 
-    res.cookie('refresh_token', data?.refreshToken, {
+    res.cookie('refresh_token', response?.refreshToken, {
       httpOnly: true,
       secure: this.isProd,
       sameSite: this.isProd ? 'none' : 'lax',
@@ -90,11 +86,7 @@ export class AuthController {
     });
 
     return res.json({
-      ...response,
-      data: {
-        user: data?.user,
-        accessToken: data?.accessToken,
-      },
+      ...response
     });
   }
 }

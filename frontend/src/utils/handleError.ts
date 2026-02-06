@@ -38,3 +38,16 @@ export function isAuthError(error: unknown): error is ApiDtoError {
     typeof (error as any).data?.message === 'string'
   );
 }
+
+export function isNotFound(error: unknown): error is ApiDtoError {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    (error as any).hasOwnProperty('status') &&
+    (error as any).status === 404 &&
+    (error as any).hasOwnProperty('data') &&
+    (error as any).data.error === 'Not Found' &&
+    (error as any).data.statusCode === 404 &&
+    typeof (error as any).data?.message === 'string'
+  )
+}
