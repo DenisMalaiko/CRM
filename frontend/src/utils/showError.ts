@@ -1,11 +1,10 @@
 import { toast } from "react-toastify";
 import { MiniTranslate } from "../enum/MiniTranslate";
-import { isDtoError, isConflictException } from "./handleError";
+import { isDtoError, isConflictException, isAuthError } from "./handleError";
 
 export const showError = (error: unknown) => {
 
   if (isDtoError(error)) {
-    console.log("IS DTO ERROR")
     for(let message of error.data.message) {
       toast.error(message);
     }
@@ -13,6 +12,11 @@ export const showError = (error: unknown) => {
   }
 
   if (isConflictException(error)) {
+    toast.error(error.data.message);
+    return;
+  }
+
+  if(isAuthError(error)) {
     toast.error(error.data.message);
     return;
   }

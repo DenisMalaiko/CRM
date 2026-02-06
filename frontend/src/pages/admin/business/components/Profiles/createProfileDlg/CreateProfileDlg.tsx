@@ -6,9 +6,7 @@ import Select from "react-select";
 
 import { showError } from "../../../../../../utils/showError";
 import { isRequired, minLength } from "../../../../../../utils/validations";
-import Tooltip from "../../../../../../components/tooltip/Tooltip";
-
-import { MiniTranslate } from "../../../../../../enum/MiniTranslate";
+import { BusinessProfileFocus } from "../../../../../../enum/BusinessProfileFocus";
 
 import {
   useCreateProfileMutation,
@@ -20,9 +18,9 @@ import { setProfiles } from "../../../../../../store/profile/profileSlice";
 import { useAppDispatch } from "../../../../../../store/hooks";
 import { ApiResponse } from "../../../../../../models/ApiResponse";
 import { TBusinessProfile } from "../../../../../../models/BusinessProfile";
-import {TProduct} from "../../../../../../models/Product";
-import {TAudience} from "../../../../../../models/Audience";
-import {TPlatform} from "../../../../../../models/Platform";
+import { TProduct } from "../../../../../../models/Product";
+import { TAudience } from "../../../../../../models/Audience";
+import { TPrompt } from "../../../../../../models/Prompt";
 
 function CreateProfileDlg({ open, onClose, profile }: any) {
   const dispatch = useAppDispatch();
@@ -30,10 +28,10 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
   const { products } = useSelector((state: any) => state.productsModule);
   const { audiences } = useSelector((state: any) => state.audienceModule);
   const { platforms } = useSelector((state: any) => state.platformModule);
+  const { prompts } = useSelector((state: any) => state.promptModule);
 
   const isEdit = !!profile;
   const { businessId } = useParams<{ businessId: string }>();
-
   const [createProfile, { isLoading, isSuccess }] = useCreateProfileMutation();
   const [updateProfile] = useUpdateProfileMutation();
   const [getProfiles] = useGetProfilesMutation();
@@ -41,12 +39,15 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
   const productsOptions = products?.map((product: any) => ({ value: product.id, label: product.name })) ?? [];
   const audiencesOptions = audiences?.map((audience: any) => ({ value: audience.id, label: audience.name })) ?? [];
   const platformsOptions = platforms?.map((platform: any) => ({ value: platform.id, label: platform.name })) ?? [];
+  const promptsOptions = prompts?.map((prompt: any) => ({ value: prompt.id, label: `${prompt.name} | ${prompt.purpose}` })) ?? [];
+  const profileFocusOptions = Object.values(BusinessProfileFocus);
 
   const [form, setForm] = useState({
     name: "",
-    profileFocus: "",
+    profileFocus: BusinessProfileFocus.GeneratePosts,
     productsIds: [] as string[],
     audiencesIds: [] as string[],
+    promptsIds: [] as string[],
     isActive: true,
     businessId: businessId ?? "",
   });
@@ -59,15 +60,17 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
         profileFocus: profile.profileFocus,
         productsIds: profile.products.map((x: TProduct) => x.id) ?? [],
         audiencesIds: profile.audiences.map((x: TAudience) => x.id) ?? [],
+        promptsIds: profile.prompts.map((x: TPrompt) => x.id) ?? [],
         isActive: profile.isActive,
         businessId: profile.businessId ?? "",
       })
     } else {
       setForm({
         name: "",
-        profileFocus: "",
+        profileFocus: BusinessProfileFocus.GeneratePosts,
         productsIds: [],
         audiencesIds: [],
+        promptsIds: [],
         isActive: true,
         businessId: businessId ?? "",
       })
@@ -94,7 +97,7 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
   const validateField = (name: string, data: any) => {
     let error: string | null = null;
     if (name === "name") error = minLength(data.value, 3);
-    if (name === "profileFocus") error = minLength(data.value, 10);
+    if (name === "profileFocus") error = isRequired(data.value);
     setErrors((prev: any) => ({ ...prev, [name]: error }));
     return error;
   };
@@ -116,12 +119,13 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
   const create = async (e: React.FormEvent<HTMLFormElement>) => {
     if (!validateForm(e)) return;
 
+    console.log("CREATE")
+
     try {
       if (isEdit) {
-        console.log("UPDATE PROFILE:")
+        console.log("UPDATE FORM ", form)
         await updateProfile({ id: profile!.id, form })
       } else {
-        console.log("CREATE PROFILE: ", form);
         await createProfile(form);
       }
 
@@ -155,7 +159,6 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
           <div>
             <div className="flex items-center gap-2 justify-between">
               <label className="block text-sm font-medium text-slate-700 text-left">Name</label>
-              <Tooltip text={MiniTranslate.ProfileNameTooltip}/>
             </div>
 
             <input
@@ -177,17 +180,20 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
               <label className="block text-sm font-medium text-slate-700 text-left">Profile Focus</label>
             </div>
 
-            <input
-              type="text"
+            <select
               name="profileFocus"
               value={form.profileFocus}
               onChange={(e) => {
                 handleChange(e);
-                validateField("profileFocus", {value: e.target.value})
+                validateField("profileFocus", { value: e.target.value })
               }}
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
-              placeholder="Enter profile focus"
-            />
+            >
+              { profileFocusOptions.map((option: string) => (
+                <option key={option} value={option}>{option}</option>
+              )) }
+            </select>
+
             {errors.profileFocus && <p className="text-red-500 text-sm mt-2 text-left">{errors.profileFocus}</p>}
           </div>
 
@@ -195,8 +201,6 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
             <div className="flex items-center gap-2 justify-between">
               <label className="block text-sm font-medium text-slate-700 text-left">Products</label>
             </div>
-
-            <p></p>
 
             <Select
               isMulti
@@ -228,6 +232,26 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
                 setForm(prev => ({
                   ...prev,
                   audiencesIds: selected.map(option => option.value),
+                }))
+              }
+            />
+          </div>
+
+          <div>
+            <div className="flex items-center gap-2 justify-between">
+              <label className="block text-sm font-medium text-slate-700 text-left">Prompts</label>
+            </div>
+
+            <Select
+              isMulti
+              options={promptsOptions}
+              value={promptsOptions.filter((option: any) =>
+                form.promptsIds.includes(option.value)
+              )}
+              onChange={(selected) =>
+                setForm(prev => ({
+                  ...prev,
+                  promptsIds: selected.map(option => option.value),
                 }))
               }
             />

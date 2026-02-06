@@ -15,6 +15,10 @@ function Business() {
       title: "Profiles",
     },
     {
+      id: "creatives",
+      title: "Creatives",
+    },
+    {
       id: "products",
       title: "Products",
     },
@@ -23,8 +27,8 @@ function Business() {
       title: "Audiences",
     },
     {
-      id: "settings",
-      title: "Settings",
+      id: "prompts",
+      title: "Prompts",
     }
   ]
 

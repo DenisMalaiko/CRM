@@ -18,11 +18,13 @@ import { useGetProfilesMutation, useDeleteProfileMutation, useGeneratePostsMutat
 import { useGetProductsMutation } from "../../../../../store/products/productsApi";
 import { useGetAudiencesMutation } from "../../../../../store/audience/audienceApi";
 import { useGetPlatformsMutation } from "../../../../../store/platform/platformApi";
+import { useGetPromptsMutation } from "../../../../../store/prompts/promptApi";
 
 import { setProfiles } from "../../../../../store/profile/profileSlice";
 import { setProducts } from "../../../../../store/products/productsSlice";
 import { setAudiences } from "../../../../../store/audience/audienceSlice";
 import { setPlatforms } from "../../../../../store/platform/platformSlice";
+import { setPrompts } from "../../../../../store/prompts/promptSlice";
 
 function Profiles() {
   const dispatch = useAppDispatch();
@@ -33,12 +35,15 @@ function Profiles() {
   const [ getProducts ] = useGetProductsMutation();
   const [ getAudiences ] = useGetAudiencesMutation();
   const [ getPlatforms ] = useGetPlatformsMutation();
-  const [ generatePosts ] = useGeneratePostsMutation();
+  const [ generatePosts, { isLoading } ] = useGeneratePostsMutation();
+  const [ getPrompts ] = useGetPromptsMutation();
 
   const { profiles } = useSelector((state: any) => state.profileModule);
 
   const [open, setOpen] = useState(false);
   const [selectedProfile, setSelectedProfile] = useState<any | null>(null);
+  const [loadingProfileId, setLoadingProfileId] = useState<string | null>(null);
+  const isGenerating = loadingProfileId !== null;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -48,14 +53,16 @@ function Profiles() {
           const productsResponse: ApiResponse<TProduct[]> = await getProducts(businessId).unwrap();
           const audiencesResponse: ApiResponse<TAudience[]> = await getAudiences(businessId).unwrap();
           const platformsResponse: ApiResponse<TPlatform[]> = await getPlatforms(businessId).unwrap();
+          const promptsResponse: ApiResponse<any[]> = await getPrompts(businessId).unwrap();
 
           if(response && response?.data) dispatch(setProfiles(response.data));
           if(productsResponse && productsResponse?.data) dispatch(setProducts(productsResponse.data));
           if(audiencesResponse && audiencesResponse?.data) dispatch(setAudiences(audiencesResponse.data));
           if(platformsResponse && platformsResponse?.data) dispatch(setPlatforms(platformsResponse.data));
+          if(promptsResponse && promptsResponse?.data) dispatch(setPrompts(promptsResponse.data));
         }
       } catch (error) {
-        console.error("Error fetching data:", error);
+        showError(error);
       }
     }
 
@@ -102,12 +109,18 @@ function Profiles() {
   }
 
   const generateNewPosts = async (item: TBusinessProfile) => {
-    console.log("GENERATE NEW POSTS")
     try {
+      setLoadingProfileId(item.id);
+
       const response: ApiResponse<TBusinessProfile[]> = await generatePosts(item.id).unwrap();
-      console.log("RESPONSE: ", response)
+
+      if(response && response?.data) {
+        toast.success(response.message);
+      }
     } catch (error: any) {
       showError(error);
+    } finally {
+      setLoadingProfileId(null);
     }
   }
 
@@ -154,11 +167,24 @@ function Profiles() {
             </thead>
 
             <tbody className="divide-y divide-slate-100">
-              {profiles && profiles.map((item: any) => (
-                <tr key={item.id} className="hover:bg-slate-50 bg-slate-50">
-                  <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.name}</td>
-                  <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.profileFocus}</td>
-                  <td className="px-4 py-3 font-medium text-slate-900 text-left">
+              {profiles?.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={header.length}
+                    className="py-6 text-center text-slate-400"
+                  >
+                    No data
+                  </td>
+                </tr>
+              ) : (
+                profiles && profiles.map((item: any) => {
+                  const isThisRowLoading = loadingProfileId === item.id;
+
+                  return (
+                    <tr key={item.id} className="bg-white hover:bg-slate-50">
+                      <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.name}</td>
+                      <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.profileFocus}</td>
+                      <td className="px-4 py-3 font-medium text-slate-900 text-left">
                     <span className={`
                       inline-flex items-center rounded-full px-2.5 py-1
                       text-xs font-medium
@@ -166,23 +192,49 @@ function Profiles() {
                     `}>
                       {item.isActive ? "Yes" : "No"}
                     </span>
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <div className="flex items-center gap-2 justify-end">
-                      <button onClick={() => generateNewPosts(item)} className="h-8 w-8 flex items-center justify-center rounded-lg border  text-slate-600 hover:bg-slate-50">
-                        <RefreshCcw width="20" height="20"></RefreshCcw>
-                      </button>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <div className="flex items-center gap-2 justify-end">
+                          <button
+                            onClick={() => generateNewPosts(item)}
+                            disabled={isGenerating}
+                            className={`
+                          px-4 py-2 rounded-lg shadow text-white
+                          flex items-center gap-2 justify-center min-w-[170px]
+                          ${
+                              isThisRowLoading
+                                ? "bg-blue-400 cursor-not-allowed"
+                                : isGenerating
+                                  ? "bg-blue-300 cursor-not-allowed"
+                                  : "bg-blue-600 hover:bg-blue-700"
+                            }
+                        `}
+                          >
+                            {isThisRowLoading ? (
+                              <>
+                                <span
+                                  className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"/>
+                                Generating...
+                              </>
+                            ) : (
+                              "Create Creatives"
+                            )}
+                          </button>
 
-                      <button onClick={() => openEditProfile(item)} className="h-8 w-8 flex items-center justify-center rounded-lg border  text-slate-600 hover:bg-slate-50">
-                        ✎
-                      </button>
-                      <button onClick={(e) => openConfirmDlg(e, item)} className="h-8 w-8 flex items-center justify-center rounded-lg border text-rose-600 hover:bg-rose-50">
-                        🗑
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                          <button onClick={() => openEditProfile(item)}
+                                  className="h-8 w-8 flex items-center justify-center rounded-lg border  text-slate-600 hover:bg-slate-50">
+                            ✎
+                          </button>
+                          <button onClick={(e) => openConfirmDlg(e, item)}
+                                  className="h-8 w-8 flex items-center justify-center rounded-lg border text-rose-600 hover:bg-rose-50">
+                            🗑
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })
+              )}
             </tbody>
           </table>
         </div>

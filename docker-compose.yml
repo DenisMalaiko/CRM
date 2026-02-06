@@ -22,6 +22,7 @@ services:
     ports:
       - "4000:4000"
     volumes:
+      - ./backend/public:/app/public
       - ./backend/generated:/app/generated
       - ./backend/src:/app/src
       - ./backend/package.json:/app/package.json

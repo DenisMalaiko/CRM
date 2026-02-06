@@ -39,6 +39,7 @@ function Products() {
         }
       } catch (error) {
         console.error("Error fetching data:", error);
+        showError(error);
       }
     }
 
@@ -129,43 +130,54 @@ function Products() {
             </thead>
 
             <tbody className="divide-y divide-slate-100">
-            {products && products.map((item: TProduct) => (
-              <tr key={item.id} className="hover:bg-slate-50 bg-slate-50">
-                <td className="px-4 py-3">
-                  <div className="h-10 w-10 bg-slate-200 rounded-lg" />
-                </td>
-                <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.name}</td>
-                <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.type}</td>
-                <td className="px-4 py-3 font-medium text-slate-900 text-left">
-                  <span className={`
-                    inline-flex items-center rounded-full px-2.5 py-1
-                    text-xs font-medium
-                    ${getStatusClass(item.priceSegment)}
-                  `}>
-                     {item.priceSegment}
-                  </span>
-                </td>
-                <td className="px-4 py-3 font-medium text-slate-900 text-left">
-                  <span className={`
-                    inline-flex items-center rounded-full px-2.5 py-1
-                    text-xs font-medium
-                    ${item.isActive ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600"}
-                  `}>
-                     {item.isActive ? "Yes" : "No"}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-right">
-                  <div className="flex items-center gap-2 justify-end">
-                    <button onClick={() => openEditProduct(item)} className="h-8 w-8 flex items-center justify-center rounded-lg border  text-slate-600 hover:bg-slate-50">
-                      ✎
-                    </button>
-                    <button onClick={(e) => openConfirmDlg(e, item)} className="h-8 w-8 flex items-center justify-center rounded-lg border text-rose-600 hover:bg-rose-50">
-                      🗑
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
+              {products?.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={header.length}
+                    className="py-6 text-center text-slate-400"
+                  >
+                    No data
+                  </td>
+                </tr>
+              ) : (
+                products && products.map((item: TProduct) => (
+                  <tr key={item.id} className="bg-white hover:bg-slate-50">
+                    <td className="px-4 py-3">
+                      <div className="h-10 w-10 bg-slate-200 rounded-lg" />
+                    </td>
+                    <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.name}</td>
+                    <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.type}</td>
+                    <td className="px-4 py-3 font-medium text-slate-900 text-left">
+                    <span className={`
+                      inline-flex items-center rounded-full px-2.5 py-1
+                      text-xs font-medium
+                      ${getStatusClass(item.priceSegment)}
+                    `}>
+                       {item.priceSegment}
+                    </span>
+                    </td>
+                    <td className="px-4 py-3 font-medium text-slate-900 text-left">
+                    <span className={`
+                      inline-flex items-center rounded-full px-2.5 py-1
+                      text-xs font-medium
+                      ${item.isActive ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600"}
+                    `}>
+                       {item.isActive ? "Yes" : "No"}
+                    </span>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <div className="flex items-center gap-2 justify-end">
+                        <button onClick={() => openEditProduct(item)} className="h-8 w-8 flex items-center justify-center rounded-lg border  text-slate-600 hover:bg-slate-50">
+                          ✎
+                        </button>
+                        <button onClick={(e) => openConfirmDlg(e, item)} className="h-8 w-8 flex items-center justify-center rounded-lg border text-rose-600 hover:bg-rose-50">
+                          🗑
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

@@ -35,6 +35,8 @@ import Products from "./pages/admin/business/components/Products/Products"
 import Platforms from "./pages/admin/business/components/old/Platforms/Platforms"
 import Profiles from "./pages/admin/business/components/Profiles/Profiles";
 import Audiences from "./pages/admin/business/components/Audiences/Audiences";
+import Creatives from "./pages/admin/business/components/Creatives/Creatives";
+import Prompts from "./pages/admin/business/components/Prompts/Prompts";
 import Settings from "./pages/admin/business/components/Settings/Settings";
 
 // AI
@@ -64,7 +66,7 @@ function App() {
         dispatch(setAccessToken(response.data.accessToken));
 
         toast.success(response.message);
-        navigate("/profile/dashboard");
+        navigate("/profile/businesses");
       } catch (error) {
         dispatch(logout());
       }
@@ -100,8 +102,10 @@ function App() {
             <Route path="baseData" element={<BaseData />} />
             <Route path="products" element={<Products />} />
             <Route path="profiles" element={<Profiles />} />
+            <Route path="creatives" element={<Creatives />} />
             <Route path="platforms" element={<Platforms />} />
             <Route path="audiences" element={<Audiences />} />
+            <Route path="prompts" element={<Prompts />} />
             <Route path="settings" element={<Settings />} />
           </Route>
         </Route>

@@ -71,8 +71,8 @@ function Header() {
             </>
           ) : (
             <>
-              <Link to="/admin/signIn">Sign In Admin</Link> /
-              <Link to="/admin/signUp" className="ml-1 mr-5">Sign Up Admin</Link>
+{/*              <Link to="/admin/signIn">Sign In Admin</Link> /
+              <Link to="/admin/signUp" className="ml-1 mr-5">Sign Up Admin</Link>*/}
 
               <Link className="ml-1" to="/signIn">Sign In</Link> /
               <Link to="/signUp" className="ml-1">Sign Up</Link>

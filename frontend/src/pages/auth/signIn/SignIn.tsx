@@ -2,27 +2,34 @@ import React from "react";
 import { toast } from "react-toastify";
 import { Link, useNavigate } from 'react-router-dom';
 import { useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 
 import { useAppDispatch } from "../../../store/hooks";
 import { useSignInUserMutation } from "../../../store/auth/authApi";
 import { showError } from "../../../utils/showError";
 import { isEmail, isPassword } from "../../../utils/validations";
 import { setUser, setAccessToken } from "../../../store/auth/authSlice";
+import { useForm } from "../../../hooks/useForm";
 
 function SignIn() {
   const navigate = useNavigate();
-
-  const [signInUser] = useSignInUserMutation();
   const dispatch = useAppDispatch();
+  const [signInUser] = useSignInUserMutation();
 
-  const [email, setEmail] = useState("malaiko.denis@gmail.com");
-  const [password, setPassword] = useState("Ab12345$");
+  /*const [password, setPassword] = useState("Ab12345$");*/
+
+  const { form, handleChange } = useForm({
+    email: 'malaiko.denis@gmail.com',
+    password: 'Ab12345$'
+  });
+
+  const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors]: any = useState({});
 
   const validateField = (name: string, data: any) => {
     let error: string | null = null;
-    if (name === "email") error = isEmail(data.value);
-    if (name === "password") error = isPassword(data.value);
+    if (name === "email") error = isEmail(data);
+    if (name === "password") error = isPassword(data);
     setErrors((prev: any) => ({ ...prev, [name]: error }));
   };
 
@@ -32,15 +39,26 @@ function SignIn() {
     if (!window.utils.validateForm(errors)) return;
 
     try {
+      const { email, password } = form;
       const response = await signInUser({ email, password }).unwrap();
       dispatch(setUser(response.data.user));
       dispatch(setAccessToken(response.data.accessToken));
       toast.success(response.message);
-      navigate("/profile/dashboard");
+      navigate("/profile/businesses");
     } catch (error) {
       showError(error);
     }
   }
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    handleChange(e);
+    validateField("email", e.target.value);
+  };
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    handleChange(e);
+    validateField("password", e.target.value);
+  };
 
   return (
     <section className="min-h-screen flex items-center justify-center bg-gray-100">
@@ -54,13 +72,12 @@ function SignIn() {
             <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
               Email
             </label>
+
             <input
               type="email"
-              value={email}
-              onChange={(e) => {
-                setEmail(e.target.value);
-                validateField("email", { value: e.target.value });
-              }}
+              name="email"
+              value={form.email}
+              onChange={handleEmailChange}
               placeholder="you@example.com"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
             />
@@ -71,27 +88,28 @@ function SignIn() {
             <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
               Password
             </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                validateField("password", { value: e.target.value });
-              }}
-              placeholder="••••••••"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            />
-            {errors.password && <p className="text-red-500 text-sm mt-2 text-left">{errors.password}</p>}
-          </div>
 
-          <div className="flex items-center justify-between text-sm">
-            <label className="flex items-center space-x-2">
-              <input type="checkbox" className="h-4 w-4 text-blue-600 border-gray-300 rounded" />
-              <span className="text-gray-600">Remember me</span>
-            </label>
-            <a href="#" className="text-blue-600 hover:underline">
-              Forgot password?
-            </a>
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                name="password"
+                value={form.password}
+                onChange={handlePasswordChange}
+                placeholder="••••••••"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              />
+
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="absolute inset-y-0 right-3 flex items-center text-gray-500
+                 hover:text-gray-700"
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            </div>
+
+            {errors.password && <p className="text-red-500 text-sm mt-2 text-left">{errors.password}</p>}
           </div>
 
           <button
