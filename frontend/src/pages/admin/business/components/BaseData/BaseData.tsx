@@ -1,29 +1,34 @@
-import React, {useEffect, useState} from 'react';
-import { useSelector } from "react-redux";
+import React, { useEffect, useState } from 'react';
 import { useParams } from "react-router-dom";
+
+// Redux
+import { useSelector } from "react-redux";
 import { RootState } from "../../../../../store";
 import { useAppDispatch } from "../../../../../store/hooks";
+import { useGetBusinessMutation } from "../../../../../store/businesses/businessesApi";
 import { setBusiness } from "../../../../../store/businesses/businessesSlice";
 
-import { useGetBusinessMutation } from "../../../../../store/businesses/businessesApi";
+// Models
+import { ApiResponse } from "../../../../../models/ApiResponse";
 import { TBusiness } from "../../../../../models/Business";
-import { trimID } from "../../../../../utils/trimID";
 
+// Components
 import CreateBusinessDlg from "../../createBusinessDlg/CreateBusinessDlg";
-import {ApiResponse} from "../../../../../models/ApiResponse";
-import {getStatusClass} from "../../../../../utils/getStatusClass";
-import {showError} from "../../../../../utils/showError";
+
+// Utils
+import { trimID } from "../../../../../utils/trimID";
+import { showError } from "../../../../../utils/showError";
+import { getStatusClass } from "../../../../../utils/getStatusClass";
 
 function BaseData() {
   const dispatch = useAppDispatch();
   const { businessId } = useParams<{ businessId: string }>();
   const [ getBusiness ] = useGetBusinessMutation();
-
   const [open, setOpen] = useState(false);
   const [selectedBusiness, setSelectedBusiness] = useState<TBusiness | null>(null);
-
   const { business } = useSelector((state: RootState) => state.businessModule)
 
+  // Get Data
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -43,6 +48,7 @@ function BaseData() {
     fetchData();
   }, [dispatch]);
 
+  // Open Edit Business Dialog
   const openEditBusiness = async (item: TBusiness) => {
     setSelectedBusiness(item);
     setOpen(true)

@@ -3,6 +3,15 @@ export const isRequired = (value: string) => {
   return null;
 }
 
+export const isBoolean = (value: unknown): string | null => {
+  return typeof value === "boolean" ? null : "Value must be boolean";
+};
+
+export const isRequiredArray = (value: []) => {
+  if (Array.isArray(value) && !value.length) return "This field is required";
+  return null;
+}
+
 export const minLength = (value: string, min: number) => {
   if (!value) return "This field is required";
   return value.length < min ? `Must be at least ${min} characters` : null;

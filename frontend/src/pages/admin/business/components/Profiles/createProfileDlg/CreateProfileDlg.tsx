@@ -1,21 +1,31 @@
-import React, { useState, useEffect } from "react";
+import React, { useMemo } from "react";
 import { useParams } from "react-router-dom";
-import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import Select from "react-select";
 
-import { showError } from "../../../../../../utils/showError";
-import { isRequired, minLength } from "../../../../../../utils/validations";
-import { BusinessProfileFocus } from "../../../../../../enum/BusinessProfileFocus";
+// Hooks
+import { useForm } from "../../../../../../hooks/useForm";
+import { useValidation } from "../../../../../../hooks/useValidation";
 
+// Redux
+import { useSelector } from "react-redux";
+import { useAppDispatch } from "../../../../../../store/hooks";
 import {
   useCreateProfileMutation,
   useUpdateProfileMutation,
   useGetProfilesMutation
 } from "../../../../../../store/profile/profileApi";
-
 import { setProfiles } from "../../../../../../store/profile/profileSlice";
-import { useAppDispatch } from "../../../../../../store/hooks";
+
+// Utils
+import { showError } from "../../../../../../utils/showError";
+import { isRequired, isRequiredArray, minLength, isBoolean } from "../../../../../../utils/validations";
+import { isNativeEvent, ChangeArg } from "../../../../../../utils/isNativeEvent";
+
+// Enum
+import { BusinessProfileFocus } from "../../../../../../enum/BusinessProfileFocus";
+
+// Models
 import { ApiResponse } from "../../../../../../models/ApiResponse";
 import { TBusinessProfile } from "../../../../../../models/BusinessProfile";
 import { TProduct } from "../../../../../../models/Product";
@@ -27,35 +37,23 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
 
   const { products } = useSelector((state: any) => state.productsModule);
   const { audiences } = useSelector((state: any) => state.audienceModule);
-  const { platforms } = useSelector((state: any) => state.platformModule);
   const { prompts } = useSelector((state: any) => state.promptModule);
 
   const isEdit = !!profile;
   const { businessId } = useParams<{ businessId: string }>();
-  const [createProfile, { isLoading, isSuccess }] = useCreateProfileMutation();
-  const [updateProfile] = useUpdateProfileMutation();
-  const [getProfiles] = useGetProfilesMutation();
+  const [ createProfile, { isLoading: isLoadingCreating }] = useCreateProfileMutation();
+  const [ updateProfile, { isLoading: isLoadingUpdating } ] = useUpdateProfileMutation();
+  const [ getProfiles ] = useGetProfilesMutation();
 
   const productsOptions = products?.map((product: any) => ({ value: product.id, label: product.name })) ?? [];
   const audiencesOptions = audiences?.map((audience: any) => ({ value: audience.id, label: audience.name })) ?? [];
-  const platformsOptions = platforms?.map((platform: any) => ({ value: platform.id, label: platform.name })) ?? [];
   const promptsOptions = prompts?.map((prompt: any) => ({ value: prompt.id, label: `${prompt.name} | ${prompt.purpose}` })) ?? [];
   const profileFocusOptions = Object.values(BusinessProfileFocus);
 
-  const [form, setForm] = useState({
-    name: "",
-    profileFocus: BusinessProfileFocus.GeneratePosts,
-    productsIds: [] as string[],
-    audiencesIds: [] as string[],
-    promptsIds: [] as string[],
-    isActive: true,
-    businessId: businessId ?? "",
-  });
-  const [errors, setErrors]: any = useState({});
-
-  useEffect(() => {
+  // Init Form
+  const initialForm = useMemo(() => {
     if (isEdit && profile) {
-      setForm({
+      return {
         name: profile.name,
         profileFocus: profile.profileFocus,
         productsIds: profile.products.map((x: TProduct) => x.id) ?? [],
@@ -63,67 +61,45 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
         promptsIds: profile.prompts.map((x: TPrompt) => x.id) ?? [],
         isActive: profile.isActive,
         businessId: profile.businessId ?? "",
-      })
-    } else {
-      setForm({
-        name: "",
-        profileFocus: BusinessProfileFocus.GeneratePosts,
-        productsIds: [],
-        audiencesIds: [],
-        promptsIds: [],
-        isActive: true,
-        businessId: businessId ?? "",
-      })
+      }
     }
-  }, [profile, isEdit, open]);
 
+    return {
+      name: "",
+      profileFocus: BusinessProfileFocus.GeneratePosts,
+      productsIds: [] as string[],
+      audiencesIds: [] as string[],
+      promptsIds: [] as string[],
+      isActive: true,
+      businessId: businessId ?? "",
+    }
+  }, [isEdit, profile, businessId]);
+
+  // Form Hook
+  const { form, handleChange } = useForm(initialForm);
+
+  // Validation Hook
+  const { errors, validateField, validateAll } = useValidation({
+    name: (value) => minLength(value, 3),
+    profileFocus: (value) => isRequired(value),
+    productsIds: (value) => isRequiredArray(value),
+    audiencesIds: (value) => isRequiredArray(value),
+    promptsIds: (value) => isRequiredArray(value),
+    businessId: (value) => isRequired(value),
+    isActive: (value) => isBoolean(value),
+  });
 
   if (!open) return null;
   if (!businessId) return null;
 
-  const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
-  ) => {
-    const { name, value, type, checked } = e.target as HTMLInputElement;
-
-    setForm((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
-  };
-
-  const validateField = (name: string, data: any) => {
-    let error: string | null = null;
-    if (name === "name") error = minLength(data.value, 3);
-    if (name === "profileFocus") error = isRequired(data.value);
-    setErrors((prev: any) => ({ ...prev, [name]: error }));
-    return error;
-  };
-
-  const validateForm = (e: React.FormEvent<HTMLFormElement>): boolean => {
+  // Create Profile
+  const create = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const newErrors: Record<string, string | null> = {};
-
-    Object.keys(form).forEach((field) => {
-      newErrors[field] = validateField(field, { value: form[field as keyof typeof form] });
-    });
-
-    setErrors(newErrors);
-
-    return window.utils.validateForm(newErrors);
-  }
-
-  const create = async (e: React.FormEvent<HTMLFormElement>) => {
-    if (!validateForm(e)) return;
-
-    console.log("CREATE")
+    if (!validateAll(form)) return;
 
     try {
       if (isEdit) {
-        console.log("UPDATE FORM ", form)
         await updateProfile({ id: profile!.id, form })
       } else {
         await createProfile(form);
@@ -140,6 +116,24 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
       showError(error);
     }
   }
+
+  // Handle Change
+  const onChange = (arg: ChangeArg) => {
+    let name: string;
+    let value: any;
+
+    if (isNativeEvent(arg)) {
+      const t = arg.target as HTMLInputElement;
+      name = t.name;
+      value = t.type === "checkbox" ? t.checked : t.value;
+    } else {
+      name = arg.name;
+      value = arg.value;
+    }
+
+    handleChange(arg);
+    validateField(name as keyof typeof form, value, form);
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50">
@@ -165,12 +159,10 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
               type="text"
               name="name"
               value={form.name}
-              onChange={(e) => {
-                handleChange(e);
-                validateField("name", {value: e.target.value})
-              }}
+              onChange={onChange}
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
               placeholder="Enter name"
+              autoComplete="off"
             />
             {errors.name && <p className="text-red-500 text-sm mt-2 text-left">{errors.name}</p>}
           </div>
@@ -183,10 +175,7 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
             <select
               name="profileFocus"
               value={form.profileFocus}
-              onChange={(e) => {
-                handleChange(e);
-                validateField("profileFocus", { value: e.target.value })
-              }}
+              onChange={onChange}
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
             >
               { profileFocusOptions.map((option: string) => (
@@ -199,22 +188,23 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
 
           <div>
             <div className="flex items-center gap-2 justify-between">
-              <label className="block text-sm font-medium text-slate-700 text-left">Products</label>
+              <label className="block text-sm font-medium text-slate-700 text-left">Product</label>
             </div>
 
             <Select
-              isMulti
               options={productsOptions}
-              value={productsOptions.filter((option: any) =>
-                form.productsIds.includes(option.value)
+              value={productsOptions.find(
+                (option: { label: string, value: string }) => form.productsIds[0] === option.value
               )}
               onChange={(selected) =>
-                setForm(prev => ({
-                  ...prev,
-                  productsIds: selected.map(option => option.value),
-                }))
+                onChange({
+                  name: "productsIds",
+                  value: selected ? [selected.value] : [],
+                })
               }
             />
+
+            {errors.productsIds && <p className="text-red-500 text-sm mt-2 text-left">{errors.productsIds}</p>}
           </div>
 
           <div>
@@ -229,12 +219,14 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
                 form.audiencesIds.includes(option.value)
               )}
               onChange={(selected) =>
-                setForm(prev => ({
-                  ...prev,
-                  audiencesIds: selected.map(option => option.value),
-                }))
+                onChange({
+                  name: "audiencesIds",
+                  value: selected.map((o) => o.value),
+                })
               }
             />
+
+            {errors.audiencesIds && <p className="text-red-500 text-sm mt-2 text-left">{errors.audiencesIds}</p>}
           </div>
 
           <div>
@@ -249,12 +241,14 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
                 form.promptsIds.includes(option.value)
               )}
               onChange={(selected) =>
-                setForm(prev => ({
-                  ...prev,
-                  promptsIds: selected.map(option => option.value),
-                }))
+                onChange({
+                  name: "promptsIds",
+                  value: selected.map((o) => o.value),
+                })
               }
             />
+
+            {errors.promptsIds && <p className="text-red-500 text-sm mt-2 text-left">{errors.promptsIds}</p>}
           </div>
 
           <label className="flex items-start gap-3 cursor-pointer select-none">
@@ -262,7 +256,7 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
               name="isActive"
               type="checkbox"
               checked={form.isActive}
-              onChange={handleChange}
+              onChange={onChange}
               className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
             />
 
@@ -283,13 +277,16 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
             </button>
             <button
               type="submit"
-              className="
-                px-4 py-2 rounded-lg  text-white font-medium
-                bg-blue-600 hover:bg-blue-700
-                disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-blue-600
-              "
+              disabled={isLoadingCreating || isLoadingUpdating}
+              className="px-4 py-2 rounded-lg bg-blue-600 text-white flex items-center gap-2 justify-center"
             >
-              Save
+              { isLoadingCreating || isLoadingUpdating ? (
+                <>
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"/>
+                  Saving...
+                </>
+                ) : ("Save")
+              }
             </button>
           </div>
         </form>

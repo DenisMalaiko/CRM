@@ -1,6 +1,6 @@
-import React, { useState } from "react";
-import {ArrowLeft} from "lucide-react";
-import {Outlet, NavLink, useNavigate} from "react-router-dom";
+import React from "react";
+import { ArrowLeft } from "lucide-react";
+import { Outlet, NavLink, useNavigate } from "react-router-dom";
 
 function Business() {
   const navigate = useNavigate();

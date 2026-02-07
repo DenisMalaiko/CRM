@@ -1,19 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { toast } from "react-toastify";
-import { RefreshCcw } from "lucide-react";
 
-import CreateProfileDlg from "./createProfileDlg/CreateProfileDlg";
+// Redux
+import { useSelector } from "react-redux";
 import { useAppDispatch } from "../../../../../store/hooks";
-import { showError } from "../../../../../utils/showError";
-import { confirm } from "../../../../../components/confirmDlg/ConfirmDlg";
-import { ApiResponse } from "../../../../../models/ApiResponse";
-import { TBusinessProfile } from "../../../../../models/BusinessProfile";
-import { TProduct } from "../../../../../models/Product";
-import { TAudience } from "../../../../../models/Audience";
-import { TPlatform } from "../../../../../models/Platform";
-
 import { useGetProfilesMutation, useDeleteProfileMutation, useGeneratePostsMutation } from "../../../../../store/profile/profileApi";
 import { useGetProductsMutation } from "../../../../../store/products/productsApi";
 import { useGetAudiencesMutation } from "../../../../../store/audience/audienceApi";
@@ -26,6 +17,20 @@ import { setAudiences } from "../../../../../store/audience/audienceSlice";
 import { setPlatforms } from "../../../../../store/platform/platformSlice";
 import { setPrompts } from "../../../../../store/prompts/promptSlice";
 
+// Components
+import CreateProfileDlg from "./createProfileDlg/CreateProfileDlg";
+import { confirm } from "../../../../../components/confirmDlg/ConfirmDlg";
+
+// Utils
+import { showError } from "../../../../../utils/showError";
+
+// Models
+import { ApiResponse } from "../../../../../models/ApiResponse";
+import { TBusinessProfile } from "../../../../../models/BusinessProfile";
+import { TProduct } from "../../../../../models/Product";
+import { TAudience } from "../../../../../models/Audience";
+import { TPlatform } from "../../../../../models/Platform";
+
 function Profiles() {
   const dispatch = useAppDispatch();
   const { businessId } = useParams<{ businessId: string }>();
@@ -35,16 +40,22 @@ function Profiles() {
   const [ getProducts ] = useGetProductsMutation();
   const [ getAudiences ] = useGetAudiencesMutation();
   const [ getPlatforms ] = useGetPlatformsMutation();
-  const [ generatePosts, { isLoading } ] = useGeneratePostsMutation();
+  const [ generatePosts ] = useGeneratePostsMutation();
   const [ getPrompts ] = useGetPromptsMutation();
 
   const { profiles } = useSelector((state: any) => state.profileModule);
-
-  const [open, setOpen] = useState(false);
-  const [selectedProfile, setSelectedProfile] = useState<any | null>(null);
-  const [loadingProfileId, setLoadingProfileId] = useState<string | null>(null);
+  const [ open, setOpen ] = useState(false);
+  const [ selectedProfile, setSelectedProfile ] = useState<any | null>(null);
+  const [ loadingProfileId, setLoadingProfileId ] = useState<string | null>(null);
   const isGenerating = loadingProfileId !== null;
+  const header = [
+    { name: "Name", key: "name" },
+    { name: "Profile Focus", key: "profileFocus" },
+    { name: "Active", key: "isActive" },
+    { name: "Actions", key: "actions"}
+  ]
 
+  // Get Data
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -71,13 +82,7 @@ function Profiles() {
 
   if(!businessId) return null;
 
-  const header = [
-    { name: "Name", key: "name" },
-    { name: "Profile Focus", key: "profileFocus" },
-    { name: "Active", key: "isActive" },
-    { name: "Actions", key: "actions"}
-  ]
-
+  // Delete Profile
   const openConfirmDlg = async (e: any, item: TBusinessProfile) => {
     e.preventDefault();
 
@@ -103,11 +108,13 @@ function Profiles() {
     }
   }
 
+  // Edit Profile
   const openEditProfile = async (item: TBusinessProfile) => {
     setSelectedProfile(item);
     setOpen(true)
   }
 
+  // Generate Posts
   const generateNewPosts = async (item: TBusinessProfile) => {
     try {
       setLoadingProfileId(item.id);

@@ -1,67 +1,70 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { toast } from "react-toastify";
 import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 
+// Hooks
+import { useForm } from "../../../hooks/useForm";
+import { useValidation } from "../../../hooks/useValidation";
+
+// Redux
 import { useSignUpUserMutation } from "../../../store/auth/authApi";
+
+// Utils
 import { showError } from "../../../utils/showError";
 import { isEmail, isPassword, isRepeatPassword, minLength } from "../../../utils/validations";
+
+// Models
 import { ApiResponse } from "../../../models/ApiResponse";
-import { Plans } from "../../../enum/Plans";
 import { TUser } from "../../../models/User";
+
+// Enums
+import { Plans } from "../../../enum/Plans";
 import { UserRole } from "../../../enum/UserRole";
 import { UserStatus } from "../../../enum/UserStatus";
-import { useForm } from "../../../hooks/useForm";
 
 function SignUp() {
   const navigate = useNavigate();
-  const [signUpUser] = useSignUpUserMutation();
-  const [showPassword, setShowPassword] = useState(false);
-  const [showRepeatPassword, setShowRepeatPassword] = useState(false);
-  const [errors, setErrors]: any = useState({});
+  const [ signUpUser, { isLoading } ] = useSignUpUserMutation();
+  const [ showPassword, setShowPassword ] = useState(false);
+  const [ showRepeatPassword, setShowRepeatPassword ] = useState(false);
   const PlanList = Object.values(Plans);
 
-  const { form, handleChange } = useForm({
+  // Init Form
+  const initialForm = useMemo(() => ({
     name: "",
     email: "",
     password: "",
     repeatPassword: "",
     agencyName: "",
     plan: Plans.Free,
+  }), []);
+
+  // Form Hook
+  const { form, handleChange } = useForm(initialForm);
+
+  // Validation Hook
+  const { errors, validateField, validateAll } = useValidation({
+    name: (value) => minLength(value, 3),
+    email: (value) => isEmail(value),
+    password: (value) => isPassword(value),
+    repeatPassword: (value, form) => isRepeatPassword(value, form.password),
+    agencyName: (value) => minLength(value, 3),
+    plan: (value) => minLength(value, 3),
   });
 
-  const validateField = (name: string, data: any) => {
-    let error: string | null = null;
-    if (name === "name") error = minLength(data, 3);
-    if (name === "email") error = isEmail(data);
-    if (name === "password") error = isPassword(data);
-    if (name === "repeatPassword") error = isRepeatPassword(data.value, data.repeatPassword);
-    if (name === "agencyName") error = minLength(data, 3);
-    if (name === "plan") error = minLength(data, 3);
-    setErrors((prev: any) => ({ ...prev, [name]: error }));
-  };
-
+  // Sign Up
   const signUp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!window.utils.validateForm(errors)) return;
+    if (!validateAll(form)) return;
 
     try {
       const { name, email, password, agencyName, plan } = form;
       const response: ApiResponse<TUser> = await signUpUser({
-        user: {
-          name,
-          email,
-          password,
-          role: UserRole.Marketer,
-          status: UserStatus.Active,
-        },
-        agency: {
-          name: agencyName,
-          plan
-        }
+        user: { name, email, password, role: UserRole.Marketer, status: UserStatus.Active },
+        agency: { name: agencyName, plan }
       }).unwrap();
-
       toast.success(response.message);
       navigate(`/signIn`);
     } catch (error) {
@@ -69,30 +72,12 @@ function SignUp() {
     }
   }
 
-  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Handle Change
+  const onChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
     handleChange(e);
-    validateField("name", e.target.value);
-  }
-
-  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    handleChange(e);
-    validateField("email", e.target.value);
-  }
-
-  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    handleChange(e);
-    validateField("password", e.target.value);
-  }
-
-  const handleRepeatPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    handleChange(e);
-    validateField("repeatPassword", { value: e.target.value, repeatPassword: form.password });
-  }
-
-  const handleAgencyNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    handleChange(e);
-    validateField("agencyName", e.target.value);
-  }
+    validateField(name as keyof typeof form, value, form);
+  };
 
   return (
     <section className="min-h-screen flex items-center justify-center bg-gray-100">
@@ -110,7 +95,7 @@ function SignUp() {
             <input
               name="name"
               value={form.name}
-              onChange={handleNameChange}
+              onChange={onChange}
               placeholder="you"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
               autoComplete="off"
@@ -126,7 +111,7 @@ function SignUp() {
               type="email"
               name="email"
               value={form.email}
-              onChange={handleEmailChange}
+              onChange={onChange}
               placeholder="you@example.com"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
             />
@@ -143,7 +128,7 @@ function SignUp() {
                 type={showPassword ? "text" : "password"}
                 name="password"
                 value={form.password}
-                onChange={handlePasswordChange}
+                onChange={onChange}
                 placeholder="••••••••"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
               />
@@ -170,7 +155,7 @@ function SignUp() {
                 type={showRepeatPassword ? "text" : "password"}
                 name="repeatPassword"
                 value={form.repeatPassword}
-                onChange={handleRepeatPasswordChange}
+                onChange={onChange}
                 placeholder="••••••••"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
               />
@@ -195,12 +180,12 @@ function SignUp() {
             <input
               name="agencyName"
               value={form.agencyName}
-              onChange={handleAgencyNameChange}
+              onChange={onChange}
               placeholder="you"
               autoComplete="off"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
             />
-            {errors.businessName && <p className="text-red-500 text-sm mt-2 text-left">{errors.businessName}</p>}
+            {errors.agencyName && <p className="text-red-500 text-sm mt-2 text-left">{errors.agencyName}</p>}
           </div>
 
           <div>
@@ -208,24 +193,27 @@ function SignUp() {
             <select
               name="plan"
               value={form.plan}
-              onChange={(e) => {
-                const selectedValue: Plans = e.target.value as Plans;
-                handleChange(e);
-                validateField("plan", { value: selectedValue })
-              }}
+              onChange={onChange}
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
             >
-              { PlanList.map((plan: string) => (
-                <option key={plan} value={plan}>{plan}</option>
-              )) }
+              {PlanList.map((plan) => (
+                <option key={plan} value={plan}>
+                  {plan}
+                </option>
+              ))}
             </select>
           </div>
 
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
+            className="w-full px-4 py-2 rounded-lg bg-blue-600 text-white flex items-center gap-2 justify-center"
           >
-            Sign Up
+            {isLoading ? (
+              <>
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"/>
+                Sign Up...
+              </>
+            ) : ("Sign Up")}
           </button>
         </form>
 
