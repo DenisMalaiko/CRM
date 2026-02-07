@@ -1,108 +1,80 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
+import { toast } from "react-toastify";
+
+// Hooks
+import { useForm } from "../../../../hooks/useForm";
+import { useValidation } from "../../../../hooks/useValidation";
+
+// Redux
 import { useSelector } from 'react-redux';
 import { RootState } from "../../../../store";
-import { isEmail, isPhoneNumber, minLength } from "../../../../utils/validations";
-import { toast } from "react-toastify";
-import { BusinessStatus } from "../../../../enum/BusinessStatus";
-import { showError } from "../../../../utils/showError";
-
+import { useAppDispatch } from "../../../../store/hooks";
 import { useUpdateBusinessMutation } from "../../../../store/businesses/businessesApi";
 import { useCreateBusinessMutation } from "../../../../store/businesses/businessesApi";
 import { useGetBusinessesMutation } from "../../../../store/businesses/businessesApi";
-import { useGetBusinessMutation } from "../../../../store/businesses/businessesApi";
 import { setBusiness, setBusinesses } from "../../../../store/businesses/businessesSlice";
-import { useAppDispatch } from "../../../../store/hooks";
-import {TBusiness} from "../../../../models/Business";
-import {ApiResponse} from "../../../../models/ApiResponse";
 
+// Utils
+import { showError } from "../../../../utils/showError";
+import { minLength, isRequired } from "../../../../utils/validations";
+
+// Models
+import { TBusiness } from "../../../../models/Business";
+import { ApiResponse } from "../../../../models/ApiResponse";
+
+// Enums
+import { BusinessStatus } from "../../../../enum/BusinessStatus";
 
 function CreateBusinessDlg({ open, onClose, business }: any) {
   const dispatch = useAppDispatch();
-
   const [ getBusinesses ] = useGetBusinessesMutation();
   const [ createBusiness, { isLoading: isLoadingCreating } ] = useCreateBusinessMutation();
   const [ updateBusiness, { isLoading: isLoadingUpdating } ] = useUpdateBusinessMutation();
 
   const { user } = useSelector((state: RootState) => state.authModule);
   const isEdit = !!business;
-  const statuses = Object.values(BusinessStatus);
+  const StatusList = Object.values(BusinessStatus);
 
-  const [form, setForm] = useState({
-    name: "",
-    website: "",
-    industry: "",
-    status: BusinessStatus.Active,
-    agencyId: user ? user.agencyId : business.agencyId,
-  });
-  const [errors, setErrors]: any = useState({});
-
-
-  useEffect(() => {
+  // Init From
+  const initialForm = useMemo(() => {
     if (isEdit && business) {
-      setForm({
+      return {
         name: business.name,
         website: business.website,
         industry: business.industry,
         status: business.status,
         agencyId: business.agencyId,
-      });
-    } else {
-      setForm({
-        name: "",
-        website: "",
-        industry: "",
-        status: BusinessStatus.Active,
-        agencyId: user?.agencyId,
-      });
+      };
     }
-  }, [business, isEdit, open]);
 
+    return {
+      name: "",
+      website: "",
+      industry: "",
+      status: BusinessStatus.Active,
+      agencyId: user?.agencyId,
+    };
+  }, [isEdit, business, user?.agencyId]);
+
+  // Form Hook
+  const { form, handleChange } = useForm(initialForm);
+
+  // Validation Hook
+  const { errors, validateField, validateAll } = useValidation({
+    name: (value) => minLength(value, 3),
+    website: (value) => minLength(value, 3),
+    industry: (value) => minLength(value, 3),
+    status: (value) => isRequired(value),
+    agencyId: (value) => isRequired(value),
+  })
 
   if (!open) return null;
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value, type } = e.target;
-    let newValue: any = value;
-
-    if (["phoneNumber"].includes(name)) {
-      newValue = value.replace(/[^0-9.]/g, "").replace(/(\..*)\./g, "$1"); // лише цифри та одна крапка
-    }
-
-    setForm((prev) => ({
-      ...prev,
-      [name]: type === "number"
-        ? newValue === "" ? "" : Number(newValue)
-        : newValue
-    }));
-  }
-
-  const validateField = (name: string, data: any) => {
-    let error: string | null = null;
-    if (name === "name") error = minLength(data.value, 2);
-    if (name === "website") error = minLength(data.value, 2);
-    if (name === "industry") error = minLength(data.value, 2);
-    if (name === "status") error = minLength(data.value, 2);
-    if (name === "agencyId") error = minLength(data.value, 2);
-    setErrors((prev: any) => ({ ...prev, [name]: error }));
-    return error;
-  };
-
-  const validateForm = (e: React.FormEvent<HTMLFormElement>): boolean => {
+  // Create Business
+  const create = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const newErrors: Record<string, string | null> = {};
-
-    Object.keys(form).forEach((field) => {
-      newErrors[field] = validateField(field, { value: form[field as keyof typeof form] });
-    });
-
-    setErrors(newErrors);
-
-    return window.utils.validateForm(newErrors);
-  }
-
-  const create = async (e: React.FormEvent<HTMLFormElement>) => {
-    if (!validateForm(e)) return;
+    if (!validateAll(form)) return;
 
     try {
       if (isEdit) {
@@ -127,6 +99,13 @@ function CreateBusinessDlg({ open, onClose, business }: any) {
     }
   }
 
+  // Handle Change
+  const onChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    handleChange(e);
+    validateField(name as keyof typeof form, value, form);
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50">
       <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl p-6">
@@ -148,10 +127,7 @@ function CreateBusinessDlg({ open, onClose, business }: any) {
                 type="text"
                 name="name"
                 value={form.name}
-                onChange={(e) => {
-                  handleChange(e);
-                  validateField("name", { value: e.target.value })
-                }}
+                onChange={onChange}
                 className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
                 placeholder="Enter name"
                 autoComplete="off"
@@ -165,10 +141,7 @@ function CreateBusinessDlg({ open, onClose, business }: any) {
                 type="text"
                 name="website"
                 value={form.website}
-                onChange={(e) => {
-                  handleChange(e);
-                  validateField("website", { value: e.target.value })
-                }}
+                onChange={onChange}
                 className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
                 placeholder="Enter website"
                 autoComplete="off"
@@ -184,10 +157,7 @@ function CreateBusinessDlg({ open, onClose, business }: any) {
                 type="text"
                 name="industry"
                 value={form.industry}
-                onChange={(e) => {
-                  handleChange(e);
-                  validateField("industry", { value: e.target.value })
-                }}
+                onChange={onChange}
                 className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
                 placeholder="Enter industry"
                 autoComplete="off"
@@ -200,10 +170,10 @@ function CreateBusinessDlg({ open, onClose, business }: any) {
               <select
                 name="status"
                 value={form.status}
-                onChange={handleChange}
+                onChange={onChange}
                 className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
               >
-                { statuses.map((status: string) => (
+                { StatusList.map((status: string) => (
                   <option key={status} value={status}>{status}</option>
                 )) }
               </select>
@@ -221,18 +191,14 @@ function CreateBusinessDlg({ open, onClose, business }: any) {
             <button
               type="submit"
               disabled={isLoadingCreating || isLoadingUpdating}
-              className="
-                px-4 py-2 rounded-lg bg-blue-600 text-white
-                flex items-center gap-2 justify-center"
+              className="px-4 py-2 rounded-lg bg-blue-600 text-white flex items-center gap-2 justify-center"
             >
               { isLoadingCreating || isLoadingUpdating ? (
                 <>
                   <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"/>
                   Saving...
                 </>
-                ) : (
-                  "Save"
-                )
+                ) : ("Save")
               }
             </button>
           </div>

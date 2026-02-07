@@ -1,63 +1,65 @@
-import React from "react";
+import React, { useState, useMemo } from "react";
 import { toast } from "react-toastify";
 import { Link, useNavigate } from 'react-router-dom';
-import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 
+// Hooks
+import { useForm } from "../../../hooks/useForm";
+import { useValidation } from "../../../hooks/useValidation";
+
+// Redux
 import { useAppDispatch } from "../../../store/hooks";
 import { useSignInUserMutation } from "../../../store/auth/authApi";
+import { setUser, setAccessToken } from "../../../store/auth/authSlice";
+
+// Utils
 import { showError } from "../../../utils/showError";
 import { isEmail, isPassword } from "../../../utils/validations";
-import { setUser, setAccessToken } from "../../../store/auth/authSlice";
-import { useForm } from "../../../hooks/useForm";
 
 function SignIn() {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
-  const [signInUser] = useSignInUserMutation();
+  const [ signInUser, { isLoading } ] = useSignInUserMutation();
+  const [ showPassword, setShowPassword ] = useState(false);
 
-  /*const [password, setPassword] = useState("Ab12345$");*/
-
-  const { form, handleChange } = useForm({
+  // Init Form
+  const initialForm = useMemo(() => ({
     email: 'malaiko.denis@gmail.com',
     password: 'Ab12345$'
+  }), []);
+
+  // Form Hook
+  const { form, handleChange } = useForm(initialForm);
+
+  // Validation Hook
+  const { errors, validateField, validateAll } = useValidation({
+    email: isEmail,
+    password: isPassword
   });
 
-  const [showPassword, setShowPassword] = useState(false);
-  const [errors, setErrors]: any = useState({});
-
-  const validateField = (name: string, data: any) => {
-    let error: string | null = null;
-    if (name === "email") error = isEmail(data);
-    if (name === "password") error = isPassword(data);
-    setErrors((prev: any) => ({ ...prev, [name]: error }));
-  };
-
+  // Sign In
   const signIn = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!window.utils.validateForm(errors)) return;
+    if (!validateAll(form)) return;
 
     try {
       const { email, password } = form;
       const response = await signInUser({ email, password }).unwrap();
       dispatch(setUser(response.data.user));
       dispatch(setAccessToken(response.data.accessToken));
-      toast.success(response.data.message);
+      toast.success(response.message);
       navigate("/profile/businesses");
     } catch (error) {
       showError(error);
     }
   }
 
-  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Handle Change
+  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
     handleChange(e);
-    validateField("email", e.target.value);
-  };
-
-  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    handleChange(e);
-    validateField("password", e.target.value);
+    validateField(name as keyof typeof form, value, form);
   };
 
   return (
@@ -77,7 +79,7 @@ function SignIn() {
               type="email"
               name="email"
               value={form.email}
-              onChange={handleEmailChange}
+              onChange={onChange}
               placeholder="you@example.com"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
             />
@@ -94,7 +96,7 @@ function SignIn() {
                 type={showPassword ? "text" : "password"}
                 name="password"
                 value={form.password}
-                onChange={handlePasswordChange}
+                onChange={onChange}
                 placeholder="••••••••"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
               />
@@ -114,9 +116,16 @@ function SignIn() {
 
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
+            disabled={isLoading}
+            className="w-full px-4 py-2 rounded-lg bg-blue-600 text-white flex items-center gap-2 justify-center"
           >
-            Sign In
+            {isLoading ? (
+              <>
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"/>
+                ...Sign In
+              </>
+              ) : ("Sign In")
+            }
           </button>
         </form>
 

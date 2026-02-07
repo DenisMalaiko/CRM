@@ -1,20 +1,26 @@
 import React, { useState, useEffect } from "react";
-import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+
+// Redux
 import { RootState } from "../../../store";
 import { useAppDispatch } from "../../../store/hooks";
-import { showError } from "../../../utils/showError";
-
-import { TBusiness } from "../../../models/Business";
-import { confirm } from "../../../components/confirmDlg/ConfirmDlg";
-import { toast } from "react-toastify";
-import CreateBusinessDlg from "./createBusinessDlg/CreateBusinessDlg";
-
+import { useSelector } from "react-redux";
 import { useGetBusinessesMutation } from "../../../store/businesses/businessesApi";
 import { useDeleteBusinessMutation } from "../../../store/businesses/businessesApi";
 import { setBusinesses } from "../../../store/businesses/businessesSlice";
-import { ApiResponse } from "../../../models/ApiResponse";
+
+// Components
+import { confirm } from "../../../components/confirmDlg/ConfirmDlg";
+import CreateBusinessDlg from "./createBusinessDlg/CreateBusinessDlg";
+
+// Utils
+import { showError } from "../../../utils/showError";
 import { getStatusClass } from "../../../utils/getStatusClass";
+
+// Models
+import { ApiResponse } from "../../../models/ApiResponse";
+import { TBusiness } from "../../../models/Business";
 
 function Businesses() {
   const navigate = useNavigate();
@@ -25,8 +31,17 @@ function Businesses() {
 
   const [ open, setOpen ] = useState(false);
   const [ selectedBusiness, setSelectedBusiness ] = useState<TBusiness | null>(null);
-  const { businesses } = useSelector((state: RootState) => state.businessModule)
+  const { businesses } = useSelector((state: RootState) => state.businessModule);
 
+  const header = [
+    { name: "Name", key: "name" },
+    { name: "Website", key: "website" },
+    { name: "Industry", key: "industry" },
+    { name: "Status", key: "status" },
+    { name: "Actions", key: "actions" }
+  ];
+
+  // Get Data
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -40,14 +55,7 @@ function Businesses() {
     fetchData();
   }, [dispatch]);
 
-  const header = [
-    { name: "Name", key: "name" },
-    { name: "Website", key: "website" },
-    { name: "Industry", key: "industry" },
-    { name: "Status", key: "status" },
-    { name: "Actions", key: "actions" }
-  ];
-
+  // Delete Business
   const openConfirmDlg = async (e: any, item: TBusiness) => {
     e.preventDefault();
 
@@ -71,11 +79,13 @@ function Businesses() {
     }
   }
 
+  // Open Edit Business Dialog
   const openEditBusiness = async (item: TBusiness) => {
     setSelectedBusiness(item);
     setOpen(true)
   }
 
+  // Open Business Page
   const openBusiness = (id?: string) => {
     navigate(`${id}/baseData`);
   }
