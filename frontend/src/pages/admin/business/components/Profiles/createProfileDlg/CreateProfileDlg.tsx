@@ -100,16 +100,16 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
 
     try {
       if (isEdit) {
-        await updateProfile({ id: profile!.id, form })
+        const response = await updateProfile({ id: profile!.id, form }).unwrap();
+        if(response && response?.data) toast.success(response.message);
       } else {
-        await createProfile(form);
+        const response = await createProfile(form).unwrap();
+        if(response && response?.data) toast.success(response.message);
       }
 
       const response: ApiResponse<TBusinessProfile[]> = await getProfiles(businessId).unwrap();
-
       if(response && response?.data) {
         dispatch(setProfiles(response.data));
-        toast.success(response.message);
         onClose();
       }
     } catch (error) {
@@ -140,7 +140,7 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
       <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl p-6">
 
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">Create Profile</h2>
+          <h2 className="text-lg font-semibold">{ isEdit ? "Edit" : "Create" } Profile</h2>
           <button
             onClick={onClose}
             className="text-slate-500 hover:text-slate-700 rounded-full p-1 hover:bg-slate-100"
@@ -267,6 +267,7 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
             <button
               type="button"
               onClick={onClose}
+              disabled={isLoadingCreating || isLoadingUpdating}
               className="
                 px-4 py-2 rounded-lg border  text-slate-600
                 border-slate-300 hover:bg-slate-50

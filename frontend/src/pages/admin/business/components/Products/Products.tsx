@@ -1,20 +1,26 @@
 import React, { useState, useEffect } from "react";
-import { TProduct} from "../../../../../models/Product";
-import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
+import { toast } from "react-toastify";
+
+// Redux
+import { useSelector } from "react-redux";
 import { RootState } from "../../../../../store";
 import { useAppDispatch } from "../../../../../store/hooks";
-import { showError } from "../../../../../utils/showError";
-
-import { toast } from "react-toastify";
-import { confirm } from "../../../../../components/confirmDlg/ConfirmDlg";
-import { getStatusClass } from "../../../../../utils/getStatusClass";
-import CreateProductDlg from "./createProductDlg/CreateProductDlg";
-import { ApiResponse } from "../../../../../models/ApiResponse";
-
 import { useGetProductsMutation } from "../../../../../store/products/productsApi";
 import { useDeleteProductMutation } from "../../../../../store/products/productsApi";
 import { setProducts } from "../../../../../store/products/productsSlice";
+
+// Components
+import CreateProductDlg from "./createProductDlg/CreateProductDlg";
+import { confirm } from "../../../../../components/confirmDlg/ConfirmDlg";
+
+// Utils
+import { showError } from "../../../../../utils/showError";
+import { getStatusClass } from "../../../../../utils/getStatusClass";
+
+// Models
+import { ApiResponse } from "../../../../../models/ApiResponse";
+import { TProduct} from "../../../../../models/Product";
 
 function Products() {
   const dispatch = useAppDispatch();
@@ -27,6 +33,16 @@ function Products() {
   const [selectedProduct, setSelectedProduct] = useState<TProduct | null>(null);
   const { products } = useSelector((state: RootState) => state.productsModule)
 
+  const header = [
+    { name: "Image", key: "image" },
+    { name: "Name", key: "name" },
+    { name: "Type", key: "type" },
+    { name: "Segment", key: "priceSegment" },
+    { name: "Active", key: "isActive" },
+    { name: "Actions", key: "actions"}
+  ]
+
+  // Get Data
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -48,15 +64,7 @@ function Products() {
 
   if(!businessId) return null;
 
-  const header = [
-    { name: "Image", key: "image" },
-    { name: "Name", key: "name" },
-    { name: "Type", key: "type" },
-    { name: "Segment", key: "priceSegment" },
-    { name: "Active", key: "isActive" },
-    { name: "Actions", key: "actions"}
-  ]
-
+  // Delete Product
   const openConfirmDlg = async (e: any, item: TProduct) => {
     e.preventDefault();
 
@@ -68,12 +76,14 @@ function Products() {
     if(ok) {
       try {
         if (item?.id != null) {
-          await deleteProduct(item.id);
-          const response: any = await getProducts(businessId).unwrap();
+          const responseDelete = await deleteProduct(item.id).unwrap();
+          if(responseDelete && responseDelete?.data) {
+            toast.success(responseDelete.message);
+          }
 
+          const response: ApiResponse<TProduct[]> = await getProducts(businessId).unwrap();
           if(response && response?.data) {
             dispatch(setProducts(response.data));
-            toast.success(response.message);
           }
         }
       } catch (error: any) {
@@ -82,6 +92,7 @@ function Products() {
     }
   }
 
+  // Edit Products
   const openEditProduct = async (item: TProduct) => {
     setSelectedProduct(item);
     setOpen(true)

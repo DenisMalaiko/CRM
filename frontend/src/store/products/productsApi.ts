@@ -25,7 +25,7 @@ export const productsApi = api.injectEndpoints({
 
     createProduct: builder.mutation<ApiResponse<TProduct>, TProductCreate>({
       query: (form: TProductCreate) => ({
-        url: `/products/create`,
+        url: `/products`,
         method: "POST",
         body: form,
       })
@@ -33,7 +33,7 @@ export const productsApi = api.injectEndpoints({
 
     updateProduct: builder.mutation<ApiResponse<TProduct>, { id: string, form: TProductCreate, }>({
       query: ({ id, form }) => ({
-        url: `/products/update/${id}`,
+        url: `/products/${id}`,
         method: "PATCH",
         body: form,
       })
@@ -41,7 +41,7 @@ export const productsApi = api.injectEndpoints({
 
     deleteProduct: builder.mutation<ApiResponse<TProduct>, string>({
       query: (id: string) => ({
-        url: `/products/delete/${id}`,
+        url: `/products/${id}`,
         method: "DELETE",
       })
     }),

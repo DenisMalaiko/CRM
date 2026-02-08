@@ -218,7 +218,7 @@ model AIArtifact {
 
     products         AIArtifactProduct[]
 
-    businessProfile BusinessProfile @relation(fields: [businessProfileId], references: [id])
+    businessProfile BusinessProfile @relation(fields: [businessProfileId], references: [id], onDelete: Cascade)
     trend           Trend?          @relation(fields: [trendId], references: [id])
 
     @@index([businessId])

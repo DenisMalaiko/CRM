@@ -15,7 +15,6 @@ export type TProfile = TProfileBase & {
   id: string;
   createdAt: Date;
   products: TProduct[];
-/*  platforms: TPlatform[];*/
   audiences: TAudience[];
   prompts: TPrompt[];
   business?: TBusiness;
@@ -25,5 +24,10 @@ export type TProfileCreate = TProfileBase & {
   productsIds: string[];
   audiencesIds: string[];
   promptsIds: string[];
-/*  platformsIds: string[];*/
-};
+}
+
+export type TProfileUpdate = TProfileBase & {
+  productsIds: string[];
+  audiencesIds: string[];
+  promptsIds: string[];
+}

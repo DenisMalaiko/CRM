@@ -25,7 +25,7 @@ export const profileApi = api.injectEndpoints({
 
     createProfile: builder.mutation<ApiResponse<TBusinessProfile>, TBusinessProfileCreate>({
       query: (form: TBusinessProfileCreate) => ({
-        url: `/profiles/create`,
+        url: `/profiles`,
         method: "POST",
         body: form,
       })
@@ -33,7 +33,7 @@ export const profileApi = api.injectEndpoints({
 
     updateProfile: builder.mutation<ApiResponse<TBusinessProfile>, { id: string, form: TBusinessProfileCreate, }>({
       query: ({ id, form }) => ({
-        url: `/profiles/update/${id}`,
+        url: `/profiles/${id}`,
         method: "PATCH",
         body: form,
       })
@@ -41,7 +41,7 @@ export const profileApi = api.injectEndpoints({
 
     deleteProfile: builder.mutation<ApiResponse<TBusinessProfile>, string>({
       query: (id: string) => ({
-        url: `/profiles/delete/${id}`,
+        url: `/profiles/${id}`,
         method: "DELETE",
       })
     }),

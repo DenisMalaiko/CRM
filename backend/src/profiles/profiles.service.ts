@@ -1,8 +1,8 @@
-import { ConflictException, Injectable, InternalServerErrorException, NotFoundException} from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { AiService } from "../ai/ai.service";
-import { TProfile, TProfileCreate } from "./entities/profile.entity";
-import { AIArtifactType, AIArtifactStatus } from "@prisma/client";
+import { TProfile, TProfileCreate, TProfileUpdate } from "./entities/profile.entity";
+import { AIArtifactStatus, AIArtifactType } from "@prisma/client";
 import { AiPost } from "../ai/entities/aiPost.entity";
 import { AIArtifactBase } from "../aiArtifact/entities/aiArtifact.entity";
 
@@ -13,7 +13,7 @@ export class ProfilesService {
     private readonly aiService: AiService
   ) {}
 
-  async getProfiles(businessId: string): Promise<ApiResponse<TProfile[]>> {
+  async getProfiles(businessId: string): Promise<TProfile[]> {
     const profiles = await this.prisma.businessProfile.findMany({
       where: { businessId: businessId },
       include: {
@@ -24,7 +24,7 @@ export class ProfilesService {
       },
     });
 
-    const mappedProfiles: TProfile[] = profiles.map(profile => ({
+    return profiles.map(profile => ({
       id: profile.id,
       businessId: profile.businessId,
       name: profile.name,
@@ -36,15 +36,9 @@ export class ProfilesService {
       audiences: profile.audiences.map(a => a.targetAudience),
       prompts: profile.prompts.map(p => p.prompt),
     }));
-
-    return {
-      statusCode: 200,
-      message: "Profiles has been got!",
-      data: mappedProfiles,
-    };
   }
 
-  async createProfile(body: TProfileCreate) {
+  async createProfile(body: TProfileCreate): Promise<TProfile> {
     const {
       productsIds,
       audiencesIds,
@@ -79,17 +73,11 @@ export class ProfilesService {
       }
     });
 
-    return {
-      statusCode: 200,
-      message: "Profile has been created!",
-      data: profile,
-    }
+    return profile;
   }
 
-  async updateProfile(id: string, body: TProfileCreate) {
-    if (!id) {
-      throw new NotFoundException('Product ID is required');
-    }
+  async updateProfile(id: string, body: TProfileUpdate) {
+    if (!id) throw new NotFoundException('Product ID is required');
 
     try {
       const {
@@ -99,20 +87,18 @@ export class ProfilesService {
         ...profileData
       } = body;
 
-      const updated = await this.prisma.businessProfile.update({
-        where: {id},
+      return await this.prisma.businessProfile.update({
+        where: { id },
         data: {
           ...profileData,
-
           products: productsIds
             ? {
-              deleteMany: {}, // ⬅️ КРИТИЧНО
+              deleteMany: {},
               createMany: {
-                data: productsIds.map(productId => ({ productId })),
+                data: productsIds.map(productId => ({productId})),
               },
             }
             : undefined,
-
           audiences: audiencesIds
             ? {
               deleteMany: {},
@@ -128,7 +114,7 @@ export class ProfilesService {
             ? {
               deleteMany: {},
               createMany: {
-                data: promptsIds.map(promptId => ({ promptId })),
+                data: promptsIds.map(promptId => ({promptId})),
               },
             }
             : undefined,
@@ -140,12 +126,6 @@ export class ProfilesService {
           prompts: true,
         },
       });
-
-      return {
-        statusCode: 200,
-        message: 'Profile has been updated!',
-        data: updated,
-      };
     } catch (err: any) {
       if (err.code === 'P2025') {
         throw new NotFoundException(`Product with ID ${id} not found`);
@@ -156,32 +136,14 @@ export class ProfilesService {
   }
 
   async deleteProfile(id: string) {
-    return this.prisma.$transaction(async (tx) => {
-      try {
-        if (!id) throw new NotFoundException('Profile ID is required');
-
-        const deleted = await tx.businessProfile.delete({
-          where: { id },
-        });
-
-        return {
-          statusCode: 200,
-          message: 'Profile has been deleted!',
-          data: deleted,
-        };
-      } catch (err: any) {
-
-        if (err.code === 'P2025') {
-          throw new NotFoundException(`Profile with ID ${id} not found`);
-        }
-
-        if (err instanceof ConflictException) {
-          throw err;
-        }
-
-        throw new InternalServerErrorException('Failed to delete profile');
+    try {
+      return await this.prisma.businessProfile.delete({ where: { id } });
+    } catch (err: any) {
+      if (err.code === 'P2025') {
+        throw new NotFoundException(`Profile with ID ${id} not found`);
       }
-    });
+      throw err;
+    }
   }
 
   async generateProfilePosts(id) {
@@ -243,11 +205,7 @@ export class ProfilesService {
 
       console.log("SUCCESSFULLY GENERATED POSTS!")
 
-      return {
-        statusCode: 200,
-        message: 'Posts has been gotten!',
-        data: createdArtifacts,
-      };
+      return createdArtifacts;
     }
   }
 }
