@@ -1,18 +1,30 @@
-import React, { useState, useEffect } from 'react';
+import React, { useMemo } from 'react';
 import { useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 
+// Hooks
+import { useForm } from "../../../../../../hooks/useForm";
+import { useValidation } from "../../../../../../hooks/useValidation";
+
+// Redux
+import { useAppDispatch } from "../../../../../../store/hooks";
+import {
+  useCreateProductMutation,
+  useUpdateProductMutation,
+  useGetProductsMutation
+} from "../../../../../../store/products/productsApi";
+import { setProducts } from "../../../../../../store/products/productsSlice";
+
+// Utils
+import { showError } from "../../../../../../utils/showError";
+import { isRequired, minLength, isBoolean } from "../../../../../../utils/validations";
+import { isNativeEvent, ChangeArg } from "../../../../../../utils/isNativeEvent";
+
+// Enum
 import { ProductType } from "../../../../../../enum/ProductType";
 import { PriceSegment } from "../../../../../../enum/PriceSegment";
-import { isRequired, minLength} from "../../../../../../utils/validations";
-import { showError } from "../../../../../../utils/showError";
 
-import { useUpdateProductMutation } from "../../../../../../store/products/productsApi";
-import { useCreateProductMutation } from "../../../../../../store/products/productsApi";
-import { useGetProductsMutation } from "../../../../../../store/products/productsApi";
-
-import { setProducts } from "../../../../../../store/products/productsSlice";
-import { useAppDispatch } from "../../../../../../store/hooks";
+// Models
 import { ApiResponse } from "../../../../../../models/ApiResponse";
 import { TProduct } from "../../../../../../models/Product";
 
@@ -20,102 +32,72 @@ function CreateProductDlg({ open, onClose, product }: any) {
   const dispatch = useAppDispatch();
   const { businessId } = useParams<{ businessId: string }>();
 
+  const [ createProduct, { isLoading: isLoadingCreating } ] = useCreateProductMutation();
+  const [ updateProduct, { isLoading: isLoadingUpdating } ] = useUpdateProductMutation();
   const [ getProducts ] = useGetProductsMutation();
-  const [ createProduct, { isLoading, isSuccess } ] = useCreateProductMutation();
-  const [ updateProduct ] = useUpdateProductMutation();
 
   const types = Object.values(ProductType);
   const priceSegments = Object.values(PriceSegment);
 
   const isEdit = !!product;
 
-  const [form, setForm] = useState({
-    name: "",
-    description: "",
-    type: ProductType.Product,
-    priceSegment: PriceSegment.Middle,
-    isActive: true,
-    businessId: businessId ?? "",
-  });
-  const [errors, setErrors]: any = useState({});
-
-  useEffect(() => {
-    if (isEdit && product) {
-      setForm({
+  // Init Form
+  const initialForm = useMemo(() => {
+    if(isEdit && product) {
+      return {
         name: product.name,
         description: product.description,
         type: product.type,
         priceSegment: product.priceSegment,
         isActive: product.isActive,
         businessId: businessId ?? "",
-      });
-    } else {
-      setForm({
-        name: "",
-        description: "",
-        type: ProductType.Product,
-        priceSegment: PriceSegment.Middle,
-        isActive: true,
-        businessId: businessId ?? "",
-      });
+      }
     }
-  }, [product, isEdit, open]);
+
+    return {
+      name: "",
+      description: "",
+      type: ProductType.Product,
+      priceSegment: PriceSegment.Middle,
+      isActive: true,
+      businessId: businessId ?? "",
+    }
+  }, [isEdit, product, businessId]);
+
+  // Form Hook
+  const { form, handleChange } = useForm(initialForm);
+
+  // Validation Hook
+  const { errors, validateField, validateAll } = useValidation({
+    name: (value) => minLength(value, 3),
+    description: (value) => minLength(value, 10),
+    type: (value) => isRequired(value),
+    priceSegment: (value) => isRequired(value),
+    isActive: (value) => isBoolean(value),
+    businessId: (value) => isRequired(value),
+  });
 
   if (!open) return null;
   if (!businessId) return null;
 
-  const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
-  ) => {
-    const { name, value, type, checked } = e.target as HTMLInputElement;
-
-    setForm((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
-  };
-
-  const validateField = (name: string, data: any) => {
-    let error: string | null = null;
-    if (name === "name") error = minLength(data.value, 3);
-    if (name === "description") error = minLength(data.value, 10);
-    if (name === "type") error = isRequired(data.value);
-    if (name === "priceSegment") error = isRequired(data.value);
-    setErrors((prev: any) => ({ ...prev, [name]: error }));
-    return error;
-  };
-
-  const validateForm = (e: React.FormEvent<HTMLFormElement>): boolean => {
+  // Create Product
+  const create = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const newErrors: Record<string, string | null> = {};
-
-    Object.keys(form).forEach((field) => {
-      newErrors[field] = validateField(field, { value: form[field as keyof typeof form] });
-    });
-
-    setErrors(newErrors);
-
-    return window.utils.validateForm(newErrors);
-  }
-
-  const create = async (e: React.FormEvent<HTMLFormElement>) => {
-    if (!validateForm(e)) return;
+    if (!validateAll(form)) return;
 
     try {
       if (isEdit) {
-        await updateProduct({ id: product!.id, form })
+        const response = await updateProduct({ id: product!.id, form }).unwrap();
+        if(response && response?.data) toast.success(response.message);
       } else {
-        await createProduct(form);
+        const response = await createProduct(form).unwrap();
+        if(response && response?.data) toast.success(response.message);
       }
 
       const response: ApiResponse<TProduct[]> = await getProducts(businessId).unwrap();
-
       if(response && response?.data) {
         dispatch(setProducts(response.data));
-        toast.success(response.message);
         onClose();
       }
     } catch (error) {
@@ -123,12 +105,30 @@ function CreateProductDlg({ open, onClose, product }: any) {
     }
   }
 
+  // Handle Change
+  const onChange = (arg: ChangeArg) => {
+    let name: string;
+    let value: any;
+
+    if (isNativeEvent(arg)) {
+      const t = arg.target as HTMLInputElement;
+      name = t.name;
+      value = t.type === "checkbox" ? t.checked : t.value;
+    } else {
+      name = arg.name;
+      value = arg.value;
+    }
+
+    handleChange(arg);
+    validateField(name as keyof typeof form, value, form);
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50">
       <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl p-6">
 
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">Create Product</h2>
+          <h2 className="text-lg font-semibold">{ isEdit ? "Edit" : "Create" } Product</h2>
           <button
             onClick={onClose}
             className="text-slate-500 hover:text-slate-700 rounded-full p-1 hover:bg-slate-100"
@@ -145,10 +145,7 @@ function CreateProductDlg({ open, onClose, product }: any) {
               type="text"
               name="name"
               value={form.name}
-              onChange={(e) => {
-                handleChange(e);
-                validateField("name", {value: e.target.value})
-              }}
+              onChange={onChange}
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
               placeholder="Enter product name"
             />
@@ -160,10 +157,7 @@ function CreateProductDlg({ open, onClose, product }: any) {
             <textarea
               name="description"
               value={form.description}
-              onChange={(e) => {
-                handleChange(e);
-                validateField("description", {value: e.target.value})
-              }}
+              onChange={onChange}
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
               placeholder="Enter product description"
             />
@@ -176,7 +170,7 @@ function CreateProductDlg({ open, onClose, product }: any) {
               <select
                 name="type"
                 value={form.type}
-                onChange={handleChange}
+                onChange={onChange}
                 className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
               >
                 {types.map((type: string) => (
@@ -190,7 +184,7 @@ function CreateProductDlg({ open, onClose, product }: any) {
               <select
                 name="priceSegment"
                 value={form.priceSegment}
-                onChange={handleChange}
+                onChange={onChange}
                 className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
               >
                 {priceSegments.map((segment: string) => (
@@ -200,13 +194,12 @@ function CreateProductDlg({ open, onClose, product }: any) {
             </div>
           </div>
 
-
           <label className="flex items-start gap-3 cursor-pointer select-none">
             <input
               name="isActive"
               type="checkbox"
               checked={form.isActive}
-              onChange={handleChange}
+              onChange={onChange}
               className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
             />
 
@@ -219,25 +212,27 @@ function CreateProductDlg({ open, onClose, product }: any) {
             <button
               type="button"
               onClick={onClose}
+              disabled={isLoadingCreating || isLoadingUpdating}
               className="
                 px-4 py-2 rounded-lg border  text-slate-600
                 border-slate-300 hover:bg-slate-50
                 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-slate-white
               "
-              disabled={isLoading}
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="
-                px-4 py-2 rounded-lg  text-white font-medium
-                bg-blue-600 hover:bg-blue-700
-                disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-blue-600
-              "
-              disabled={isLoading}
+              disabled={isLoadingCreating || isLoadingUpdating}
+              className="px-4 py-2 rounded-lg bg-blue-600 text-white flex items-center gap-2 justify-center"
             >
-              Save
+              { isLoadingCreating || isLoadingUpdating ? (
+                <>
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"/>
+                  Saving...
+                </>
+                ) : ("Save")
+              }
             </button>
           </div>
         </form>

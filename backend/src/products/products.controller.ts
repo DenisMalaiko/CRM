@@ -1,41 +1,35 @@
-import { Controller, Post, Get, Patch, Delete, Body, Req, Res, Param, UseGuards } from '@nestjs/common';
-import { ProductsService } from './products.service';
-import { ProductDto } from "./dto/product.dto";
+import { Controller, Post, Get, Patch, Delete, Body, Param, UseGuards } from '@nestjs/common';
+import { ProductIdParamDto, CreateProductDto, UpdateProductDto } from "./dto/product.dto";
 import { JwtAuthGuard } from "../guards/jwt-auth.guard";
-import { TProductCreate } from "./entities/product.entity";
+import { ProductsService } from './products.service';
+import { ResponseMessage } from "../common/decorators/response-message.decorator";
 
+@UseGuards(JwtAuthGuard)
 @Controller('products')
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
-  @UseGuards(JwtAuthGuard)
   @Get("/:id")
-  async getProducts(@Param() params: any, @Res() res: any) {
-    const businessId = params.id;
-    if(!businessId) return res.json([]);
-    const response = await this.productsService.getProducts(businessId);
-    console.log("PRODUCTS ", response)
-    return res.json(response);
+  @ResponseMessage('Products has been got!')
+  async getProducts(@Param() { id }: ProductIdParamDto) {
+    return await this.productsService.getProducts(id);
   }
 
-  @UseGuards(JwtAuthGuard)
-  @Post("/create")
-  async createProduct(@Body() body: TProductCreate, @Res() res: any) {
-    const response = await this.productsService.createProduct(body);
-    return res.json(response);
+  @Post()
+  @ResponseMessage('Product has been created!')
+  createProduct(@Body() body: CreateProductDto) {
+    return this.productsService.createProduct(body);
   }
 
-  @UseGuards(JwtAuthGuard)
-  @Patch("/update/:id")
-  async updateProduct(@Param("id") id: string, @Body() body: TProductCreate, @Res() res: any) {
-    const response = await this.productsService.updateProduct(id, body);
-    return res.json(response);
+  @Patch("/:id")
+  @ResponseMessage('Product has been updated!')
+  updateProduct(@Param() { id } : ProductIdParamDto, @Body() body: UpdateProductDto) {
+    return this.productsService.updateProduct(id, body);
   }
 
-  @UseGuards(JwtAuthGuard)
-  @Delete("/delete/:id")
-  async deleteProduct(@Param("id") id: string, @Res() res: any) {
-    const response = await this.productsService.deleteProduct(id);
-    return res.json(response);
+  @Delete("/:id")
+  @ResponseMessage('Product has been deleted!')
+  deleteProduct(@Param() { id }: ProductIdParamDto) {
+    return this.productsService.deleteProduct(id);
   }
 }

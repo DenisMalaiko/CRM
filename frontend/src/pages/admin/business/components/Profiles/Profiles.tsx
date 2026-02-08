@@ -94,12 +94,14 @@ function Profiles() {
     if(ok) {
       try {
         if (item?.id != null) {
-          await deleteProfile(item.id);
-          const response: ApiResponse<TBusinessProfile[]> = await getProfiles(businessId).unwrap();
+          const responseDelete = await deleteProfile(item.id).unwrap();
+          if(responseDelete && responseDelete?.data) {
+            toast.success(responseDelete.message);
+          }
 
+          const response: ApiResponse<TBusinessProfile[]> = await getProfiles(businessId).unwrap();
           if(response && response?.data) {
             dispatch(setProfiles(response.data));
-            toast.success(response.message);
           }
         }
       } catch (error: any) {

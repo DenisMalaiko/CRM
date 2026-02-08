@@ -1,7 +1,6 @@
 import { ProductType, PriceSegment } from "@prisma/client"
 
-export type TProduct = {
-  id: string;
+type TProductBase = {
   businessId: string;
   type: ProductType;
   priceSegment: PriceSegment;
@@ -9,6 +8,12 @@ export type TProduct = {
   description: string;
   isActive: boolean;
   images: string[];
+}
+
+export type TProduct = TProductBase & {
+  id: string;
 };
 
-export type TProductCreate = Omit<TProduct, 'id'>;
+export type TProductCreate = TProductBase;
+
+export type TProductUpdate = TProductBase;

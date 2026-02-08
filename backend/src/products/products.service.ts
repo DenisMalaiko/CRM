@@ -1,6 +1,6 @@
-import { Injectable, NotFoundException, InternalServerErrorException, ConflictException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { TProduct, TProductCreate } from "./entities/product.entity";
+import { TProduct, TProductCreate, TProductUpdate } from "./entities/product.entity";
 import { OpenAIEmbeddings } from "@langchain/openai";
 
 @Injectable()
@@ -9,27 +9,18 @@ export class ProductsService {
     private readonly prisma: PrismaService,
   ) {}
 
-  async getProducts(businessId: string): Promise<ApiResponse<TProduct[]>> {
-    const products = await this.prisma.product.findMany({
-      where: { businessId: businessId },
+  async getProducts(businessId: string): Promise<TProduct[]> {
+    return await this.prisma.product.findMany({
+      where: {businessId: businessId},
     });
-
-    return {
-      statusCode: 200,
-      message: "Products has been got!",
-      data: products,
-    };
   }
 
-  async createProduct(body: TProductCreate) {
+  async createProduct(body: TProductCreate): Promise<TProduct> {
     const text = `${body.name} ${body.description}`;
     const embeddingModel = new OpenAIEmbeddings({ model: "text-embedding-3-small" });
     const embedding: any = await embeddingModel.embedQuery(text);
-
     const product: TProduct = await this.prisma.product.create({
-      data: {
-        ...body,
-      }
+      data: { ...body }
     });
 
     await this.prisma.$executeRawUnsafe(
@@ -38,20 +29,14 @@ export class ProductsService {
       product.id,
     );
 
-    return {
-      statusCode: 200,
-      message: "Product has been created!",
-      data: product,
-    };
+    return product;
   }
 
-  async updateProduct(id: string, body: TProductCreate) {
-    if (!id) {
-      throw new NotFoundException('Product ID is required');
-    }
+  async updateProduct(id: string, body: TProductUpdate): Promise<TProduct> {
+    if (!id) throw new NotFoundException('Product ID is required');
 
     try {
-      const updated = await this.prisma.product.update({
+      return await this.prisma.product.update({
         where: {id},
         data: {
           type: body.type,
@@ -62,12 +47,6 @@ export class ProductsService {
           images: body.images,
         }
       });
-
-      return {
-        statusCode: 200,
-        message: 'Product has been updated!',
-        data: updated,
-      };
     } catch (err: any) {
       if (err.code === 'P2025') {
         throw new NotFoundException(`Product with ID ${id} not found`);
@@ -78,31 +57,13 @@ export class ProductsService {
   }
 
   async deleteProduct(id: string) {
-    return this.prisma.$transaction(async (tx) => {
-      try {
-        if (!id) throw new NotFoundException('Product ID is required');
-
-        const deleted = await tx.product.delete({
-          where: { id },
-        });
-
-        return {
-          statusCode: 200,
-          message: 'Product has been deleted!',
-          data: deleted,
-        };
-      } catch (err: any) {
-
-        if (err.code === 'P2025') {
-          throw new NotFoundException(`Product with ID ${id} not found`);
-        }
-
-        if (err instanceof ConflictException) {
-          throw err;
-        }
-
-        throw new InternalServerErrorException('Failed to delete product');
+    try {
+      return await this.prisma.product.delete({ where: { id } });
+    } catch (err: any) {
+      if (err.code === 'P2025') {
+        throw new NotFoundException(`Product with ID ${id} not found`);
       }
-    });
+      throw err;
+    }
   }
 }

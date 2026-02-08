@@ -1,13 +1,8 @@
-import { IsUUID, IsString, IsNumber, IsOptional, IsDate, IsEnum, IsBoolean, IsArray } from 'class-validator';
-import { Type } from 'class-transformer';
+import { IsUUID, IsString, IsOptional, IsEnum, IsBoolean, IsArray } from 'class-validator';
 import { ProductTypeUI } from '../../enums/ProductType';
 import { PriceSegmentUI } from '../../enums/PriceSegment';
 
-export class ProductDto {
-  @IsUUID()
-  @IsOptional()
-  id?: string;
-
+export class ProductBaseDto {
   @IsUUID()
   @IsOptional()
   businessId: string;
@@ -28,5 +23,15 @@ export class ProductDto {
   isActive: boolean;
 
   @IsArray()
+  @IsOptional()
   images: string[];
+}
+
+export class CreateProductDto  extends ProductBaseDto {}
+
+export class UpdateProductDto  extends ProductBaseDto {}
+
+export class ProductIdParamDto {
+  @IsUUID()
+  id: string;
 }

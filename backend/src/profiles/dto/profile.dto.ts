@@ -1,6 +1,6 @@
-import {IsOptional, IsString, IsUUID, IsArray, IsBoolean, IsDate } from "class-validator";
+import { IsOptional, IsString, IsUUID, IsArray, IsBoolean } from "class-validator";
 
-export class ProfileDto {
+export class ProfileBaseDto {
   @IsUUID()
   @IsOptional()
   businessId: string;
@@ -23,4 +23,13 @@ export class ProfileDto {
 
   @IsBoolean()
   isActive: boolean;
+}
+
+export class CreateProfileDto extends ProfileBaseDto {}
+
+export class UpdateProfileDto extends ProfileBaseDto {}
+
+export class ProfileIdParamDto {
+  @IsUUID()
+  id: string;
 }

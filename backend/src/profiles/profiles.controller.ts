@@ -1,49 +1,41 @@
-import {Controller, UseGuards, Get, Param, Res, Post, Body, Patch, Delete} from '@nestjs/common';
+import {Controller, UseGuards, Get, Param, Post, Body, Patch, Delete} from '@nestjs/common';
+import { ProfileIdParamDto, CreateProfileDto, UpdateProfileDto } from "./dto/profile.dto";
 import { JwtAuthGuard } from "../guards/jwt-auth.guard";
 import { ProfilesService } from "./profiles.service";
-import { ProfileDto } from "./dto/profile.dto";
+import { ResponseMessage } from "../common/decorators/response-message.decorator";
 
+@UseGuards(JwtAuthGuard)
 @Controller('profiles')
 export class ProfilesController {
-  constructor(
-    private readonly profilesService: ProfilesService
-  ) {}
+  constructor(private readonly profilesService: ProfilesService) {}
 
-  @UseGuards(JwtAuthGuard)
   @Get("/:id")
-  async getProfiles(@Param("id") id: string, @Res() res: any) {
-    const businessId = id;
-    if(!businessId) return res.json([]);
-    const response = await this.profilesService.getProfiles(businessId);
-    console.log("PROFILES ", response)
-    return res.json(response);
+  @ResponseMessage('Profile has been got!')
+  async getProfiles(@Param() { id }: ProfileIdParamDto) {
+    return await this.profilesService.getProfiles(id);
   }
 
-  @UseGuards(JwtAuthGuard)
-  @Post("/create")
-  async createProfile(@Body() body: any, @Res() res: any) {
-    const response = await this.profilesService.createProfile(body);
-    return res.json(response);
+  @Post()
+  @ResponseMessage('Profile has been created!')
+  createProfile(@Body() body: CreateProfileDto) {
+    return this.profilesService.createProfile(body);
   }
 
-  @UseGuards(JwtAuthGuard)
-  @Patch("/update/:id")
-  async updateProfile(@Param("id") id: string, @Body() body: ProfileDto, @Res() res: any) {
-    const response = await this.profilesService.updateProfile(id, body);
-    return res.json(response);
+  @Patch("/:id")
+  @ResponseMessage('Profile has been updated!')
+  updateProfile(@Param() { id }: ProfileIdParamDto, @Body() body: UpdateProfileDto) {
+    return this.profilesService.updateProfile(id, body);
   }
 
-  @UseGuards(JwtAuthGuard)
-  @Delete("/delete/:id")
-  async deleteProfile(@Param("id") id: string, @Res() res: any) {
-    const response = await this.profilesService.deleteProfile(id);
-    return res.json(response);
+  @Delete("/:id")
+  @ResponseMessage('Profile has been deleted!')
+  deleteProfile(@Param() { id }: ProfileIdParamDto) {
+    return this.profilesService.deleteProfile(id);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Post("/generatePosts/:id")
-  async generatePosts(@Param("id") id: string, @Res() res: any) {
-    const response = await this.profilesService.generateProfilePosts(id);
-    return res.json(response);
+  @ResponseMessage('Post has been successfully generated!')
+  async generatePosts(@Param() { id }: ProfileIdParamDto) {
+    return await this.profilesService.generateProfilePosts(id);
   }
 }
