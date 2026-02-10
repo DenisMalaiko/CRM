@@ -1,33 +1,29 @@
-import {Controller, UseGuards, Get, Param, Res, Delete, Body, Patch} from '@nestjs/common';
+import { Controller, UseGuards, Get, Param,  Delete, Body, Patch} from '@nestjs/common';
+import { AiArtifactIdParamDto, UpdateAiArtifactDto } from "./dto/aiartifact.dto";
 import { JwtAuthGuard } from "../guards/jwt-auth.guard";
 import { AiArtifactService } from "./aiArtifact.service";
+import { ResponseMessage } from "../common/decorators/response-message.decorator";
 
+@UseGuards(JwtAuthGuard)
 @Controller('ai-artifact')
 export class AiArtifactController {
-  constructor(
-    private readonly aiArtifactService: AiArtifactService
-  ) {}
+  constructor(private readonly aiArtifactService: AiArtifactService) {}
 
-  @UseGuards(JwtAuthGuard)
   @Get("/:id")
-  async getAiArtifacts(@Param("id") id: string, @Res() res: any) {
-    const businessId = id;
-    if(!businessId) return res.json([]);
-    const response = await this.aiArtifactService.getAiArtifacts(businessId);
-    return res.json(response);
+  @ResponseMessage('Artifacts has been got!')
+  async getAiArtifacts(@Param() { id }: AiArtifactIdParamDto) {
+    return await this.aiArtifactService.getAiArtifacts(id);
   }
 
-  @UseGuards(JwtAuthGuard)
-  @Patch("/update/:id")
-  async updateAiArtifact(@Param("id") id: string, @Body() body: any, @Res() res: any) {
-    const response = await this.aiArtifactService.updateAiArtifact(id, body);
-    return res.json(response);
+  @Patch("/:id")
+  @ResponseMessage('Creative has been updated!')
+  updateAiArtifact(@Param() { id }: AiArtifactIdParamDto, @Body() body: UpdateAiArtifactDto) {
+    return this.aiArtifactService.updateAiArtifact(id, body);
   }
 
-  @UseGuards(JwtAuthGuard)
-  @Delete("/delete/:id")
-  async deleteAiArtifact(@Param("id") id: string, @Res() res: any) {
-    const response = await this.aiArtifactService.deleteAiArtifact(id);
-    return res.json(response);
+  @Delete("/:id")
+  @ResponseMessage('Creative has been deleted!')
+  deleteAiArtifact(@Param() { id }: AiArtifactIdParamDto) {
+    return this.aiArtifactService.deleteAiArtifact(id);
   }
 }

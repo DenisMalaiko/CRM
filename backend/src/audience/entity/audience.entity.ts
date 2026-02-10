@@ -1,5 +1,4 @@
-export type TAudience = {
-  id: string;
+type TAudienceBase = {
   businessId: string;
   name: string;
   ageRange: string;
@@ -11,4 +10,10 @@ export type TAudience = {
   incomeLevel?: string | null;
 }
 
-export type TAudienceCreate = Omit<TAudience, 'id'>;
+export type TAudience = TAudienceBase & {
+  id: string;
+}
+
+export type TAudienceCreate = TAudienceBase;
+
+export type TAudienceUpdate = TAudienceBase;

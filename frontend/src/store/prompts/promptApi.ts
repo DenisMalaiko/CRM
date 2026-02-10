@@ -25,7 +25,7 @@ export const promptApi = api.injectEndpoints({
 
     createPrompt: builder.mutation<ApiResponse<TPrompt>, TPromptCreate>({
       query: (form: TPromptCreate) => ({
-        url: `/prompts/create`,
+        url: `/prompts`,
         method: "POST",
         body: form,
       })
@@ -33,7 +33,7 @@ export const promptApi = api.injectEndpoints({
 
     updatePrompt: builder.mutation<ApiResponse<TPrompt>, { id: string, form: TPromptCreate }>({
       query: ({ id, form }) => ({
-        url: `/prompts/update/${id}`,
+        url: `/prompts/${id}`,
         method: "PATCH",
         body: form,
       })
@@ -41,7 +41,7 @@ export const promptApi = api.injectEndpoints({
 
     deletePrompt: builder.mutation<ApiResponse<TPrompt>, string>({
       query: (id: string) => ({
-        url: `/prompts/delete/${id}`,
+        url: `/prompts/${id}`,
         method: "DELETE",
       })
     }),

@@ -1,45 +1,52 @@
 import React, { useState, useEffect } from "react";
-import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { toast } from "react-toastify";
-import { RefreshCcw } from "lucide-react";
 import Select from "react-select";
 
-import CreateCreativeDlg from "./createCreativeDlg/CreateCreativeDlg";
+// Redux
+import { useSelector } from "react-redux";
 import { useAppDispatch } from "../../../../../store/hooks";
-import { showError } from "../../../../../utils/showError";
-import { confirm } from "../../../../../components/confirmDlg/ConfirmDlg";
-import { ApiResponse } from "../../../../../models/ApiResponse";
-import { TAIArtifact } from "../../../../../models/AIArtifact";
-import { getStatusClass } from "../../../../../utils/getStatusClass";
-
-import { useGetCreativesMutation, useUpdateCreativeMutation, useDeleteCreativeMutation } from "../../../../../store/artifact/artifactApi";
+import {
+  useGetCreativesMutation,
+  useDeleteCreativeMutation
+} from "../../../../../store/artifact/artifactApi";
 import { useGetProfilesMutation } from "../../../../../store/profile/profileApi";
 import { useGetProductsMutation} from "../../../../../store/products/productsApi";
-
 import { setCreatives } from "../../../../../store/artifact/artifactSlice";
 import { setProfiles } from "../../../../../store/profile/profileSlice";
 import { setProducts } from "../../../../../store/products/productsSlice";
+
+// Components
+import CreateCreativeDlg from "./createCreativeDlg/CreateCreativeDlg";
+import { confirm } from "../../../../../components/confirmDlg/ConfirmDlg";
+
+// Utils
+import { showError } from "../../../../../utils/showError";
+import { getStatusClass } from "../../../../../utils/getStatusClass";
+import { toDate } from "../../../../../utils/toDate";
+
+// Models
+import { ApiResponse } from "../../../../../models/ApiResponse";
+import { TAIArtifact } from "../../../../../models/AIArtifact";
 import { TBusinessProfile } from "../../../../../models/BusinessProfile";
 import { TProduct } from "../../../../../models/Product";
-import {toDate} from "../../../../../utils/toDate";
 
 function Creatives() {
   const dispatch = useAppDispatch();
   const { businessId } = useParams<{ businessId: string }>();
 
   const [ getCreatives ] = useGetCreativesMutation();
-  const [ updateCreative ] = useUpdateCreativeMutation();
   const [ deleteCreative ] = useDeleteCreativeMutation();
   const [ getProfiles ] = useGetProfilesMutation();
   const [ getProducts ] = useGetProductsMutation();
 
-  const [open, setOpen] = useState(false);
-  const [selectedCreative, setSelectedCreative] = useState<any | null>(null);
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [profilesIds, setProfilesIds] = useState<string[]>([]);
-  const [productsIds, setProductsIds] = useState<string[]>([]);
+  const [ open, setOpen ] = useState(false);
+  const [ selectedCreative, setSelectedCreative ] = useState<TAIArtifact | null>(null);
+  const [ selectedIds, setSelectedIds ] = useState<string[]>([]);
+  const [ profilesIds, setProfilesIds ] = useState<string[]>([]);
+  const [ productsIds, setProductsIds ] = useState<string[]>([]);
 
+  // Creatives
   const filteredCreatives = useSelector(((state: any) => {
     const { creatives } = state.artifactModule;
 
@@ -67,6 +74,8 @@ function Creatives() {
   const profilesOptions = profiles?.map((profile: any) => ({ value: profile.id, label: profile.name })) || [];
   const productsOptions = products?.map((product: any) => ({ value: product.id, label: product.name })) || [];
 
+
+  // Get Data
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -74,9 +83,6 @@ function Creatives() {
           const response: ApiResponse<TAIArtifact[]> = await getCreatives(businessId).unwrap();
           const profilesResponse: ApiResponse<TBusinessProfile[]> = await getProfiles(businessId).unwrap();
           const productsResponse: ApiResponse<TProduct[]> = await getProducts(businessId).unwrap();
-
-          console.log("RESPONSE ", response);
-          console.log("PROFILES RESPONSE ", profilesResponse);
 
           if(response && response?.data) dispatch(setCreatives(response.data));
           if(profilesResponse && profilesResponse?.data) dispatch(setProfiles(profilesResponse.data));
@@ -92,12 +98,13 @@ function Creatives() {
 
   if(!businessId) return null;
 
+  // Delete Creative
   const openConfirmDlg = async (e: any, item: TAIArtifact) => {
     e.preventDefault();
 
     const ok = await confirm({
-      title: "Delete Artifact",
-      message: "Are you sure you want to delete this artifacts?",
+      title: "Delete Creative",
+      message: "Are you sure you want to delete this creative?",
     });
 
     if(ok) {
@@ -117,11 +124,14 @@ function Creatives() {
     }
   }
 
+
+  // Edit Creative
   const openEditCreative = async (item: TAIArtifact) => {
     setSelectedCreative(item);
     setOpen(true)
   }
 
+  // Delete Selected
   const deleteCreatives = async () => {
     const ok = await confirm({
       title: "Delete Artifacts",

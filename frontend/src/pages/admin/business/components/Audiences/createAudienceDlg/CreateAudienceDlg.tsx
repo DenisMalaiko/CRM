@@ -1,29 +1,41 @@
-import React, { useState, useEffect } from "react";
+import React, { useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { Plus } from "lucide-react";
-import Select from "react-select";
 import { toast } from "react-toastify";
 
-import { showError } from "../../../../../../utils/showError";
-import {isRequired, minLength} from "../../../../../../utils/validations";
-import Tooltip from "../../../../../../components/tooltip/Tooltip";
+// Hooks
+import { useForm } from "../../../../../../hooks/useForm";
+import { useValidation } from "../../../../../../hooks/useValidation";
 
-import { MiniTranslate } from "../../../../../../enum/MiniTranslate";
-
+// Redux
+import { useAppDispatch } from "../../../../../../store/hooks";
 import {
   useCreateAudienceMutation,
   useUpdateAudienceMutation,
   useGetAudiencesMutation
 } from "../../../../../../store/audience/audienceApi";
-
 import { setAudiences } from "../../../../../../store/audience/audienceSlice";
 
-import { useAppDispatch } from "../../../../../../store/hooks";
-import {ApiResponse} from "../../../../../../models/ApiResponse";
-import { TAudience } from "../../../../../../models/Audience";
+// Components
+import Select from "react-select";
+import Tooltip from "../../../../../../components/tooltip/Tooltip";
+
+// Utils
+import { showError } from "../../../../../../utils/showError";
+import { isRequired, minLength } from "../../../../../../utils/validations";
+
+// Enum
 import { Gender } from "../../../../../../enum/Gender";
+import { MiniTranslate } from "../../../../../../enum/MiniTranslate";
 import { IncomeLevel } from "../../../../../../enum/IncomeLevel";
+
+// Models
+import { ApiResponse } from "../../../../../../models/ApiResponse";
+import { TAudience } from "../../../../../../models/Audience";
+
+// Const
 import { GeoList } from "../../../../../../const/Geo";
+import { ChangeArg, isNativeEvent } from "../../../../../../utils/isNativeEvent";
 
 function CreateAudienceDlg({ open, onClose, audience }: any) {
   const dispatch = useAppDispatch();
@@ -31,29 +43,17 @@ function CreateAudienceDlg({ open, onClose, audience }: any) {
   const isEdit = !!audience;
   const { businessId } = useParams<{ businessId: string }>();
 
-  const [ createAudience, { isLoading: isCreateLoading } ] = useCreateAudienceMutation();
-  const [ updateAudience, { isLoading: isUpdateLoading } ] = useUpdateAudienceMutation();
+  const [ createAudience, { isLoading: isLoadingCreating } ] = useCreateAudienceMutation();
+  const [ updateAudience, { isLoading: isLoadingUpdating } ] = useUpdateAudienceMutation();
   const [ getAudiences ] = useGetAudiencesMutation();
 
   const GenderList = Object.values(Gender);
   const IncomeLevelList = Object.values(IncomeLevel);
 
-  const [form, setForm] = useState({
-    name: "",
-    ageRange: "",
-    gender: Gender.Male,
-    geo: "",
-    pains: [""],
-    desires: [""],
-    triggers: [""],
-    incomeLevel: IncomeLevel.Low,
-    businessId: businessId ?? "",
-  });
-  const [errors, setErrors]: any = useState({});
-
-  useEffect(() => {
-    if (isEdit && audience) {
-      setForm({
+  // Init Form
+  const initForm = useMemo(() => {
+    if(isEdit && audience) {
+      return {
         name: audience.name,
         ageRange: audience.ageRange,
         gender: audience.gender,
@@ -63,83 +63,59 @@ function CreateAudienceDlg({ open, onClose, audience }: any) {
         triggers: audience.triggers,
         incomeLevel: audience.incomeLevel,
         businessId: audience.businessId ?? "",
-      })
-    } else {
-      setForm({
-        name: "",
-        ageRange: "",
-        gender: Gender.Male,
-        geo: "",
-        pains: [""],
-        desires: [""],
-        triggers: [""],
-        incomeLevel: IncomeLevel.Low,
-        businessId: businessId ?? "",
-      })
+      }
     }
-  }, [audience, isEdit, open]);
+
+    return {
+      name: "",
+      ageRange: "",
+      gender: Gender.Male,
+      geo: "",
+      pains: [""],
+      desires: [""],
+      triggers: [""],
+      incomeLevel: IncomeLevel.Low,
+      businessId: businessId ?? "",
+    }
+  }, [isEdit, audience, businessId]);
+
+  // Form Hook
+  const { form, handleChange, setForm } = useForm(initForm);
+
+  // Validation Hook
+  const { errors, validateField, validateAll } = useValidation({
+    name: (value) => minLength(value, 3),
+    ageRange: (value) => minLength(value, 3),
+    gender: (value) => isRequired(value),
+    geo: (value) => isRequired(value),
+    pains: (value) => isRequired(value),
+    desires: (value) => isRequired(value),
+    triggers: (value) => isRequired(value),
+    incomeLevel: (value) => isRequired(value),
+    businessId: (value) => isRequired(value),
+  });
 
   if (!open) return null;
   if (!businessId) return null;
 
-  const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
-  ) => {
-    const { name, value, type, checked } = e.target as HTMLInputElement;
-
-    setForm((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
-  };
-
-  const validateField = (name: string, data: any) => {
-    let error: string | null = null;
-    if (name === "name") error = minLength(data.value, 3);
-    if (name === "ageRange") error = minLength(data.value, 3);
-    if (name === "gender") error = minLength(data.value, 3);
-    if (name === "geo") error = isRequired(data.value);
-    if (name === "pains") error = isRequired(data.value);
-    if (name === "desires") error = isRequired(data.value);
-    if (name === "triggers") error = isRequired(data.value);
-    if (name === "incomeLevel") error = minLength(data.value, 3);
-    setErrors((prev: any) => ({ ...prev, [name]: error }));
-    return error;
-  };
-
-  const validateForm = (e: React.FormEvent<HTMLFormElement>): boolean => {
+  // Create Audience
+  const create = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const newErrors: Record<string, string | null> = {};
-
-    Object.keys(form).forEach((field) => {
-      newErrors[field] = validateField(field, { value: form[field as keyof typeof form] });
-    });
-
-    setErrors(newErrors);
-
-    return window.utils.validateForm(newErrors);
-  }
-
-  const create = async (e: React.FormEvent<HTMLFormElement>) => {
-    if (!validateForm(e)) return;
+    if (!validateAll(form)) return;
 
     try {
       if (isEdit) {
-        console.log("UPDATE PROFILE:")
-        await updateAudience({ id: audience!.id, form })
+        const response = await updateAudience({ id: audience!.id, form }).unwrap();
+        if(response && response?.data) toast.success(response.message);
       } else {
-        console.log("FORM ", form)
-        await createAudience(form);
+        const response = await createAudience(form).unwrap();
+        if(response && response?.data) toast.success(response.message);
       }
 
       const response: ApiResponse<TAudience[]> = await getAudiences(businessId).unwrap();
-
       if(response && response?.data) {
         dispatch(setAudiences(response.data));
-        toast.success(response.message);
         onClose();
       }
     } catch (error) {
@@ -147,12 +123,27 @@ function CreateAudienceDlg({ open, onClose, audience }: any) {
     }
   }
 
-  type StringArrayField = Extract<
-    {
-      [K in keyof TAudience]: TAudience[K] extends string[] ? K : never
-    }[keyof TAudience],
-    string
-  >;
+
+  // Handle Change
+  const onChange = (arg: ChangeArg) => {
+    let name: string;
+    let value: any;
+
+    if (isNativeEvent(arg)) {
+      const t = arg.target as HTMLInputElement;
+      name = t.name;
+      value = t.type === "checkbox" ? t.checked : t.value;
+    } else {
+      name = arg.name;
+      value = arg.value;
+    }
+
+    handleChange(arg);
+    validateField(name as keyof typeof form, value, form);
+  };
+
+
+  type StringArrayField = Extract<{[K in keyof TAudience]: TAudience[K] extends string[] ? K : never }[keyof TAudience], string>;
 
   const addItem = (field: StringArrayField, value = "") => {
     setForm((prev) => ({
@@ -164,7 +155,7 @@ function CreateAudienceDlg({ open, onClose, audience }: any) {
   const deleteItem = (field: StringArrayField, index: number) => {
     setForm((prev) => ({
       ...prev,
-      [field]: prev[field].filter((_, i) => i !== index),
+      [field]: prev[field].filter((_: any, i: any) => i !== index),
     }));
   };
 
@@ -175,7 +166,7 @@ function CreateAudienceDlg({ open, onClose, audience }: any) {
   ) => {
     setForm((prev) => ({
       ...prev,
-      [field]: prev[field].map((item, i) =>
+      [field]: prev[field].map((item: any, i: any) =>
         i === index ? value : item
       ),
     }));
@@ -186,7 +177,7 @@ function CreateAudienceDlg({ open, onClose, audience }: any) {
       <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl p-6 max-h-[800px] overflow-y-auto overflow-x-hidden">
 
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">Create Audience</h2>
+          <h2 className="text-lg font-semibold">{ isEdit ? "Edit" : "Create" } Audience</h2>
           <button
             onClick={onClose}
             className="text-slate-500 hover:text-slate-700 rounded-full p-1 hover:bg-slate-100"
@@ -206,12 +197,10 @@ function CreateAudienceDlg({ open, onClose, audience }: any) {
               type="text"
               name="name"
               value={form.name}
-              onChange={(e) => {
-                handleChange(e);
-                validateField("name", {value: e.target.value})
-              }}
+              onChange={onChange}
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
               placeholder="Enter name"
+              autoComplete="off"
             />
             {errors.name && <p className="text-red-500 text-sm mt-2 text-left">{errors.name}</p>}
           </div>
@@ -225,12 +214,10 @@ function CreateAudienceDlg({ open, onClose, audience }: any) {
               type="text"
               name="ageRange"
               value={form.ageRange}
-              onChange={(e) => {
-                handleChange(e);
-                validateField("ageRange", {value: e.target.value})
-              }}
+              onChange={onChange}
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
               placeholder="Enter Age Range"
+              autoComplete="off"
             />
             {errors.ageRange && <p className="text-red-500 text-sm mt-2 text-left">{errors.ageRange}</p>}
           </div>
@@ -243,10 +230,7 @@ function CreateAudienceDlg({ open, onClose, audience }: any) {
             <select
               name="gender"
               value={form.gender}
-              onChange={(e) => {
-                handleChange(e);
-                validateField("gender", { value: e.target.value })
-              }}
+              onChange={onChange}
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
             >
               { GenderList.map((gender: string) => (
@@ -266,10 +250,10 @@ function CreateAudienceDlg({ open, onClose, audience }: any) {
                 form.geo.includes(option.value)
               )}
               onChange={(selected) =>
-                setForm(prev => ({
-                  ...prev,
-                  geo: selected?.value ?? "",
-                }))
+                onChange({
+                  name: "geo",
+                  value: selected ? selected.value : "",
+                })
               }
             />
 
@@ -284,7 +268,7 @@ function CreateAudienceDlg({ open, onClose, audience }: any) {
               <Tooltip text={MiniTranslate.ProfileGoalsTooltip} />
             </div>
 
-            {form.pains.map((pain, index) => (
+            {form.pains.map((pain: any, index: number) => (
               <div className="flex w-full items-center gap-2" key={index}>
                 <textarea
                   value={pain}
@@ -346,7 +330,7 @@ function CreateAudienceDlg({ open, onClose, audience }: any) {
               </label>
             </div>
 
-            {form.desires.map((desire, index) => (
+            {form.desires.map((desire: any, index: number) => (
               <div className="flex w-full items-center gap-2" key={index}>
                 <textarea
                   value={desire}
@@ -401,68 +385,6 @@ function CreateAudienceDlg({ open, onClose, audience }: any) {
             </button>
           </div>
 
-          {/*<div className="flex flex-col items-start justify-start">
-            <div className="flex w-full items-center justify-between gap-2">
-              <label className="block text-sm font-medium text-slate-700">
-                Triggers
-              </label>
-            </div>
-
-            {form.triggers.map((trigger, index) => (
-              <div className="flex w-full items-center gap-2" key={index}>
-                <textarea
-                  value={trigger}
-                  onChange={(e) =>
-                    updateItem("triggers", index, e.target.value)
-                  }
-                  className="mt-1 mb-2 flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
-                  placeholder="Enter trigger"
-                />
-
-                {index !== 0 && (
-                  <button
-                    type="button"
-                    onClick={() => deleteItem("triggers", index)}
-                    className="
-                      inline-flex items-center gap-1.5
-                      px-2.5 py-1.5
-                      rounded-md
-                      text-sm font-medium
-                      text-red-500
-                      border border-red-200
-                      hover:bg-red-50
-                    "
-                  >
-                    Delete Trigger
-                  </button>
-                )}
-              </div>
-            ))}
-
-            {errors.triggers && (
-              <p className="mt-2 text-left text-sm text-red-500">
-                {errors.triggers}
-              </p>
-            )}
-
-            <button
-              type="button"
-              onClick={() => addItem("triggers")}
-              className="
-                inline-flex items-center gap-1.5
-                px-2.5 py-1.5
-                rounded-md
-                text-sm font-medium
-                text-blue-600
-                border border-blue-200
-                hover:bg-blue-50
-              "
-            >
-              <Plus className="h-3 w-3" />
-              New Trigger
-            </button>
-          </div>*/}
-
           <div>
             <div className="flex items-center gap-2 justify-between">
               <label className="block text-sm font-medium text-slate-700 text-left">Income Level</label>
@@ -471,10 +393,7 @@ function CreateAudienceDlg({ open, onClose, audience }: any) {
             <select
               name="incomeLevel"
               value={form.incomeLevel}
-              onChange={(e) => {
-                handleChange(e);
-                validateField("incomeLevel", { value: e.target.value })
-              }}
+              onChange={onChange}
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
             >
               { IncomeLevelList.map((level: string) => (
@@ -489,6 +408,7 @@ function CreateAudienceDlg({ open, onClose, audience }: any) {
             <button
               type="button"
               onClick={onClose}
+              disabled={isLoadingCreating || isLoadingUpdating}
               className="
                 px-4 py-2 rounded-lg border  text-slate-600
                 border-slate-300 hover:bg-slate-50
@@ -499,13 +419,16 @@ function CreateAudienceDlg({ open, onClose, audience }: any) {
             </button>
             <button
               type="submit"
-              className="
-                px-4 py-2 rounded-lg  text-white font-medium
-                bg-blue-600 hover:bg-blue-700
-                disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-blue-600
-              "
+              disabled={isLoadingCreating || isLoadingUpdating}
+              className="px-4 py-2 rounded-lg bg-blue-600 text-white flex items-center gap-2 justify-center"
             >
-              Save
+              { isLoadingCreating || isLoadingUpdating ? (
+                <>
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"/>
+                  Saving...
+                </>
+              ) : ("Save")
+              }
             </button>
           </div>
         </form>

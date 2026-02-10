@@ -1,18 +1,29 @@
 import React, { useState, useEffect } from "react";
-import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 
-import CreatePromptDlg from "./createPromptDlg/CreatePromptDlg";
+// Redux
+import { useSelector } from "react-redux";
+import { RootState } from "../../../../../store";
 import { useAppDispatch } from "../../../../../store/hooks";
-import { showError } from "../../../../../utils/showError";
+import {
+  useGetPromptsMutation,
+  useDeletePromptMutation
+} from "../../../../../store/prompts/promptApi";
+import { setPrompts } from "../../../../../store/prompts/promptSlice";
+
+
+// Components
+import CreatePromptDlg from "./createPromptDlg/CreatePromptDlg";
 import { confirm } from "../../../../../components/confirmDlg/ConfirmDlg";
+
+// Utils
+import { showError } from "../../../../../utils/showError";
+
+// Models
 import { ApiResponse } from "../../../../../models/ApiResponse";
 import { TPrompt } from "../../../../../models/Prompt";
 
-import { useGetPromptsMutation, useDeletePromptMutation } from "../../../../../store/prompts/promptApi";
-
-import { setPrompts } from "../../../../../store/prompts/promptSlice";
 
 function Prompts() {
   const dispatch = useAppDispatch();
@@ -21,11 +32,19 @@ function Prompts() {
   const [ getPrompts ] = useGetPromptsMutation();
   const [ deletePrompt ] = useDeletePromptMutation();
 
-  const { prompts } = useSelector((state: any) => state.promptModule);
+  const [ open, setOpen ] = useState(false);
+  const [ selectedPrompt, setSelectedPrompt ] = useState<TPrompt | null>(null);
+  const { prompts } = useSelector((state: RootState) => state.promptModule);
 
-  const [open, setOpen] = useState(false);
-  const [selectedPrompt, setSelectedPrompt] = useState<TPrompt | null>(null);
+  const header = [
+    { name: "Name", key: "name" },
+    { name: "Purpose", key: "purpose" },
+    { name: "Text", key: "text" },
+    { name: "Active", key: "isActive" },
+    { name: "Actions", key: "actions"}
+  ];
 
+  // Get Data
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -46,14 +65,7 @@ function Prompts() {
 
   if(!businessId) return null;
 
-  const header = [
-    { name: "Name", key: "name" },
-    { name: "Purpose", key: "purpose" },
-    { name: "Text", key: "text" },
-    { name: "Active", key: "isActive" },
-    { name: "Actions", key: "actions"}
-  ];
-
+  // Delete Prompt
   const openConfirmDlg = async (e: any, item: TPrompt) => {
     e.preventDefault();
 
@@ -79,6 +91,7 @@ function Prompts() {
     }
   }
 
+  // Edit Prompt
   const openEditPrompt = async (item: TPrompt) => {
     setSelectedPrompt(item);
     setOpen(true)

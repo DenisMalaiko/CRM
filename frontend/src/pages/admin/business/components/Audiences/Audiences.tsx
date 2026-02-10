@@ -1,21 +1,28 @@
 import React, { useState, useEffect } from "react";
-import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
+import { toast } from "react-toastify";
 
-import CreateAudienceDlg from "./createAudienceDlg/CreateAudienceDlg";
+// Redux
+import { useSelector } from "react-redux";
+import { RootState } from "../../../../../store";
 import { useAppDispatch } from "../../../../../store/hooks";
-import { ApiResponse } from "../../../../../models/ApiResponse";
-import { TAudience } from "../../../../../models/Audience";
-import { showError } from "../../../../../utils/showError";
-
 import {
   useGetAudiencesMutation,
   useDeleteAudienceMutation
 } from "../../../../../store/audience/audienceApi";
 import { setAudiences } from "../../../../../store/audience/audienceSlice";
 
+// Components
+import CreateAudienceDlg from "./createAudienceDlg/CreateAudienceDlg";
 import { confirm } from "../../../../../components/confirmDlg/ConfirmDlg";
-import { toast } from "react-toastify";
+
+// Utils
+import { showError } from "../../../../../utils/showError";
+
+// Models
+import { ApiResponse } from "../../../../../models/ApiResponse";
+import { TAudience } from "../../../../../models/Audience";
+
 
 function Audiences() {
   const dispatch = useAppDispatch();
@@ -24,10 +31,22 @@ function Audiences() {
   const [ getAudiences ] = useGetAudiencesMutation();
   const [ deleteAudience ] = useDeleteAudienceMutation();
 
-  const [open, setOpen] = useState(false);
-  const [selectedAudience, setSelectedAudience] = useState<any | null>(null);
-  const { audiences } = useSelector((state: any) => state.audienceModule);
+  const [ open, setOpen ] = useState(false);
+  const [ selectedAudience, setSelectedAudience ] = useState<TAudience | null>(null);
+  const { audiences } = useSelector((state: RootState) => state.audienceModule);
 
+  const header = [
+    { name: "Name", key: "name" },
+    { name: "Age Range", key: "ageRange" },
+    { name: "Gender", key: "gender" },
+    { name: "Geo", key: "geo" },
+    { name: "Pains", key: "pains"},
+    { name: "Desires", key: "desires"},
+    { name: "Income Level", key: "incomeLevel"},
+    { name: "Actions", key: "actions"}
+  ];
+
+  // Get Data
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -39,7 +58,6 @@ function Audiences() {
           }
         }
       } catch (error) {
-        console.error("Error fetching data:", error);
         showError(error);
       }
     }
@@ -49,17 +67,7 @@ function Audiences() {
 
   if(!businessId) return null;
 
-  const header = [
-    { name: "Name", key: "name" },
-    { name: "Age Range", key: "ageRange" },
-    { name: "Gender", key: "gender" },
-    { name: "Geo", key: "geo" },
-    { name: "Pains", key: "pains"},
-    { name: "Desires", key: "desires"},
-    { name: "Income Level", key: "incomeLevel"},
-    { name: "Actions", key: "actions"}
-  ]
-
+  // Delete Audience
   const openConfirmDlg = async (e: any, item: TAudience) => {
     e.preventDefault();
 
@@ -71,12 +79,14 @@ function Audiences() {
     if(ok) {
       try {
         if (item?.id != null) {
-          await deleteAudience(item.id);
-          const response: ApiResponse<TAudience[]> = await getAudiences(businessId).unwrap();
+          const responseDelete = await deleteAudience(item.id).unwrap();
+          if(responseDelete && responseDelete?.data) {
+            toast.success(responseDelete.message);
+          }
 
+          const response: ApiResponse<TAudience[]> = await getAudiences(businessId).unwrap();
           if(response && response?.data) {
             dispatch(setAudiences(response.data));
-            toast.success(response.message);
           }
         }
       } catch (error: any) {
@@ -85,6 +95,7 @@ function Audiences() {
     }
   }
 
+  // Edit Audience
   const openEditProfile = async (item: TAudience) => {
     setSelectedAudience(item);
     setOpen(true)
@@ -124,10 +135,10 @@ function Audiences() {
                   <th
                     key={item.key}
                     className={`
-                        px-4 py-3 text-xs font-semibold uppercase tracking-wide
-                        ${item.key === "actions" ? "text-right" : "text-left"}
-                        text-slate-600
-                      `}
+                      px-4 py-3 text-xs font-semibold uppercase tracking-wide
+                      ${item.key === "actions" ? "text-right" : "text-left"}
+                      text-slate-600
+                    `}
                   >{ item.name }</th>
                 ))}
               </tr>

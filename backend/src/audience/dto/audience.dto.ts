@@ -1,10 +1,6 @@
-import {IsString, IsArray, IsOptional, IsUUID} from "class-validator";
+import { IsString, IsArray, IsOptional, IsUUID } from "class-validator";
 
-export class AudienceDto {
-  @IsUUID()
-  @IsOptional()
-  id?: string;
-
+export class AudienceBaseDto {
   @IsUUID()
   @IsOptional()
   businessId: string;
@@ -33,4 +29,13 @@ export class AudienceDto {
   @IsOptional()
   @IsString()
   incomeLevel?: string;
+}
+
+export class CreateAudienceDto extends AudienceBaseDto {}
+
+export class UpdateAudienceDto extends AudienceBaseDto {}
+
+export class AudienceIdParamDto {
+  @IsUUID()
+  id: string;
 }

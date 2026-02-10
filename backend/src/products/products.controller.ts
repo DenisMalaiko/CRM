@@ -23,7 +23,7 @@ export class ProductsController {
 
   @Patch("/:id")
   @ResponseMessage('Product has been updated!')
-  updateProduct(@Param() { id } : ProductIdParamDto, @Body() body: UpdateProductDto) {
+  updateProduct(@Param() { id }: ProductIdParamDto, @Body() body: UpdateProductDto) {
     return this.productsService.updateProduct(id, body);
   }
 

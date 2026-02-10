@@ -1,6 +1,6 @@
-import {ConflictException, Injectable, InternalServerErrorException, NotFoundException} from "@nestjs/common";
-import {PrismaService} from "../prisma/prisma.service";
-import {TAudience, TAudienceCreate} from "./entity/audience.entity";
+import { Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
+import { PrismaService } from "../prisma/prisma.service";
+import { TAudience, TAudienceCreate, TAudienceUpdate } from "./entity/audience.entity";
 
 @Injectable()
 export class AudienceService {
@@ -8,37 +8,23 @@ export class AudienceService {
     private readonly prisma: PrismaService,
   ) {}
 
-  async getAudiences(businessId: string): Promise<ApiResponse<TAudience[]>> {
-    const audiences: TAudience[] = await this.prisma.targetAudience.findMany({
+  async getAudiences(businessId: string): Promise<TAudience[]> {
+    return await this.prisma.targetAudience.findMany({
       where: { businessId: businessId },
     });
-
-    return {
-      statusCode: 200,
-      message: "Profiles has been got!",
-      data: audiences,
-    };
   }
 
-  async createAudience(body: TAudienceCreate) {
-    const audience: any = await this.prisma.targetAudience.create({
+  async createAudience(body: TAudienceCreate): Promise<TAudience> {
+    return await this.prisma.targetAudience.create({
       data: body
     });
-
-    return {
-      statusCode: 200,
-      message: "Profile has been created!",
-      data: audience,
-    }
   }
 
-  async updateAudience(id: string, body: TAudienceCreate) {
-    if (!id) {
-      throw new NotFoundException('Audience ID is required');
-    }
+  async updateAudience(id: string, body: TAudienceUpdate): Promise<TAudience> {
+    if (!id) throw new NotFoundException('Audience ID is required');
 
     try {
-      const updated = await this.prisma.targetAudience.update({
+      return await this.prisma.targetAudience.update({
         where: {id},
         data: {
           name: body.name,
@@ -51,12 +37,6 @@ export class AudienceService {
           incomeLevel: body.incomeLevel,
         }
       });
-
-      return {
-        statusCode: 200,
-        message: 'Audience has been updated!',
-        data: updated,
-      };
     } catch (err: any) {
       if (err.code === 'P2025') {
         throw new NotFoundException(`Audience with ID ${id} not found`);
@@ -67,31 +47,13 @@ export class AudienceService {
   }
 
   async deleteAudience(id: string) {
-    return this.prisma.$transaction(async (tx) => {
       try {
-        if (!id) throw new NotFoundException('Audience ID is required');
-
-        const deleted = await tx.targetAudience.delete({
-          where: { id },
-        });
-
-        return {
-          statusCode: 200,
-          message: 'Audience has been deleted!',
-          data: deleted,
-        };
+        return await this.prisma.targetAudience.delete({ where: { id } });
       } catch (err: any) {
-
         if (err.code === 'P2025') {
           throw new NotFoundException(`Audience with ID ${id} not found`);
         }
-
-        if (err instanceof ConflictException) {
-          throw err;
-        }
-
-        throw new InternalServerErrorException('Failed to delete audience');
+        throw err;
       }
-    });
   }
 }

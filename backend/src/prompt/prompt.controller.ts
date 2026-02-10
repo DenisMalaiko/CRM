@@ -1,41 +1,35 @@
-import {Body, Controller, Delete, Get, Param, Patch, Post, Res, UseGuards} from '@nestjs/common';
-import {JwtAuthGuard} from "../guards/jwt-auth.guard";
-import {PromptService} from "./prompt.service";
-import {PromptDto} from "./dto/prompt.dto";
+import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import { PromptIdParamDto, CreatePromptDto, UpdatePromptDto } from "./dto/prompt.dto";
+import { JwtAuthGuard } from "../guards/jwt-auth.guard";
+import { PromptService } from "./prompt.service";
+import { ResponseMessage } from "../common/decorators/response-message.decorator";
 
+@UseGuards(JwtAuthGuard)
 @Controller('prompts')
 export class PromptController {
-  constructor(
-    private readonly promptService: PromptService
-  ) {}
+  constructor(private readonly promptService: PromptService) {}
 
-  @UseGuards(JwtAuthGuard)
   @Get("/:id")
-  async getPrompts(@Param("id") id: string, @Res() res: any) {
-    const businessId = id;
-    if(!businessId) return res.json([]);
-    const response = await this.promptService.getPrompts(businessId);
-    return res.json(response);
+  @ResponseMessage('Prompts has been got!')
+  async getPrompts(@Param() { id }: PromptIdParamDto) {
+    return await this.promptService.getPrompts(id);
   }
 
-  @UseGuards(JwtAuthGuard)
-  @Post("/create")
-  async createPrompt(@Body() body: any, @Res() res: any) {
-    const response = await this.promptService.createPrompt(body);
-    return res.json(response);
+  @Post()
+  @ResponseMessage('Prompt has been created!')
+  createPrompt(@Body() body: CreatePromptDto) {
+    return this.promptService.createPrompt(body);
   }
 
-  @UseGuards(JwtAuthGuard)
-  @Patch("/update/:id")
-  async updatePrompt(@Param("id") id: string, @Body() body: PromptDto, @Res() res: any) {
-    const response = await this.promptService.updatePrompt(id, body);
-    return res.json(response);
+  @Patch("/:id")
+  @ResponseMessage('Prompt has been updated!')
+  updatePrompt(@Param() { id }: PromptIdParamDto, @Body() body: UpdatePromptDto) {
+    return this.promptService.updatePrompt(id, body);
   }
 
-  @UseGuards(JwtAuthGuard)
-  @Delete("/delete/:id")
-  async deletePrompt(@Param("id") id: string, @Res() res: any) {
-    const response = await this.promptService.deletePrompt(id);
-    return res.json(response);
+  @Delete("/:id")
+  @ResponseMessage('Prompt has been deleted!')
+  deletePrompt(@Param() { id }: PromptIdParamDto) {
+    return this.promptService.deletePrompt(id);
   }
 }
