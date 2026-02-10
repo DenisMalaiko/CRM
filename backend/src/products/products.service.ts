@@ -11,7 +11,7 @@ export class ProductsService {
 
   async getProducts(businessId: string): Promise<TProduct[]> {
     return await this.prisma.product.findMany({
-      where: {businessId: businessId},
+      where: { businessId: businessId },
     });
   }
 

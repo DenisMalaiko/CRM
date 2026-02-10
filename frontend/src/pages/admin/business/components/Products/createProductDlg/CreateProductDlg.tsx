@@ -148,6 +148,7 @@ function CreateProductDlg({ open, onClose, product }: any) {
               onChange={onChange}
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
               placeholder="Enter product name"
+              autoComplete="off"
             />
             {errors.name && <p className="text-red-500 text-sm mt-2 text-left">{errors.name}</p>}
           </div>
@@ -160,6 +161,7 @@ function CreateProductDlg({ open, onClose, product }: any) {
               onChange={onChange}
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
               placeholder="Enter product description"
+              autoComplete="off"
             />
             {errors.description && <p className="text-red-500 text-sm text-left">{errors.description}</p>}
           </div>

@@ -25,7 +25,7 @@ export const audienceApi = api.injectEndpoints({
 
     createAudience: builder.mutation<ApiResponse<TAudience>, TAudienceCreate>({
       query: (form: TAudienceCreate) => ({
-        url: `/audience/create`,
+        url: `/audience`,
         method: "POST",
         body: form,
       })
@@ -33,7 +33,7 @@ export const audienceApi = api.injectEndpoints({
 
     updateAudience: builder.mutation<ApiResponse<TAudience>, { id: string, form: TAudienceCreate, }>({
       query: ({ id, form }) => ({
-        url: `/audience/update/${id}`,
+        url: `/audience/${id}`,
         method: "PATCH",
         body: form,
       })
@@ -41,7 +41,7 @@ export const audienceApi = api.injectEndpoints({
 
     deleteAudience: builder.mutation<ApiResponse<TAudience>, string>({
       query: (id: string) => ({
-        url: `/audience/delete/${id}`,
+        url: `/audience/${id}`,
         method: "DELETE",
       })
     }),

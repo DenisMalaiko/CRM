@@ -1,10 +1,6 @@
 import {IsBoolean, IsOptional, IsString, IsUUID} from "class-validator";
 
-export class PromptDto {
-  @IsUUID()
-  @IsOptional()
-  id?: string;
-
+export class PromptBaseDto {
   @IsUUID()
   @IsOptional()
   businessId: string;
@@ -20,4 +16,13 @@ export class PromptDto {
 
   @IsBoolean()
   isActive: boolean;
+}
+
+export class CreatePromptDto extends PromptBaseDto {}
+
+export class UpdatePromptDto extends PromptBaseDto {}
+
+export class PromptIdParamDto {
+  @IsUUID()
+  id: string;
 }

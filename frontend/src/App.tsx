@@ -37,7 +37,7 @@ import Profiles from "./pages/admin/business/components/Profiles/Profiles";
 import Audiences from "./pages/admin/business/components/Audiences/Audiences";
 import Creatives from "./pages/admin/business/components/Creatives/Creatives";
 import Prompts from "./pages/admin/business/components/Prompts/Prompts";
-import Settings from "./pages/admin/business/components/Settings/Settings";
+import Settings from "./pages/admin/business/components/old/Settings/Settings";
 
 // AI
 import Accountant from "./pages/admin/ai/accountant/Accountant";

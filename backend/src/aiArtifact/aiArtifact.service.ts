@@ -10,7 +10,7 @@ export class AiArtifactService {
     private readonly storageUrlService: StorageUrlService
   ) {}
 
-  async getAiArtifacts(businessId: string): Promise<ApiResponse<AIArtifactBase[]>> {
+  async getAiArtifacts(businessId: string): Promise<AIArtifactBase[]> {
     const artifacts = await this.prisma.aIArtifact.findMany({
       where: { businessId: businessId },
       include: {
@@ -18,40 +18,29 @@ export class AiArtifactService {
       }
     });
 
-    const artifactsMapped: AIArtifactBase[] = artifacts.map((artifact) => {
+    return artifacts.map((artifact) => {
       return {
         ...artifact,
         imageUrl: artifact.imageUrl ? this.storageUrlService.getPublicUrl(artifact.imageUrl) : null,
       }
     })
-
-    return {
-      statusCode: 200,
-      message: "AI Artifacts has been got!",
-      data: artifactsMapped,
-    };
   }
 
-  async updateAiArtifact(id: string, body: any) {
-    if (!id) {
-      throw new NotFoundException('Artifact ID is required');
-    }
+  async updateAiArtifact(id: string, body: any): Promise<AIArtifactBase> {
+    if (!id) throw new NotFoundException('Artifact ID is required');
 
     try {
-      const updated = await this.prisma.aIArtifact.update({
+      return await this.prisma.aIArtifact.update({
         where: {id},
         data: {
           type: body.type,
           outputJson: body.outputJson,
           status: body.status,
+        },
+        include: {
+          products: { include: { product: true } },
         }
       });
-
-      return {
-        statusCode: 200,
-        message: 'Artifact has been updated!',
-        data: updated,
-      };
     } catch (err: any) {
       if (err.code === 'P2025') {
         throw new NotFoundException(`Artifact with ID ${id} not found`);
@@ -62,30 +51,13 @@ export class AiArtifactService {
   }
 
   async deleteAiArtifact(id: string) {
-    return this.prisma.$transaction(async (tx) => {
-      try {
-        if (!id) throw new NotFoundException('Artifact ID is required');
-
-        const deleted = await tx.aIArtifact.delete({
-          where: { id },
-        });
-
-        return {
-          statusCode: 200,
-          message: 'Artifact has been deleted!',
-          data: deleted,
-        };
-      } catch (err: any) {
-        if (err.code === 'P2025') {
-          throw new NotFoundException(`Artifact with ID ${id} not found`);
-        }
-
-        if (err instanceof ConflictException) {
-          throw err;
-        }
-
-        throw new InternalServerErrorException('Failed to delete artifact');
+    try {
+      return await this.prisma.aIArtifact.delete({ where: { id } });
+    } catch (err: any) {
+      if (err.code === 'P2025') {
+        throw new NotFoundException(`Artifact with ID ${id} not found`);
       }
-    })
+      throw err;
+    }
   }
 }

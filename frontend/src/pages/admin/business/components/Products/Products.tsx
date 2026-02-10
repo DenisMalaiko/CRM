@@ -29,8 +29,8 @@ function Products() {
   const [ getProducts ] = useGetProductsMutation();
   const [ deleteProduct ] = useDeleteProductMutation();
 
-  const [open, setOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<TProduct | null>(null);
+  const [ open, setOpen ] = useState(false);
+  const [ selectedProduct, setSelectedProduct ] = useState<TProduct | null>(null);
   const { products } = useSelector((state: RootState) => state.productsModule)
 
   const header = [
@@ -54,7 +54,6 @@ function Products() {
           }
         }
       } catch (error) {
-        console.error("Error fetching data:", error);
         showError(error);
       }
     }

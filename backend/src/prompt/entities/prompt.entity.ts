@@ -12,3 +12,5 @@ export type TPrompt = TPromptBase & {
 };
 
 export type TPromptCreate = TPromptBase;
+
+export type TPromptUpdate = TPromptBase;

@@ -1,126 +1,97 @@
-import React, { useState, useEffect } from 'react';
+import React, { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
-import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
 
-import { showError } from "../../../../../../utils/showError";
-import {isRequired, minLength} from "../../../../../../utils/validations";
+// Hooks
+import { useForm } from "../../../../../../hooks/useForm";
+import { useValidation } from "../../../../../../hooks/useValidation";
 
-
-import { useGetCreativesMutation, useUpdateCreativeMutation } from "../../../../../../store/artifact/artifactApi";
-import { setCreatives } from "../../../../../../store/artifact/artifactSlice";
+// Redux
 import { useAppDispatch } from "../../../../../../store/hooks";
+import {
+  useGetCreativesMutation,
+  useUpdateCreativeMutation
+} from "../../../../../../store/artifact/artifactApi";
+import { setCreatives } from "../../../../../../store/artifact/artifactSlice";
+
+// Utils
+import { showError } from "../../../../../../utils/showError";
+import { isRequired, minLength } from "../../../../../../utils/validations";
+
+// Models
 import { ApiResponse } from "../../../../../../models/ApiResponse";
 import { TAIArtifact } from "../../../../../../models/AIArtifact";
-import {AIArtifactStatus} from "../../../../../../enum/AIArtifactStatus";
-import {setProfiles} from "../../../../../../store/profile/profileSlice";
-import {Plans} from "../../../../../../enum/Plans";
+
+// Enum
+import { AIArtifactStatus } from "../../../../../../enum/AIArtifactStatus";
+import {ChangeArg, isNativeEvent} from "../../../../../../utils/isNativeEvent";
 
 function CreateCreativeDlg({ open, onClose, creative }: any) {
   const dispatch = useAppDispatch();
+  const { businessId } = useParams<{ businessId: string }>();
+
+  const [ updateCreative, { isLoading: isLoadingUpdating } ] = useUpdateCreativeMutation();
+  const [ getCreatives ] = useGetCreativesMutation();
+  const StatusList = Object.values(AIArtifactStatus);
 
   const isEdit = !!creative;
 
-  const { businessId } = useParams<{ businessId: string }>();
+  // Init Form
+  const initialForm = useMemo(() => {
+    if(isEdit && creative) {
+      return {
+        status: creative.status,
+        hook: creative.outputJson.hook,
+        body: creative.outputJson.body,
+        cta: creative.outputJson.cta,
+      }
+    }
 
-  const [ updateCreative, { isLoading, isSuccess } ] = useUpdateCreativeMutation();
-  const [ getCreatives ] = useGetCreativesMutation();
-
-  const [form, setForm] = useState({
-    status: AIArtifactStatus.Draft,
-    outputJson: {
+    return {
+      status: AIArtifactStatus.Draft,
       hook: "",
       body: "",
       cta: "",
     }
-  });
-  const [errors, setErrors]: any = useState({});
-  const StatusList = Object.values(AIArtifactStatus);
+  }, [isEdit, creative, businessId]);
 
-  useEffect(() => {
-    if (isEdit && creative) {
-      setForm({
-        status: creative.status,
-        outputJson: creative.outputJson,
-      });
-    } else {
-      setForm({
-        status: AIArtifactStatus.Draft,
-        outputJson: {
-          hook: "",
-          body: "",
-          cta: "",
-        }
-      })
-    }
-  }, [creative, isEdit, open]);
+  // Form Hook
+  const { form, handleChange } = useForm(initialForm);
+
+  // Validation Hook
+  const { errors, validateField, validateAll } = useValidation({
+    status: (value) => isRequired(value),
+    hook: (value) => minLength(value, 10),
+    body: (value) => minLength(value, 10),
+    cta: (value) => minLength(value, 10),
+  });
 
   if (!open) return null;
   if (!businessId) return null;
 
-  const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
-  ) => {
-    const { name, value } = e.target;
-
-    if (name.includes(".")) {
-      const [parent, child] = name.split(".");
-
-      setForm(prev => ({
-        ...prev,
-        [parent]: {
-          ...(prev as any)[parent],
-          [child]: value,
-        },
-      }));
-      return;
-    }
-
-    setForm(prev => ({
-      ...prev,
-      [name]: value,
-    }));
-  }
-
-  const validateField = (name: string, data: any) => {
-    let error: string | null = null;
-    if (name === "status") error = isRequired(data.value);
-    if (name === "hook") error = minLength(data.value, 10);
-    if (name === "body") error = minLength(data.value, 10);
-    if (name === "cta") error = minLength(data.value, 10);
-    setErrors((prev: any) => ({ ...prev, [name]: error }));
-    return error;
-  };
-
-  const validateForm = (e: React.FormEvent<HTMLFormElement>): boolean => {
+  // Update Creative
+  const create = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const newErrors: Record<string, string | null> = {};
-
-    Object.keys(form).forEach((field) => {
-      newErrors[field] = validateField(field, { value: form[field as keyof typeof form] });
-    });
-
-    setErrors(newErrors);
-
-    return window.utils.validateForm(newErrors);
-  }
-
-  const create = async (e: React.FormEvent<HTMLFormElement>) => {
-    if (!validateForm(e)) return;
+    if (!validateAll(form)) return;
 
     try {
       if (isEdit) {
-        await updateCreative({id: creative!.id, form})
+        const data = {
+          status: creative.status,
+          outputJson: {
+            hook: creative.outputJson.hook,
+            body: creative.outputJson.body,
+            cta: creative.outputJson.cta,
+          }
+        }
+        const response = await updateCreative({id: creative!.id, form: data}).unwrap();
+        if(response && response?.data) toast.success(response.message);
       }
 
       const response: ApiResponse<TAIArtifact[]> = await getCreatives(businessId).unwrap();
-
       if(response && response?.data) {
         dispatch(setCreatives(response.data));
-        toast.success(response.message);
         onClose();
       }
     } catch (error) {
@@ -128,11 +99,29 @@ function CreateCreativeDlg({ open, onClose, creative }: any) {
     }
   }
 
+  // Handle Change
+  const onChange = (arg: ChangeArg) => {
+    let name: string;
+    let value: any;
+
+    if (isNativeEvent(arg)) {
+      const t = arg.target as HTMLInputElement;
+      name = t.name;
+      value = t.type === "checkbox" ? t.checked : t.value;
+    } else {
+      name = arg.name;
+      value = arg.value;
+    }
+
+    handleChange(arg);
+    validateField(name as keyof typeof form, value, form);
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 overflow-hidden">
       <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl p-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">Update Creative</h2>
+          <h2 className="text-lg font-semibold">{ isEdit ? "Edit" : "Create" } Creative</h2>
           <button
             onClick={onClose}
             className="text-slate-500 hover:text-slate-700 rounded-full p-1 hover:bg-slate-100"
@@ -150,10 +139,7 @@ function CreateCreativeDlg({ open, onClose, creative }: any) {
             <select
               name="status"
               value={form.status}
-              onChange={(e) => {
-                handleChange(e);
-                validateField("status", { value: e.target.value })
-              }}
+              onChange={onChange}
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
             >
               { StatusList.map((status: string) => (
@@ -170,11 +156,8 @@ function CreateCreativeDlg({ open, onClose, creative }: any) {
 
             <textarea
               name="outputJson.hook"
-              value={form.outputJson.hook}
-              onChange={(e) => {
-                handleChange(e);
-                validateField("hook", {value: e.target.value})
-              }}
+              value={form.hook}
+              onChange={onChange}
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
               placeholder="Enter hook"
             />
@@ -188,11 +171,8 @@ function CreateCreativeDlg({ open, onClose, creative }: any) {
 
             <textarea
               name="outputJson.cta"
-              value={form.outputJson.cta}
-              onChange={(e) => {
-                handleChange(e);
-                validateField("cta", {value: e.target.value})
-              }}
+              value={form.cta}
+              onChange={onChange}
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
               placeholder="Enter cta"
             />
@@ -207,11 +187,8 @@ function CreateCreativeDlg({ open, onClose, creative }: any) {
             <textarea
               name="outputJson.body"
               rows={5}
-              value={form.outputJson.body}
-              onChange={(e) => {
-                handleChange(e);
-                validateField("body", {value: e.target.value})
-              }}
+              value={form.body}
+              onChange={onChange}
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
               placeholder="Enter body"
             />
@@ -222,6 +199,7 @@ function CreateCreativeDlg({ open, onClose, creative }: any) {
             <button
               type="button"
               onClick={onClose}
+              disabled={isLoadingUpdating}
               className="
                 px-4 py-2 rounded-lg border  text-slate-600
                 border-slate-300 hover:bg-slate-50
@@ -232,13 +210,16 @@ function CreateCreativeDlg({ open, onClose, creative }: any) {
             </button>
             <button
               type="submit"
-              className="
-                px-4 py-2 rounded-lg  text-white font-medium
-                bg-blue-600 hover:bg-blue-700
-                disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-blue-600
-              "
+              disabled={isLoadingUpdating}
+              className="px-4 py-2 rounded-lg bg-blue-600 text-white flex items-center gap-2 justify-center"
             >
-              Save
+              { isLoadingUpdating ? (
+                <>
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"/>
+                  Saving...
+                </>
+              ) : ("Save")
+              }
             </button>
           </div>
 

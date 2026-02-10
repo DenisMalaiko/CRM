@@ -25,7 +25,7 @@ export const artifactApi = api.injectEndpoints({
 
     updateCreative: builder.mutation<ApiResponse<TAIArtifact>, { id: string, form: any }>({
       query: ({ id, form }) => ({
-        url: `/ai-artifact/update/${id}`,
+        url: `/ai-artifact/${id}`,
         method: "PATCH",
         body: form,
       })
@@ -33,7 +33,7 @@ export const artifactApi = api.injectEndpoints({
 
     deleteCreative: builder.mutation<ApiResponse<TAIArtifact>, string>({
       query: (id: string) => ({
-        url: `/ai-artifact/delete/${id}`,
+        url: `/ai-artifact/${id}`,
         method: "DELETE",
       })
     }),
