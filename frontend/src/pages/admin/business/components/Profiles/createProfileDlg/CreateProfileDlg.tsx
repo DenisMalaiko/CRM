@@ -21,6 +21,7 @@ import { setProfiles } from "../../../../../../store/profile/profileSlice";
 import { showError } from "../../../../../../utils/showError";
 import { isRequired, isRequiredArray, minLength, isBoolean } from "../../../../../../utils/validations";
 import { isNativeEvent, ChangeArg } from "../../../../../../utils/isNativeEvent";
+import { centeredSelectStyles } from "../../../../../../utils/reactSelectStyles";
 
 // Enum
 import { BusinessProfileFocus } from "../../../../../../enum/BusinessProfileFocus";
@@ -76,7 +77,7 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
   }, [isEdit, profile, businessId]);
 
   // Form Hook
-  const { form, handleChange } = useForm(initialForm);
+  const { form, handleChange, resetForm } = useForm(initialForm);
 
   // Validation Hook
   const { errors, validateField, validateAll } = useValidation({
@@ -110,6 +111,7 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
       const response: ApiResponse<TBusinessProfile[]> = await getProfiles(businessId).unwrap();
       if(response && response?.data) {
         dispatch(setProfiles(response.data));
+        resetForm();
         onClose();
       }
     } catch (error) {
@@ -202,6 +204,7 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
                   value: selected ? [selected.value] : [],
                 })
               }
+              styles={centeredSelectStyles}
             />
 
             {errors.productsIds && <p className="text-red-500 text-sm mt-2 text-left">{errors.productsIds}</p>}
@@ -224,6 +227,7 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
                   value: selected.map((o) => o.value),
                 })
               }
+              styles={centeredSelectStyles}
             />
 
             {errors.audiencesIds && <p className="text-red-500 text-sm mt-2 text-left">{errors.audiencesIds}</p>}
@@ -246,6 +250,7 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
                   value: selected.map((o) => o.value),
                 })
               }
+              styles={centeredSelectStyles}
             />
 
             {errors.promptsIds && <p className="text-red-500 text-sm mt-2 text-left">{errors.promptsIds}</p>}

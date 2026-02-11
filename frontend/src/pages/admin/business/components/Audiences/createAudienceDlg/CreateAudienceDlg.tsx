@@ -68,19 +68,19 @@ function CreateAudienceDlg({ open, onClose, audience }: any) {
 
     return {
       name: "",
-      ageRange: "",
+      ageRange: "20-50",
       gender: Gender.Male,
-      geo: "",
+      geo: "Ukraine",
       pains: [""],
       desires: [""],
       triggers: [""],
-      incomeLevel: IncomeLevel.Low,
+      incomeLevel: IncomeLevel.Medium,
       businessId: businessId ?? "",
     }
   }, [isEdit, audience, businessId]);
 
   // Form Hook
-  const { form, handleChange, setForm } = useForm(initForm);
+  const { form, handleChange, setForm, resetForm } = useForm(initForm);
 
   // Validation Hook
   const { errors, validateField, validateAll } = useValidation({
@@ -116,6 +116,7 @@ function CreateAudienceDlg({ open, onClose, audience }: any) {
       const response: ApiResponse<TAudience[]> = await getAudiences(businessId).unwrap();
       if(response && response?.data) {
         dispatch(setAudiences(response.data));
+        resetForm();
         onClose();
       }
     } catch (error) {
@@ -205,7 +206,7 @@ function CreateAudienceDlg({ open, onClose, audience }: any) {
             {errors.name && <p className="text-red-500 text-sm mt-2 text-left">{errors.name}</p>}
           </div>
 
-          <div>
+          {/*<div>
             <div className="flex items-center gap-2 justify-between">
               <label className="block text-sm font-medium text-slate-700 text-left">Age Range</label>
             </div>
@@ -220,7 +221,7 @@ function CreateAudienceDlg({ open, onClose, audience }: any) {
               autoComplete="off"
             />
             {errors.ageRange && <p className="text-red-500 text-sm mt-2 text-left">{errors.ageRange}</p>}
-          </div>
+          </div>*/}
 
           <div>
             <div className="flex items-center gap-2 justify-between">
@@ -239,7 +240,7 @@ function CreateAudienceDlg({ open, onClose, audience }: any) {
             </select>
           </div>
 
-          <div>
+          {/*<div>
             <div className="flex items-center gap-2 justify-between">
               <label className="block text-sm font-medium text-slate-700 text-left">Geo</label>
             </div>
@@ -258,7 +259,7 @@ function CreateAudienceDlg({ open, onClose, audience }: any) {
             />
 
             {errors.geo && <p className="text-red-500 text-sm mt-2 text-left">{errors.geo}</p>}
-          </div>
+          </div>*/}
 
           <div className="flex flex-col items-start justify-start">
             <div className="flex w-full items-center justify-between gap-2">

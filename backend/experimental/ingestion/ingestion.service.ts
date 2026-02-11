@@ -1,7 +1,7 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { PlatformIngestionAdapter } from './adapters/platform.adapter';
 import { PLATFORM_ADAPTERS_TOKEN } from './ingestion.tokens';
-import { AiService } from "../../src/ai/ai.service";
+import { AiService } from "../../src/modules/ai/ai.service";
 
 @Injectable()
 export class IngestionService {

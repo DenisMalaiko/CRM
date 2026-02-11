@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { PLATFORM_ADAPTERS_TOKEN } from "./ingestion.tokens";
 import { PLATFORM_ADAPTERS } from "./adapters";
 import { IngestionService } from "./ingestion.service";
-import { AiModule } from "../../src/ai/ai.module";
+import { AiModule } from "../../src/modules/ai/ai.module";
 
 @Module({
   providers: [

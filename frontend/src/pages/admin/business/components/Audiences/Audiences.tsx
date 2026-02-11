@@ -161,8 +161,17 @@ function Audiences() {
                     <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.ageRange}</td>
                     <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.gender}</td>
                     <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.geo}</td>
-                    <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.pains.join(", ")}</td>
-                    <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.desires.join(", ")}</td>
+                    <td className="px-4 py-3 font-medium text-slate-900 text-left">
+                      {item.pains.map((pain: string, i: number) => (
+                        <div className="mb-2" key={i}>{pain};</div>
+                      ))}
+                    </td>
+
+                    <td className="px-4 py-3 font-medium text-slate-900 text-left">
+                      {item.desires.map((desire: string, i: number) => (
+                        <div className="mb-2" key={i}>{desire};</div>
+                      ))}
+                    </td>
                     <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.incomeLevel}</td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center gap-2 justify-end">

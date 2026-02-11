@@ -56,7 +56,7 @@ function CreateCreativeDlg({ open, onClose, creative }: any) {
   }, [isEdit, creative, businessId]);
 
   // Form Hook
-  const { form, handleChange } = useForm(initialForm);
+  const { form, handleChange, resetForm } = useForm(initialForm);
 
   // Validation Hook
   const { errors, validateField, validateAll } = useValidation({
@@ -78,13 +78,14 @@ function CreateCreativeDlg({ open, onClose, creative }: any) {
     try {
       if (isEdit) {
         const data = {
-          status: creative.status,
+          status: form.status,
           outputJson: {
-            hook: creative.outputJson.hook,
-            body: creative.outputJson.body,
-            cta: creative.outputJson.cta,
+            hook: form.hook,
+            body: form.body,
+            cta: form.cta,
           }
         }
+
         const response = await updateCreative({id: creative!.id, form: data}).unwrap();
         if(response && response?.data) toast.success(response.message);
       }
@@ -92,6 +93,7 @@ function CreateCreativeDlg({ open, onClose, creative }: any) {
       const response: ApiResponse<TAIArtifact[]> = await getCreatives(businessId).unwrap();
       if(response && response?.data) {
         dispatch(setCreatives(response.data));
+        resetForm();
         onClose();
       }
     } catch (error) {
@@ -155,7 +157,7 @@ function CreateCreativeDlg({ open, onClose, creative }: any) {
             </div>
 
             <textarea
-              name="outputJson.hook"
+              name="hook"
               value={form.hook}
               onChange={onChange}
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
@@ -170,7 +172,7 @@ function CreateCreativeDlg({ open, onClose, creative }: any) {
             </div>
 
             <textarea
-              name="outputJson.cta"
+              name="cta"
               value={form.cta}
               onChange={onChange}
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
@@ -185,7 +187,7 @@ function CreateCreativeDlg({ open, onClose, creative }: any) {
             </div>
 
             <textarea
-              name="outputJson.body"
+              name="body"
               rows={5}
               value={form.body}
               onChange={onChange}

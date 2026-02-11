@@ -4,22 +4,20 @@ import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { PrismaModule } from './prisma/prisma.module';
-import { ApiResponseInterceptor } from "./common/interceptors/api-response.interceptor";
+import { PrismaModule } from './core/prisma/prisma.module';
+import { ApiResponseInterceptor } from "./core/interceptors/api-response.interceptor";
 
-import { AdminModule } from './admin/admin.module';
-import { AuthModule } from './auth/auth.module';
-import { AgencyModule } from './agency/agency.module';
-import { BusinessModule } from './business/business.module';
-import { ProductsModule } from './products/products.module';
-import { ProfilesModule } from "./profiles/profiles.module";
-import { AudienceModule } from "./audience/audience.module";
-import { PlatformModule } from "./plaform/platform.module";
-import { IngestionModule } from "./ingestion/ingestion.module";
-import { AiModule } from "./ai/ai.module";
-import { AIArtifactModule } from "./aiArtifact/aiArtifact.module";
-import { PromptModule } from './prompt/prompt.module';
-import { StorageModule } from "./shared/storage/storage.module";
+import { AdminModule } from './modules/admin/admin.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { AgencyModule } from './modules/agency/agency.module';
+import { BusinessModule } from './modules/business/business.module';
+import { ProductsModule } from './modules/products/products.module';
+import { ProfilesModule } from "./modules/profiles/profiles.module";
+import { AudienceModule } from "./modules/audience/audience.module";
+import { AiModule } from "./modules/ai/ai.module";
+import { AIArtifactModule } from "./modules/aiArtifact/aiArtifact.module";
+import { PromptModule } from './modules/prompt/prompt.module';
+import { StorageModule } from "./core/storage/storage.module";
 
 @Module({
   imports: [
@@ -48,8 +46,6 @@ import { StorageModule } from "./shared/storage/storage.module";
     ProductsModule,
     ProfilesModule,
     AudienceModule,
-    PlatformModule,
-    IngestionModule,
     AIArtifactModule,
     AiModule,
     PromptModule,

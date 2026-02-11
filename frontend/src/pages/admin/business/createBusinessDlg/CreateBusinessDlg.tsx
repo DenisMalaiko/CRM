@@ -57,7 +57,7 @@ function CreateBusinessDlg({ open, onClose, business }: any) {
   }, [isEdit, business, user?.agencyId]);
 
   // Form Hook
-  const { form, handleChange } = useForm(initialForm);
+  const { form, handleChange, resetForm } = useForm(initialForm);
 
   // Validation Hook
   const { errors, validateField, validateAll } = useValidation({
@@ -93,6 +93,7 @@ function CreateBusinessDlg({ open, onClose, business }: any) {
 
       const response: any = await getBusinesses().unwrap();
       dispatch(setBusinesses(response.data));
+      resetForm();
       onClose();
     } catch (error) {
       showError(error);

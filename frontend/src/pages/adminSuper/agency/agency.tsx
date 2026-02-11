@@ -1,21 +1,25 @@
 import React, { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
 import { ArrowLeft } from "lucide-react";
-import { useAppDispatch } from "../../../store/hooks";
-import { showError } from "../../../utils/showError";
-import { getStatusClass } from "../../../utils/getStatusClass";
 
+// Redux
+import { useSelector } from "react-redux";
 import { RootState } from "../../../store";
-import { trimID } from "../../../utils/trimID";
-import { TUser } from "../../../models/User";
-
+import { useAppDispatch } from "../../../store/hooks";
 import { useGetAgencyMutation, useGetUsersByAgencyIdMutation } from "../../../store/agency/agencyApi";
 import { useGetBusinessesMutation } from "../../../store/businesses/businessesApi";
-
 import { setAgency, setUsersByAgencyId } from "../../../store/agency/agencySlice";
 import { setBusinesses } from "../../../store/businesses/businessesSlice";
-import {toDate} from "../../../utils/toDate";
+
+// Utils
+import { showError } from "../../../utils/showError";
+import { getStatusClass } from "../../../utils/getStatusClass";
+import { trimID } from "../../../utils/trimID";
+import { toDate } from "../../../utils/toDate";
+
+// Models
+import { TUser } from "../../../models/User";
+
 
 function Agency() {
   const dispatch = useAppDispatch();
@@ -44,6 +48,7 @@ function Agency() {
     { name: "Status", key: "status" },
   ];
 
+  // Get Data
   useEffect(() => {
     const fetchData = async () => {
       if (id) {
@@ -51,8 +56,6 @@ function Agency() {
           const response: any = await getAgency(id).unwrap();
           const responseUsers: any = await getUsersByBusinessId(id).unwrap();
           const responseBusinesses: any = await getBusinesses(id).unwrap();
-
-          console.log("USERS: ", responseUsers.data)
 
           dispatch(setAgency(response.data));
           dispatch(setBusinesses(responseBusinesses.data));

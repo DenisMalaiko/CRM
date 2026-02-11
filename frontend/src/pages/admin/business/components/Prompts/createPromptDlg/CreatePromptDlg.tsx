@@ -64,7 +64,7 @@ function CreatePromptDlg({ open, onClose, prompt }: any) {
   }, [isEdit, prompt, businessId]);
 
   // Form Hooks
-  const { form, handleChange } = useForm(initForm);
+  const { form, handleChange, resetForm } = useForm(initForm);
 
   // Validation Hooks
   const { errors, validateField, validateAll } = useValidation({
@@ -96,6 +96,7 @@ function CreatePromptDlg({ open, onClose, prompt }: any) {
       const response: ApiResponse<TPrompt[]> = await getPrompts(businessId).unwrap();
       if(response && response?.data) {
         dispatch(setPrompts(response.data));
+        resetForm();
         onClose();
       }
     } catch (error) {
@@ -179,6 +180,7 @@ function CreatePromptDlg({ open, onClose, prompt }: any) {
               onChange={onChange}
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
               placeholder="Enter text"
+              rows={6}
             />
             {errors.text && <p className="text-red-500 text-sm text-left">{errors.text}</p>}
           </div>

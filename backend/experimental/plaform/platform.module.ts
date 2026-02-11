@@ -1,5 +1,5 @@
 import { Module } from "@nestjs/common";
-import { AuthModule } from "../../src/auth/auth.module";
+import { AuthModule } from "../../src/modules/auth/auth.module";
 import { PlatformController } from "./platform.controller";
 import { PlatformService } from "./platform.service";
 
