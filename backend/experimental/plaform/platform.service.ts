@@ -1,5 +1,5 @@
 import {ConflictException, Injectable, InternalServerErrorException, NotFoundException} from "@nestjs/common";
-import { PrismaService } from "../../src/prisma/prisma.service";
+import { PrismaService } from "../../src/core/prisma/prisma.service";
 import { TPlatform, TPlatformCreate } from "./entity/platform.entity";
 
 @Injectable()

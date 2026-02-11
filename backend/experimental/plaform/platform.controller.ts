@@ -1,5 +1,5 @@
 import {Body, Controller, Delete, Get, Param, Patch, Post, Res, UseGuards} from "@nestjs/common";
-import { JwtAuthGuard } from "../../src/guards/jwt-auth.guard";
+import { JwtAuthGuard } from "../../src/core/guards/jwt-auth.guard";
 import { PlatformDto } from "./dto/platform.dto";
 import { PlatformService } from "./platform.service";
 

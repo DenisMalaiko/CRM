@@ -1,10 +1,16 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
+
+// Redux
 import { useSelector } from "react-redux";
 import { RootState } from "../../../store";
+
+// Models
 import { TAgency } from "../../../models/Agency";
-import { useNavigate } from "react-router-dom";
+
+// Utils
 import { trimID } from "../../../utils/trimID";
-import {toDate} from "../../../utils/toDate";
+import { toDate } from "../../../utils/toDate";
 
 function List() {
   const navigate = useNavigate();

@@ -65,7 +65,7 @@ function CreateProductDlg({ open, onClose, product }: any) {
   }, [isEdit, product, businessId]);
 
   // Form Hook
-  const { form, handleChange } = useForm(initialForm);
+  const { form, handleChange, resetForm } = useForm(initialForm);
 
   // Validation Hook
   const { errors, validateField, validateAll } = useValidation({
@@ -98,6 +98,7 @@ function CreateProductDlg({ open, onClose, product }: any) {
       const response: ApiResponse<TProduct[]> = await getProducts(businessId).unwrap();
       if(response && response?.data) {
         dispatch(setProducts(response.data));
+        resetForm();
         onClose();
       }
     } catch (error) {
@@ -162,6 +163,7 @@ function CreateProductDlg({ open, onClose, product }: any) {
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
               placeholder="Enter product description"
               autoComplete="off"
+              rows={6}
             />
             {errors.description && <p className="text-red-500 text-sm text-left">{errors.description}</p>}
           </div>
