@@ -149,15 +149,7 @@ export class AiService {
       Restrictions:
       - Do NOT invent business details
       - Do NOT mention that you are an AI
-      - Do NOT add explanations or commentary outside the posts
-      
-      Formatting rules:
-      - Lists are allowed inside text fields
-      - Lists must be formatted as plain text
-      - Use numbered items: 1., 2., 3., etc.
-      - Line breaks inside strings are allowed using
-      - Do NOT use markdown symbols (*)
-      
+      - Do NOT add explanations or commentary outside the posts 
       
       Output format (STRICT JSON ONLY):
       
