@@ -29,6 +29,10 @@ function Business() {
     {
       id: "prompts",
       title: "Prompts",
+    },
+    {
+      id: "competitors",
+      title: "Competitors",
     }
   ]
 

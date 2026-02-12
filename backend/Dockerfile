@@ -1,4 +1,4 @@
-FROM node:20-alpine
+FROM node:20-bookworm
 
 WORKDIR /app
 
@@ -6,6 +6,9 @@ WORKDIR /app
 COPY package*.json ./
 
 RUN npm install
+
+# install playwright browsers + system deps
+RUN npx playwright install --with-deps
 
 # Copy all files including prisma and src
 COPY . .

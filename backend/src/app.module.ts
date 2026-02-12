@@ -17,6 +17,7 @@ import { AudienceModule } from "./modules/audience/audience.module";
 import { AiModule } from "./modules/ai/ai.module";
 import { AIArtifactModule } from "./modules/aiArtifact/aiArtifact.module";
 import { PromptModule } from './modules/prompt/prompt.module';
+import { CompetitorModule } from "./modules/competitor/competitor.module";
 import { StorageModule } from "./core/storage/storage.module";
 
 @Module({
@@ -49,6 +50,7 @@ import { StorageModule } from "./core/storage/storage.module";
     AIArtifactModule,
     AiModule,
     PromptModule,
+    CompetitorModule,
     StorageModule
   ],
   controllers: [AppController],

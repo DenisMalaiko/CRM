@@ -9,76 +9,65 @@ import { useValidation } from "../../../../../../hooks/useValidation";
 // Redux
 import { useAppDispatch } from "../../../../../../store/hooks";
 import {
-  useCreatePromptMutation,
-  useUpdatePromptMutation,
-  useGetPromptsMutation
-} from "../../../../../../store/prompts/promptApi";
-import { setPrompts } from "../../../../../../store/prompts/promptSlice";
-
-// Components
+  useCreateCompetitorMutation,
+  useUpdateCompetitorMutation,
+  useGetCompetitorsMutation,
+} from "../../../../../../store/competitor/competitorApi";
+import { setCompetitors } from "../../../../../../store/competitor/competitorSlice";
 
 // Utils
 import { showError } from "../../../../../../utils/showError";
 import { isBoolean, isRequired, minLength } from "../../../../../../utils/validations";
 
-// Enum
-import { PromptPurpose } from "../../../../../../enum/PromptPurpose";
-
 // Models
 import { ApiResponse } from "../../../../../../models/ApiResponse";
-import { TPrompt } from "../../../../../../models/Prompt";
+import { TCompetitor } from "../../../../../../models/Competitor";
 import { ChangeArg, isNativeEvent } from "../../../../../../utils/isNativeEvent";
 
-
-function CreatePromptDlg({ open, onClose, prompt }: any) {
+function CreateCompetitorDlg({ open, onClose, competitor }: any) {
   const dispatch = useAppDispatch();
 
-  const isEdit = !!prompt;
+  const isEdit = !!competitor;
   const { businessId } = useParams<{ businessId: string }>();
 
-  const [ createPrompt, { isLoading: isLoadingCreating }] = useCreatePromptMutation();
-  const [ updatePrompt, { isLoading: isLoadingUpdating }] = useUpdatePromptMutation();
-  const [ getPrompts ] = useGetPromptsMutation();
+  const [ createCompetitor, { isLoading: isLoadingCreating }] = useCreateCompetitorMutation();
+  const [ updateCompetitor, { isLoading: isLoadingUpdating }] = useUpdateCompetitorMutation();
+  const [ getCompetitors] = useGetCompetitorsMutation();
 
-  const promptPurposesOptions = Object.values(PromptPurpose);
 
-  // Init Form
   const initForm = useMemo(() => {
-    if(isEdit && prompt) {
+    if(isEdit && competitor) {
       return {
-        name: prompt.name,
-        purpose: prompt.purpose,
-        text: prompt.text,
-        isActive: prompt.isActive,
-        businessId: prompt.businessId ?? "",
+        name: competitor.name,
+        facebookLink: competitor.facebookLink,
+        isActive: competitor.isActive,
+        businessId: competitor.businessId,
       }
     }
 
     return {
       name: "",
-      purpose: PromptPurpose.Text,
-      text: "",
+      facebookLink: "",
       isActive: true,
-      businessId: businessId ?? ""
-    }
-  }, [isEdit, prompt, businessId]);
+      businessId: businessId,
+    };
+  }, [isEdit, competitor, businessId]);
 
   // Form Hooks
   const { form, handleChange, resetForm } = useForm(initForm);
 
+
   // Validation Hooks
   const { errors, validateField, validateAll } = useValidation({
     name: (value) => minLength(value, 3),
-    purpose: (value) => isRequired(value),
-    text: (value) => minLength(value, 10),
+    facebookLink: (value) => minLength(value, 3),
     isActive: (value) => isBoolean(value),
     businessId: (value) => isRequired(value),
-  })
+  });
 
   if (!open) return null;
   if (!businessId) return null;
 
-  // Create Prompt
   const create = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -86,16 +75,16 @@ function CreatePromptDlg({ open, onClose, prompt }: any) {
 
     try {
       if (isEdit) {
-        const response = await updatePrompt({ id: prompt!.id, form }).unwrap();
+        const response = await updateCompetitor({ id: competitor!.id, form }).unwrap();
         if(response && response?.data) toast.success(response.message);
       } else {
-        const response = await createPrompt(form).unwrap();
+        const response = await createCompetitor(form).unwrap();
         if(response && response?.data) toast.success(response.message);
       }
 
-      const response: ApiResponse<TPrompt[]> = await getPrompts(businessId).unwrap();
+      const response: ApiResponse<TCompetitor[]> = await getCompetitors(businessId).unwrap();
       if(response && response?.data) {
-        dispatch(setPrompts(response.data));
+        dispatch(setCompetitors(response.data));
         resetForm();
         onClose();
       }
@@ -122,12 +111,13 @@ function CreatePromptDlg({ open, onClose, prompt }: any) {
     validateField(name as keyof typeof form, value, form);
   };
 
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50">
       <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl p-6">
 
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">{ isEdit ? "Edit" : "Create" } Prompt</h2>
+          <h2 className="text-lg font-semibold">{ isEdit ? "Edit" : "Create" } Competitor</h2>
           <button
             onClick={onClose}
             className="text-slate-500 hover:text-slate-700 rounded-full p-1 hover:bg-slate-100"
@@ -149,40 +139,27 @@ function CreatePromptDlg({ open, onClose, prompt }: any) {
               onChange={onChange}
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
               placeholder="Enter name"
+              autoComplete="off"
             />
             {errors.name && <p className="text-red-500 text-sm mt-2 text-left">{errors.name}</p>}
           </div>
 
+
           <div>
             <div className="flex items-center gap-2 justify-between">
-              <label className="block text-sm font-medium text-slate-700 text-left">Purpose</label>
+              <label className="block text-sm font-medium text-slate-700 text-left">Facebook Link</label>
             </div>
 
-            <select
-              name="purpose"
-              value={form.purpose}
+            <input
+              type="text"
+              name="facebookLink"
+              value={form.facebookLink}
               onChange={onChange}
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
-            >
-              { promptPurposesOptions.map((purpose: string) => (
-                <option key={purpose} value={purpose}>{purpose}</option>
-              )) }
-            </select>
-
-            {errors.purpose && <p className="text-red-500 text-sm mt-2 text-left">{errors.purpose}</p>}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-slate-700 text-left">Text</label>
-            <textarea
-              name="text"
-              value={form.text}
-              onChange={onChange}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
-              placeholder="Enter text"
-              rows={6}
+              placeholder="Enter facebook link"
+              autoComplete="off"
             />
-            {errors.text && <p className="text-red-500 text-sm text-left">{errors.text}</p>}
+            {errors.facebookLink && <p className="text-red-500 text-sm mt-2 text-left">{errors.facebookLink}</p>}
           </div>
 
           <label className="flex items-start gap-3 cursor-pointer select-none">
@@ -194,9 +171,8 @@ function CreatePromptDlg({ open, onClose, prompt }: any) {
               className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
             />
 
-            <span className="block text-sm font-medium text-slate-700 text-left">Active Profile</span>
+            <span className="block text-sm font-medium text-slate-700 text-left">Active Competitor</span>
           </label>
-
 
           <div className="flex justify-end gap-3 pt-4">
             <button
@@ -226,10 +202,9 @@ function CreatePromptDlg({ open, onClose, prompt }: any) {
             </button>
           </div>
         </form>
-
       </div>
     </div>
   )
 }
 
-export default CreatePromptDlg;
+export default CreateCompetitorDlg;
