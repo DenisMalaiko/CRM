@@ -117,6 +117,7 @@ model Business {
 
     products  Product[]
     prompts   Prompt[]
+    competitors Competitor[]
     businessProfiles BusinessProfile[]
 }
 
@@ -222,6 +223,18 @@ model AIArtifact {
     trend           Trend?          @relation(fields: [trendId], references: [id])
 
     @@index([businessId])
+}
+
+model Competitor {
+    id           String   @id @default(uuid())
+    businessId   String
+    name         String
+    facebookLink String
+
+    isActive     Boolean  @default(true)
+    createdAt    DateTime @default(now())
+
+    business     Business @relation(fields: [businessId], references: [id])
 }
 
 

@@ -38,6 +38,7 @@ import Audiences from "./pages/admin/business/components/Audiences/Audiences";
 import Creatives from "./pages/admin/business/components/Creatives/Creatives";
 import Prompts from "./pages/admin/business/components/Prompts/Prompts";
 import Settings from "./pages/admin/business/components/old/Settings/Settings";
+import Competitors from "./pages/admin/business/components/Сompetitors/Competitors";
 
 // AI
 import Accountant from "./pages/admin/ai/accountant/Accountant";
@@ -106,6 +107,7 @@ function App() {
             <Route path="platforms" element={<Platforms />} />
             <Route path="audiences" element={<Audiences />} />
             <Route path="prompts" element={<Prompts />} />
+            <Route path="competitors" element={<Competitors />} />
             <Route path="settings" element={<Settings />} />
           </Route>
         </Route>

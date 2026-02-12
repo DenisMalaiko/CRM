@@ -10,6 +10,7 @@ import audienceModule from "./audience/audienceSlice";
 import platformModule from "./platform/platformSlice";
 import artifactModule from "./artifact/artifactSlice"
 import promptModule from "./prompts/promptSlice";
+import competitorModule from "./competitor/competitorSlice";
 import { api } from './api/api'
 
 export const store = configureStore({
@@ -25,6 +26,7 @@ export const store = configureStore({
     platformModule: platformModule,
     artifactModule: artifactModule,
     promptModule: promptModule,
+    competitorModule: competitorModule,
     [api.reducerPath]: api.reducer,
   },
   middleware: (getDefaultMiddleware: any) => getDefaultMiddleware().concat(api.middleware),

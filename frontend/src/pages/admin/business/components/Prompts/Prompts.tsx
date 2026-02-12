@@ -12,7 +12,6 @@ import {
 } from "../../../../../store/prompts/promptApi";
 import { setPrompts } from "../../../../../store/prompts/promptSlice";
 
-
 // Components
 import CreatePromptDlg from "./createPromptDlg/CreatePromptDlg";
 import { confirm } from "../../../../../components/confirmDlg/ConfirmDlg";
