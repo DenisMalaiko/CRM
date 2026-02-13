@@ -9,10 +9,16 @@ import { ResponseMessage } from "../../core/decorators/response-message.decorato
 export class CompetitorController {
   constructor(private readonly competitorService: CompetitorService) {}
 
-  @Get("/:id")
+  @Get("/list/:id")
   @ResponseMessage('Competitors has been got!')
   async getCompetitors(@Param() { id }: CompetitorIdParamDto) {
     return await this.competitorService.getCompetitors(id);
+  }
+
+  @Get("/:id")
+  @ResponseMessage('Competitors has been got!')
+  async getCompetitor(@Param() { id }: CompetitorIdParamDto) {
+    return await this.competitorService.getCompetitor(id);
   }
 
   @Post()

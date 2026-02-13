@@ -18,6 +18,8 @@ import { AiModule } from "./modules/ai/ai.module";
 import { AIArtifactModule } from "./modules/aiArtifact/aiArtifact.module";
 import { PromptModule } from './modules/prompt/prompt.module';
 import { CompetitorModule } from "./modules/competitor/competitor.module";
+import { ApifyModule } from "./modules/apify/apify.module";
+import { FacebookModule } from "./modules/facebook/facebook.module";
 import { StorageModule } from "./core/storage/storage.module";
 
 @Module({
@@ -51,6 +53,8 @@ import { StorageModule } from "./core/storage/storage.module";
     AiModule,
     PromptModule,
     CompetitorModule,
+    ApifyModule,
+    FacebookModule,
     StorageModule
   ],
   controllers: [AppController],

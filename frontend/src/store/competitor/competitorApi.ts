@@ -1,6 +1,7 @@
 import { api } from "../api/api";
 import { ApiResponse } from "../../models/ApiResponse";
 import { TCompetitor, TCompetitorCreate, TCompetitorUpdate } from "../../models/Competitor";
+import {BaseQueryArg} from "@reduxjs/toolkit/query";
 
 export const competitorApi = api.injectEndpoints({
   endpoints: (builder) => ({
@@ -13,7 +14,7 @@ export const competitorApi = api.injectEndpoints({
         }
 
         const result = await baseQuery({
-          url: `/competitors/${businessId}`,
+          url: `/competitors/list/${businessId}`,
           method: 'GET',
         });
 
@@ -21,6 +22,13 @@ export const competitorApi = api.injectEndpoints({
           data: result.data as ApiResponse<TCompetitor[]>
         };
       }
+    }),
+
+    getCompetitor: builder.mutation<ApiResponse<TCompetitor>, string>({
+      query: (id: string) => ({
+        url: `/competitors/${id}`,
+        method: "GET",
+      })
     }),
 
     createCompetitor: builder.mutation<ApiResponse<TCompetitor>, TCompetitorCreate>({
@@ -58,6 +66,7 @@ export const competitorApi = api.injectEndpoints({
 
 export const {
   useGetCompetitorsMutation,
+  useGetCompetitorMutation,
   useCreateCompetitorMutation,
   useUpdateCompetitorMutation,
   useDeleteCompetitorMutation,
