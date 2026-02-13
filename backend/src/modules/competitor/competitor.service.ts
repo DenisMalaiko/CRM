@@ -1,20 +1,29 @@
 import { Injectable, InternalServerErrorException, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../core/prisma/prisma.service';
+import { FacebookService } from "../facebook/facebook.service";
 import { TCompetitor, TCompetitorCreate, TCompetitorUpdate } from "./entities/competitor.entity";
-import * as process from "node:process";
 
 @Injectable()
 export class CompetitorService {
-  private readonly serpApiKey: string = process.env.SERP_API_KEY!;
-
   constructor(
     private readonly prisma: PrismaService,
+    private readonly facebookService: FacebookService,
   ) {}
 
   async getCompetitors(businessId: string): Promise<TCompetitor[]> {
     return await this.prisma.competitor.findMany({
       where: { businessId: businessId },
     });
+  }
+
+  async getCompetitor(id: string): Promise<TCompetitor | null> {
+    const competitor =  await this.prisma.competitor.findUnique({
+      where: { id }
+    });
+
+    if (!competitor) return null;
+
+    return competitor;
   }
 
   async createCompetitor(body: TCompetitorCreate): Promise<TCompetitor> {
@@ -60,27 +69,16 @@ export class CompetitorService {
       where: { id }
     });
 
-    if(competitor && competitor.facebookLink) {
-      const facebookProfileId = new URL(competitor.facebookLink).searchParams.get('id');
-      console.log(`Facebook profileId: ${facebookProfileId}`);
-      console.log("API KEY ", this.serpApiKey)
+    if (!competitor?.facebookLink) return null;
 
-      if (!facebookProfileId) {
-        throw new BadRequestException('Facebook profile id not found in link');
-      }
+    const [posts] = await Promise.all([
+      this.facebookService.fetchAds(competitor.facebookLink),
+      //this.facebookService.fetchPosts(competitor.facebookLink),
+    ]);
 
-      const url = new URL('https://serpapi.com/search.json');
-      url.searchParams.set('engine', 'facebook_profile');
-      url.searchParams.set('profile_id', facebookProfileId);
-      url.searchParams.set('api_key', this.serpApiKey!);
+    //console.log("ADS ", ads);
+    console.log("POSTS ", posts);
 
-      const response = await fetch(url.toString());
-      const data = await response.json();
-
-      console.log("DATA ", data.profile_results);
-      console.log("PHOTOS ", data.profile_results.photos);
-
-      return data;
-    }
+    return { posts };
   }
 }

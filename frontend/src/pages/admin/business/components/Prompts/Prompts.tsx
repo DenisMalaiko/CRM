@@ -97,90 +97,92 @@ function Prompts() {
   }
 
   return (
-    <section>
+    <div className="rounded-2xl bg-white shadow border border-slate-200">
       <section>
-        <div className="border-b p-4 flex items-center justify-between">
-          <h2 className="text-lg text-left font-semibold text-slate-800">Prompts</h2>
+        <section>
+          <div className="border-b p-4 flex items-center justify-between">
+            <h2 className="text-lg text-left font-semibold text-slate-800">Prompts</h2>
 
-          <button
-            onClick={() => setOpen(true)}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700"
-          >
-            Add Prompt
-          </button>
+            <button
+              onClick={() => setOpen(true)}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700"
+            >
+              Add Prompt
+            </button>
 
-          <CreatePromptDlg
-            open={open}
-            onClose={() => {
-              setOpen(false);
-              setSelectedPrompt(null);
-            }}
-            prompt={selectedPrompt}
-          ></CreatePromptDlg>
-        </div>
-      </section>
+            <CreatePromptDlg
+              open={open}
+              onClose={() => {
+                setOpen(false);
+                setSelectedPrompt(null);
+              }}
+              prompt={selectedPrompt}
+            ></CreatePromptDlg>
+          </div>
+        </section>
 
-      <div className="w-full mx-auto p-4">
-        <div className="overflow-hidden rounded-xl border border-slate-200 shadow">
-          <table className="min-w-full divide-y divide-slate-200">
-            <thead className="bg-slate-50">
-              <tr>
-                {header.map((item, index) => (
-                  <th
-                    key={item.key}
-                    className={`
-                        px-4 py-3 text-xs font-semibold uppercase tracking-wide
-                        ${item.key === "actions" ? "text-right" : "text-left"}
-                        text-slate-600
-                      `}
-                  >{ item.name }</th>
-                ))}
-              </tr>
-            </thead>
-
-            <tbody className="divide-y divide-slate-100">
-              { prompts && prompts?.length === 0 ? (
+        <div className="w-full mx-auto p-4">
+          <div className="overflow-hidden rounded-xl border border-slate-200 shadow">
+            <table className="min-w-full divide-y divide-slate-200">
+              <thead className="bg-slate-50">
                 <tr>
-                  <td
-                    colSpan={header.length}
-                    className="py-6 text-center text-slate-400"
-                  >
-                    No data
-                  </td>
+                  {header.map((item, index) => (
+                    <th
+                      key={item.key}
+                      className={`
+                          px-4 py-3 text-xs font-semibold uppercase tracking-wide
+                          ${item.key === "actions" ? "text-right" : "text-left"}
+                          text-slate-600
+                        `}
+                    >{ item.name }</th>
+                  ))}
                 </tr>
-              ) : (
-                prompts && prompts?.map((item: TPrompt) => (
-                  <tr key={item.id} className="bg-white hover:bg-slate-50">
-                    <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.name}</td>
-                    <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.purpose}</td>
-                    <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.text}</td>
-                    <td className="px-4 py-3 font-medium text-slate-900 text-left">
-                    <span className={`
-                      inline-flex items-center rounded-full px-2.5 py-1
-                      text-xs font-medium
-                      ${item.isActive ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600"}
-                    `}>
-                      {item.isActive ? "Yes" : "No"}
-                    </span>
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <div className="flex items-center gap-2 justify-end">
-                        <button onClick={() => openEditPrompt(item)} className="h-8 w-8 flex items-center justify-center rounded-lg border  text-slate-600 hover:bg-slate-50">
-                          ✎
-                        </button>
-                        <button onClick={(e) => openConfirmDlg(e, item)} className="h-8 w-8 flex items-center justify-center rounded-lg border text-rose-600 hover:bg-rose-50">
-                          🗑
-                        </button>
-                      </div>
+              </thead>
+
+              <tbody className="divide-y divide-slate-100">
+                { prompts && prompts?.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={header.length}
+                      className="py-6 text-center text-slate-400"
+                    >
+                      No data
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ) : (
+                  prompts && prompts?.map((item: TPrompt) => (
+                    <tr key={item.id} className="bg-white hover:bg-slate-50">
+                      <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.name}</td>
+                      <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.purpose}</td>
+                      <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.text}</td>
+                      <td className="px-4 py-3 font-medium text-slate-900 text-left">
+                      <span className={`
+                        inline-flex items-center rounded-full px-2.5 py-1
+                        text-xs font-medium
+                        ${item.isActive ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600"}
+                      `}>
+                        {item.isActive ? "Yes" : "No"}
+                      </span>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <div className="flex items-center gap-2 justify-end">
+                          <button onClick={() => openEditPrompt(item)} className="h-8 w-8 flex items-center justify-center rounded-lg border  text-slate-600 hover:bg-slate-50">
+                            ✎
+                          </button>
+                          <button onClick={(e) => openConfirmDlg(e, item)} className="h-8 w-8 flex items-center justify-center rounded-lg border text-rose-600 hover:bg-rose-50">
+                            🗑
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
+    </div>
   )
 }
 
