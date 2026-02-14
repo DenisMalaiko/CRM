@@ -1,7 +1,6 @@
 import { api } from "../api/api";
 import { ApiResponse } from "../../models/ApiResponse";
-import { TCompetitor, TCompetitorCreate, TCompetitorUpdate } from "../../models/Competitor";
-import {BaseQueryArg} from "@reduxjs/toolkit/query";
+import { TCompetitor, TCompetitorCreate, TCompetitorUpdate, TCompetitorPostParams } from "../../models/Competitor";
 
 export const competitorApi = api.injectEndpoints({
   endpoints: (builder) => ({
@@ -59,7 +58,31 @@ export const competitorApi = api.injectEndpoints({
         url: `/competitors/generateReport/${id}`,
         method: "POST",
       })
-    })
+    }),
+
+
+    // Fetch Posts
+    fetchPosts: builder.mutation<ApiResponse<any>, { id: string, form: TCompetitorPostParams }>({
+      query: ({ id, form }) => ({
+        url: `/competitors/posts/${id}`,
+        method: "POST",
+        body: form,
+      })
+    }),
+
+    getPosts: builder.mutation<ApiResponse<any>, string>({
+      query: (id: string) => ({
+        url: `/competitors/posts/${id}`,
+        method: "GET",
+      })
+    }),
+
+    getAds: builder.mutation<ApiResponse<any>, string>({
+      query: (id: string) => ({
+        url: `/competitors/ads/${id}`,
+        method: "POST",
+      })
+    }),
   }),
   overrideExisting: false,
 });
@@ -71,4 +94,9 @@ export const {
   useUpdateCompetitorMutation,
   useDeleteCompetitorMutation,
   useGenerateReportMutation,
+
+  useGetPostsMutation,
+  useFetchPostsMutation,
+
+  useGetAdsMutation,
 } = competitorApi;

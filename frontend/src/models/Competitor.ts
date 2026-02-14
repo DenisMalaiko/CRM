@@ -13,3 +13,7 @@ export type TCompetitor = TCompetitorBase & {
 export type TCompetitorCreate = TCompetitorBase;
 
 export type TCompetitorUpdate = TCompetitorBase;
+
+export type TCompetitorPostParams = {
+  onlyPostsNewerThan: Date;
+}

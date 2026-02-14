@@ -2,6 +2,8 @@ import React, { useEffect } from 'react';
 import { Routes, Route, useNavigate } from 'react-router-dom';
 import { Guard, AdminGuard } from "./router/guard";
 import './App.css';
+import 'react-datepicker/dist/react-datepicker.css';
+
 
 import {toast, ToastContainer} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';

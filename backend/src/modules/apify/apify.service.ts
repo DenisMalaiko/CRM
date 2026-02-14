@@ -9,6 +9,10 @@ export class ApifyService {
   async runActor<T>(actor: string, input: any): Promise<T[]> {
     const runUrl = `${this.apifyApiURL}/acts/${actor}/runs?token=${this.apifyApiKey}`;
 
+    console.log("----------")
+    console.log("INPUT ", input)
+    console.log("----------")
+
     const runRes = await fetch(runUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

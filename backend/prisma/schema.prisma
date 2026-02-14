@@ -69,6 +69,12 @@ enum AIArtifactStatus {
     Rejected
 }
 
+enum PlatformList {
+  Facebook
+  Instagram
+  Tiktok
+}
+
 
 
 
@@ -235,6 +241,37 @@ model Competitor {
     createdAt    DateTime @default(now())
 
     business     Business @relation(fields: [businessId], references: [id])
+    posts        CompetitorPost[]
+}
+
+
+model CompetitorPost {
+    id            String   @id @default(uuid())
+
+    // identity
+    externalId    String   // postId from Facebook
+    platform      PlatformList
+    competitorId  String
+
+    // content
+    text          String?
+    url           String?
+    media         Json?
+
+    // metrics
+    likes         Int?
+    shares        Int?
+    viewsCount    Int?
+
+    // meta
+    postedAt      DateTime?
+    fetchedAt     DateTime @default(now())
+
+    competitor    Competitor @relation(fields: [competitorId], references: [id])
+
+    @@unique([externalId, platform, competitorId])
+    @@index([competitorId])
+    @@index([platform])
 }
 
 

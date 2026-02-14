@@ -1,4 +1,4 @@
-import {IsBoolean, IsOptional, IsString, isString, IsUUID} from 'class-validator';
+import {IsBoolean, IsOptional, IsString, isString, IsUUID, IsDateString} from 'class-validator';
 
 export class CompetitorBaseDto {
   @IsUUID()
@@ -22,4 +22,9 @@ export class UpdateCompetitorDto extends CompetitorBaseDto {}
 export class CompetitorIdParamDto {
   @IsUUID()
   id: string;
+}
+
+export class CompetitorPostParamsDto {
+  @IsDateString()
+  onlyPostsNewerThan: string;
 }
