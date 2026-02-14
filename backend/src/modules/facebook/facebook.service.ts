@@ -1,5 +1,7 @@
-import {Injectable} from "@nestjs/common";
-import {ApifyService} from "../apify/apify.service";
+import { Injectable } from "@nestjs/common";
+import { ApifyService } from "../apify/apify.service";
+import { PlatformList } from "@prisma/client";
+import { TCompetitorPostParams } from "../competitor/entities/competitor.entity";
 
 @Injectable()
 export class FacebookService {
@@ -30,57 +32,53 @@ export class FacebookService {
       .map(i => this._adsMapper(i));
   }
 
-  async fetchPosts(pageUrl: string) {
-    console.log("FETCH POSTS ", pageUrl);
-
+  async fetchPosts(competitorId: string, pageUrl: string, body: TCompetitorPostParams) {
     const items = await this.apify.runActor<any>(
       'apify~facebook-posts-scraper',
       {
         "captionText": true,
-        "resultsLimit": 5,
-        "onlyPostsNewerThan": "2025-09-23T10:02:01",
+        "resultsLimit": 50,
         "startUrls": [
           {
             "url": pageUrl
           }
-        ]
+        ],
+        ...body
       }
     );
 
+    console.log("ITEMS ", items)
+
     return items
-      .map(i => this._postsMapper(i));
+      .filter(i => !i.error)
+      .map(i => this._postsMapper(competitorId, i));
   }
 
-  private _postsMapper(item) {
-
+  private _postsMapper(competitorId: string, item: any) {
     return {
-      // identity
-      id: item?.postId,
-      page_name: item?.pageName,
+      externalId: item?.postId,
+      platform: PlatformList.Facebook,
+      competitorId,
 
-      // creative
-      text: item?.text,
-      likes: item?.likes,
-      shares: item?.shares,
-      topReactionsCount: item?.topReactionsCount,
-      isVideo: item?.isVideo,
-      viewsCount: item?.viewsCount,
-      media: this._media(item),
+      // content
+      text: item?.text ?? null,
+      url: item?.url ?? null,
+      media: this._media(item) ?? [],
 
-      // time & performance proxy
-      time: item?.time,
+      // metrics
+      likes: item?.likes ?? null,
+      shares: item?.shares ?? null,
+      viewsCount: item?.viewsCount ?? null,
 
-      // links
-      url: item?.url,
-
-      collaborators: item?.collaborators,
+      // meta
+      postedAt: item?.time ? new Date(item.time) : null,
     };
   }
 
   private _adsMapper(item) {
     return {
       // identity
-      id: item?.ad_archive_id,
+      ads_id: item?.ad_archive_id,
       page_id: item?.page_id,
       page_name: item?.page_name,
       page_categories: item?.snapshot?.page_categories,
@@ -144,6 +142,8 @@ export class FacebookService {
   }
 
   private _media(item) {
+    if (!Array.isArray(item?.media)) return [];
+
     return item.media.map((x) => {
       return {
         thumbnail: x?.thumbnail,
@@ -153,6 +153,8 @@ export class FacebookService {
   }
 
   private _video(item) {
+    if (!Array.isArray(item?.snapshot?.videos)) return [];
+
     return item?.snapshot?.videos?.map((x) => {
       return {
         thumbnail: x?.video_preview_image_url,

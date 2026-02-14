@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
-import { CompetitorIdParamDto, CreateCompetitorDto, UpdateCompetitorDto} from "./dto/competitor.dto";
+import { CompetitorIdParamDto, CreateCompetitorDto, UpdateCompetitorDto, CompetitorPostParamsDto } from "./dto/competitor.dto";
 import { JwtAuthGuard } from "../../core/guards/jwt-auth.guard";
 import { CompetitorService } from "./competitor.service";
 import { ResponseMessage } from "../../core/decorators/response-message.decorator";
@@ -43,5 +43,28 @@ export class CompetitorController {
   @ResponseMessage('Report has been successfully generated!')
   async generateReport(@Param() { id }: CompetitorIdParamDto) {
     return this.competitorService.generateReport(id);
+  }
+
+
+
+  @Post("/posts/:id")
+  @ResponseMessage('Posts have been got!')
+  async fetchPosts(@Param() { id }: CompetitorIdParamDto, @Body() body: CompetitorPostParamsDto) {
+    console.log("FETCH POSTS")
+    return this.competitorService.fetchPosts(id, body);
+  }
+
+  @Get("/posts/:id")
+  @ResponseMessage('Posts have been got!')
+  async getPosts(@Param() { id }: CompetitorIdParamDto) {
+    return this.competitorService.getPosts(id);
+  }
+
+
+
+  @Post("/ads/:id")
+  @ResponseMessage('Ads have been got!')
+  async getAds(@Param() { id }: CompetitorIdParamDto) {
+    return this.competitorService.getAds(id);
   }
 }

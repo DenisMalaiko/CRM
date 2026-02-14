@@ -1,7 +1,8 @@
-import { Injectable, InternalServerErrorException, NotFoundException, BadRequestException } from '@nestjs/common';
-import { PrismaService } from '../../core/prisma/prisma.service';
-import { FacebookService } from "../facebook/facebook.service";
-import { TCompetitor, TCompetitorCreate, TCompetitorUpdate } from "./entities/competitor.entity";
+import {Injectable, InternalServerErrorException, NotFoundException} from '@nestjs/common';
+import {PrismaService} from '../../core/prisma/prisma.service';
+import {FacebookService} from "../facebook/facebook.service";
+import {TCompetitor, TCompetitorCreate, TCompetitorUpdate, TCompetitorPostParams} from "./entities/competitor.entity";
+import {PlatformList} from "@prisma/client";
 
 @Injectable()
 export class CompetitorService {
@@ -80,5 +81,88 @@ export class CompetitorService {
     console.log("POSTS ", posts);
 
     return { posts };
+  }
+
+
+  // Posts
+  async fetchPosts(id: string, body: TCompetitorPostParams): Promise<any> {
+    const competitor = await this.prisma.competitor.findUnique({
+      where: { id }
+    });
+
+    if (!competitor?.facebookLink) return null;
+
+    const posts = await this.facebookService.fetchPosts(
+      competitor.id,
+      competitor.facebookLink,
+      body
+    );
+
+    console.log("POSTS ", posts);
+
+    return await this.savePosts(id, posts);
+  }
+
+  async getPosts(id: string): Promise<any[]> {
+    return await this.prisma.competitorPost.findMany({
+      where: { competitorId: id },
+    });
+  }
+
+  async savePosts(competitorId: string, posts: any[]) {
+    return Promise.all(
+      posts.map(post =>
+        this.prisma.competitorPost.upsert({
+          where: {
+            externalId_platform_competitorId: {
+              externalId: post.externalId,
+              platform: PlatformList.Facebook,
+              competitorId: competitorId,
+            },
+          },
+          create: {
+            externalId: post.externalId,
+            platform: PlatformList.Facebook,
+            competitorId,
+
+            text: post.text,
+            url: post.url,
+            media: post.media,
+
+            likes: post.likes,
+            shares: post.shares,
+            viewsCount: post.viewsCount,
+
+            postedAt: post.postedAt,
+          },
+          update: {
+            likes: post.likes,
+            shares: post.shares,
+            viewsCount: post.viewsCount,
+            fetchedAt: new Date(),
+            postedAt: post.postedAt,
+          },
+        })
+      )
+    );
+  }
+
+
+
+  // Ads
+  async getAds(id: string): Promise<any> {
+    const competitor = await this.prisma.competitor.findUnique({
+      where: { id }
+    });
+
+    if (!competitor?.facebookLink) return null;
+
+    const ads = await Promise.all([
+      this.facebookService.fetchAds(competitor.facebookLink),
+    ]);
+
+    console.log("ADS ", ads);
+
+    return ads;
   }
 }

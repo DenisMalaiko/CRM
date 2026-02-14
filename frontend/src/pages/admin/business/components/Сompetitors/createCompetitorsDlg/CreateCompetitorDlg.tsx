@@ -12,8 +12,9 @@ import {
   useCreateCompetitorMutation,
   useUpdateCompetitorMutation,
   useGetCompetitorsMutation,
+  useGetCompetitorMutation,
 } from "../../../../../../store/competitor/competitorApi";
-import { setCompetitors } from "../../../../../../store/competitor/competitorSlice";
+import { setCompetitors, setCompetitor } from "../../../../../../store/competitor/competitorSlice";
 
 // Utils
 import { showError } from "../../../../../../utils/showError";
@@ -33,8 +34,9 @@ function CreateCompetitorDlg({ open, onClose, competitor }: any) {
   const [ createCompetitor, { isLoading: isLoadingCreating }] = useCreateCompetitorMutation();
   const [ updateCompetitor, { isLoading: isLoadingUpdating }] = useUpdateCompetitorMutation();
   const [ getCompetitors] = useGetCompetitorsMutation();
+  const [ getCompetitor ] = useGetCompetitorMutation();
 
-
+  // Init Form
   const initForm = useMemo(() => {
     if(isEdit && competitor) {
       return {
@@ -77,6 +79,8 @@ function CreateCompetitorDlg({ open, onClose, competitor }: any) {
       if (isEdit) {
         const response = await updateCompetitor({ id: competitor!.id, form }).unwrap();
         if(response && response?.data) toast.success(response.message);
+        const responseCompetitor = await getCompetitor(competitor!.id).unwrap();
+        if(responseCompetitor && responseCompetitor?.data) dispatch(setCompetitor(responseCompetitor.data));
       } else {
         const response = await createCompetitor(form).unwrap();
         if(response && response?.data) toast.success(response.message);
