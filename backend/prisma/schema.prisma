@@ -242,6 +242,7 @@ model Competitor {
 
     business     Business @relation(fields: [businessId], references: [id])
     posts        CompetitorPost[]
+    ads          CompetitorAds[]
 }
 
 
@@ -249,7 +250,7 @@ model CompetitorPost {
     id            String   @id @default(uuid())
 
     // identity
-    externalId    String   // postId from Facebook
+    externalId    String
     platform      PlatformList
     competitorId  String
 
@@ -261,11 +262,44 @@ model CompetitorPost {
     // metrics
     likes         Int?
     shares        Int?
-    viewsCount    Int?
+    views         Int?
 
     // meta
     postedAt      DateTime?
     fetchedAt     DateTime @default(now())
+
+    competitor    Competitor @relation(fields: [competitorId], references: [id])
+
+    @@unique([externalId, platform, competitorId])
+    @@index([competitorId])
+    @@index([platform])
+}
+
+model CompetitorAds {
+    id            String   @id @default(uuid())
+
+    // identity
+    externalId    String
+    platform      PlatformList
+    competitorId  String
+
+    // content
+    title         String?
+    body          String?
+    caption       String?
+    url           String?
+    format        String?
+    ctaText       String?
+    ctaType       String?
+    videos        Json?
+    images        Json?
+
+    // meta
+    start         DateTime?
+    end           DateTime?
+    active_days   Int?
+    fetchedAt     DateTime @default(now())
+    isActive      Boolean?
 
     competitor    Competitor @relation(fields: [competitorId], references: [id])
 

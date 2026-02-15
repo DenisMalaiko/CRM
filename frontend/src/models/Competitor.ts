@@ -17,3 +17,9 @@ export type TCompetitorUpdate = TCompetitorBase;
 export type TCompetitorPostParams = {
   onlyPostsNewerThan: Date;
 }
+
+export type TCompetitorAdsParams = {
+  activeStatus: string;
+  period: string;
+  sortBy: string;
+}

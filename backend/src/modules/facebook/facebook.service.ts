@@ -1,35 +1,39 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, BadRequestException } from "@nestjs/common";
 import { ApifyService } from "../apify/apify.service";
 import { PlatformList } from "@prisma/client";
-import { TCompetitorPostParams } from "../competitor/entities/competitor.entity";
+import { TCompetitorPostParams, TCompetitorAdsParams } from "../competitor/entities/competitor.entity";
 
 @Injectable()
 export class FacebookService {
   constructor(private readonly apify: ApifyService) {}
 
-  async fetchAds(pageUrl: string) {
-    console.log("FETCH ADS ", pageUrl);
+  async fetchAds(competitorId: string, pageUrl: string, body: TCompetitorAdsParams) {
+    console.log("FETCH ADS PARAMS ", body);
 
     const items = await this.apify.runActor<any>(
       'curious_coder~facebook-ads-library-scraper',
       {
-        "count": 10,
+        "count": 20,
         "scrapeAdDetails": false,
-        "scrapePageAds.activeStatus": "all",
+        "scrapePageAds.activeStatus": body.activeStatus ?? "active",
         "scrapePageAds.countryCode": "ALL",
-        "scrapePageAds.sortBy": "impressions_desc",
+        "scrapePageAds.sortBy": body.sortBy ?? "impressions_desc",
+        "scrapePageAds.period": body.period ?? "last24h",
         "urls": [
           {
             "url": pageUrl,
           }
         ],
-        "scrapePageAds.period": ""
       }
     );
 
+    console.log("--------------")
+    console.log("RESPONSE ", items);
+    console.log("--------------")
+
     return items
       .filter(i => !i.error)
-      .map(i => this._adsMapper(i));
+      .map(i => this._adsMapper(competitorId, i));
   }
 
   async fetchPosts(competitorId: string, pageUrl: string, body: TCompetitorPostParams) {
@@ -46,8 +50,6 @@ export class FacebookService {
         ...body
       }
     );
-
-    console.log("ITEMS ", items)
 
     return items
       .filter(i => !i.error)
@@ -68,16 +70,39 @@ export class FacebookService {
       // metrics
       likes: item?.likes ?? null,
       shares: item?.shares ?? null,
-      viewsCount: item?.viewsCount ?? null,
+      views: item?.viewsCount ?? null,
 
       // meta
       postedAt: item?.time ? new Date(item.time) : null,
     };
   }
 
-  private _adsMapper(item) {
+  private _adsMapper(competitorId: string, item: any) {
     return {
-      // identity
+      externalId: item?.ad_archive_id,
+      platform: PlatformList.Facebook,
+      competitorId,
+
+      // content
+      title: item?.snapshot?.title,
+      body: item?.snapshot?.body?.text,
+      caption: item?.snapshot?.caption,
+      url: item?.ad_library_url,
+      format: item?.snapshot?.display_format,
+      ctaText: item?.snapshot?.cta_text,
+      ctaType: item?.snapshot?.cta_type,
+      videos: this._video(item),
+      images: item?.snapshot?.images,
+
+      // meta
+      start: this._toDate(item?.start_date),
+      end: this._toDate(item?.end_date),
+      active_days: this._active_days(item.start_date, item.end_date),
+      isActive: item?.is_active,
+
+
+
+      /*// identity
       ads_id: item?.ad_archive_id,
       page_id: item?.page_id,
       page_name: item?.page_name,
@@ -125,7 +150,7 @@ export class FacebookService {
       url: item?.ad_library_url,
 
       contains_sensitive_content: item?.contains_sensitive_content,
-      is_finserv: item?.regional_regulation_data?.finserv?.is_deemed_finserv,
+      is_finserv: item?.regional_regulation_data?.finserv?.is_deemed_finserv,*/
     }
   }
 
@@ -137,19 +162,31 @@ export class FacebookService {
     }
   }
 
-  private _active_days(item) {
-    return item?.start_date && item?.end_date ? Math.ceil((item.end_date - item.start_date) / 86400) : null;
+  private _active_days(start?: number, end?: number): number | null {
+    if (!start) return null;
+
+    const startDate = new Date(start * 1000);
+    const endDate = end
+      ? new Date(end * 1000)
+      : new Date(); // активна реклама
+
+    const diffMs = endDate.getTime() - startDate.getTime();
+    const dayMs = 1000 * 60 * 60 * 24;
+
+    return Math.max(1, Math.ceil(diffMs / dayMs) + 1);
   }
 
   private _media(item) {
     if (!Array.isArray(item?.media)) return [];
 
-    return item.media.map((x) => {
-      return {
-        thumbnail: x?.thumbnail,
-        url: x?.videoDeliveryLegacyFields?.browser_native_hd_url
-      };
-    })
+    return item.media
+      .filter((x) => x?.thumbnail)
+      .map((x) => {
+        return {
+          thumbnail: x?.thumbnail,
+          url: x?.videoDeliveryLegacyFields?.browser_native_hd_url
+        };
+      })
   }
 
   private _video(item) {
@@ -161,5 +198,10 @@ export class FacebookService {
         url: x?.video_sd_url,
       };
     })
+  }
+
+  private _toDate(seconds?: number): Date | null {
+    if (!seconds) return null;
+    return new Date(seconds * 1000);
   }
 }

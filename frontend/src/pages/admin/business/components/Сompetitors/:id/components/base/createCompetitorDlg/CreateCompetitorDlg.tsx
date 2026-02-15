@@ -3,27 +3,27 @@ import { useParams } from 'react-router-dom';
 import { toast } from "react-toastify";
 
 // Hooks
-import { useForm } from "../../../../../../hooks/useForm";
-import { useValidation } from "../../../../../../hooks/useValidation";
+import { useForm } from "../../../../../../../../../hooks/useForm";
+import { useValidation } from "../../../../../../../../../hooks/useValidation";
 
 // Redux
-import { useAppDispatch } from "../../../../../../store/hooks";
+import { useAppDispatch } from "../../../../../../../../../store/hooks";
 import {
   useCreateCompetitorMutation,
   useUpdateCompetitorMutation,
   useGetCompetitorsMutation,
   useGetCompetitorMutation,
-} from "../../../../../../store/competitor/competitorApi";
-import { setCompetitors, setCompetitor } from "../../../../../../store/competitor/competitorSlice";
+} from "../../../../../../../../../store/competitor/competitorApi";
+import { setCompetitors, setCompetitor } from "../../../../../../../../../store/competitor/competitorSlice";
 
 // Utils
-import { showError } from "../../../../../../utils/showError";
-import { isBoolean, isRequired, minLength } from "../../../../../../utils/validations";
+import { showError } from "../../../../../../../../../utils/showError";
+import { isBoolean, isRequired, minLength } from "../../../../../../../../../utils/validations";
 
 // Models
-import { ApiResponse } from "../../../../../../models/ApiResponse";
-import { TCompetitor } from "../../../../../../models/Competitor";
-import { ChangeArg, isNativeEvent } from "../../../../../../utils/isNativeEvent";
+import { ApiResponse } from "../../../../../../../../../models/ApiResponse";
+import { TCompetitor } from "../../../../../../../../../models/Competitor";
+import { ChangeArg, isNativeEvent } from "../../../../../../../../../utils/isNativeEvent";
 
 function CreateCompetitorDlg({ open, onClose, competitor }: any) {
   const dispatch = useAppDispatch();

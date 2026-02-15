@@ -4,29 +4,28 @@ import { useParams } from 'react-router-dom';
 import { toast } from "react-toastify";
 
 // Hooks
-import { useForm } from "../../../../../../hooks/useForm";
-import { useValidation } from "../../../../../../hooks/useValidation";
+import { useForm } from "../../../../../../../../../hooks/useForm";
+import { useValidation } from "../../../../../../../../../hooks/useValidation";
 
 // Redux
-import { useAppDispatch } from "../../../../../../store/hooks";
+import { useAppDispatch } from "../../../../../../../../../store/hooks";
 import {
   useFetchPostsMutation,
   useGetPostsMutation
-} from "../../../../../../store/competitor/competitorApi";
-import { setPosts } from "../../../../../../store/competitor/competitorSlice";
+} from "../../../../../../../../../store/competitor/competitorApi";
+import { setPosts } from "../../../../../../../../../store/competitor/competitorSlice";
 
 // Models
-import { ApiResponse } from "../../../../../../models/ApiResponse";
-import { ChangeArg, isNativeEvent } from "../../../../../../utils/isNativeEvent";
-import { TCompetitorPostParams } from "../../../../../../models/Competitor";
+import { ApiResponse } from "../../../../../../../../../models/ApiResponse";
+import { ChangeArg, isNativeEvent } from "../../../../../../../../../utils/isNativeEvent";
+import { TCompetitorPostParams } from "../../../../../../../../../models/Competitor";
 
 // Utils
-import { showError } from "../../../../../../utils/showError";
-import { isRequired } from "../../../../../../utils/validations";
-import { toDate, toStartOfDay } from "../../../../../../utils/toDate";
+import { showError } from "../../../../../../../../../utils/showError";
+import { isRequired } from "../../../../../../../../../utils/validations";
+import { toDate, toStartOfDay } from "../../../../../../../../../utils/toDate";
 
-
-function GetPostsDlg({ open, onClose }: any) {
+function FetchPostsDlg({ open, onClose }: any) {
   const dispatch = useAppDispatch();
   const { id } = useParams<{ id: string }>();
   const [ fetchPosts, { isLoading: isLoadingPosts } ] = useFetchPostsMutation();
@@ -128,7 +127,6 @@ function GetPostsDlg({ open, onClose }: any) {
             </div>
           </div>
 
-
           <div className="flex justify-end gap-3 pt-4">
             <button
               type="button"
@@ -164,4 +162,4 @@ function GetPostsDlg({ open, onClose }: any) {
   )
 }
 
-export default GetPostsDlg;
+export default FetchPostsDlg;

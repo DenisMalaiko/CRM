@@ -1,21 +1,20 @@
 import React, { useState, useEffect } from "react";
-import { useParams, Outlet, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
 
 // Redux
-import { useSelector, useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
 import { RootState } from "../../../../../store";
 import { useAppDispatch } from "../../../../../store/hooks";
 import {
   useGetCompetitorsMutation,
-  useDeleteCompetitorMutation,
-  useGenerateReportMutation,
+  useDeleteCompetitorMutation
 } from "../../../../../store/competitor/competitorApi";
 import { setCompetitors } from "../../../../../store/competitor/competitorSlice";
 
 // Components
-import CreateCompetitorDlg from "./createCompetitorsDlg/CreateCompetitorDlg";
+import CreateCompetitorDlg from "./:id/components/base/createCompetitorDlg/CreateCompetitorDlg";
 import { confirm } from "../../../../../components/confirmDlg/ConfirmDlg";
 
 // Utils
@@ -31,14 +30,11 @@ function Competitors() {
   const { businessId } = useParams<{ businessId: string }>();
 
   const [ getCompetitors ] = useGetCompetitorsMutation();
-  const [ generateReport ] = useGenerateReportMutation();
   const [ deleteCompetitor ] = useDeleteCompetitorMutation();
 
   const { competitors } = useSelector((state: RootState) => state.competitorModule);
   const [ open, setOpen ] = useState(false);
   const [ selectedCompetitor, setSelectedCompetitor ] = useState<TCompetitor | null>(null);
-  const [ loadingCompetitorId, setLoadingCompetitorId ] = useState<string | null>(null);
-  const isGenerating = loadingCompetitorId !== null;
   const header = [
     { name: "Name", key: "name" },
     { name: "Facebook", key: "facebookLink" },
@@ -100,22 +96,6 @@ function Competitors() {
     setOpen(true);
   }
 
-  // Generate Report
-  const generate = async (item: TCompetitor) => {
-    try {
-      setLoadingCompetitorId(item.id);
-
-      const response: ApiResponse<any> = await generateReport(item.id).unwrap();
-      if(response && response?.data) {
-        toast.success(response.message);
-      }
-    } catch (error: any) {
-      showError(error);
-    } finally {
-      setLoadingCompetitorId(null);
-    }
-  }
-
   // Open Competitor
   const openCompetitor = (id?: string) => {
     navigate(`${id}`);
@@ -174,8 +154,6 @@ function Competitors() {
                   </tr>
                   ) : (
                     competitors && competitors?.map((item: TCompetitor) => {
-                      const isThisRowLoading = loadingCompetitorId === item.id;
-
                       return (
                         <tr key={item.id} onClick={() => openCompetitor(item?.id)} className="bg-white hover:bg-slate-50 cursor-pointer">
                           <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.name}</td>
