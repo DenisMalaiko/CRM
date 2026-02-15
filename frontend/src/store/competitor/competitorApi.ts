@@ -1,6 +1,6 @@
 import { api } from "../api/api";
 import { ApiResponse } from "../../models/ApiResponse";
-import { TCompetitor, TCompetitorCreate, TCompetitorUpdate, TCompetitorPostParams } from "../../models/Competitor";
+import { TCompetitor, TCompetitorCreate, TCompetitorUpdate, TCompetitorPostParams, TCompetitorAdsParams } from "../../models/Competitor";
 
 export const competitorApi = api.injectEndpoints({
   endpoints: (builder) => ({
@@ -77,12 +77,24 @@ export const competitorApi = api.injectEndpoints({
       })
     }),
 
+
+    // Fetch Ads
+    fetchAds: builder.mutation<ApiResponse<any>, { id: string, form: TCompetitorAdsParams }>({
+      query: ({ id, form }) => ({
+        url: `/competitors/ads/${id}`,
+        method: "POST",
+        body: form
+      })
+    }),
+
     getAds: builder.mutation<ApiResponse<any>, string>({
       query: (id: string) => ({
         url: `/competitors/ads/${id}`,
-        method: "POST",
+        method: "GET",
       })
     }),
+
+
   }),
   overrideExisting: false,
 });
@@ -93,10 +105,10 @@ export const {
   useCreateCompetitorMutation,
   useUpdateCompetitorMutation,
   useDeleteCompetitorMutation,
-  useGenerateReportMutation,
 
   useGetPostsMutation,
   useFetchPostsMutation,
 
   useGetAdsMutation,
+  useFetchAdsMutation,
 } = competitorApi;

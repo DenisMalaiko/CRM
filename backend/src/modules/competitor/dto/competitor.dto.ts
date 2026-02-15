@@ -28,3 +28,14 @@ export class CompetitorPostParamsDto {
   @IsDateString()
   onlyPostsNewerThan: string;
 }
+
+export class CompetitorAdsParamsDto {
+  @IsString()
+  activeStatus: string;
+
+  @IsString()
+  period: string;
+
+  @IsString()
+  sortBy: string;
+}

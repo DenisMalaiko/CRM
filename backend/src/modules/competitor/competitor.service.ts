@@ -1,8 +1,8 @@
-import {Injectable, InternalServerErrorException, NotFoundException} from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotFoundException, HttpException, BadRequestException } from '@nestjs/common';
 import {PrismaService} from '../../core/prisma/prisma.service';
 import {FacebookService} from "../facebook/facebook.service";
-import {TCompetitor, TCompetitorCreate, TCompetitorUpdate, TCompetitorPostParams} from "./entities/competitor.entity";
-import {PlatformList} from "@prisma/client";
+import { TCompetitor, TCompetitorCreate, TCompetitorUpdate, TCompetitorPostParams, TCompetitorAdsParams } from "./entities/competitor.entity";
+import { PlatformList } from "@prisma/client";
 
 @Injectable()
 export class CompetitorService {
@@ -65,24 +65,6 @@ export class CompetitorService {
     }
   }
 
-  async generateReport(id: string): Promise<any> {
-    const competitor = await this.prisma.competitor.findUnique({
-      where: { id }
-    });
-
-    if (!competitor?.facebookLink) return null;
-
-    const [posts] = await Promise.all([
-      this.facebookService.fetchAds(competitor.facebookLink),
-      //this.facebookService.fetchPosts(competitor.facebookLink),
-    ]);
-
-    //console.log("ADS ", ads);
-    console.log("POSTS ", posts);
-
-    return { posts };
-  }
-
 
   // Posts
   async fetchPosts(id: string, body: TCompetitorPostParams): Promise<any> {
@@ -99,6 +81,8 @@ export class CompetitorService {
     );
 
     console.log("POSTS ", posts);
+
+    if(!posts) return [];
 
     return await this.savePosts(id, posts);
   }
@@ -131,16 +115,17 @@ export class CompetitorService {
 
             likes: post.likes,
             shares: post.shares,
-            viewsCount: post.viewsCount,
+            views: post.views,
 
             postedAt: post.postedAt,
           },
           update: {
             likes: post.likes,
             shares: post.shares,
-            viewsCount: post.viewsCount,
+            views: post.views,
             fetchedAt: new Date(),
             postedAt: post.postedAt,
+            media: post.media,
           },
         })
       )
@@ -148,21 +133,91 @@ export class CompetitorService {
   }
 
 
-
   // Ads
+  async fetchAds(id: string, body: TCompetitorAdsParams): Promise<any> {
+    try {
+      const competitor = await this.prisma.competitor.findUnique({
+        where: { id }
+      });
+
+      if (!competitor?.facebookLink) return null;
+
+      const ads: any = await this.facebookService.fetchAds(
+        competitor.id,
+        competitor.facebookLink,
+        body
+      );
+
+      console.log("--------------")
+      console.log("ADS ", ads);
+      console.log("--------------")
+
+      if(!ads) return [];
+
+      return await this.saveAds(id, ads);
+    } catch (err: any) {
+      if (err instanceof HttpException) {
+        throw err;
+      }
+
+      throw new InternalServerErrorException(
+        err?.message ?? 'Failed to fetch ads'
+      );
+    }
+  }
+
   async getAds(id: string): Promise<any> {
-    const competitor = await this.prisma.competitor.findUnique({
-      where: { id }
+    console.log("--------------")
+    console.log("GET ADS ", id)
+
+    return await this.prisma.competitorAds.findMany({
+      where: { competitorId: id },
     });
+  }
 
-    if (!competitor?.facebookLink) return null;
+  async saveAds(competitorId: string, ads: any[]) {
+    console.log("--------------")
+    console.log("SAVING ADS ", ads);
 
-    const ads = await Promise.all([
-      this.facebookService.fetchAds(competitor.facebookLink),
-    ]);
+    return Promise.all(
+      ads.map(ad =>
+        this.prisma.competitorAds.upsert({
+          where: {
+            externalId_platform_competitorId: {
+              externalId: ad.externalId,
+              platform: PlatformList.Facebook,
+              competitorId,
+            },
+          },
+          create: {
+            externalId: ad.externalId,
+            platform: PlatformList.Facebook,
+            competitorId,
 
-    console.log("ADS ", ads);
+            title: ad.title,
+            body: ad.body,
+            caption: ad.caption,
+            url: ad.url,
+            format: ad.format,
+            ctaText: ad.ctaText,
+            ctaType: ad.ctaType,
+            videos: ad.videos,
+            images: ad.images,
 
-    return ads;
+            start: ad.start,
+            end: ad.end,
+            active_days: ad.active_days,
+            isActive: ad.isActive,
+          },
+          update: {
+            start: ad.start,
+            end: ad.end,
+            active_days: ad.active_days,
+            fetchedAt: new Date(),
+            isActive: ad.isActive,
+          },
+        })
+      )
+    );
   }
 }

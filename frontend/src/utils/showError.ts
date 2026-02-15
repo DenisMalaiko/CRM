@@ -1,6 +1,6 @@
 import { toast } from "react-toastify";
 import { MiniTranslate } from "../enum/MiniTranslate";
-import { isDtoError, isConflictException, isAuthError, isNotFound } from "./handleError";
+import {isDtoError, isInternalError, isConflictException, isAuthError, isNotFound } from "./handleError";
 
 export const showError = (error: unknown) => {
 
@@ -8,6 +8,11 @@ export const showError = (error: unknown) => {
     for(let message of error.data.message) {
       toast.error(message);
     }
+    return;
+  }
+
+  if(isInternalError(error)) {
+    toast.error(error.data.message);
     return;
   }
 
