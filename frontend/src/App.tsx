@@ -3,6 +3,8 @@ import { Routes, Route, useNavigate } from 'react-router-dom';
 import { Guard, AdminGuard } from "./router/guard";
 import './App.css';
 import 'react-datepicker/dist/react-datepicker.css';
+import "slick-carousel/slick/slick.css"
+import "slick-carousel/slick/slick-theme.css"
 
 
 import {toast, ToastContainer} from 'react-toastify';

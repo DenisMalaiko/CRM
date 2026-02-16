@@ -245,7 +245,6 @@ model Competitor {
     ads          CompetitorAds[]
 }
 
-
 model CompetitorPost {
     id            String   @id @default(uuid())
 
@@ -268,7 +267,7 @@ model CompetitorPost {
     postedAt      DateTime?
     fetchedAt     DateTime @default(now())
 
-    competitor    Competitor @relation(fields: [competitorId], references: [id])
+    competitor    Competitor @relation(fields: [competitorId], references: [id], onDelete: Cascade)
 
     @@unique([externalId, platform, competitorId])
     @@index([competitorId])
@@ -301,7 +300,7 @@ model CompetitorAds {
     fetchedAt     DateTime @default(now())
     isActive      Boolean?
 
-    competitor    Competitor @relation(fields: [competitorId], references: [id])
+    competitor    Competitor @relation(fields: [competitorId], references: [id], onDelete: Cascade)
 
     @@unique([externalId, platform, competitorId])
     @@index([competitorId])
