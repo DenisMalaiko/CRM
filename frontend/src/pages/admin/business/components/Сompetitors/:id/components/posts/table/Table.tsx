@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { Eye, Copy, ExternalLink, Play } from "lucide-react";
+import { Eye, Copy, ExternalLink, Play, ImagePlay } from "lucide-react";
 import { useParams } from "react-router-dom";
 
 // Hooks
@@ -14,8 +14,8 @@ import { useGetPostsMutation } from "../../../../../../../../../store/competitor
 import { setPosts } from "../../../../../../../../../store/competitor/competitorSlice";
 
 // Components
-import VideoDlg from "../../../../../../../../../components/videoDlg/VideoDlg";
 import TextDlg from "../../../../../../../../../components/textDlg/TextDlg";
+import SliderDlg from "../../../../../../../../../components/sliderDlg/SliderDlg";
 import FetchPostsDlg from "../fetchPostsDlg/FetchPostsDlg";
 
 // Models
@@ -28,11 +28,12 @@ function PostsTable() {
   const { id } = useParams<{ id: string }>();
 
   const [ openPostsDlg, setOpenPostsDlg ] = useState<any>(null);
-  const [ openVideoDlg, setOpenVideoDlg ] = useState<any>(null);
-  const [ selectedVideo, setSelectedVideo ] = useState<any>(null);
 
   const [ openTextDlg, setOpenTextDlg ] = useState<any>(null);
   const [ selectedText, setSelectedText ] = useState<any>(null);
+
+  const [ openSliderDlg, setOpenSliderDlg ] = useState<any>(null);
+  const [ selectedMedia, setSelectedMedia ] = useState<any>(null);
 
   const [sortKey, setSortKey] = useState<'postedAt' | 'likes' | 'shares' | 'viewsCount'>('postedAt');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
@@ -94,12 +95,6 @@ function PostsTable() {
     setOpenPostsDlg(true);
   }
 
-  // Open Video
-  const openVideo = (url: string) => {
-    setSelectedVideo(url);
-    setOpenVideoDlg(true);
-  }
-
   // Sort Posts
   const onSort = (key: 'likes' | 'shares' | 'viewsCount' | 'postedAt') => {
     if (sortKey === key) {
@@ -114,6 +109,12 @@ function PostsTable() {
   const openText = (text: string) => {
     setSelectedText(text);
     setOpenTextDlg(true);
+  }
+
+  // Open Image
+  const openSlider = (media: any) => {
+    setSelectedMedia(media);
+    setOpenSliderDlg(true);
   }
 
   return (
@@ -211,13 +212,20 @@ function PostsTable() {
                           <div className="relative">
                             <video src={item.media[0].url}></video>
                             <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center">
-                              <div onClick={() => openVideo(item.media[0].url)} className="bg-blue-600 rounded-full p-2 hover:bg-blue-700 cursor-pointer">
+                              <div onClick={() => openSlider(item.media)} className="bg-blue-600 rounded-full p-2 hover:bg-blue-700 cursor-pointer">
                                 <Play size={20} strokeWidth={2} color="white"></Play>
                               </div>
                             </div>
                           </div>
                         ) : (
-                          <img src={item.media[0].thumbnail} alt=""/>
+                          <div className="relative h-full">
+                            <img src={item.media[0].thumbnail} alt=""/>
+                            <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center">
+                              <div onClick={() => openSlider(item.media)}  className="bg-blue-600 rounded-full p-2 hover:bg-blue-700 cursor-pointer">
+                                <ImagePlay size={20} strokeWidth={2} color="white"></ImagePlay>
+                              </div>
+                            </div>
+                          </div>
                         )
                       ) : (
                         <span className="text-xs text-slate-500 flex items-center justify-center h-full">
@@ -283,20 +291,20 @@ function PostsTable() {
         </div>
       </div>
 
-      <VideoDlg
-        open={openVideoDlg}
-        onClose={() => {
-          setOpenVideoDlg(false);
-        }}
-        videoUrl={selectedVideo}
-      />
-
       <TextDlg
         open={openTextDlg}
         onClose={() => {
           setOpenTextDlg(false);
         }}
         text={selectedText}
+      />
+
+      <SliderDlg
+        open={openSliderDlg}
+        onClose={() => {
+          setOpenSliderDlg(false);
+        }}
+        medias={selectedMedia}
       />
     </div>
   )

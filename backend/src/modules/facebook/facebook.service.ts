@@ -92,7 +92,7 @@ export class FacebookService {
       ctaText: item?.snapshot?.cta_text,
       ctaType: item?.snapshot?.cta_type,
       videos: this._video(item),
-      images: item?.snapshot?.images,
+      images: this._images(item),
 
       // meta
       start: this._toDate(item?.start_date),
@@ -196,6 +196,17 @@ export class FacebookService {
       return {
         thumbnail: x?.video_preview_image_url,
         url: x?.video_sd_url,
+      };
+    })
+  }
+
+  private _images(item) {
+    if (!Array.isArray(item?.snapshot?.images)) return [];
+
+    return item?.snapshot?.images?.map((x) => {
+      return {
+        thumbnail: x?.resized_image_url,
+        url: x?.original_image_url,
       };
     })
   }

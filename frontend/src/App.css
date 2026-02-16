@@ -18,6 +18,18 @@ video {
   object-fit: cover;
 }
 
+.slick-track {
+  height: 550px;
+}
+
+.slick-slide div {
+  height: 100%;
+}
+
+.slick-slide div video {
+  width: auto !important;
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .App-logo {
     animation: App-logo-spin infinite 20s linear;
