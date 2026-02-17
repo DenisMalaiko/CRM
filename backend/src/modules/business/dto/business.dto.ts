@@ -1,4 +1,4 @@
-import { IsString, IsUUID, IsEnum } from "class-validator";
+import {IsString, IsUUID, IsEnum, IsArray} from "class-validator";
 import { BusinessStatusUI } from "../../../shared/enums/BusinessStatus";
 
 export class BusinessBaseDto {
@@ -16,6 +16,15 @@ export class BusinessBaseDto {
 
   @IsEnum(BusinessStatusUI)
   status: BusinessStatusUI;
+
+  @IsString()
+  brand: string;
+
+  @IsArray()
+  advantages: string[];
+
+  @IsArray()
+  goals: string[];
 }
 
 export class CreateBusinessDto extends BusinessBaseDto {}

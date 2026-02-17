@@ -55,65 +55,96 @@ function BaseData() {
   }
 
   return (
-    <div className="rounded-2xl bg-white shadow border border-slate-200">
-      <section>
-        <div className="border-b p-4 flex items-center justify-between">
-          <h2 className="text-lg text-left font-semibold text-slate-800">Business Details</h2>
+    <>
+      <div className="w-full mx-auto">
+        <div className="grid grid-cols-2 gap-6">
 
-          <button
-            onClick={() => openEditBusiness(business as TBusiness)}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700"
-          >
-            Edit Business
-          </button>
+          <div className="rounded-2xl bg-white shadow border border-slate-200">
+            <div className="border-b p-4 flex items-center justify-between">
+              <h2 className="text-lg text-left font-semibold text-slate-800">Details</h2>
 
-          <CreateBusinessDlg
-            open={open}
-            onClose={() => {
-              setOpen(false);
-              setSelectedBusiness(null);
-            }}
-            business={selectedBusiness}
-          ></CreateBusinessDlg>
-        </div>
+              <button
+                onClick={() => openEditBusiness(business as TBusiness)}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700"
+              >
+                Edit Business
+              </button>
 
-        {business &&
-          <div className="space-y-3 text-slate-700 text-sm p-6">
-            <div className="flex justify-between border-b pb-2">
-              <span className="font-medium">ID </span>
-              <span className="text-slate-500">{trimID(business?.id)}</span>
+              <CreateBusinessDlg
+                open={open}
+                onClose={() => {
+                  setOpen(false);
+                  setSelectedBusiness(null);
+                }}
+                business={selectedBusiness}
+              ></CreateBusinessDlg>
             </div>
-            <div className="flex justify-between border-b pb-2">
-              <span className="font-medium">Agency ID</span>
-              <span className="text-slate-500">{trimID(business?.agencyId)}</span>
+
+            {business &&
+              <div className="space-y-3 text-slate-700 text-sm p-6">
+                <div className="flex justify-between border-b pb-2">
+                  <span className="font-medium">Name</span>
+                  <span className="text-slate-500">{business?.name}</span>
+                </div>
+                <div className="flex justify-between border-b pb-2">
+                  <span className="font-medium">Website</span>
+                  <span className="text-slate-500">{business?.website}</span>
+                </div>
+                <div className="flex justify-between border-b pb-2">
+                  <span className="font-medium">Industry</span>
+                  <span className="text-slate-500">{business?.industry}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="font-medium">Status</span>
+                  <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${getStatusClass(business.status)}`}>
+                     {business?.status}
+                  </span>
+                </div>
+              </div>
+            }
+          </div>
+
+          <div className="rounded-2xl bg-white shadow border border-slate-200">
+            <div className="border-b p-4 flex items-center justify-between">
+              <h2 className="text-lg text-left font-semibold text-slate-800">Brand History</h2>
             </div>
-            <div className="flex justify-between border-b pb-2">
-              <span className="font-medium">Name</span>
-              <span className="text-slate-500">{business?.name}</span>
-            </div>
-            <div className="flex justify-between border-b pb-2">
-              <span className="font-medium">Website</span>
-              <span className="text-slate-500">{business?.website}</span>
-            </div>
-            <div className="flex justify-between border-b pb-2">
-              <span className="font-medium">Industry</span>
-              <span className="text-slate-500">{business?.industry}</span>
-            </div>
-            <div className="flex justify-between border-b pb-2">
-              <span className="font-medium">Status</span>
-              <span className={`
-                inline-flex items-center rounded-full px-2.5 py-1
-                text-xs font-medium
-                ${getStatusClass(business.status)}
-              `}>
-                 {business?.status}
-              </span>
+
+            <div className="space-y-3 text-slate-700 text-sm p-6">
+              <p className="text-left whitespace-pre-wrap">{business?.brand}</p>
             </div>
           </div>
-        }
 
-      </section>
-    </div>
+          <div className="rounded-2xl bg-white shadow border border-slate-200">
+            <div className="border-b p-4 flex items-center justify-between">
+              <h2 className="text-lg text-left font-semibold text-slate-800">Advantages</h2>
+            </div>
+
+            <div className="space-y-3 text-slate-700 text-sm p-6">
+              {business?.advantages?.map((advantage, index) => (
+                <div className="flex justify-between border-b pb-2">
+                  <span key={index} className="text-left">{advantage}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-2xl bg-white shadow border border-slate-200">
+            <div className="border-b p-4 flex items-center justify-between">
+              <h2 className="text-lg text-left font-semibold text-slate-800">Goals</h2>
+            </div>
+
+            <div className="space-y-3 text-slate-700 text-sm p-6">
+              {business?.goals?.map((goal, index) => (
+                <div className="flex justify-between border-b pb-2">
+                  <span key={index} className="text-left">{goal}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </>
   )
 }
 

@@ -55,4 +55,8 @@ export const isPositiveNumber = (value: number) => {
   return value < 0 ? "Must be positive number" : null;
 }
 
+export const isString = (value: unknown): string | null => {
+  return typeof value === "string" ? null : "Value must be string";
+};
+
 

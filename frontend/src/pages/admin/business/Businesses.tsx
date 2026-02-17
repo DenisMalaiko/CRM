@@ -92,7 +92,7 @@ function Businesses() {
 
   return (
     <section>
-      <section>
+      <div>
         <div className="container mx-auto flex items-center justify-between px-4 py-3">
           <h1 className="text-3xl font-semibold">Businesses</h1>
 
@@ -112,12 +112,11 @@ function Businesses() {
             business={selectedBusiness}
           ></CreateBusinessDlg>
         </div>
-      </section>
 
-      <div className="w-full mx-auto p-4">
-        <div className="overflow-hidden rounded-xl border border-slate-200 shadow">
-          <table className="min-w-full divide-y divide-slate-200">
-            <thead className="bg-slate-50">
+        <div className="w-full mx-auto p-4">
+          <div className="overflow-hidden rounded-xl border border-slate-200 shadow">
+            <table className="min-w-full divide-y divide-slate-200">
+              <thead className="bg-slate-50">
               <tr>
                 {header.map((item) => (
                   <th
@@ -130,9 +129,9 @@ function Businesses() {
                   >{ item.name }</th>
                 ))}
               </tr>
-            </thead>
+              </thead>
 
-            <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-slate-100">
               {businesses && businesses.length === 0 ? (
                 <tr>
                   <td
@@ -142,13 +141,13 @@ function Businesses() {
                     No data
                   </td>
                 </tr>
-                ) : (
-                  businesses && businesses.map((item: TBusiness) => (
-                    <tr key={item.id} onClick={() => openBusiness(item?.id)} className="bg-white hover:bg-slate-50 cursor-pointer transition-colors">
-                      <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.name}</td>
-                      <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.website}</td>
-                      <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.industry}</td>
-                      <td className="px-4 py-3 font-medium text-slate-900 text-left">
+              ) : (
+                businesses && businesses.map((item: TBusiness) => (
+                  <tr key={item.id} onClick={() => openBusiness(item?.id)} className="bg-white hover:bg-slate-50 cursor-pointer transition-colors">
+                    <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.name}</td>
+                    <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.website}</td>
+                    <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.industry}</td>
+                    <td className="px-4 py-3 font-medium text-slate-900 text-left">
                     <span className={`
                       inline-flex items-center rounded-full px-2.5 py-1
                       text-xs font-medium
@@ -156,31 +155,35 @@ function Businesses() {
                     `}>
                        {item.status}
                     </span>
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <div className="flex items-center gap-2 justify-end">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              openEditBusiness(item)
-                            }} className="h-8 w-8 flex items-center justify-center rounded-lg border  text-slate-600 hover:bg-slate-50">
-                            ✎
-                          </button>
-                          <button onClick={(e) => {
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <div className="flex items-center gap-2 justify-end">
+                        <button
+                          onClick={(e) => {
                             e.stopPropagation()
-                            openConfirmDlg(e, item)
-                          }} className="h-8 w-8 flex items-center justify-center rounded-lg border text-rose-600 hover:bg-rose-50">
-                            🗑
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )
+                            openEditBusiness(item)
+                          }} className="h-8 w-8 flex items-center justify-center rounded-lg border  text-slate-600 hover:bg-slate-50">
+                          ✎
+                        </button>
+                        <button onClick={(e) => {
+                          e.stopPropagation()
+                          openConfirmDlg(e, item)
+                        }} className="h-8 w-8 flex items-center justify-center rounded-lg border text-rose-600 hover:bg-rose-50">
+                          🗑
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )
               }
-            </tbody>
-          </table>
+              </tbody>
+            </table>
+          </div>
         </div>
+      </div>
+
+      <div>
       </div>
     </section>
   )

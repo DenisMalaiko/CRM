@@ -26,7 +26,6 @@ function NextArrow({ onClick }: any) {
   )
 }
 
-
 function SliderDlg({ open, onClose, medias }: { open: boolean, onClose: () => void, medias: any[] }) {
   if (!open) return null;
   if (!medias) return null;
@@ -76,10 +75,6 @@ function SliderDlg({ open, onClose, medias }: { open: boolean, onClose: () => vo
       isVideo: type === "video",
     }
   });
-
-  console.log("----------")
-  console.log("Normalized Media: ", normalizedMedia)
-  console.log("----------")
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50">

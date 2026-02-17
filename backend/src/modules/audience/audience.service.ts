@@ -34,6 +34,7 @@ export class AudienceService {
           pains: body.pains,
           desires: body.desires,
           triggers: body.triggers,
+          interests: body.interests,
           incomeLevel: body.incomeLevel,
         }
       });

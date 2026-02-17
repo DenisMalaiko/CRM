@@ -112,12 +112,15 @@ model User {
 
 
 model Business {
-    id        String   @id @default(uuid())
-    agencyId  String
-    name      String
-    website   String
-    industry  String?
-    status    BusinessStatus
+    id          String   @id @default(uuid())
+    agencyId    String
+    name        String
+    website     String
+    industry    String?
+    status      BusinessStatus
+    brand       String   @default("")
+    advantages  String[] @default([""])
+    goals       String[] @default([""])
 
     agency    Agency @relation(fields: [agencyId], references: [id])
 
@@ -189,6 +192,7 @@ model TargetAudience {
     pains            String[]
     desires          String[]
     triggers         String[]
+    interests        String[]
     incomeLevel      String?
 
     profiles         BusinessProfileTargetAudience[]
