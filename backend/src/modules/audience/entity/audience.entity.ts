@@ -7,6 +7,7 @@ type TAudienceBase = {
   pains: string[];
   desires: string[];
   triggers: string[];
+  interests: string[];
   incomeLevel?: string | null;
 }
 

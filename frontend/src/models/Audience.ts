@@ -9,6 +9,7 @@ export type TAudienceCreate = {
   pains: string[];
   desires: string[];
   triggers: string[];
+  interests: string[];
   incomeLevel?: IncomeLevel;
 }
 

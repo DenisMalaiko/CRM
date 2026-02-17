@@ -7,4 +7,5 @@ export enum MiniTranslate {
   ProfileToneOfVoiceTooltip = "Як ми говоримо! Опишіть, як звучить ваш бренд у комунікації.",
   ProfileBrandRulesTooltip = "Чого ми НІКОЛИ не робимо і не говоримо.",
   ProfileGoalsTooltip = "Виберіть, чого ви хочете досягти за допомогою цього профілю.",
+  AudienceAge = "Виберіть віковий проміжок"
 }

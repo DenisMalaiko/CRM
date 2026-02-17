@@ -23,6 +23,8 @@ import Tooltip from "../../../../../../components/tooltip/Tooltip";
 // Utils
 import { showError } from "../../../../../../utils/showError";
 import { isRequired, minLength } from "../../../../../../utils/validations";
+import { ChangeArg, isNativeEvent } from "../../../../../../utils/isNativeEvent";
+import { centeredSelectStyles } from "../../../../../../utils/reactSelectStyles";
 
 // Enum
 import { Gender } from "../../../../../../enum/Gender";
@@ -35,7 +37,6 @@ import { TAudience } from "../../../../../../models/Audience";
 
 // Const
 import { GeoList } from "../../../../../../const/Geo";
-import { ChangeArg, isNativeEvent } from "../../../../../../utils/isNativeEvent";
 
 function CreateAudienceDlg({ open, onClose, audience }: any) {
   const dispatch = useAppDispatch();
@@ -61,6 +62,7 @@ function CreateAudienceDlg({ open, onClose, audience }: any) {
         pains: audience.pains,
         desires: audience.desires,
         triggers: audience.triggers,
+        interests: audience.interests,
         incomeLevel: audience.incomeLevel,
         businessId: audience.businessId ?? "",
       }
@@ -69,11 +71,12 @@ function CreateAudienceDlg({ open, onClose, audience }: any) {
     return {
       name: "",
       ageRange: "20-50",
-      gender: Gender.Male,
-      geo: "Ukraine",
+      gender: Gender.All,
+      geo: GeoList[0].value,
       pains: [""],
       desires: [""],
       triggers: [""],
+      interests: [""],
       incomeLevel: IncomeLevel.Medium,
       businessId: businessId ?? "",
     }
@@ -91,6 +94,7 @@ function CreateAudienceDlg({ open, onClose, audience }: any) {
     pains: (value) => isRequired(value),
     desires: (value) => isRequired(value),
     triggers: (value) => isRequired(value),
+    interests: (value) => isRequired(value),
     incomeLevel: (value) => isRequired(value),
     businessId: (value) => isRequired(value),
   });
@@ -123,7 +127,6 @@ function CreateAudienceDlg({ open, onClose, audience }: any) {
       showError(error);
     }
   }
-
 
   // Handle Change
   const onChange = (arg: ChangeArg) => {
@@ -173,6 +176,23 @@ function CreateAudienceDlg({ open, onClose, audience }: any) {
     }));
   };
 
+  const onAgeRangeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value;
+
+    value = value.replace(/[^\d-]/g, "");
+
+    if (value.length === 2 && !value.includes("-")) {
+      value = value + "-";
+    }
+
+    if (value.length > 5) return;
+
+    setForm((prev) => ({
+      ...prev,
+      ageRange: value,
+    }));
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50">
       <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl p-6 max-h-[800px] overflow-y-auto overflow-x-hidden">
@@ -191,7 +211,6 @@ function CreateAudienceDlg({ open, onClose, audience }: any) {
           <div>
             <div className="flex items-center gap-2 justify-between">
               <label className="block text-sm font-medium text-slate-700 text-left">Name</label>
-              <Tooltip text={MiniTranslate.ProfileNameTooltip}/>
             </div>
 
             <input
@@ -206,22 +225,22 @@ function CreateAudienceDlg({ open, onClose, audience }: any) {
             {errors.name && <p className="text-red-500 text-sm mt-2 text-left">{errors.name}</p>}
           </div>
 
-          {/*<div>
+          <div>
             <div className="flex items-center gap-2 justify-between">
               <label className="block text-sm font-medium text-slate-700 text-left">Age Range</label>
+              <Tooltip text={MiniTranslate.AudienceAge}/>
             </div>
 
             <input
               type="text"
               name="ageRange"
               value={form.ageRange}
-              onChange={onChange}
+              onChange={onAgeRangeChange}
+              placeholder="20-50"
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
-              placeholder="Enter Age Range"
-              autoComplete="off"
             />
             {errors.ageRange && <p className="text-red-500 text-sm mt-2 text-left">{errors.ageRange}</p>}
-          </div>*/}
+          </div>
 
           <div>
             <div className="flex items-center gap-2 justify-between">
@@ -240,33 +259,95 @@ function CreateAudienceDlg({ open, onClose, audience }: any) {
             </select>
           </div>
 
-          {/*<div>
+          <div>
             <div className="flex items-center gap-2 justify-between">
               <label className="block text-sm font-medium text-slate-700 text-left">Geo</label>
             </div>
 
             <Select
               options={GeoList}
-              value={GeoList.filter((option: any) =>
+              value={GeoList.filter((option) =>
                 form.geo.includes(option.value)
               )}
-              onChange={(selected) =>
+              onChange={(selected: any) =>
                 onChange({
                   name: "geo",
-                  value: selected ? selected.value : "",
+                  value: selected ? selected?.value : "",
                 })
               }
+              styles={centeredSelectStyles}
             />
 
             {errors.geo && <p className="text-red-500 text-sm mt-2 text-left">{errors.geo}</p>}
-          </div>*/}
+          </div>
+
+          <div className="flex flex-col items-start justify-start">
+            <div className="flex w-full items-center justify-between gap-2">
+              <label className="block text-sm font-medium text-slate-700">
+                Interests
+              </label>
+            </div>
+
+            {form.interests.map((interest: any, index: number) => (
+              <div className="flex w-full items-center gap-2" key={index}>
+                <textarea
+                  value={interest}
+                  onChange={(e) =>
+                    updateItem("interests", index, e.target.value)
+                  }
+                  className="mt-1 mb-2 flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter interest"
+                />
+
+                {index !== 0 && (
+                  <button
+                    type="button"
+                    onClick={() => deleteItem("interests", index)}
+                    className="
+                      inline-flex items-center gap-1.5
+                      px-2.5 py-1.5
+                      rounded-md
+                      text-sm font-medium
+                      text-red-500
+                      border border-red-200
+                      hover:bg-red-50
+                    "
+                  >
+                    Delete Interest
+                  </button>
+                )}
+              </div>
+            ))}
+
+            {errors.interests && (
+              <p className="mt-2 text-left text-sm text-red-500">
+                {errors.interests}
+              </p>
+            )}
+
+            <button
+              type="button"
+              onClick={() => addItem("interests")}
+              className="
+                inline-flex items-center gap-1.5
+                px-2.5 py-1.5
+                rounded-md
+                text-sm font-medium
+                text-blue-600
+                border border-blue-200
+                hover:bg-blue-50
+              "
+            >
+              <Plus className="h-3 w-3" />
+              New Interest
+            </button>
+          </div>
 
           <div className="flex flex-col items-start justify-start">
             <div className="flex w-full items-center justify-between gap-2">
               <label className="block text-sm font-medium text-slate-700">
                 Pains
               </label>
-              <Tooltip text={MiniTranslate.ProfileGoalsTooltip} />
             </div>
 
             {form.pains.map((pain: any, index: number) => (

@@ -7,6 +7,9 @@ export type TBusinessBase = {
   website: string;
   industry?: string | null;
   status: BusinessStatus;
+  brand: string;
+  advantages: string[];
+  goals: string[];
 }
 
 export type TBusiness = TBaseModel & TBusinessBase & {

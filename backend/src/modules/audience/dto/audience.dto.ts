@@ -26,6 +26,9 @@ export class AudienceBaseDto {
   @IsArray()
   triggers: string[];
 
+  @IsArray()
+  interests: string[];
+
   @IsOptional()
   @IsString()
   incomeLevel?: string;

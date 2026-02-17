@@ -40,6 +40,7 @@ function Audiences() {
     { name: "Age Range", key: "ageRange" },
     { name: "Gender", key: "gender" },
     { name: "Geo", key: "geo" },
+    { name: "Interests", key: "interests"},
     { name: "Pains", key: "pains"},
     { name: "Desires", key: "desires"},
     { name: "Income Level", key: "incomeLevel"},
@@ -162,6 +163,12 @@ function Audiences() {
                       <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.ageRange}</td>
                       <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.gender}</td>
                       <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.geo}</td>
+                      <td className="px-4 py-3 font-medium text-slate-900 text-left">
+                        {item.interests.map((interest: string, i: number) => (
+                          <div className="mb-2" key={i}>{interest};</div>
+                        ))}
+                      </td>
+
                       <td className="px-4 py-3 font-medium text-slate-900 text-left">
                         {item.pains.map((pain: string, i: number) => (
                           <div className="mb-2" key={i}>{pain};</div>

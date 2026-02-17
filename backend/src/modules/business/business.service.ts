@@ -18,6 +18,9 @@ export class BusinessService {
         website: true,
         industry: true,
         status: true,
+        brand: true,
+        advantages: true,
+        goals: true
       }
     });
   }
@@ -33,6 +36,9 @@ export class BusinessService {
           website: true,
           industry: true,
           status: true,
+          brand: true,
+          advantages: true,
+          goals: true
         }
       });
     } catch (err: any) {
@@ -68,6 +74,9 @@ export class BusinessService {
           website: true,
           industry: true,
           status: true,
+          brand: true,
+          advantages: true,
+          goals: true
         },
       });
     } catch (err: any) {
@@ -89,6 +98,9 @@ export class BusinessService {
           website: true,
           industry: true,
           status: true,
+          brand: true,
+          advantages: true,
+          goals: true
         },
       });
     } catch (err: any) {
