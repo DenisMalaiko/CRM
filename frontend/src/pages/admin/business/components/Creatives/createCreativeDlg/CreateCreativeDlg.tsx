@@ -17,6 +17,7 @@ import { setCreatives } from "../../../../../../store/artifact/artifactSlice";
 // Utils
 import { showError } from "../../../../../../utils/showError";
 import { isRequired, minLength } from "../../../../../../utils/validations";
+import { ChangeArg, isNativeEvent } from "../../../../../../utils/isNativeEvent";
 
 // Models
 import { ApiResponse } from "../../../../../../models/ApiResponse";
@@ -24,7 +25,6 @@ import { TAIArtifact } from "../../../../../../models/AIArtifact";
 
 // Enum
 import { AIArtifactStatus } from "../../../../../../enum/AIArtifactStatus";
-import {ChangeArg, isNativeEvent} from "../../../../../../utils/isNativeEvent";
 
 function CreateCreativeDlg({ open, onClose, creative }: any) {
   const dispatch = useAppDispatch();

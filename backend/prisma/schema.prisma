@@ -124,10 +124,11 @@ model Business {
 
     agency    Agency @relation(fields: [agencyId], references: [id])
 
-    products  Product[]
-    prompts   Prompt[]
-    competitors Competitor[]
-    businessProfiles BusinessProfile[]
+    products          Product[]
+    prompts           Prompt[]
+    competitors       Competitor[]
+    businessProfiles  BusinessProfile[]
+    galleryPhotos     GalleryPhoto[]
 }
 
 
@@ -309,6 +310,17 @@ model CompetitorAds {
     @@unique([externalId, platform, competitorId])
     @@index([competitorId])
     @@index([platform])
+}
+
+model GalleryPhoto {
+  id         String   @id @default(uuid())
+  businessId String
+  type       String
+  isActive   Boolean
+  url        String
+  createdAt  DateTime @default(now())
+
+  business   Business @relation(fields: [businessId], references: [id])
 }
 
 
