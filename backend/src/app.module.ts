@@ -1,11 +1,14 @@
 import { Module } from '@nestjs/common';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+import { ConfigModule } from '@nestjs/config';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './core/prisma/prisma.module';
 import { ApiResponseInterceptor } from "./core/interceptors/api-response.interceptor";
+import { StorageModule } from "./core/storage/storage.module";
+import { S3Module } from "./core/s3/s3.module";
 
 import { AdminModule } from './modules/admin/admin.module';
 import { AuthModule } from './modules/auth/auth.module';
@@ -20,7 +23,7 @@ import { PromptModule } from './modules/prompt/prompt.module';
 import { CompetitorModule } from "./modules/competitor/competitor.module";
 import { ApifyModule } from "./modules/apify/apify.module";
 import { FacebookModule } from "./modules/facebook/facebook.module";
-import { StorageModule } from "./core/storage/storage.module";
+import { GalleryModule } from "./modules/gallery/gallery.module";
 
 @Module({
   imports: [
@@ -41,7 +44,13 @@ import { StorageModule } from "./core/storage/storage.module";
         limit: 100
       }
     ]),
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
     PrismaModule,
+    StorageModule,
+    S3Module,
+
     AdminModule,
     AuthModule,
     AgencyModule,
@@ -55,7 +64,7 @@ import { StorageModule } from "./core/storage/storage.module";
     CompetitorModule,
     ApifyModule,
     FacebookModule,
-    StorageModule
+    GalleryModule,
   ],
   controllers: [AppController],
   providers: [

@@ -36,6 +36,10 @@ function Business() {
       id: "prompts",
       title: "Prompts",
     },
+    {
+      id: "gallery",
+      title: "Gallery",
+    },
   ]
 
   const tabsCompetitors = [

@@ -59,4 +59,17 @@ export const isString = (value: unknown): string | null => {
   return typeof value === "string" ? null : "Value must be string";
 };
 
+export const isValidPhoto = (file: File): void => {
+  const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg'];
+  const maxSize = 5;
+
+  if (file.size > maxSize * 1024 * 1024) {
+    throw new Error('This photo should be less than 5MB');
+  }
+
+  if (!allowedTypes.includes(file.type)) {
+    throw new Error('Only PNG images are allowed');
+  }
+};
+
 

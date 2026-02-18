@@ -44,6 +44,7 @@ import Prompts from "./pages/admin/business/components/Prompts/Prompts";
 import Settings from "./pages/admin/business/components/old/Settings/Settings";
 import Competitors from "./pages/admin/business/components/Сompetitors/Competitors";
 import Competitor from "./pages/admin/business/components/Сompetitors/:id/Competitor";
+import Gallery from "./pages/admin/business/components/Gallery/Gallery";
 
 // AI
 import Accountant from "./pages/admin/ai/accountant/Accountant";
@@ -105,17 +106,26 @@ function App() {
           <Route path="businesses" element={<Businesses />} />
 
           <Route path="businesses/:businessId" element={<Business />}>
+            {/*Base Data*/}
             <Route path="baseData" element={<BaseData />} />
-            <Route path="products" element={<Products />} />
-            <Route path="profiles" element={<Profiles />} />
-            <Route path="creatives" element={<Creatives />} />
-            <Route path="platforms" element={<Platforms />} />
-            <Route path="audiences" element={<Audiences />} />
-            <Route path="prompts" element={<Prompts />} />
-            <Route path="settings" element={<Settings />} />
 
+            {/*Context*/}
+            <Route path="profiles" element={<Profiles />} />
+            <Route path="products" element={<Products />} />
+            <Route path="audiences" element={<Audiences />} />
+
+            {/*Generation*/}
+            <Route path="creatives" element={<Creatives />} />
+            <Route path="prompts" element={<Prompts />} />
+            <Route path="gallery" element={<Gallery />} />
+
+            {/*Competitors*/}
             <Route path="competitors" element={<Competitors />}></Route>
             <Route path="competitors/:id" element={<Competitor/>} />
+
+            {/*Inactive*/}
+            <Route path="settings" element={<Settings />} />
+            <Route path="platforms" element={<Platforms />} />
           </Route>
         </Route>
 
