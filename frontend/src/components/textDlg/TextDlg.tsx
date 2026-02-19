@@ -6,6 +6,8 @@ function TextDlg({open, onClose, text }: { open: boolean, onClose: () => void, t
   if (!open) return null;
   if (!text) return null;
 
+  console.log("TEXT: ", text)
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50">
       <div className="w-full max-w-lg
@@ -22,7 +24,17 @@ function TextDlg({open, onClose, text }: { open: boolean, onClose: () => void, t
 
         {/* Text */}
         <div className="mt-8">
-          <p className="text-left whitespace-pre-wrap">{text}</p>
+          { Array.isArray(text) ? (
+            text.map((item, index) => {
+              return (
+                <p key={index} className="text-left whitespace-pre-wrap mb-4">
+                  {item}
+                </p>
+              );
+            })
+          ) : (
+            <p className="text-left whitespace-pre-wrap">{text}</p>
+          )}
         </div>
       </div>
     </div>

@@ -121,8 +121,8 @@ function BaseData() {
 
             <div className="space-y-3 text-slate-700 text-sm p-6">
               {business?.advantages?.map((advantage, index) => (
-                <div className="flex justify-between border-b pb-2">
-                  <span key={index} className="text-left">{advantage}</span>
+                <div key={index} className="flex justify-between border-b pb-2">
+                  <span className="text-left">{advantage}</span>
                 </div>
               ))}
             </div>
@@ -135,8 +135,8 @@ function BaseData() {
 
             <div className="space-y-3 text-slate-700 text-sm p-6">
               {business?.goals?.map((goal, index) => (
-                <div className="flex justify-between border-b pb-2">
-                  <span key={index} className="text-left">{goal}</span>
+                <div key={index} className="flex justify-between border-b pb-2">
+                  <span className="text-left">{goal}</span>
                 </div>
               ))}
             </div>

@@ -212,12 +212,8 @@ function Creatives() {
         <div className="w-full mx-auto p-4">
           <div className="grid grid-cols-2 gap-6">
             {filteredCreatives?.length === 0 ? (
-              <div className="col-span-2 flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50 py-16 text-slate-500">
-                <span className="text-4xl">📭</span>
-                <p className="mt-4 text-lg font-medium">No data</p>
-                <p className="mt-1 text-sm text-slate-400">
-                  Try changing filters or create a new creative
-                </p>
+              <div className="col-span-2 flex flex-col items-center justify-center py-2">
+                <span className="text-gray-400">No data</span>
               </div>
             ) : (
               filteredCreatives?.map((item: TAIArtifact) => (

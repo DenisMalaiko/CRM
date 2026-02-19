@@ -1,6 +1,8 @@
+import { GalleryType } from "../enum/GalleryType";
+
 export type TGalleryPhotoBase = {
   businessId: string;
-  type: string;
+  type: GalleryType;
   isActive: boolean;
 }
 
@@ -9,8 +11,6 @@ export type TGalleryPhoto = TGalleryPhotoBase & {
   url: string;
   createdAt: Date;
 }
-
-export type TGalleryFormUpload = TGalleryPhotoBase;
 
 export type TGalleryPhotoPreview = {
   file: File;
