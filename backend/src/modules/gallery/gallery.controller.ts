@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Param, Res, Body, UseGuards, UploadedFiles, UseInterceptors } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Param, Res, Body, UseGuards, UploadedFiles, UseInterceptors } from '@nestjs/common';
 import { JwtAuthGuard } from "../../core/guards/jwt-auth.guard";
 import { ResponseMessage } from "../../core/decorators/response-message.decorator";
 import { GalleryPhotoBaseDto, GalleryPhotoIdParamDto } from "./dto/gallery.dto";
@@ -24,5 +24,11 @@ export class GalleryController {
     @UploadedFiles() files: Express.Multer.File[]
   ) {
     return await this.galleryService.uploadPhotos(dto, files);
+  }
+
+  @Delete("/:id")
+  @ResponseMessage('Photo has been deleted!')
+  async deleteGalleryPhoto(@Param() { id }: GalleryPhotoIdParamDto) {
+    return await this.galleryService.deletePhoto(id);
   }
 }

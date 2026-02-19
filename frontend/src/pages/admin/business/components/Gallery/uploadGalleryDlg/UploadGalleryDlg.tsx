@@ -7,6 +7,9 @@ import { X, Trash2 } from "lucide-react";
 import { useForm } from "../../../../../../hooks/useForm";
 import { useValidation } from "../../../../../../hooks/useValidation";
 
+// Components
+import { confirm } from "../../../../../../components/confirmDlg/ConfirmDlg";
+
 // Redux
 import { useAppDispatch } from "../../../../../../store/hooks";
 import {
@@ -24,7 +27,8 @@ import { isBoolean, isRequired, isValidPhoto } from "../../../../../../utils/val
 import { ChangeArg, isNativeEvent } from "../../../../../../utils/isNativeEvent";
 
 // Models
-import { TGalleryPhotoPreview } from "../../../../../../models/Gallery";
+import {TGalleryPhoto, TGalleryPhotoPreview} from "../../../../../../models/Gallery";
+import {ApiResponse} from "../../../../../../models/ApiResponse";
 
 
 function UploadGalleryDlg({ open, onClose }: any) {
@@ -54,7 +58,7 @@ function UploadGalleryDlg({ open, onClose }: any) {
   }, [businessId]);
 
   // Form Hook
-  const { form, handleChange, resetForm } = useForm(initialForm);
+  const { form, handleChange } = useForm(initialForm);
 
   // Validation Hook
   const { errors, validateField, validateAll } = useValidation({
@@ -68,18 +72,11 @@ function UploadGalleryDlg({ open, onClose }: any) {
 
   // Upload Photo
   const upload = async (e: React.FormEvent<HTMLFormElement>) => {
-    console.log("UPLOAD PHOTO")
     e.preventDefault();
 
-    console.log("111")
     if (!validateAll(form)) return;
 
-    console.log("222")
     try {
-      console.log("333")
-      console.log("FORM ", form);
-      console.log("PHOTOS ", photos);
-
       const formData = new FormData();
 
       formData.append('type', form.type as string);
@@ -90,18 +87,13 @@ function UploadGalleryDlg({ open, onClose }: any) {
         formData.append('files', photo.file);
       });
 
-      console.log(formData)
-
-      const response = await uploadPhotos(formData).unwrap();
+      const response: ApiResponse<{ count: number } | []> = await uploadPhotos(formData).unwrap();
       if(response && response?.data) toast.success(response.message);
 
-
-      console.log("RESPONSE ", response);
-
-      const responsePhotos = await getPhotos(businessId).unwrap();
-      console.log("Response Photos ", responsePhotos)
+      const responsePhotos: ApiResponse<TGalleryPhoto[]> = await getPhotos(businessId).unwrap();
       dispatch(setGalleryPhotos(responsePhotos.data ?? []))
-
+      onClose()
+      setPhotos([])
     } catch (error) {
       showError(error);
     }
@@ -139,8 +131,6 @@ function UploadGalleryDlg({ open, onClose }: any) {
           file,
           preview: URL.createObjectURL(file),
         });
-
-        toast.success(`${file.name} is valid!`);
       } catch (error) {
         showError(error);
       }
@@ -245,20 +235,6 @@ function UploadGalleryDlg({ open, onClose }: any) {
                 >
                   <Trash2 size={20} strokeWidth={2} color="white"></Trash2>
                 </button>
-
-                {/*<button
-                  type="button"
-                  onClick={() => removePhoto(index)}
-                  className="
-                    absolute top-1 right-1
-                    bg-black/60 text-white
-                    rounded-full p-1
-                    opacity-0 group-hover:opacity-100
-                    transition
-                  "
-                >
-                  ✕
-                </button>*/}
               </div>
             ))}
           </div>

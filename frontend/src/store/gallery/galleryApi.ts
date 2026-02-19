@@ -1,10 +1,11 @@
 import { api } from "../api/api";
 import { ApiResponse} from "../../models/ApiResponse";
-import { TGalleryFormUpload } from "../../models/Gallery";
+import { TGalleryPhoto } from "../../models/Gallery";
+import {TCompetitorUpdate} from "../../models/Competitor";
 
 export const galleryApi = api.injectEndpoints({
   endpoints: (builder) => ({
-    getPhotos: builder.mutation<ApiResponse<any[]>, string>({
+    getPhotos: builder.mutation<ApiResponse<TGalleryPhoto[]>, string>({
       queryFn: async (businessId, api, _extraOptions, baseQuery) => {
         if (!businessId) {
           return {
@@ -18,19 +19,19 @@ export const galleryApi = api.injectEndpoints({
         });
 
         return {
-          data: result.data as ApiResponse<any>
+          data: result.data as ApiResponse<TGalleryPhoto[]>
         };
       }
     }),
 
-    getPhoto: builder.mutation<ApiResponse<any>, string>({
+    getPhoto: builder.mutation<ApiResponse<TGalleryPhoto>, string>({
       query: (id: string) => ({
         url: `/gallery/${id}`,
         method: "GET",
       })
     }),
 
-    uploadPhotos: builder.mutation<ApiResponse<any>, any>({
+    uploadPhotos: builder.mutation<ApiResponse<{ count: number } | []>, FormData>({
       query: (form: FormData) => ({
         url: `/gallery`,
         method: "POST",
@@ -38,7 +39,7 @@ export const galleryApi = api.injectEndpoints({
       })
     }),
 
-    updatePhoto: builder.mutation<ApiResponse<any>, any>({
+    updatePhoto: builder.mutation<ApiResponse<TGalleryPhoto>, { id: string, form: TGalleryPhoto }>({
       query: ({ id, form }) => ({
         url: `/gallery/${id}`,
         method: "PATCH",
@@ -46,7 +47,7 @@ export const galleryApi = api.injectEndpoints({
       })
     }),
 
-    deletePhoto: builder.mutation<ApiResponse<any>, any>({
+    deletePhoto: builder.mutation<ApiResponse<any>, string>({
       query: (id: string) => ({
         url: `/gallery/${id}`,
         method: "DELETE",

@@ -70,9 +70,14 @@ enum AIArtifactStatus {
 }
 
 enum PlatformList {
-  Facebook
-  Instagram
-  Tiktok
+    Facebook
+    Instagram
+    Tiktok
+}
+
+enum GalleryPhotoType {
+    Image
+    Post
 }
 
 
@@ -313,14 +318,14 @@ model CompetitorAds {
 }
 
 model GalleryPhoto {
-  id         String   @id @default(uuid())
-  businessId String
-  type       String
-  isActive   Boolean
-  url        String
-  createdAt  DateTime @default(now())
+    id         String   @id @default(uuid())
+    businessId String
+    type       GalleryPhotoType
+    isActive   Boolean
+    url        String
+    createdAt  DateTime @default(now())
 
-  business   Business @relation(fields: [businessId], references: [id])
+    business   Business @relation(fields: [businessId], references: [id])
 }
 
 

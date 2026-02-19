@@ -1,4 +1,5 @@
-import {IsBoolean, IsEnum, IsOptional, IsString, IsUUID} from "class-validator";
+import {IsBoolean, IsEnum, IsOptional, IsUUID} from "class-validator";
+import { GalleryPhotoType } from "@prisma/client";
 
 export class GalleryPhotoBaseDto {
   @IsUUID()
@@ -8,8 +9,8 @@ export class GalleryPhotoBaseDto {
   @IsBoolean()
   isActive: boolean;
 
-  @IsEnum(["Image", "Post"])
-  type: 'Image' | 'Post';
+  @IsEnum(GalleryPhotoType)
+  type: GalleryPhotoType;
 }
 
 export class GalleryPhotoIdParamDto {

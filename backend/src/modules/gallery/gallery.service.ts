@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from "../../core/prisma/prisma.service";
 import { S3Service } from "../../core/s3/s3.service";
-import { UploadedImage } from "./entities/gallery.entity";
+import { UploadedImage, TGalleryPhoto, TGalleryPhotoBase } from "./entities/gallery.entity";
 import { StorageUrlService } from "../../core/storage/storage-url.service";
 
 
@@ -13,7 +13,7 @@ export class GalleryService {
     private readonly storageUrlService: StorageUrlService
   ) {}
 
-  async getPhotos(businessId: string): Promise<any> {
+  async getPhotos(businessId: string): Promise<TGalleryPhoto[]> {
     const galleryPhotos = await this.prisma.galleryPhoto.findMany({
       where: { businessId: businessId },
     });
@@ -21,26 +21,14 @@ export class GalleryService {
     return galleryPhotos.map((photo) => {
       return {
         ...photo,
-        imageUrl: photo.url ? this.storageUrlService.getPublicUrl(photo.url) : null,
+        url: photo.url ? this.storageUrlService.getPublicUrl(photo.url) : "",
       }
     })
   }
 
-  async uploadPhotos(
-    dto: {
-      businessId: string;
-      type: string;
-      isActive: boolean;
-    },
-    files: Express.Multer.File[],
-  ) {
-    console.log("SERVICE")
-    console.log("DTO ", dto);
-    console.log("FILES ", files);
-
+  async uploadPhotos(dto: TGalleryPhotoBase, files: Express.Multer.File[]): Promise<{ count: number } | []> {
     if (!files.length) return [];
 
-    // 1️⃣ Upload to S3
     const uploaded: UploadedImage[] = [];
 
     try {
@@ -56,8 +44,7 @@ export class GalleryService {
         uploaded.push({ key });
       }
 
-      // 2️⃣ Save to DB
-      const records = await this.prisma.galleryPhoto.createMany({
+      return await this.prisma.galleryPhoto.createMany({
         data: uploaded.map((img) => ({
           businessId: dto.businessId,
           type: dto.type,
@@ -65,8 +52,6 @@ export class GalleryService {
           url: img.key,
         })),
       });
-
-      return records;
     } catch (error) {
       await Promise.all(
         uploaded.map((img) =>
@@ -76,5 +61,26 @@ export class GalleryService {
 
       throw error;
     }
+  }
+
+  async deletePhoto(id: string) {
+    const photo = await this.prisma.galleryPhoto.findUnique({
+      where: { id },
+      select: { id: true, url: true },
+    });
+
+    if (!photo) {
+      throw new Error('Gallery photo not found');
+    }
+
+    if (photo.url) {
+      await this.s3Service.delete(photo.url);
+    }
+
+    return await this.prisma.$transaction(async (tx) => {
+      await tx.galleryPhoto.delete({
+        where: { id },
+      });
+    });
   }
 }

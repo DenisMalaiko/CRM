@@ -2,6 +2,9 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 
+// Hooks
+import { useCopyToClipboard } from "../../../../../hooks/useCopyToClipboard";
+
 // Redux
 import { useSelector } from "react-redux";
 import { RootState } from "../../../../../store";
@@ -14,6 +17,7 @@ import { setAudiences } from "../../../../../store/audience/audienceSlice";
 
 // Components
 import CreateAudienceDlg from "./createAudienceDlg/CreateAudienceDlg";
+import TextDlg from "../../../../../components/textDlg/TextDlg";
 import { confirm } from "../../../../../components/confirmDlg/ConfirmDlg";
 
 // Utils
@@ -22,7 +26,7 @@ import { showError } from "../../../../../utils/showError";
 // Models
 import { ApiResponse } from "../../../../../models/ApiResponse";
 import { TAudience } from "../../../../../models/Audience";
-
+import { Copy, Eye } from "lucide-react";
 
 function Audiences() {
   const dispatch = useAppDispatch();
@@ -35,6 +39,9 @@ function Audiences() {
   const [ selectedAudience, setSelectedAudience ] = useState<TAudience | null>(null);
   const { audiences } = useSelector((state: RootState) => state.audienceModule);
 
+  const [ openTextDlg, setOpenTextDlg ] = useState<any>(null);
+  const [ selectedText, setSelectedText ] = useState<any>(null);
+
   const header = [
     { name: "Name", key: "name" },
     { name: "Age Range", key: "ageRange" },
@@ -46,6 +53,8 @@ function Audiences() {
     { name: "Income Level", key: "incomeLevel"},
     { name: "Actions", key: "actions"}
   ];
+
+  const { copy, copied } = useCopyToClipboard();
 
   // Get Data
   useEffect(() => {
@@ -100,6 +109,12 @@ function Audiences() {
   const openEditProfile = async (item: TAudience) => {
     setSelectedAudience(item);
     setOpen(true)
+  }
+
+  // Open Text
+  const openText = (text: string) => {
+    setSelectedText(text);
+    setOpenTextDlg(true);
   }
 
   return (
@@ -164,21 +179,79 @@ function Audiences() {
                       <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.gender}</td>
                       <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.geo}</td>
                       <td className="px-4 py-3 font-medium text-slate-900 text-left">
-                        {item.interests.map((interest: string, i: number) => (
-                          <div className="mb-2" key={i}>{interest};</div>
-                        ))}
+
+                        { item?.interests && item?.interests.length && item?.interests[0].length > 0 ? (
+                          <>
+                            <p className="line-clamp-2">
+                              {item.interests.map((interest: string, i: number) => (
+                                <div className="mb-2" key={i}>{interest};</div>
+                              ))}
+                            </p>
+
+                            <div className="flex items-center gap-2 text-slate-500 mt-3">
+                              <Eye
+                                size={20}
+                                onClick={() => openText(item.interests)}
+                                className="cursor-pointer text-blue-600 hover:text-blue-700"
+                              />
+                              <Copy
+                                size={18}
+                                onClick={() => copy(item.interests)}
+                                className="cursor-pointer text-blue-600 hover:text-blue-700"
+                              />
+                            </div>
+                          </>
+                        ) : "None"}
                       </td>
 
                       <td className="px-4 py-3 font-medium text-slate-900 text-left">
-                        {item.pains.map((pain: string, i: number) => (
-                          <div className="mb-2" key={i}>{pain};</div>
-                        ))}
+                        { item?.pains && item?.pains.length && item?.pains[0].length > 0 ? (
+                          <>
+                            <p className="line-clamp-2">
+                              {item.pains.map((pain: string, i: number) => (
+                                <div className="mb-2" key={i}>{pain};</div>
+                              ))}
+                            </p>
+
+                            <div className="flex items-center gap-2 text-slate-500 mt-3">
+                              <Eye
+                                size={20}
+                                onClick={() => openText(item.pains)}
+                                className="cursor-pointer text-blue-600 hover:text-blue-700"
+                              />
+                              <Copy
+                                size={18}
+                                onClick={() => copy(item.pains)}
+                                className="cursor-pointer text-blue-600 hover:text-blue-700"
+                              />
+                            </div>
+                          </>
+                        ) : "None"}
                       </td>
 
                       <td className="px-4 py-3 font-medium text-slate-900 text-left">
-                        {item.desires.map((desire: string, i: number) => (
-                          <div className="mb-2" key={i}>{desire};</div>
-                        ))}
+                        { item?.desires && item?.desires.length && item?.desires[0].length > 0 ? (
+                          <>
+                            <p className="line-clamp-2">
+                              {item.desires.map((desire: string, i: number) => (
+                                <div className="mb-2" key={i}>{desire};</div>
+                              ))}
+                            </p>
+
+                            <div className="flex items-center gap-2 text-slate-500 mt-3">
+                              <Eye
+                                size={20}
+                                onClick={() => openText(item.desires)}
+                                className="cursor-pointer text-blue-600 hover:text-blue-700"
+                              />
+                              <Copy
+                                size={18}
+                                onClick={() => copy(item.desires)}
+                                className="cursor-pointer text-blue-600 hover:text-blue-700"
+                              />
+                            </div>
+                          </>
+                        ) : "None"}
                       </td>
                       <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.incomeLevel}</td>
                       <td className="px-4 py-3 text-right">
@@ -199,6 +272,15 @@ function Audiences() {
           </div>
         </div>
       </section>
+
+      <TextDlg
+        open={openTextDlg}
+        onClose={() => {
+          setOpenTextDlg(false);
+        }}
+        text={selectedText}
+      />
+
     </div>
   )
 }
