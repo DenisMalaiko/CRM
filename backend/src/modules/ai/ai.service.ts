@@ -3,13 +3,15 @@ import {ChatOpenAI} from "@langchain/openai";
 import {TProfile} from "../profiles/entities/profile.entity";
 import {AiPost} from "./entities/aiPost.entity";
 import {AiImageService} from "./ai-image.service";
+import {AiReplicate} from "./ai-replicate";
 
 @Injectable()
 export class AiService {
   private model: ChatOpenAI;
 
   constructor(
-    private readonly aiImageService: AiImageService
+    private readonly aiImageService: AiImageService,
+    private readonly aiReplicate: AiReplicate
   ) {
     this.model = new ChatOpenAI({
       model: 'gpt-4o-mini',
@@ -18,7 +20,7 @@ export class AiService {
     });
   }
 
-  async generatePostsBasedOnBusinessProfile(profile: TProfile): Promise<AiPost[]> {
+  async generatePostsBasedOnBusinessProfile(profile: TProfile, photoUrls: string[]): Promise<AiPost[]> {
     const prompt = this.buildPromptForPosts(profile);
     const response = await this.model.invoke(prompt);
     const rawText = this.extractTextContent(response.content);
@@ -26,7 +28,8 @@ export class AiService {
 
     for (const post of posts) {
       if (post.image_prompt) {
-        post.imageUrl = await this.aiImageService.generateImage(post.image_prompt, profile.businessId);
+        // post.imageUrl = await this.aiImageService.generateImage(post.image_prompt, profile.businessId);
+        post.imageUrl = await this.aiReplicate.generateImage(post.image_prompt, profile.businessId, photoUrls);
       }
     }
 
@@ -128,6 +131,7 @@ export class AiService {
       3. Describe ONLY visual elements (no marketing text, no CTAs, no emotions as words)
       4. Write image_prompt as if it will be sent directly to an image generation model
       5. If image instructions exist, image_prompt MUST reflect them clearly
+      6. Translate prompt in English language
       
       Target audience:
       ${audienceBlock}
@@ -161,7 +165,7 @@ export class AiService {
             "body": "string (natural, emotional, human tone, emojis allowed)",
             "cta": "string (soft, friendly call to action)",
             "emotional_angle": "fear | desire | convenience | safety | urgency",
-            "image_prompt": "string (detailed visual description for image generation)"
+            "image_prompt": "string (detailed visual description for image generation, use English language)"
           }
         ]
       }

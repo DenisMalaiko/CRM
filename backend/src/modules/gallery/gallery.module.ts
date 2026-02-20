@@ -9,5 +9,6 @@ import { StorageModule } from "../../core/storage/storage.module";
   imports: [AuthModule, S3Module, StorageModule],
   controllers: [GalleryController],
   providers: [GalleryService],
+  exports: [GalleryService]
 })
 export class GalleryModule {}

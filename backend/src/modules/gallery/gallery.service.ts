@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { GalleryPhotoType } from "@prisma/client";
 import { PrismaService } from "../../core/prisma/prisma.service";
 import { S3Service } from "../../core/s3/s3.service";
 import { UploadedImage, TGalleryPhoto, TGalleryPhotoBase } from "./entities/gallery.entity";
@@ -26,12 +27,26 @@ export class GalleryService {
     })
   }
 
+  async getPhotosByType(businessId: string, type: GalleryPhotoType): Promise<string[]> {
+    const galleryPhotos = await this.prisma.galleryPhoto.findMany({
+      where: { businessId: businessId, type: type },
+    });
+
+    return galleryPhotos.map((photo) => {
+      return photo.url ? this.storageUrlService.getPublicUrl(photo.url) : "";
+    })
+  }
+
   async uploadPhotos(dto: TGalleryPhotoBase, files: Express.Multer.File[]): Promise<{ count: number } | []> {
     if (!files.length) return [];
 
     const uploaded: UploadedImage[] = [];
 
     try {
+      console.log("--------")
+      console.log("DTO ", dto)
+      console.log("--------")
+
       for (const file of files) {
         const key = `gallery/${dto.businessId}/${crypto.randomUUID()}.${file.mimetype.split('/')[1]}`;
 

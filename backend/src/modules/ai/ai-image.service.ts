@@ -15,6 +15,7 @@ export class AiImageService {
 
   async generateImage(prompt: string, businessId: string): Promise<string> {
     console.log("GENERATE IMAGE...")
+    console.log("PROMPT: ", prompt)
 
     const result = await this.openai.images.generate({
       model: "gpt-image-1",
