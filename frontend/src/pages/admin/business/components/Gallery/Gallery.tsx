@@ -36,6 +36,8 @@ function Gallery() {
         if(businessId) {
           const response: ApiResponse<TGalleryPhoto[]> = await getPhotos(businessId).unwrap();
 
+          console.log("RESPONSE GALLERY: ", response.data)
+
           if(response && response.data) {
             dispatch(setGalleryPhotos(response.data));
             console.log("RESPONSE GALLERY: ", response)
@@ -126,7 +128,7 @@ function Gallery() {
                   {/* Top badges */}
                   <div className="absolute top-2 left-2 flex gap-2">
                     <span className="bg-white/80 backdrop-blur text-xs px-2 py-1 rounded-md text-gray-700 shadow">
-                      Image
+                      {photo.type}
                     </span>
 
                     {!photo.isActive && (

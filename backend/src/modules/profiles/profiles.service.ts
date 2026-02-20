@@ -1,6 +1,8 @@
 import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { GalleryPhotoType } from "@prisma/client";
 import { PrismaService } from '../../core/prisma/prisma.service';
 import { AiService } from "../ai/ai.service";
+import { GalleryService } from "../gallery/gallery.service";
 import { TProfile, TProfileCreate, TProfileUpdate } from "./entities/profile.entity";
 import { AIArtifactStatus, AIArtifactType } from "@prisma/client";
 import { AiPost } from "../ai/entities/aiPost.entity";
@@ -10,7 +12,8 @@ import { AIArtifactBase } from "../aiArtifact/entities/aiArtifact.entity";
 export class ProfilesService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly aiService: AiService
+    private readonly aiService: AiService,
+    private readonly galleryService: GalleryService
   ) {}
 
   async getProfiles(businessId: string): Promise<TProfile[]> {
@@ -171,7 +174,9 @@ export class ProfilesService {
         prompts: profile.prompts.map(p => p.prompt),
       };
 
-      const posts: AiPost[] = await this.aiService.generatePostsBasedOnBusinessProfile(mappedProfile);
+      const galleryPhotosUrls = await this.galleryService.getPhotosByType(profile.businessId, GalleryPhotoType.Post);
+
+      const posts: AiPost[] = await this.aiService.generatePostsBasedOnBusinessProfile(mappedProfile, galleryPhotosUrls);
 
       const createdArtifacts: AIArtifactBase[] = [];
 
