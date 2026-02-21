@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { X } from "lucide-react";
 
 type ConfirmOptions = {
   title?: string;
@@ -38,16 +39,26 @@ export function useConfirmDialog() {
     state.isOpen && (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50">
         <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl p-6">
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center justify-between mb-2 relative">
             <h2 className="text-lg font-semibold">
               {state.options.title || "Confirm"}
             </h2>
+
+
+            {/* Close */}
             <button
+              onClick={() => handleClose(false)}
+              className="absolute right-0 text-white text-xl z-10 bg-blue-600 rounded-full p-2 hover:bg-blue-700 cursor-pointer"
+            >
+              <X size={20} strokeWidth={2} color="white"></X>
+            </button>
+
+{/*            <button
               onClick={() => handleClose(false)}
               className="text-slate-500 hover:text-slate-700 rounded-full p-1 hover:bg-slate-100"
             >
               ✕
-            </button>
+            </button>*/}
           </div>
 
           <div>

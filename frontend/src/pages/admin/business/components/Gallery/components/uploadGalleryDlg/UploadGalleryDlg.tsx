@@ -4,31 +4,31 @@ import { toast } from "react-toastify";
 import { X, Trash2 } from "lucide-react";
 
 // Hooks
-import { useForm } from "../../../../../../hooks/useForm";
-import { useValidation } from "../../../../../../hooks/useValidation";
+import { useForm } from "../../../../../../../hooks/useForm";
+import { useValidation } from "../../../../../../../hooks/useValidation";
 
 // Components
-import { confirm } from "../../../../../../components/confirmDlg/ConfirmDlg";
+import { confirm } from "../../../../../../../components/confirmDlg/ConfirmDlg";
 
 // Redux
-import { useAppDispatch } from "../../../../../../store/hooks";
+import { useAppDispatch } from "../../../../../../../store/hooks";
 import {
   useUploadPhotosMutation,
   useGetPhotosMutation
-} from "../../../../../../store/gallery/galleryApi";
-import { setGalleryPhotos } from "../../../../../../store/gallery/gallerySlice";
+} from "../../../../../../../store/gallery/galleryApi";
+import { setGalleryPhotos } from "../../../../../../../store/gallery/gallerySlice";
 
 // Enum
-import { GalleryType } from "../../../../../../enum/GalleryType";
+import { GalleryType } from "../../../../../../../enum/GalleryType";
 
 // Utils
-import { showError } from "../../../../../../utils/showError";
-import { isBoolean, isRequired, isValidPhoto } from "../../../../../../utils/validations";
-import { ChangeArg, isNativeEvent } from "../../../../../../utils/isNativeEvent";
+import { showError } from "../../../../../../../utils/showError";
+import { isBoolean, isRequired, isValidPhoto } from "../../../../../../../utils/validations";
+import { ChangeArg, isNativeEvent } from "../../../../../../../utils/isNativeEvent";
 
 // Models
-import {TGalleryPhoto, TGalleryPhotoPreview} from "../../../../../../models/Gallery";
-import {ApiResponse} from "../../../../../../models/ApiResponse";
+import {TGalleryPhoto, TGalleryPhotoPreview} from "../../../../../../../models/Gallery";
+import {ApiResponse} from "../../../../../../../models/ApiResponse";
 
 
 function UploadGalleryDlg({ open, onClose }: any) {
