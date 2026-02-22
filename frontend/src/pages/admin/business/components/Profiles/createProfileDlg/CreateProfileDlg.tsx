@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import Select from "react-select";
@@ -17,6 +17,9 @@ import {
 } from "../../../../../../store/profile/profileApi";
 import { setProfiles } from "../../../../../../store/profile/profileSlice";
 
+// Components
+import SelectGalleryDlg from "../../Gallery/components/selectGalleryDlg/SelectGalleryDlg";
+
 // Utils
 import { showError } from "../../../../../../utils/showError";
 import { isRequired, isRequiredArray, minLength, isBoolean } from "../../../../../../utils/validations";
@@ -32,6 +35,9 @@ import { TBusinessProfile } from "../../../../../../models/BusinessProfile";
 import { TProduct } from "../../../../../../models/Product";
 import { TAudience } from "../../../../../../models/Audience";
 import { TPrompt } from "../../../../../../models/Prompt";
+import {X} from "lucide-react";
+import {TGalleryPhoto} from "../../../../../../models/Gallery";
+import photos from "../../Gallery/components/photos/Photos";
 
 function CreateProfileDlg({ open, onClose, profile }: any) {
   const dispatch = useAppDispatch();
@@ -39,12 +45,15 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
   const { products } = useSelector((state: any) => state.productsModule);
   const { audiences } = useSelector((state: any) => state.audienceModule);
   const { prompts } = useSelector((state: any) => state.promptModule);
+  const { photos } = useSelector((state: any) => state.galleryModule);
 
   const isEdit = !!profile;
   const { businessId } = useParams<{ businessId: string }>();
   const [ createProfile, { isLoading: isLoadingCreating }] = useCreateProfileMutation();
   const [ updateProfile, { isLoading: isLoadingUpdating } ] = useUpdateProfileMutation();
   const [ getProfiles ] = useGetProfilesMutation();
+
+  const [openGalleryDlg, setOpenGalleryDlg] = useState(false)
 
   const productsOptions = products?.map((product: any) => ({ value: product.id, label: product.name })) ?? [];
   const audiencesOptions = audiences?.map((audience: any) => ({ value: audience.id, label: audience.name })) ?? [];
@@ -60,6 +69,7 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
         productsIds: profile.products.map((x: TProduct) => x.id) ?? [],
         audiencesIds: profile.audiences.map((x: TAudience) => x.id) ?? [],
         promptsIds: profile.prompts.map((x: TPrompt) => x.id) ?? [],
+        imageIds: profile.images?.map((x: any) => x.id) ?? [],
         isActive: profile.isActive,
         businessId: profile.businessId ?? "",
       }
@@ -71,13 +81,14 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
       productsIds: [] as string[],
       audiencesIds: [] as string[],
       promptsIds: [] as string[],
+      imageIds: [] as string[],
       isActive: true,
       businessId: businessId ?? "",
     }
   }, [isEdit, profile, businessId]);
 
   // Form Hook
-  const { form, handleChange, resetForm } = useForm(initialForm);
+  const { form, handleChange, resetForm, setForm } = useForm(initialForm);
 
   // Validation Hook
   const { errors, validateField, validateAll } = useValidation({
@@ -86,6 +97,7 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
     productsIds: (value) => isRequiredArray(value),
     audiencesIds: (value) => isRequiredArray(value),
     promptsIds: (value) => isRequiredArray(value),
+    imageIds: (value) => isRequiredArray(value),
     businessId: (value) => isRequired(value),
     isActive: (value) => isBoolean(value),
   });
@@ -95,11 +107,13 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
 
   // Create Profile
   const create = async (e: React.FormEvent<HTMLFormElement>) => {
+    console.log("CREATE PROFILE ", form)
+
     e.preventDefault();
 
     if (!validateAll(form)) return;
 
-    try {
+    /*try {
       if (isEdit) {
         const response = await updateProfile({ id: profile!.id, form }).unwrap();
         if(response && response?.data) toast.success(response.message);
@@ -116,7 +130,7 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
       }
     } catch (error) {
       showError(error);
-    }
+    }*/
   }
 
   // Handle Change
@@ -137,7 +151,20 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
     validateField(name as keyof typeof form, value, form);
   };
 
+  // Delete Image
+  const deleteImage = async (imageId?: string) => {
+    setForm(prev => ({
+      ...prev,
+      imageIds: prev.imageIds.filter((id: string) => id !== imageId)
+    }))
+  }
+
+  const selectImage = async () => {
+    console.log("SELECT IMAGE");
+  }
+
   return (
+    <>
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50">
       <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl p-6">
 
@@ -256,6 +283,33 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
             {errors.promptsIds && <p className="text-red-500 text-sm mt-2 text-left">{errors.promptsIds}</p>}
           </div>
 
+          <div>
+            <div className="flex items-center gap-2 justify-between">
+              <label className="block text-sm font-medium text-slate-700 text-left">Photos</label>
+            </div>
+
+            <div className="flex gap-2">
+              {photos.filter((x: TGalleryPhoto) => form.imageIds.includes(x.id)).map((photo: TGalleryPhoto) => (
+                <div key={photo.id} className="h-24 w-24 rounded-md border relative">
+                  <img className="object-cover" src={photo.url} alt=""/>
+                  <button
+                    onClick={() => deleteImage(photo.id)}
+                    className="absolute top-2 right-2 text-white text-xl z-10 bg-blue-600 rounded-full p-1 hover:bg-blue-700 cursor-pointer"
+                  >
+                    <X size={15} strokeWidth={2} color="white"></X>
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <div
+              onClick={() => setOpenGalleryDlg(true)}
+              className="px-4 mt-3 py-2 rounded-lg bg-blue-600 text-white flex items-center gap-2 justify-center cursor-pointer hover:bg-blue-700 w-max"
+            >
+              Select Image
+            </div>
+          </div>
+
           <label className="flex items-start gap-3 cursor-pointer select-none">
             <input
               name="isActive"
@@ -298,6 +352,24 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
         </form>
       </div>
     </div>
+
+      <SelectGalleryDlg
+        open={openGalleryDlg}
+        selectedIds={form.imageIds}
+        onClose={() => setOpenGalleryDlg(false)}
+        onSelect={(selectedImages: TGalleryPhoto[]) => {
+          setForm(prev => ({
+            ...prev,
+            imageIds: [
+              ...selectedImages
+                .map(img => img.id)
+                .filter(id => !prev.imageIds.includes(id))
+            ]
+          }))
+          setOpenGalleryDlg(false)
+        }}
+      />
+  </>
   )
 }
 
