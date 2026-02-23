@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import Select from "react-select";
+import { X } from "lucide-react";
 
 // Hooks
 import { useForm } from "../../../../../../hooks/useForm";
@@ -22,7 +23,7 @@ import SelectGalleryDlg from "../../Gallery/components/selectGalleryDlg/SelectGa
 
 // Utils
 import { showError } from "../../../../../../utils/showError";
-import { isRequired, isRequiredArray, minLength, isBoolean } from "../../../../../../utils/validations";
+import { isRequired, isRequiredArray, minLength, isBoolean, isArray } from "../../../../../../utils/validations";
 import { isNativeEvent, ChangeArg } from "../../../../../../utils/isNativeEvent";
 import { centeredSelectStyles } from "../../../../../../utils/reactSelectStyles";
 
@@ -35,9 +36,7 @@ import { TBusinessProfile } from "../../../../../../models/BusinessProfile";
 import { TProduct } from "../../../../../../models/Product";
 import { TAudience } from "../../../../../../models/Audience";
 import { TPrompt } from "../../../../../../models/Prompt";
-import {X} from "lucide-react";
-import {TGalleryPhoto} from "../../../../../../models/Gallery";
-import photos from "../../Gallery/components/photos/Photos";
+import { TGalleryPhoto } from "../../../../../../models/Gallery";
 
 function CreateProfileDlg({ open, onClose, profile }: any) {
   const dispatch = useAppDispatch();
@@ -69,7 +68,7 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
         productsIds: profile.products.map((x: TProduct) => x.id) ?? [],
         audiencesIds: profile.audiences.map((x: TAudience) => x.id) ?? [],
         promptsIds: profile.prompts.map((x: TPrompt) => x.id) ?? [],
-        imageIds: profile.images?.map((x: any) => x.id) ?? [],
+        photosIds: profile.photos?.map((x: TGalleryPhoto) => x.id) ?? [],
         isActive: profile.isActive,
         businessId: profile.businessId ?? "",
       }
@@ -81,7 +80,7 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
       productsIds: [] as string[],
       audiencesIds: [] as string[],
       promptsIds: [] as string[],
-      imageIds: [] as string[],
+      photosIds: [] as string[],
       isActive: true,
       businessId: businessId ?? "",
     }
@@ -96,8 +95,8 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
     profileFocus: (value) => isRequired(value),
     productsIds: (value) => isRequiredArray(value),
     audiencesIds: (value) => isRequiredArray(value),
-    promptsIds: (value) => isRequiredArray(value),
-    imageIds: (value) => isRequiredArray(value),
+    promptsIds: (value) => isArray(value),
+    photosIds: (value) => isArray(value),
     businessId: (value) => isRequired(value),
     isActive: (value) => isBoolean(value),
   });
@@ -107,13 +106,11 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
 
   // Create Profile
   const create = async (e: React.FormEvent<HTMLFormElement>) => {
-    console.log("CREATE PROFILE ", form)
-
     e.preventDefault();
 
     if (!validateAll(form)) return;
 
-    /*try {
+    try {
       if (isEdit) {
         const response = await updateProfile({ id: profile!.id, form }).unwrap();
         if(response && response?.data) toast.success(response.message);
@@ -130,7 +127,7 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
       }
     } catch (error) {
       showError(error);
-    }*/
+    }
   }
 
   // Handle Change
@@ -155,221 +152,218 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
   const deleteImage = async (imageId?: string) => {
     setForm(prev => ({
       ...prev,
-      imageIds: prev.imageIds.filter((id: string) => id !== imageId)
+      photosIds: prev.photosIds.filter((id: string) => id !== imageId)
     }))
-  }
-
-  const selectImage = async () => {
-    console.log("SELECT IMAGE");
   }
 
   return (
     <>
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50">
-      <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl p-6">
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50">
+        <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl p-6">
 
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">{ isEdit ? "Edit" : "Create" } Profile</h2>
-          <button
-            onClick={onClose}
-            className="text-slate-500 hover:text-slate-700 rounded-full p-1 hover:bg-slate-100"
-          >
-            ✕
-          </button>
-        </div>
-
-        <form className="space-y-4" onSubmit={create} action="">
-          <div>
-            <div className="flex items-center gap-2 justify-between">
-              <label className="block text-sm font-medium text-slate-700 text-left">Name</label>
-            </div>
-
-            <input
-              type="text"
-              name="name"
-              value={form.name}
-              onChange={onChange}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
-              placeholder="Enter name"
-              autoComplete="off"
-            />
-            {errors.name && <p className="text-red-500 text-sm mt-2 text-left">{errors.name}</p>}
-          </div>
-
-          <div>
-            <div className="flex items-center gap-2 justify-between">
-              <label className="block text-sm font-medium text-slate-700 text-left">Profile Focus</label>
-            </div>
-
-            <select
-              name="profileFocus"
-              value={form.profileFocus}
-              onChange={onChange}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
-            >
-              { profileFocusOptions.map((option: string) => (
-                <option key={option} value={option}>{option}</option>
-              )) }
-            </select>
-
-            {errors.profileFocus && <p className="text-red-500 text-sm mt-2 text-left">{errors.profileFocus}</p>}
-          </div>
-
-          <div>
-            <div className="flex items-center gap-2 justify-between">
-              <label className="block text-sm font-medium text-slate-700 text-left">Product</label>
-            </div>
-
-            <Select
-              options={productsOptions}
-              value={productsOptions.find(
-                (option: { label: string, value: string }) => form.productsIds[0] === option.value
-              )}
-              onChange={(selected) =>
-                onChange({
-                  name: "productsIds",
-                  value: selected ? [selected.value] : [],
-                })
-              }
-              styles={centeredSelectStyles}
-            />
-
-            {errors.productsIds && <p className="text-red-500 text-sm mt-2 text-left">{errors.productsIds}</p>}
-          </div>
-
-          <div>
-            <div className="flex items-center gap-2 justify-between">
-              <label className="block text-sm font-medium text-slate-700 text-left">Audiences</label>
-            </div>
-
-            <Select
-              isMulti
-              options={audiencesOptions}
-              value={audiencesOptions.filter((option: any) =>
-                form.audiencesIds.includes(option.value)
-              )}
-              onChange={(selected) =>
-                onChange({
-                  name: "audiencesIds",
-                  value: selected.map((o) => o.value),
-                })
-              }
-              styles={centeredSelectStyles}
-            />
-
-            {errors.audiencesIds && <p className="text-red-500 text-sm mt-2 text-left">{errors.audiencesIds}</p>}
-          </div>
-
-          <div>
-            <div className="flex items-center gap-2 justify-between">
-              <label className="block text-sm font-medium text-slate-700 text-left">Prompts</label>
-            </div>
-
-            <Select
-              isMulti
-              options={promptsOptions}
-              value={promptsOptions.filter((option: any) =>
-                form.promptsIds.includes(option.value)
-              )}
-              onChange={(selected) =>
-                onChange({
-                  name: "promptsIds",
-                  value: selected.map((o) => o.value),
-                })
-              }
-              styles={centeredSelectStyles}
-            />
-
-            {errors.promptsIds && <p className="text-red-500 text-sm mt-2 text-left">{errors.promptsIds}</p>}
-          </div>
-
-          <div>
-            <div className="flex items-center gap-2 justify-between">
-              <label className="block text-sm font-medium text-slate-700 text-left">Photos</label>
-            </div>
-
-            <div className="flex gap-2">
-              {photos.filter((x: TGalleryPhoto) => form.imageIds.includes(x.id)).map((photo: TGalleryPhoto) => (
-                <div key={photo.id} className="h-24 w-24 rounded-md border relative">
-                  <img className="object-cover" src={photo.url} alt=""/>
-                  <button
-                    onClick={() => deleteImage(photo.id)}
-                    className="absolute top-2 right-2 text-white text-xl z-10 bg-blue-600 rounded-full p-1 hover:bg-blue-700 cursor-pointer"
-                  >
-                    <X size={15} strokeWidth={2} color="white"></X>
-                  </button>
-                </div>
-              ))}
-            </div>
-
-            <div
-              onClick={() => setOpenGalleryDlg(true)}
-              className="px-4 mt-3 py-2 rounded-lg bg-blue-600 text-white flex items-center gap-2 justify-center cursor-pointer hover:bg-blue-700 w-max"
-            >
-              Select Image
-            </div>
-          </div>
-
-          <label className="flex items-start gap-3 cursor-pointer select-none">
-            <input
-              name="isActive"
-              type="checkbox"
-              checked={form.isActive}
-              onChange={onChange}
-              className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-            />
-
-            <span className="block text-sm font-medium text-slate-700 text-left">Active Profile</span>
-          </label>
-
-          <div className="flex justify-end gap-3 pt-4">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold">{ isEdit ? "Edit" : "Create" } Profile</h2>
             <button
-              type="button"
               onClick={onClose}
-              disabled={isLoadingCreating || isLoadingUpdating}
-              className="
-                px-4 py-2 rounded-lg border  text-slate-600
-                border-slate-300 hover:bg-slate-50
-                disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-slate-white
-              "
+              className="text-slate-500 hover:text-slate-700 rounded-full p-1 hover:bg-slate-100"
             >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isLoadingCreating || isLoadingUpdating}
-              className="px-4 py-2 rounded-lg bg-blue-600 text-white flex items-center gap-2 justify-center"
-            >
-              { isLoadingCreating || isLoadingUpdating ? (
-                <>
-                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"/>
-                  Saving...
-                </>
-                ) : ("Save")
-              }
+              ✕
             </button>
           </div>
-        </form>
+
+          <form className="space-y-4" onSubmit={create} action="">
+            <div>
+              <div className="flex items-center gap-2 justify-between">
+                <label className="block text-sm font-medium text-slate-700 text-left">Name</label>
+              </div>
+
+              <input
+                type="text"
+                name="name"
+                value={form.name}
+                onChange={onChange}
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
+                placeholder="Enter name"
+                autoComplete="off"
+              />
+              {errors.name && <p className="text-red-500 text-sm mt-2 text-left">{errors.name}</p>}
+            </div>
+
+            <div>
+              <div className="flex items-center gap-2 justify-between">
+                <label className="block text-sm font-medium text-slate-700 text-left">Profile Focus</label>
+              </div>
+
+              <select
+                name="profileFocus"
+                value={form.profileFocus}
+                onChange={onChange}
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
+              >
+                { profileFocusOptions.map((option: string) => (
+                  <option key={option} value={option}>{option}</option>
+                )) }
+              </select>
+
+              {errors.profileFocus && <p className="text-red-500 text-sm mt-2 text-left">{errors.profileFocus}</p>}
+            </div>
+
+            <div>
+              <div className="flex items-center gap-2 justify-between">
+                <label className="block text-sm font-medium text-slate-700 text-left">Product</label>
+              </div>
+
+              <Select
+                options={productsOptions}
+                value={productsOptions.find(
+                  (option: { label: string, value: string }) => form.productsIds[0] === option.value
+                )}
+                onChange={(selected) =>
+                  onChange({
+                    name: "productsIds",
+                    value: selected ? [selected.value] : [],
+                  })
+                }
+                styles={centeredSelectStyles}
+              />
+
+              {errors.productsIds && <p className="text-red-500 text-sm mt-2 text-left">{errors.productsIds}</p>}
+            </div>
+
+            <div>
+              <div className="flex items-center gap-2 justify-between">
+                <label className="block text-sm font-medium text-slate-700 text-left">Audiences</label>
+              </div>
+
+              <Select
+                isMulti
+                options={audiencesOptions}
+                value={audiencesOptions.filter((option: any) =>
+                  form.audiencesIds.includes(option.value)
+                )}
+                onChange={(selected) =>
+                  onChange({
+                    name: "audiencesIds",
+                    value: selected.map((o) => o.value),
+                  })
+                }
+                styles={centeredSelectStyles}
+              />
+
+              {errors.audiencesIds && <p className="text-red-500 text-sm mt-2 text-left">{errors.audiencesIds}</p>}
+            </div>
+
+            <div>
+              <div className="flex items-center gap-2 justify-between">
+                <label className="block text-sm font-medium text-slate-700 text-left">Prompts</label>
+              </div>
+
+              <Select
+                isMulti
+                options={promptsOptions}
+                value={promptsOptions.filter((option: any) =>
+                  form.promptsIds.includes(option.value)
+                )}
+                onChange={(selected) =>
+                  onChange({
+                    name: "promptsIds",
+                    value: selected.map((o) => o.value),
+                  })
+                }
+                styles={centeredSelectStyles}
+              />
+
+              {errors.promptsIds && <p className="text-red-500 text-sm mt-2 text-left">{errors.promptsIds}</p>}
+            </div>
+
+            <div>
+              <div className="flex items-center gap-2 justify-between">
+                <label className="block text-sm font-medium text-slate-700 text-left">Photos</label>
+              </div>
+
+              <div className="flex gap-2">
+                {photos.filter((x: TGalleryPhoto) => form.photosIds.includes(x.id)).map((photo: TGalleryPhoto) => (
+                  <div key={photo.id} className="h-24 w-24 rounded-md border relative">
+                    <img className="object-cover" src={photo.url} alt=""/>
+                    <button
+                      onClick={() => deleteImage(photo.id)}
+                      className="absolute top-2 right-2 text-white text-xl z-10 bg-blue-600 rounded-full p-1 hover:bg-blue-700 cursor-pointer"
+                    >
+                      <X size={15} strokeWidth={2} color="white"></X>
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              <div
+                onClick={() => setOpenGalleryDlg(true)}
+                className="px-4 mt-3 py-2 rounded-lg bg-blue-600 text-white flex items-center gap-2 justify-center cursor-pointer hover:bg-blue-700 w-max"
+              >
+                Select Image
+              </div>
+            </div>
+
+            <label className="flex items-start gap-3 cursor-pointer select-none">
+              <input
+                name="isActive"
+                type="checkbox"
+                checked={form.isActive}
+                onChange={onChange}
+                className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              />
+
+              <span className="block text-sm font-medium text-slate-700 text-left">Active Profile</span>
+            </label>
+
+            <div className="flex justify-end gap-3 pt-4">
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={isLoadingCreating || isLoadingUpdating}
+                className="
+                  px-4 py-2 rounded-lg border  text-slate-600
+                  border-slate-300 hover:bg-slate-50
+                  disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-slate-white
+                "
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isLoadingCreating || isLoadingUpdating}
+                className="px-4 py-2 rounded-lg bg-blue-600 text-white flex items-center gap-2 justify-center"
+              >
+                { isLoadingCreating || isLoadingUpdating ? (
+                  <>
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"/>
+                    Saving...
+                  </>
+                  ) : ("Save")
+                }
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
-    </div>
 
       <SelectGalleryDlg
         open={openGalleryDlg}
-        selectedIds={form.imageIds}
+        selectedIds={form.photosIds}
         onClose={() => setOpenGalleryDlg(false)}
-        onSelect={(selectedImages: TGalleryPhoto[]) => {
+        onSelect={(selectedPhotos: TGalleryPhoto[]) => {
           setForm(prev => ({
             ...prev,
-            imageIds: [
-              ...selectedImages
-                .map(img => img.id)
-                .filter(id => !prev.imageIds.includes(id))
-            ]
+            photosIds: Array.from(
+              new Set([
+                ...prev.photosIds,
+                ...selectedPhotos.map(img => img.id)
+              ])
+            )
           }))
           setOpenGalleryDlg(false)
         }}
       />
-  </>
+    </>
   )
 }
 

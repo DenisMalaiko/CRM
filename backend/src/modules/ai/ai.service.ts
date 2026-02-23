@@ -28,7 +28,6 @@ export class AiService {
 
     for (const post of posts) {
       if (post.image_prompt) {
-        // post.imageUrl = await this.aiImageService.generateImage(post.image_prompt, profile.businessId);
         post.imageUrl = await this.aiReplicate.generateImage(post.image_prompt, profile.businessId, photoUrls);
       }
     }
@@ -77,13 +76,9 @@ export class AiService {
           `)
         .join('\n');
 
-    const textPromptsBlock = buildPromptsBlock(
-      profile.prompts.filter(p => p.purpose === 'Text')
-    );
+    const textPromptsBlock = buildPromptsBlock(profile.prompts.filter(p => p.purpose === 'Text'));
 
-    const imagePromptsBlock = buildPromptsBlock(
-      profile.prompts.filter(p => p.purpose === 'Image')
-    );
+    const imagePromptsBlock = buildPromptsBlock(profile.prompts.filter(p => p.purpose === 'Image'));
 
     return `
       You are a senior performance marketer and creative strategist.
@@ -116,22 +111,41 @@ export class AiService {
       ${textPromptsBlock}
       
       ### IMAGE GENERATION INSTRUCTIONS (CRITICAL)
-
+      
       The following instructions apply ONLY to:
       - image_prompt
       
-      They MUST influence visual style, mood, composition, camera, lighting, scene,
-      but MUST NOT affect the textual content.
+      The image_prompt is a technical visual instruction for an image generation model.
+      It is NOT a creative description and NOT a marketing text.
       
       Image prompt generation rules (MANDATORY):
-
+      
       When generating "image_prompt", you MUST:
-      1. Start from the ${imagePromptsBlock} above
-      2. Explicitly incorporate their visual requirements (style, mood, lighting, composition)
-      3. Describe ONLY visual elements (no marketing text, no CTAs, no emotions as words)
-      4. Write image_prompt as if it will be sent directly to an image generation model
-      5. If image instructions exist, image_prompt MUST reflect them clearly
-      6. Translate prompt in English language
+      
+      1. Treat ${imagePromptsBlock} as a factual analysis of an existing visual style.
+         Do NOT reinterpret, summarize, or generalize it.
+      
+      2. Decorative elements described in ${imagePromptsBlock}
+         (graphic overlays, diagonal stripes, color bands, lines, frames, outlines)
+         define the core visual identity and MUST be treated as fixed style constraints.
+      
+      3. Reconstruct the decorative structure exactly as described:
+         preserve the role, dominance, placement, layering, and geometry of decorative elements.
+         Do NOT invent new decorative elements and do NOT soften their importance.
+      
+      4. Describe ONLY visual and structural elements that can be directly inferred
+         from the analyzed image style.
+         Do NOT include emotions, marketing language, CTAs, or abstract adjectives.
+      
+      5. Generate image_prompt as a faithful style transfer:
+         apply the same decorative system to a different scene
+         while keeping the decorative logic unchanged.
+      
+      6. If multiple image instructions exist, resolve them by preserving
+         decorative structure first, scene second.
+      
+      7. Write the final image_prompt in clear, literal English suitable for
+         a diffusion-based image generation model.
       
       Target audience:
       ${audienceBlock}

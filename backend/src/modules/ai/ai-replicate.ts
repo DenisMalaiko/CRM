@@ -27,8 +27,10 @@ export class AiReplicate {
       NANO_BANANO,
       {
         input: {
-          prompt,
-          image_input: photoUrls
+          prompt: prompt,
+          resolution: "1K",
+          image_input: photoUrls,
+          allow_fallback_model: true
         },
       }
     );

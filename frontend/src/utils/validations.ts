@@ -12,6 +12,11 @@ export const isRequiredArray = (value: []) => {
   return null;
 }
 
+export const isArray = (value: []) => {
+  if (!Array.isArray(value)) return "This field should be an array";
+  return null;
+}
+
 export const minLength = (value: string, min: number) => {
   if (!value) return "This field is required";
   return value.length < min ? `Must be at least ${min} characters` : null;

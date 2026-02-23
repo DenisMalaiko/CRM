@@ -20,8 +20,9 @@ import {GalleryType} from "../../../../../../../enum/GalleryType";
 function SelectGalleryDlg({ open, onClose, onSelect, selectedIds }: any) {
   const dispatch = useAppDispatch();
   const { businessId } = useParams<{ businessId: string }>();
+  const MAX_SELECTED = 3
 
-  const [localSelected, setLocalSelected] = useState<string[]>([])
+  const [ localSelected, setLocalSelected ] = useState<string[]>([])
 
   const [ getPhotos ] = useGetPhotosMutation();
   const { photos } = useSelector((state: any) => state.galleryModule);
@@ -52,11 +53,17 @@ function SelectGalleryDlg({ open, onClose, onSelect, selectedIds }: any) {
   }, [selectedIds])
 
   const toggle = (id: string) => {
-    setLocalSelected(prev =>
-      prev.includes(id)
-        ? prev.filter(x => x !== id)
-        : [...prev, id]
-    )
+    setLocalSelected(prev => {
+      if (prev.includes(id)) {
+        return prev.filter(x => x !== id)
+      }
+
+      if (prev.length >= MAX_SELECTED) {
+        return prev
+      }
+
+      return [...prev, id]
+    })
   }
 
   if (!open) return null
@@ -106,8 +113,12 @@ function SelectGalleryDlg({ open, onClose, onSelect, selectedIds }: any) {
                         <input
                           type="checkbox"
                           checked={localSelected.includes(photo.id)}
+                          disabled={
+                            !localSelected.includes(photo.id) &&
+                            localSelected.length >= MAX_SELECTED
+                          }
                           onChange={() => toggle(photo.id)}
-                          className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                          className="h-4 w-4 rounded disabled:opacity-40 disabled:cursor-not-allowed"
                         />
                       </div>
                     </label>
@@ -124,6 +135,36 @@ function SelectGalleryDlg({ open, onClose, onSelect, selectedIds }: any) {
                   Images assets
                 </h3>
               </div>
+
+              <div className="grid gap-6 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6">
+                {imagePhotos.map(photo => (
+                  <div
+                    key={photo.id}
+                    className="group rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition cursor-pointer"
+                  >
+                    <label className="relative cursor-pointer">
+                      <img
+                        src={photo.url}
+                        className="w-full h-40 object-cover"
+                        alt=""
+                      />
+
+                      <div className="absolute top-3 right-3 duration-300">
+                        <input
+                          type="checkbox"
+                          checked={localSelected.includes(photo.id)}
+                          disabled={
+                            !localSelected.includes(photo.id) &&
+                            localSelected.length >= MAX_SELECTED
+                          }
+                          onChange={() => toggle(photo.id)}
+                          className="h-4 w-4 rounded disabled:opacity-40 disabled:cursor-not-allowed"
+                        />
+                      </div>
+                    </label>
+                  </div>
+                ))}
+              </div>
             </section>
           </div>
         </div>
@@ -138,12 +179,15 @@ function SelectGalleryDlg({ open, onClose, onSelect, selectedIds }: any) {
           </button>
           <button
             type="button"
-            className="px-4 py-2 rounded-lg bg-blue-600 text-white"
+            className="px-4 py-2 rounded-lg bg-blue-600 text-white disabled:opacity-50"
+            disabled={localSelected.length === 0}
             onClick={() =>
-              onSelect(photos.filter((p: TGalleryPhoto) => localSelected.includes(p.id)))
+              onSelect(
+                photos.filter((p: TGalleryPhoto) => localSelected.includes(p.id))
+              )
             }
           >
-            Select ({localSelected.length})
+            Select ({localSelected.length}/{MAX_SELECTED})
           </button>
         </div>
 

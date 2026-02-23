@@ -21,6 +21,10 @@ export class ProfileBaseDto {
   @IsOptional()
   promptsIds: string[];
 
+  @IsArray()
+  @IsOptional()
+  photosIds: string[];
+
   @IsBoolean()
   isActive: boolean;
 }
