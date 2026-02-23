@@ -7,13 +7,15 @@ import { TProfile, TProfileCreate, TProfileUpdate } from "./entities/profile.ent
 import { AIArtifactStatus, AIArtifactType } from "@prisma/client";
 import { AiPost } from "../ai/entities/aiPost.entity";
 import { AIArtifactBase } from "../aiArtifact/entities/aiArtifact.entity";
+import { StorageUrlService } from "../../core/storage/storage-url.service";
 
 @Injectable()
 export class ProfilesService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly aiService: AiService,
-    private readonly galleryService: GalleryService
+    private readonly galleryService: GalleryService,
+    private readonly storageUrlService: StorageUrlService
   ) {}
 
   async getProfiles(businessId: string): Promise<TProfile[]> {
@@ -23,6 +25,7 @@ export class ProfilesService {
         products: { include: { product: true } },
         audiences: { include: { targetAudience: true } },
         prompts: { include: { prompt: true } },
+        photos: { include: { galleryPhoto: true } },
         business: true
       },
     });
@@ -37,7 +40,8 @@ export class ProfilesService {
       business: profile?.business,
       products: profile.products.map(p => p.product),
       audiences: profile.audiences.map(a => a.targetAudience),
-      prompts: profile.prompts.map(p => p.prompt),
+      prompts: profile?.prompts.map(p => p.prompt),
+      photos: profile?.photos.map(p => p.galleryPhoto),
     }));
   }
 
@@ -45,7 +49,8 @@ export class ProfilesService {
     const {
       productsIds,
       audiencesIds,
-      promptsIds,
+      promptsIds = [],
+      photosIds = [],
       ...profileData
     } = body;
 
@@ -73,6 +78,13 @@ export class ProfilesService {
             })),
           },
         },
+        photos: {
+          createMany: {
+            data: photosIds.map(galleryPhotoId => ({
+              galleryPhotoId,
+            })),
+          },
+        },
       }
     });
 
@@ -82,11 +94,14 @@ export class ProfilesService {
   async updateProfile(id: string, body: TProfileUpdate) {
     if (!id) throw new NotFoundException('Product ID is required');
 
+    console.log("BODY ", body)
+
     try {
       const {
         productsIds,
         audiencesIds,
-        promptsIds,
+        promptsIds = [],
+        photosIds = [],
         ...profileData
       } = body;
 
@@ -121,12 +136,22 @@ export class ProfilesService {
               },
             }
             : undefined,
+
+          photos: photosIds
+            ? {
+              deleteMany: {},
+              createMany: {
+                data: photosIds.map(galleryPhotoId => ({galleryPhotoId})),
+              },
+            }
+            : undefined,
         },
 
         include: {
           products: true,
           audiences: true,
           prompts: true,
+          photos: true
         },
       });
     } catch (err: any) {
@@ -156,6 +181,7 @@ export class ProfilesService {
         products: { include: { product: true } },
         audiences: { include: { targetAudience: true } },
         prompts: { include: { prompt: true } },
+        photos: { include: { galleryPhoto: true } },
         business: true
       },
     });
@@ -172,9 +198,12 @@ export class ProfilesService {
         products: profile.products.map(p => p.product),
         audiences: profile.audiences.map(a => a.targetAudience),
         prompts: profile.prompts.map(p => p.prompt),
+        photos: profile?.photos.map(p => p.galleryPhoto),
       };
 
-      const galleryPhotosUrls = await this.galleryService.getPhotosByType(profile.businessId, GalleryPhotoType.Post);
+      const galleryPhotosUrls = mappedProfile.photos.map((photo) => {
+        return photo.url ? this.storageUrlService.getPublicUrl(photo.url) : "";
+      });
 
       const posts: AiPost[] = await this.aiService.generatePostsBasedOnBusinessProfile(mappedProfile, galleryPhotosUrls);
 
@@ -207,8 +236,6 @@ export class ProfilesService {
 
         createdArtifacts.push(artifact);
       }
-
-      console.log("SUCCESSFULLY GENERATED POSTS!")
 
       return createdArtifacts;
     }

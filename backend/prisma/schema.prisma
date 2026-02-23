@@ -151,6 +151,7 @@ model BusinessProfile {
     audiences     BusinessProfileTargetAudience[]
     platforms     BusinessProfilePlatform[]
     prompts       BusinessProfilePrompt[]
+    photos        BusinessProfilePhoto[]
 
     tags          BusinessProfileTag[]
     trendMatches  BusinessTrendMatch[]
@@ -325,10 +326,10 @@ model GalleryPhoto {
     url        String
     createdAt  DateTime @default(now())
 
+    profiles   BusinessProfilePhoto[]
+
     business   Business @relation(fields: [businessId], references: [id])
 }
-
-
 
 model Trend {
     id          String   @id @default(uuid())
@@ -404,6 +405,17 @@ model BusinessProfilePrompt {
     prompt Prompt @relation(fields: [promptId], references: [id], onDelete: Cascade)
 
     @@id([businessProfileId, promptId])
+}
+
+model BusinessProfilePhoto {
+    businessProfileId  String
+    galleryPhotoId     String
+
+    businessProfile  BusinessProfile @relation(fields: [businessProfileId], references: [id], onDelete: Cascade)
+    galleryPhoto     GalleryPhoto @relation(fields: [galleryPhotoId], references: [id], onDelete: Cascade)
+
+    @@id([businessProfileId, galleryPhotoId])
+    @@index([galleryPhotoId])
 }
 
 model BusinessProfilePlatform {
