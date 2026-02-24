@@ -27,7 +27,7 @@ function Gallery() {
   const [ getPhotos ] = useGetPhotosMutation();
   const { photos } = useSelector((state: any) => state.galleryModule);
 
-  const postPhotos = photos.filter((p: TGalleryPhoto) => p.type === GalleryType.Post);
+  const decorationPhotos = photos.filter((p: TGalleryPhoto) => p.type === GalleryType.Decoration);
   const imagePhotos = photos.filter((p: TGalleryPhoto) => p.type === GalleryType.Image);
 
   // Get Data
@@ -82,7 +82,7 @@ function Gallery() {
               </h3>
             </div>
 
-            <Photos photos={postPhotos}/>
+            <Photos photos={decorationPhotos}/>
           </section>
         </div>
 

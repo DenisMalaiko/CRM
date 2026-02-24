@@ -77,7 +77,7 @@ enum PlatformList {
 
 enum GalleryPhotoType {
     Image
-    Post
+    Decoration
 }
 
 
