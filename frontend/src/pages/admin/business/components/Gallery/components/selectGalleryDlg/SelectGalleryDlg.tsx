@@ -27,7 +27,7 @@ function SelectGalleryDlg({ open, onClose, onSelect, selectedIds }: any) {
   const [ getPhotos ] = useGetPhotosMutation();
   const { photos } = useSelector((state: any) => state.galleryModule);
 
-  const postPhotos: TGalleryPhoto[] = photos.filter((p: TGalleryPhoto) => p.type === GalleryType.Post);
+  const postPhotos: TGalleryPhoto[] = photos.filter((p: TGalleryPhoto) => p.type === GalleryType.Decoration);
   const imagePhotos: TGalleryPhoto[] = photos.filter((p: TGalleryPhoto) => p.type === GalleryType.Image);
 
   useEffect(() => {
