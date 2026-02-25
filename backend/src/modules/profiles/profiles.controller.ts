@@ -24,7 +24,6 @@ export class ProfilesController {
   @Patch("/:id")
   @ResponseMessage('Profile has been updated!')
   updateProfile(@Param() { id }: ProfileIdParamDto, @Body() body: UpdateProfileDto) {
-    console.log("UPDATE PROFILE BODY: ", body)
     return this.profilesService.updateProfile(id, body);
   }
 
