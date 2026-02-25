@@ -1,3 +1,0 @@
--- AlterTable
-ALTER TABLE "CompetitorAds" ADD COLUMN     "fetchedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-ADD COLUMN     "isActive" BOOLEAN;

@@ -4,6 +4,7 @@ import {TProfile} from "../profiles/entities/profile.entity";
 import {AiPost} from "./entities/aiPost.entity";
 import {AiImageService} from "./ai-image.service";
 import {AiReplicate} from "./ai-replicate";
+import {GalleryPhotoType} from "@prisma/client";
 
 @Injectable()
 export class AiService {
@@ -20,7 +21,7 @@ export class AiService {
     });
   }
 
-  async generatePostsBasedOnBusinessProfile(profile: TProfile, photoUrls: string[]): Promise<AiPost[]> {
+  async generatePostsBasedOnBusinessProfile(profile: TProfile, photos: { url: string, type: GalleryPhotoType }[]): Promise<AiPost[]> {
     const prompt = this.buildPromptForPosts(profile);
     const response = await this.model.invoke(prompt);
     const rawText = this.extractTextContent(response.content);
@@ -28,7 +29,7 @@ export class AiService {
 
     for (const post of posts) {
       if (post.image_prompt) {
-        post.imageUrl = await this.aiReplicate.generateImageOpenAI(post.image_prompt, profile.businessId, photoUrls);
+        post.imageUrl = await this.aiReplicate.generateImageOpenAI(post.image_prompt, profile.businessId, photos);
       }
     }
 
@@ -82,104 +83,98 @@ export class AiService {
 
     return `
       You are a senior performance marketer and creative strategist.
-  
-      Your task is to generate high-quality, conversion-focused social media posts
-      based strictly on the provided Business Profile context.
+
+      Generate exactly 1 social media post based on the provided business context.
       
-      Generate 1 post
+      ---
       
-      Business Profile:
-      - Business name: ${profile.business.name}
+      ## BUSINESS CONTEXT
+      
+      Business:
+      - Name: ${profile.business.name}
       - Industry: ${profile.business.industry}
       - Website: ${profile.business.website}
       
-      Profile context:
-      - Profile name: ${profile.name}
-      - Profile focus: ${profile.profileFocus}
+      Profile:
+      - Name: ${profile.name}
+      - Focus: ${profile.profileFocus}
       
-      ### TEXT GENERATION INSTRUCTIONS (CRITICAL)
-
-      The following instructions apply ONLY to:
+      Target audience:
+      ${audienceBlock}
+      
+      Products / services:
+      ${productsBlock}
+      
+      ---
+      
+      ## TEXT GENERATION (POST CONTENT)
+      
+      Generate the following fields:
       - hook
       - body
       - cta
       - emotional_angle
       
-      You MUST strictly follow them when generating textual content.
-      If there is any conflict, these instructions have higher priority.
+      Rules:
+      - Write engaging, human, emotionally relevant text
+      - Use relevant keywords naturally (SEO-friendly)
+      - Speak to real audience pains and desires
+      - Emojis are allowed if they fit naturally
+      - Avoid generic marketing clichés
+      - Do NOT invent business facts
+      - Do NOT mention AI or explanations
       
+      Additional constraints:
       ${textPromptsBlock}
       
-      ### IMAGE GENERATION INSTRUCTIONS (CRITICAL)
+      ---
       
-      The following instructions apply ONLY to:
-      - image_prompt
+      ## IMAGE PROMPT GENERATION (STRICT MODE)
       
-      The image_prompt is a technical visual instruction for an image generation model.
-      It is NOT a creative description and NOT a marketing text.
+      Generate the field: image_prompt.
       
-      Image prompt generation rules (MANDATORY):
+      The image_prompt is a technical instruction for an image generation model.
+      It describes visual structure, layout, decorative elements, AND visible text.
       
-      When generating "image_prompt", you MUST:
+      Source of truth:
+      ${imagePromptsBlock}
       
-      1. Treat ${imagePromptsBlock} as a factual analysis of an existing visual style.
-         Do NOT reinterpret, summarize, or generalize it.
+      STYLE RULES:
+      - Preserve the decorative style exactly as described
+      - Do NOT add or remove decorative elements
+      - Do NOT redesign the layout
       
-      2. Decorative elements described in ${imagePromptsBlock}
-         (graphic overlays, diagonal stripes, color bands, lines, frames, outlines)
-         define the core visual identity and MUST be treated as fixed style constraints.
+      TEXT GENERATION (MANDATORY):
       
-      3. Reconstruct the decorative structure exactly as described:
-         preserve the role, dominance, placement, layering, and geometry of decorative elements.
-         Do NOT invent new decorative elements and do NOT soften their importance.
+      If the user request includes a requirement to add a headline, title, or description,
+      you MUST generate actual text content for the image.
       
-      4. Describe ONLY visual and structural elements that can be directly inferred
-         from the analyzed image style.
-         Do NOT include emotions, marketing language, CTAs, or abstract adjectives.
+      Text rules:
+      - Generate a short creative headline (2–6 words)
+      - Generate a short descriptive line (5–15 words)
+      - Text must fit naturally into the layout and typography
+      - Text must match the scene and subject
+      - Text may express emotion if explicitly requested by the user
       
-      5. Generate image_prompt as a faithful style transfer:
-         apply the same decorative system to a different scene
-         while keeping the decorative logic unchanged.
+      Text is treated as a visual element, not marketing copy.
       
-      6. If multiple image instructions exist, resolve them by preserving
-         decorative structure first, scene second.
+      WRITING RULES:
+      - Describe visible elements clearly
+      - One coherent paragraph
       
-      7. Write the final image_prompt in clear, literal English suitable for
-         a diffusion-based image generation model.
+      ---
       
-      Target audience:
-      ${audienceBlock}
-      
-      Products and services:
-      ${productsBlock}
-      
-      Task:
-      ${profile.profileFocus}.
-      
-      Guidelines:
-      - Adapt tone and style to each platform
-      - Speak directly to audience pains and desires
-      - Use emotional hooks (fear, relief, safety, convenience, urgency)
-      - Emojis are allowed and encouraged if they fit naturally
-      - Avoid generic marketing clichés
-      - Be concrete and relatable
-      
-      Restrictions:
-      - Do NOT invent business details
-      - Do NOT mention that you are an AI
-      - Do NOT add explanations or commentary outside the posts 
-      
-      Output format (STRICT JSON ONLY):
+      ## OUTPUT FORMAT (STRICT JSON)
       
       {
         "posts": [
           {
             "platform": "Facebook | Instagram | Twitter | LinkedIn | Telegram",
-            "hook": "string (may include emojis)",
-            "body": "string (natural, emotional, human tone, emojis allowed)",
-            "cta": "string (soft, friendly call to action)",
+            "hook": "string",
+            "body": "string",
+            "cta": "string",
             "emotional_angle": "fear | desire | convenience | safety | urgency",
-            "image_prompt": "string (detailed visual description for image generation, use English language)"
+            "image_prompt": "string"
           }
         ]
       }

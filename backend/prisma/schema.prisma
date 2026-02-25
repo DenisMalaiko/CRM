@@ -1,11 +1,5 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
   binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x"]
 }
 
@@ -14,441 +8,377 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
-enum Plan {
-    Free
-    Basic
-    Premium
-}
-
-enum UserRole {
-    Marketer
-    Worker
-}
-
-enum UserStatus {
-    Active
-    Invited
-    Disabled
-}
-
-enum BusinessStatus {
-    Active
-    Paused
-    Archived
-}
-
-enum ProductType {
-    Product
-    Service
-}
-
-enum PriceSegment {
-    Low
-    Middle
-    Premium
-}
-
-enum TagType {
-    Niche
-    Hashtag
-    Pain
-    Format
-}
-
-enum AIArtifactType {
-    Idea
-    Post
-    Script
-    Angle
-}
-
-enum AIArtifactStatus {
-    Draft
-    Approved
-    Rejected
-}
-
-enum PlatformList {
-    Facebook
-    Instagram
-    Tiktok
-}
-
-enum GalleryPhotoType {
-    Image
-    Decoration
-}
-
-
-
-
-
 model Agency {
-    id        String   @id @default(uuid())
-    name      String
-    plan      Plan
-    createdAt DateTime @default(now())
-
-    users     User[]
-    businesses   Business[]
+  id         String     @id @default(uuid())
+  name       String
+  plan       Plan
+  createdAt  DateTime   @default(now())
+  businesses Business[]
+  users      User[]
 }
 
 model Admin {
-    id        String   @id @default(uuid())
-    email     String   @unique
-    name      String
-    password  String
+  id       String @id @default(uuid())
+  email    String @unique
+  name     String
+  password String
 }
 
 model User {
-    id        String   @id @default(uuid())
-    agencyId  String
-    email     String   @unique
-    name      String
-    password  String
-    role      UserRole
-    status    UserStatus
-
-    agency    Agency @relation(fields: [agencyId], references: [id])
+  id       String     @id @default(uuid())
+  agencyId String
+  email    String     @unique
+  name     String
+  password String
+  role     UserRole
+  status   UserStatus
+  agency   Agency     @relation(fields: [agencyId], references: [id])
 }
-
-
-
 
 model Business {
-    id          String   @id @default(uuid())
-    agencyId    String
-    name        String
-    website     String
-    industry    String?
-    status      BusinessStatus
-    brand       String   @default("")
-    advantages  String[] @default([""])
-    goals       String[] @default([""])
-
-    agency    Agency @relation(fields: [agencyId], references: [id])
-
-    products          Product[]
-    prompts           Prompt[]
-    competitors       Competitor[]
-    businessProfiles  BusinessProfile[]
-    galleryPhotos     GalleryPhoto[]
+  id               String            @id @default(uuid())
+  agencyId         String
+  name             String
+  website          String
+  industry         String?
+  status           BusinessStatus
+  advantages       String[]          @default([""])
+  brand            String            @default("")
+  goals            String[]          @default([""])
+  agency           Agency            @relation(fields: [agencyId], references: [id])
+  businessProfiles BusinessProfile[]
+  competitors      Competitor[]
+  galleryPhotos    GalleryPhoto[]
+  products         Product[]
+  prompts          Prompt[]
 }
 
-
 model BusinessProfile {
-    id            String   @id @default(uuid())
-    businessId    String
-    name          String
-    profileFocus  String
-    isActive      Boolean  @default(true)
-    createdAt     DateTime @default(now())
-
-    business      Business @relation(fields: [businessId], references: [id])
-
-    products      BusinessProfileProduct[]
-    audiences     BusinessProfileTargetAudience[]
-    platforms     BusinessProfilePlatform[]
-    prompts       BusinessProfilePrompt[]
-    photos        BusinessProfilePhoto[]
-
-    tags          BusinessProfileTag[]
-    trendMatches  BusinessTrendMatch[]
-    aiArtifacts   AIArtifact[]
+  id           String                          @id @default(uuid())
+  businessId   String
+  name         String
+  isActive     Boolean                         @default(true)
+  createdAt    DateTime                        @default(now())
+  profileFocus String
+  aiArtifacts  AIArtifact[]
+  business     Business                        @relation(fields: [businessId], references: [id])
+  photos       BusinessProfilePhoto[]
+  platforms    BusinessProfilePlatform[]
+  products     BusinessProfileProduct[]
+  prompts      BusinessProfilePrompt[]
+  tags         BusinessProfileTag[]
+  audiences    BusinessProfileTargetAudience[]
+  trendMatches BusinessTrendMatch[]
 }
 
 model Prompt {
-    id           String   @id @default(uuid())
-    businessId   String
-    name         String
-    purpose      String
-    text         String
-    isActive     Boolean  @default(true)
-    createdAt    DateTime @default(now())
-
-    profiles     BusinessProfilePrompt[]
-
-    business     Business @relation(fields: [businessId], references: [id])
+  id         String                  @id @default(uuid())
+  businessId String
+  name       String
+  purpose    String
+  text       String
+  isActive   Boolean                 @default(true)
+  createdAt  DateTime                @default(now())
+  profiles   BusinessProfilePrompt[]
+  business   Business                @relation(fields: [businessId], references: [id])
 }
 
 model Product {
-    id             String   @id @default(uuid())
-    businessId     String
-    type           ProductType
-    priceSegment   PriceSegment
-    name           String
-    description    String
-    isActive       Boolean  @default(true)
-    images         String[]
-    embedding      Unsupported("vector(1536)")?
-
-    profiles       BusinessProfileProduct[]
-    aiArtifacts    AIArtifactProduct[]
-
-    business       Business @relation(fields: [businessId], references: [id])
+  id           String                   @id @default(uuid())
+  businessId   String
+  type         ProductType
+  priceSegment PriceSegment
+  name         String
+  description  String
+  isActive     Boolean                  @default(true)
+  images       String[]
+  embedding    Unsupported("vector")?
+  aiArtifacts  AIArtifactProduct[]
+  profiles     BusinessProfileProduct[]
+  business     Business                 @relation(fields: [businessId], references: [id])
 }
 
 model TargetAudience {
-    id               String   @id @default(uuid())
-    businessId       String
-    name             String
-    ageRange         String
-    gender           String?
-    geo              String
-    pains            String[]
-    desires          String[]
-    triggers         String[]
-    interests        String[]
-    incomeLevel      String?
-
-    profiles         BusinessProfileTargetAudience[]
+  id          String                          @id @default(uuid())
+  ageRange    String
+  gender      String?
+  geo         String
+  pains       String[]
+  desires     String[]
+  triggers    String[]
+  incomeLevel String?
+  businessId  String
+  name        String
+  interests   String[]
+  profiles    BusinessProfileTargetAudience[]
 }
 
 model Platform {
-    id               String   @id @default(uuid())
-    businessId       String
-    code             String   @unique
-    name             String
-    trendRefreshRate Int
-    supportedFormats String[]
-    isActive         Boolean  @default(true)
-
-    trends           Trend[]
-    profiles         BusinessProfilePlatform[]
+  id               String                    @id @default(uuid())
+  code             String                    @unique
+  name             String
+  trendRefreshRate Int
+  supportedFormats String[]
+  isActive         Boolean                   @default(true)
+  businessId       String
+  profiles         BusinessProfilePlatform[]
+  trends           Trend[]
 }
 
 model AIArtifact {
-    id               String   @id @default(uuid())
-    type             AIArtifactType
-    businessId        String
-    businessProfileId String
+  id                String              @id @default(uuid())
+  type              AIArtifactType
+  businessProfileId String
+  trendId           String?
+  outputJson        Json
+  score             Float?
+  status            AIArtifactStatus
+  createdAt         DateTime            @default(now())
+  businessId        String
+  imagePrompt       String?
+  imageUrl          String?
+  businessProfile   BusinessProfile     @relation(fields: [businessProfileId], references: [id], onDelete: Cascade)
+  trend             Trend?              @relation(fields: [trendId], references: [id])
+  products          AIArtifactProduct[]
 
-    trendId          String?
-    outputJson       Json
-    score            Float?
-    status           AIArtifactStatus
-
-    imageUrl         String?
-    imagePrompt      String?
-
-    createdAt        DateTime @default(now())
-
-    products         AIArtifactProduct[]
-
-    businessProfile BusinessProfile @relation(fields: [businessProfileId], references: [id], onDelete: Cascade)
-    trend           Trend?          @relation(fields: [trendId], references: [id])
-
-    @@index([businessId])
+  @@index([businessId])
 }
 
 model Competitor {
-    id           String   @id @default(uuid())
-    businessId   String
-    name         String
-    facebookLink String
-
-    isActive     Boolean  @default(true)
-    createdAt    DateTime @default(now())
-
-    business     Business @relation(fields: [businessId], references: [id])
-    posts        CompetitorPost[]
-    ads          CompetitorAds[]
+  id           String           @id @default(uuid())
+  businessId   String
+  name         String
+  facebookLink String
+  isActive     Boolean          @default(true)
+  createdAt    DateTime         @default(now())
+  business     Business         @relation(fields: [businessId], references: [id])
+  ads          CompetitorAds[]
+  posts        CompetitorPost[]
 }
 
 model CompetitorPost {
-    id            String   @id @default(uuid())
+  id           String       @id @default(uuid())
+  externalId   String
+  platform     PlatformList
+  competitorId String
+  text         String?
+  url          String?
+  media        Json?
+  likes        Int?
+  shares       Int?
+  postedAt     DateTime?
+  fetchedAt    DateTime     @default(now())
+  views        Int?
+  competitor   Competitor   @relation(fields: [competitorId], references: [id], onDelete: Cascade)
 
-    // identity
-    externalId    String
-    platform      PlatformList
-    competitorId  String
-
-    // content
-    text          String?
-    url           String?
-    media         Json?
-
-    // metrics
-    likes         Int?
-    shares        Int?
-    views         Int?
-
-    // meta
-    postedAt      DateTime?
-    fetchedAt     DateTime @default(now())
-
-    competitor    Competitor @relation(fields: [competitorId], references: [id], onDelete: Cascade)
-
-    @@unique([externalId, platform, competitorId])
-    @@index([competitorId])
-    @@index([platform])
+  @@unique([externalId, platform, competitorId])
+  @@index([competitorId])
+  @@index([platform])
 }
 
 model CompetitorAds {
-    id            String   @id @default(uuid())
+  id           String       @id @default(uuid())
+  externalId   String
+  platform     PlatformList
+  competitorId String
+  title        String?
+  body         String?
+  caption      String?
+  url          String?
+  format       String?
+  ctaText      String?
+  ctaType      String?
+  videos       Json?
+  images       Json?
+  start        DateTime?
+  end          DateTime?
+  active_days  Int?
+  fetchedAt    DateTime     @default(now())
+  isActive     Boolean?
+  competitor   Competitor   @relation(fields: [competitorId], references: [id], onDelete: Cascade)
 
-    // identity
-    externalId    String
-    platform      PlatformList
-    competitorId  String
-
-    // content
-    title         String?
-    body          String?
-    caption       String?
-    url           String?
-    format        String?
-    ctaText       String?
-    ctaType       String?
-    videos        Json?
-    images        Json?
-
-    // meta
-    start         DateTime?
-    end           DateTime?
-    active_days   Int?
-    fetchedAt     DateTime @default(now())
-    isActive      Boolean?
-
-    competitor    Competitor @relation(fields: [competitorId], references: [id], onDelete: Cascade)
-
-    @@unique([externalId, platform, competitorId])
-    @@index([competitorId])
-    @@index([platform])
+  @@unique([externalId, platform, competitorId])
+  @@index([competitorId])
+  @@index([platform])
 }
 
 model GalleryPhoto {
-    id         String   @id @default(uuid())
-    businessId String
-    type       GalleryPhotoType
-    isActive   Boolean
-    url        String
-    createdAt  DateTime @default(now())
-
-    profiles   BusinessProfilePhoto[]
-
-    business   Business @relation(fields: [businessId], references: [id])
+  id         String                 @id @default(uuid())
+  businessId String
+  type       GalleryPhotoType
+  isActive   Boolean
+  url        String
+  createdAt  DateTime               @default(now())
+  profiles   BusinessProfilePhoto[]
+  business   Business               @relation(fields: [businessId], references: [id])
 }
 
 model Trend {
-    id          String   @id @default(uuid())
-    businessId       String
-
-    platformId  String
-    source      String
-    title       String
-    description String
-    format      String
-    keywords    String[]
-    publishedAt DateTime
-    metrics     Json?
-    embedding   Unsupported("vector(1536)")?
-    createdAt   DateTime @default(now())
-
-    platform    Platform @relation(fields: [platformId], references: [id])
-    matches     BusinessTrendMatch[]
-    aiArtifacts AIArtifact[]
+  id          String                 @id @default(uuid())
+  platformId  String
+  source      String
+  title       String
+  description String
+  format      String
+  keywords    String[]
+  publishedAt DateTime
+  metrics     Json?
+  embedding   Unsupported("vector")?
+  createdAt   DateTime               @default(now())
+  businessId  String
+  aiArtifacts AIArtifact[]
+  matches     BusinessTrendMatch[]
+  platform    Platform               @relation(fields: [platformId], references: [id])
 }
-
 
 model Tag {
-    id              String   @id @default(uuid())
-    businessId       String
-    type            TagType
-    value           String
-    normalizedValue String
-
-    profiles        BusinessProfileTag[]
+  id              String               @id @default(uuid())
+  type            TagType
+  value           String
+  normalizedValue String
+  businessId      String
+  profiles        BusinessProfileTag[]
 }
-
-
-
-
-
 
 model AIArtifactProduct {
   aiArtifactId String
   productId    String
+  aiArtifact   AIArtifact @relation(fields: [aiArtifactId], references: [id], onDelete: Cascade)
+  product      Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
 
-  aiArtifact AIArtifact @relation(fields: [aiArtifactId], references: [id], onDelete: Cascade)
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
   @@id([aiArtifactId, productId])
 }
 
-
 model BusinessProfileProduct {
-    businessProfileId String
-    productId         String
+  businessProfileId String
+  productId         String
+  businessProfile   BusinessProfile @relation(fields: [businessProfileId], references: [id], onDelete: Cascade)
+  product           Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
 
-    businessProfile BusinessProfile @relation(fields: [businessProfileId], references: [id], onDelete: Cascade)
-    product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-
-    @@id([businessProfileId, productId])
+  @@id([businessProfileId, productId])
 }
 
 model BusinessProfileTargetAudience {
-    businessProfileId String
-    targetAudienceId String
+  businessProfileId String
+  targetAudienceId  String
+  businessProfile   BusinessProfile @relation(fields: [businessProfileId], references: [id], onDelete: Cascade)
+  targetAudience    TargetAudience  @relation(fields: [targetAudienceId], references: [id], onDelete: Cascade)
 
-    businessProfile BusinessProfile @relation(fields: [businessProfileId], references: [id], onDelete: Cascade)
-    targetAudience TargetAudience @relation(fields: [targetAudienceId], references: [id], onDelete: Cascade)
-
-    @@id([businessProfileId, targetAudienceId])
+  @@id([businessProfileId, targetAudienceId])
 }
 
 model BusinessProfilePrompt {
-    businessProfileId String
-    promptId          String
+  businessProfileId String
+  promptId          String
+  businessProfile   BusinessProfile @relation(fields: [businessProfileId], references: [id], onDelete: Cascade)
+  prompt            Prompt          @relation(fields: [promptId], references: [id], onDelete: Cascade)
 
-    businessProfile BusinessProfile @relation(fields: [businessProfileId], references: [id], onDelete: Cascade)
-    prompt Prompt @relation(fields: [promptId], references: [id], onDelete: Cascade)
-
-    @@id([businessProfileId, promptId])
+  @@id([businessProfileId, promptId])
 }
 
 model BusinessProfilePhoto {
-    businessProfileId  String
-    galleryPhotoId     String
+  businessProfileId String
+  galleryPhotoId    String
+  businessProfile   BusinessProfile @relation(fields: [businessProfileId], references: [id], onDelete: Cascade)
+  galleryPhoto      GalleryPhoto    @relation(fields: [galleryPhotoId], references: [id], onDelete: Cascade)
 
-    businessProfile  BusinessProfile @relation(fields: [businessProfileId], references: [id], onDelete: Cascade)
-    galleryPhoto     GalleryPhoto @relation(fields: [galleryPhotoId], references: [id], onDelete: Cascade)
-
-    @@id([businessProfileId, galleryPhotoId])
-    @@index([galleryPhotoId])
+  @@id([businessProfileId, galleryPhotoId])
+  @@index([galleryPhotoId])
 }
 
 model BusinessProfilePlatform {
-    businessProfileId String
-    platformId        String
-    priority          Int
-    notes             String?
+  businessProfileId String
+  platformId        String
+  priority          Int
+  notes             String?
+  businessProfile   BusinessProfile @relation(fields: [businessProfileId], references: [id], onDelete: Cascade)
+  platform          Platform        @relation(fields: [platformId], references: [id], onDelete: Cascade)
 
-    businessProfile BusinessProfile @relation(fields: [businessProfileId], references: [id], onDelete: Cascade)
-    platform Platform @relation(fields: [platformId], references: [id], onDelete: Cascade)
-
-    @@id([businessProfileId, platformId])
+  @@id([businessProfileId, platformId])
 }
 
 model BusinessProfileTag {
-    businessProfileId String
-    tagId             String
-    weight            Float
+  businessProfileId String
+  tagId             String
+  weight            Float
+  businessProfile   BusinessProfile @relation(fields: [businessProfileId], references: [id], onDelete: Cascade)
+  tag               Tag             @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
-    businessProfile BusinessProfile @relation(fields: [businessProfileId], references: [id], onDelete: Cascade)
-    tag Tag @relation(fields: [tagId], references: [id], onDelete: Cascade)
-
-    @@id([businessProfileId, tagId])
+  @@id([businessProfileId, tagId])
 }
 
 model BusinessTrendMatch {
-    businessProfileId String
-    trendId           String
-    relevanceScore    Float
-    matchedAt         DateTime @default(now())
+  businessProfileId String
+  trendId           String
+  relevanceScore    Float
+  matchedAt         DateTime        @default(now())
+  businessProfile   BusinessProfile @relation(fields: [businessProfileId], references: [id], onDelete: Cascade)
+  trend             Trend           @relation(fields: [trendId], references: [id], onDelete: Cascade)
 
-    businessProfile BusinessProfile @relation(fields: [businessProfileId], references: [id], onDelete: Cascade)
-    trend Trend @relation(fields: [trendId], references: [id], onDelete: Cascade)
+  @@id([businessProfileId, trendId])
+}
 
-    @@id([businessProfileId, trendId])
+enum Plan {
+  Free
+  Basic
+  Premium
+}
+
+enum UserRole {
+  Marketer
+  Worker
+}
+
+enum UserStatus {
+  Active
+  Invited
+  Disabled
+}
+
+enum BusinessStatus {
+  Active
+  Paused
+  Archived
+}
+
+enum ProductType {
+  Product
+  Service
+}
+
+enum PriceSegment {
+  Low
+  Middle
+  Premium
+}
+
+enum TagType {
+  Niche
+  Hashtag
+  Pain
+  Format
+}
+
+enum AIArtifactType {
+  Idea
+  Post
+  Script
+  Angle
+}
+
+enum AIArtifactStatus {
+  Draft
+  Approved
+  Rejected
+}
+
+enum PlatformList {
+  Facebook
+  Instagram
+  Tiktok
+}
+
+enum GalleryPhotoType {
+  Image
+  Decoration
 }

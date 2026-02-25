@@ -94,8 +94,6 @@ export class ProfilesService {
   async updateProfile(id: string, body: TProfileUpdate) {
     if (!id) throw new NotFoundException('Product ID is required');
 
-    console.log("BODY ", body)
-
     try {
       const {
         productsIds,
@@ -202,7 +200,10 @@ export class ProfilesService {
       };
 
       const galleryPhotosUrls = mappedProfile.photos.map((photo) => {
-        return photo.url ? this.storageUrlService.getPublicUrl(photo.url) : "";
+        return {
+          type: photo.type,
+          url: photo.url ? this.storageUrlService.getPublicUrl(photo.url) : ""
+        };
       });
 
       const posts: AiPost[] = await this.aiService.generatePostsBasedOnBusinessProfile(mappedProfile, galleryPhotosUrls);
