@@ -4,6 +4,7 @@ import {TProfile} from "../profiles/entities/profile.entity";
 import {AiPost} from "./entities/aiPost.entity";
 import {AiImageService} from "./ai-image.service";
 import {AiReplicate} from "./ai-replicate";
+import {AiVertexImage} from "./ai-vertex";
 import {GalleryPhotoType} from "@prisma/client";
 
 @Injectable()
@@ -12,7 +13,8 @@ export class AiService {
 
   constructor(
     private readonly aiImageService: AiImageService,
-    private readonly aiReplicate: AiReplicate
+    private readonly aiReplicate: AiReplicate,
+    private readonly aiVertexImage: AiVertexImage,
   ) {
     this.model = new ChatOpenAI({
       model: 'gpt-4o-mini',
@@ -29,7 +31,8 @@ export class AiService {
 
     for (const post of posts) {
       if (post.image_prompt) {
-        post.imageUrl = await this.aiReplicate.generateImageOpenAI(post.image_prompt, profile.businessId, photos);
+        post.imageUrl = await this.aiVertexImage.generateImage(post.image_prompt, profile.businessId);
+        //post.imageUrl = await this.aiReplicate.generateImageOpenAI(post.image_prompt, profile.businessId, photos);
       }
     }
 
