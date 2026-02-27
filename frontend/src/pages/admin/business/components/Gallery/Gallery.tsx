@@ -74,18 +74,6 @@ function Gallery() {
           ></UploadGalleryDlg>
         </div>
 
-        <div className="p-5 space-y-10 border-b">
-          <section>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">
-                Post images
-              </h3>
-            </div>
-
-            <Photos photos={decorationPhotos}/>
-          </section>
-        </div>
-
         <div className="p-5 space-y-10">
           <section>
             <div className="flex items-center justify-between mb-4">

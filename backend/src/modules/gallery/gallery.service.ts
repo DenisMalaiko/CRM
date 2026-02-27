@@ -43,10 +43,6 @@ export class GalleryService {
     const uploaded: UploadedImage[] = [];
 
     try {
-      console.log("--------")
-      console.log("DTO ", dto)
-      console.log("--------")
-
       for (const file of files) {
         const key = `gallery/${dto.businessId}/${crypto.randomUUID()}.${file.mimetype.split('/')[1]}`;
 

@@ -40,7 +40,7 @@ function UploadGalleryDlg({ open, onClose }: any) {
   const [ uploadPhotos, { isLoading } ] = useUploadPhotosMutation();
   const [ getPhotos ] = useGetPhotosMutation();
 
-  const TypesList = Object.values(GalleryType);
+  const TypesList = [GalleryType.Image];
 
   useEffect(() => {
     return () => {
