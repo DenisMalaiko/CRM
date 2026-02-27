@@ -23,7 +23,7 @@ import { TCompetitorPostParams } from "../../../../../../../../../models/Competi
 // Utils
 import { showError } from "../../../../../../../../../utils/showError";
 import { isRequired } from "../../../../../../../../../utils/validations";
-import { toDate, toStartOfDay } from "../../../../../../../../../utils/toDate";
+import { toStartOfDay } from "../../../../../../../../../utils/toDate";
 
 function FetchPostsDlg({ open, onClose }: any) {
   const dispatch = useAppDispatch();
@@ -39,10 +39,10 @@ function FetchPostsDlg({ open, onClose }: any) {
   }, []);
 
   // Form Hooks
-  const { form, handleChange, resetForm } = useForm(initForm);
+  const { form, handleChange } = useForm(initForm);
 
   // Validation Hooks
-  const { errors, validateField, validateAll } = useValidation({
+  const { validateField, validateAll } = useValidation({
     onlyPostsNewerThan: (value) => isRequired(value),
   });
 

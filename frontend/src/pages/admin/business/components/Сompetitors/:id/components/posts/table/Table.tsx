@@ -48,7 +48,7 @@ function PostsTable() {
         if(id) {
           const responsePosts: ApiResponse<any> = await getPosts(id).unwrap();
 
-          console.log("POSTS ", responsePosts.data)
+          console.log("POSTS ", responsePosts.data.slice(0, 5))
           if(responsePosts && responsePosts.data) dispatch(setPosts(responsePosts.data));
         }
       } catch (error) {

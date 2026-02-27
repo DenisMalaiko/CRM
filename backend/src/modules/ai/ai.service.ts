@@ -31,8 +31,8 @@ export class AiService {
 
     for (const post of posts) {
       if (post.image_prompt) {
-        post.imageUrl = await this.aiVertexImage.generateImage(post.image_prompt, profile.businessId);
-        //post.imageUrl = await this.aiReplicate.generateImageOpenAI(post.image_prompt, profile.businessId, photos);
+        //post.imageUrl = await this.aiVertexImage.generateImage(post.image_prompt, profile.businessId);
+        post.imageUrl = await this.aiReplicate.generateImageOpenAI(post.image_prompt, profile.businessId, photos);
       }
     }
 

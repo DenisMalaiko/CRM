@@ -20,14 +20,13 @@ import {GalleryType} from "../../../../../../../enum/GalleryType";
 function SelectGalleryDlg({ open, onClose, onSelect, selectedIds }: any) {
   const dispatch = useAppDispatch();
   const { businessId } = useParams<{ businessId: string }>();
-  const MAX_SELECTED = 3
+  const MAX_SELECTED = 1
 
   const [ localSelected, setLocalSelected ] = useState<string[]>([])
 
   const [ getPhotos ] = useGetPhotosMutation();
   const { photos } = useSelector((state: any) => state.galleryModule);
 
-  const postPhotos: TGalleryPhoto[] = photos.filter((p: TGalleryPhoto) => p.type === GalleryType.Decoration);
   const imagePhotos: TGalleryPhoto[] = photos.filter((p: TGalleryPhoto) => p.type === GalleryType.Image);
 
   useEffect(() => {
@@ -86,48 +85,6 @@ function SelectGalleryDlg({ open, onClose, onSelect, selectedIds }: any) {
 
         {/* Content */}
         <div className="flex-1 overflow-auto">
-          {/* тут grid з фото */}
-
-          <div className="space-y-10 border-b p-6">
-            <section>
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">
-                  Post images
-                </h3>
-              </div>
-
-              <div className="grid gap-6 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6">
-                {postPhotos.map(photo => (
-                  <div
-                    key={photo.id}
-                    className="group rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition cursor-pointer"
-                  >
-                    <label className="relative cursor-pointer">
-                      <img
-                        src={photo.url}
-                        className="w-full h-40 object-cover"
-                        alt=""
-                      />
-
-                      <div className="absolute top-3 right-3 duration-300">
-                        <input
-                          type="checkbox"
-                          checked={localSelected.includes(photo.id)}
-                          disabled={
-                            !localSelected.includes(photo.id) &&
-                            localSelected.length >= MAX_SELECTED
-                          }
-                          onChange={() => toggle(photo.id)}
-                          className="h-4 w-4 rounded disabled:opacity-40 disabled:cursor-not-allowed"
-                        />
-                      </div>
-                    </label>
-                  </div>
-                ))}
-              </div>
-            </section>
-          </div>
-
           <div className="space-y-10 p-6">
             <section>
               <div className="flex items-center justify-between mb-4">
