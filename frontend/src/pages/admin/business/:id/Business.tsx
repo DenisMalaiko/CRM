@@ -46,6 +46,10 @@ function Business() {
     {
       id: "competitors",
       title: "Competitors",
+    },
+    {
+      id: "ideas",
+      title: "Ideas",
     }
   ]
 
