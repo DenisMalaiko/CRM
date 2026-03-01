@@ -12,6 +12,7 @@ import artifactModule from "./artifact/artifactSlice"
 import promptModule from "./prompts/promptSlice";
 import competitorModule from "./competitor/competitorSlice";
 import galleryModule from "./gallery/gallerySlice";
+import ideaModule from "./idea/ideaSlice";
 import { api } from './api/api'
 
 export const store = configureStore({
@@ -29,6 +30,7 @@ export const store = configureStore({
     promptModule: promptModule,
     competitorModule: competitorModule,
     galleryModule: galleryModule,
+    ideaModule: ideaModule,
     [api.reducerPath]: api.reducer,
   },
   middleware: (getDefaultMiddleware: any) => getDefaultMiddleware().concat(api.middleware),

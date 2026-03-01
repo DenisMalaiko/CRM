@@ -88,7 +88,9 @@ function BaseData() {
                 </div>
                 <div className="flex justify-between border-b pb-2">
                   <span className="font-medium">Website</span>
-                  <span className="text-slate-500">{business?.website}</span>
+                  <a href={business.website} className="text-blue-600 text-left underline" target="_blank">
+                    {business.name}
+                  </a>
                 </div>
                 <div className="flex justify-between border-b pb-2">
                   <span className="font-medium">Industry</span>

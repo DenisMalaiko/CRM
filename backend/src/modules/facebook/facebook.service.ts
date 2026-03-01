@@ -8,8 +8,6 @@ export class FacebookService {
   constructor(private readonly apify: ApifyService) {}
 
   async fetchAds(competitorId: string, pageUrl: string, body: TCompetitorAdsParams) {
-    console.log("FETCH ADS PARAMS ", body);
-
     const items = await this.apify.runActor<any>(
       'curious_coder~facebook-ads-library-scraper',
       {
@@ -26,10 +24,6 @@ export class FacebookService {
         ],
       }
     );
-
-    console.log("--------------")
-    console.log("RESPONSE ", items);
-    console.log("--------------")
 
     return items
       .filter(i => !i.error)
@@ -99,58 +93,6 @@ export class FacebookService {
       end: this._toDate(item?.end_date),
       active_days: this._active_days(item.start_date, item.end_date),
       isActive: item?.is_active,
-
-
-
-      /*// identity
-      ads_id: item?.ad_archive_id,
-      page_id: item?.page_id,
-      page_name: item?.page_name,
-      page_categories: item?.snapshot?.page_categories,
-
-      // creative
-      title: item?.snapshot?.title,
-      body: item?.snapshot?.body?.text,
-      caption: item?.snapshot?.caption,
-      title_length: item?.snapshot?.title?.length,
-      body_length: item?.snapshot?.body?.text?.length,
-      likes_count: item?.snapshot?.page_like_count,
-
-      // media
-      display_format: item?.snapshot?.display_format,
-      has_video: item?.snapshot?.videos?.length > 0,
-      videos: this._video(item),
-      has_image: item?.snapshot?.images?.length > 0,
-      images: item?.snapshot?.images,
-
-      // CTA & funnel
-      cta_text: item?.snapshot?.cta_text,
-      cta_type: item?.snapshot?.cta_type,
-      link_url: item?.snapshot?.link_url,
-      landing_domain: this._landing_domain(item),
-
-      // time & performance proxy
-      start_date: item?.start_date,
-      end_date: item?.end_date,
-      active_days: this._active_days(item),
-      is_active: item?.is_active,
-
-      // scaling
-      ads_count: item?.ads_count,
-      position: item?.position,
-
-      // distribution
-      publisher_platform: item?.publisher_platform,
-
-      // brand context
-      page_likes: item?.snapshot?.page_like_count,
-      page_created_at: item?.pageInfo?.creation_date,
-
-      // links
-      url: item?.ad_library_url,
-
-      contains_sensitive_content: item?.contains_sensitive_content,
-      is_finserv: item?.regional_regulation_data?.finserv?.is_deemed_finserv,*/
     }
   }
 

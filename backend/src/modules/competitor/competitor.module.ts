@@ -8,5 +8,6 @@ import { FacebookModule } from "../facebook/facebook.module";
   imports: [AuthModule, FacebookModule],
   controllers: [CompetitorController],
   providers: [CompetitorService],
+  exports: [CompetitorService]
 })
 export class CompetitorModule {}

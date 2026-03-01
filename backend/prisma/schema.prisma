@@ -51,6 +51,7 @@ model Business {
   galleryPhotos    GalleryPhoto[]
   products         Product[]
   prompts          Prompt[]
+  ideas            Idea[]
 }
 
 model BusinessProfile {
@@ -68,6 +69,7 @@ model BusinessProfile {
   prompts      BusinessProfilePrompt[]
   tags         BusinessProfileTag[]
   audiences    BusinessProfileTargetAudience[]
+  ideas        BusinessProfileIdea[]
   trendMatches BusinessTrendMatch[]
 }
 
@@ -213,6 +215,28 @@ model GalleryPhoto {
   business   Business               @relation(fields: [businessId], references: [id])
 }
 
+model Idea {
+  id            String    @id @default(uuid())
+  businessId    String
+  competitorId      String
+  competitorPostId  String
+  title         String
+  description   String
+  url           String
+  who           IdeaWho
+  what          IdeaWhat
+  why           IdeaWhy
+  how           IdeaHow
+  feeling       IdeaFeeling
+  score         Int
+  createdAt     DateTime   @default(now())
+  status        IdeaStatus @default(New)
+  profiles      BusinessProfileIdea[]
+  business      Business   @relation(fields: [businessId], references: [id])
+
+  @@unique([businessId, competitorPostId, competitorId])
+}
+
 model Trend {
   id          String                 @id @default(uuid())
   platformId  String
@@ -265,6 +289,15 @@ model BusinessProfileTargetAudience {
   targetAudience    TargetAudience  @relation(fields: [targetAudienceId], references: [id], onDelete: Cascade)
 
   @@id([businessProfileId, targetAudienceId])
+}
+
+model BusinessProfileIdea {
+  businessProfileId String
+  ideaId            String
+  businessProfile   BusinessProfile @relation(fields: [businessProfileId], references: [id], onDelete: Cascade)
+  idea              Idea            @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+
+  @@id([businessProfileId, ideaId])
 }
 
 model BusinessProfilePrompt {
@@ -381,4 +414,70 @@ enum PlatformList {
 enum GalleryPhotoType {
   Image
   Decoration
+}
+
+enum IdeaWho {
+    Person
+    Team
+    Company
+    Customer
+    CoachExpert
+    Community
+    Event
+    Product
+}
+
+enum IdeaWhat {
+    Achievement
+    Announcement
+    Story
+    BehindTheScenes
+    Educational
+    Promotional
+    Community
+    Update
+    Testimonial
+    Entertainment
+}
+
+enum IdeaWhy {
+    BuildBrand
+    Inform
+    Engage
+    Attract
+    Retain
+    Prove
+    Inspire
+    Educate
+    Sell
+}
+
+enum IdeaHow {
+    Storytelling
+    ShortBlocks
+    NewsFormat
+    ListFormat
+    MinimalText
+    LongForm
+}
+
+enum IdeaFeeling {
+    Pride
+    Trust
+    Excitement
+    Inspiration
+    Joy
+    Belonging
+    Motivation
+    Curiosity
+    Anticipation
+    Authority
+    Empathy
+}
+
+enum IdeaStatus {
+    New
+    Planned
+    Used
+    Archived
 }
