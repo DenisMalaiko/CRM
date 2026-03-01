@@ -21,10 +21,6 @@ export class ApifyService {
     const datasetRes = await fetch(`${this.apifyApiURL}/datasets/${run.defaultDatasetId}/items?token=${this.apifyApiKey}`);
     const items = await datasetRes.json();
 
-    console.log("----------")
-    console.log("ITEMS ", items)
-    console.log("----------")
-
     if (items[0].error) {
       if(items[0].errorCode === "PAGE_PRIVATE") {
         throw new BadRequestException('Page is private');

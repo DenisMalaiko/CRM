@@ -6,6 +6,7 @@ import {AiImageService} from "./ai-image.service";
 import {AiReplicate} from "./ai-replicate";
 import {AiVertexImage} from "./ai-vertex";
 import {GalleryPhotoType} from "@prisma/client";
+import {IdeasBatchSchema} from "../idea/schema/idea.schema";
 
 @Injectable()
 export class AiService {
@@ -37,6 +38,38 @@ export class AiService {
     }
 
     return posts;
+  }
+
+  async analyzeCompetitorPosts(posts: any[]) {
+    const structuredModel =
+      this.model.withStructuredOutput(IdeasBatchSchema);
+
+    const payload = posts.map(p => ({
+      competitorPostId: p.id,
+      platform: p.platform,
+      text: p.text,
+      likes: p.likes,
+      shares: p.shares,
+      views: p.views,
+    }));
+
+    const prompt = `
+      You are a senior social media marketing analyst.
+      
+      Analyze EACH competitor post and extract ONE marketing idea per post.
+      
+      Return object:
+      {
+        "ideas": [...]
+      }
+      
+      Posts:
+      ${JSON.stringify(payload)}
+     `;
+
+    const result = await structuredModel.invoke(prompt);
+
+    return result.ideas;
   }
 
   private buildPromptForPosts(profile) {

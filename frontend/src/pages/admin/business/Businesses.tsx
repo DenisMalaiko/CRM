@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { ExternalLink } from "lucide-react";
 
 // Redux
 import { RootState } from "../../../store";
@@ -145,7 +146,11 @@ function Businesses() {
                 businesses && businesses.map((item: TBusiness) => (
                   <tr key={item.id} onClick={() => openBusiness(item?.id)} className="bg-white hover:bg-slate-50 cursor-pointer transition-colors">
                     <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.name}</td>
-                    <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.website}</td>
+                    <td className="px-4 py-3 font-medium text-slate-900 text-left">
+                      <a href={item.website} className="text-blue-600 text-left underline" target="_blank">
+                        {item.name}
+                      </a>
+                    </td>
                     <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.industry}</td>
                     <td className="px-4 py-3 font-medium text-slate-900 text-left">
                     <span className={`

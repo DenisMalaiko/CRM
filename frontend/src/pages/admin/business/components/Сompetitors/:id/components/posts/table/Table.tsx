@@ -35,7 +35,7 @@ function PostsTable() {
   const [ openSliderDlg, setOpenSliderDlg ] = useState<any>(null);
   const [ selectedMedia, setSelectedMedia ] = useState<any>(null);
 
-  const [sortKey, setSortKey] = useState<'postedAt' | 'likes' | 'shares' | 'viewsCount'>('postedAt');
+  const [sortKey, setSortKey] = useState<'postedAt' | 'likes' | 'shares'>('postedAt');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
 
   const [ getPosts ] = useGetPostsMutation();
@@ -96,7 +96,7 @@ function PostsTable() {
   }
 
   // Sort Posts
-  const onSort = (key: 'likes' | 'shares' | 'viewsCount' | 'postedAt') => {
+  const onSort = (key: 'likes' | 'shares' | 'postedAt') => {
     if (sortKey === key) {
       setSortDir(prev => (prev === 'desc' ? 'asc' : 'desc'));
     } else {
@@ -173,13 +173,6 @@ function PostsTable() {
                 </th>
 
                 <th
-                  onClick={() => onSort('viewsCount')}
-                  className="px-4 py-3 text-xs font-semibold uppercase tracking-wide cursor-pointer select-none text-slate-600 text-left text-nowrap"
-                >
-                  Views {sortKey === 'viewsCount' ? (sortDir === 'desc' ? '↓' : '↑') : ''}
-                </th>
-
-                <th
                   onClick={() => onSort('postedAt')}
                   className="px-4 py-3 text-xs font-semibold uppercase tracking-wide cursor-pointer select-none text-slate-600 text-left text-nowrap"
                 >
@@ -252,7 +245,6 @@ function PostsTable() {
                   <td className="px-4 py-3 font-medium text-slate-900 text-left text-sm">{ item.platform }</td>
                   <td className="px-4 py-3 font-medium text-slate-900 text-left text-sm">{ item.likes }</td>
                   <td className="px-4 py-3 font-medium text-slate-900 text-left text-sm">{ item.shares }</td>
-                  <td className="px-4 py-3 font-medium text-slate-900 text-left text-sm">{ item.viewsCount }</td>
                   <td className="px-4 py-3 font-medium text-slate-900 text-left text-sm text-nowrap">{ toDate(item.postedAt) }</td>
                   <td className="px-4 py-3 font-medium text-slate-900 text-left">
                     <a href={item.url} className="text-blue-600 text-left" target="_blank">

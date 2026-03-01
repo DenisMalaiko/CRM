@@ -24,6 +24,7 @@ import { CompetitorModule } from "./modules/competitor/competitor.module";
 import { ApifyModule } from "./modules/apify/apify.module";
 import { FacebookModule } from "./modules/facebook/facebook.module";
 import { GalleryModule } from "./modules/gallery/gallery.module";
+import { IdeaModule } from "./modules/idea/idea.module";
 
 @Module({
   imports: [
@@ -65,6 +66,7 @@ import { GalleryModule } from "./modules/gallery/gallery.module";
     ApifyModule,
     FacebookModule,
     GalleryModule,
+    IdeaModule
   ],
   controllers: [AppController],
   providers: [
