@@ -1,42 +1,44 @@
-import React, { useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
-import { toast } from "react-toastify";
+import React, {useMemo, useState} from "react";
+import {useParams} from "react-router-dom";
+import {toast} from "react-toastify";
 import Select from "react-select";
-import { X } from "lucide-react";
+import {X} from "lucide-react";
 
 // Hooks
-import { useForm } from "../../../../../../hooks/useForm";
-import { useValidation } from "../../../../../../hooks/useValidation";
+import {useForm} from "../../../../../../hooks/useForm";
+import {useValidation} from "../../../../../../hooks/useValidation";
 
 // Redux
-import { useSelector } from "react-redux";
-import { useAppDispatch } from "../../../../../../store/hooks";
+import {useSelector} from "react-redux";
+import {useAppDispatch} from "../../../../../../store/hooks";
 import {
   useCreateProfileMutation,
-  useUpdateProfileMutation,
-  useGetProfilesMutation
+  useGetProfilesMutation,
+  useUpdateProfileMutation
 } from "../../../../../../store/profile/profileApi";
-import { setProfiles } from "../../../../../../store/profile/profileSlice";
+import {setProfiles} from "../../../../../../store/profile/profileSlice";
 
 // Components
 import SelectGalleryDlg from "../../Gallery/components/selectGalleryDlg/SelectGalleryDlg";
 
 // Utils
-import { showError } from "../../../../../../utils/showError";
-import { isRequired, isRequiredArray, minLength, isBoolean, isArray } from "../../../../../../utils/validations";
-import { isNativeEvent, ChangeArg } from "../../../../../../utils/isNativeEvent";
-import { centeredSelectStyles } from "../../../../../../utils/reactSelectStyles";
+import {showError} from "../../../../../../utils/showError";
+import {isArray, isBoolean, isRequired, isRequiredArray, minLength} from "../../../../../../utils/validations";
+import {ChangeArg, isNativeEvent} from "../../../../../../utils/isNativeEvent";
+import {centeredSelectStyles} from "../../../../../../utils/reactSelectStyles";
 
 // Enum
-import { BusinessProfileFocus } from "../../../../../../enum/BusinessProfileFocus";
+import {BusinessProfileFocus} from "../../../../../../enum/BusinessProfileFocus";
+import {IdeaStatus} from "../../../../../../enum/IdeaStatus";
 
 // Models
-import { ApiResponse } from "../../../../../../models/ApiResponse";
-import { TBusinessProfile } from "../../../../../../models/BusinessProfile";
-import { TProduct } from "../../../../../../models/Product";
-import { TAudience } from "../../../../../../models/Audience";
-import { TPrompt } from "../../../../../../models/Prompt";
-import { TGalleryPhoto } from "../../../../../../models/Gallery";
+import {ApiResponse} from "../../../../../../models/ApiResponse";
+import {TBusinessProfile} from "../../../../../../models/BusinessProfile";
+import {TProduct} from "../../../../../../models/Product";
+import {TAudience} from "../../../../../../models/Audience";
+import {TPrompt} from "../../../../../../models/Prompt";
+import {TGalleryPhoto} from "../../../../../../models/Gallery";
+import {TIdea} from "../../../../../../models/Idea";
 
 function CreateProfileDlg({ open, onClose, profile }: any) {
   const dispatch = useAppDispatch();
@@ -45,6 +47,7 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
   const { audiences } = useSelector((state: any) => state.audienceModule);
   const { prompts } = useSelector((state: any) => state.promptModule);
   const { photos } = useSelector((state: any) => state.galleryModule);
+  const { ideas } = useSelector((state: any) => state.ideaModule);
 
   const isEdit = !!profile;
   const { businessId } = useParams<{ businessId: string }>();
@@ -56,7 +59,8 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
 
   const productsOptions = products?.map((product: any) => ({ value: product.id, label: product.name })) ?? [];
   const audiencesOptions = audiences?.map((audience: any) => ({ value: audience.id, label: audience.name })) ?? [];
-  const promptsOptions = prompts?.map((prompt: any) => ({ value: prompt.id, label: `${prompt.name} | ${prompt.purpose}` })) ?? [];
+  const promptsOptions = prompts?.map((prompt: TPrompt) => ({ value: prompt.id, label: `${prompt.name} | ${prompt.purpose}` })) ?? [];
+  const ideasOptions = ideas?.filter((idea: TIdea) => idea.status === IdeaStatus.Used).map((idea: TIdea) => ({ value: idea.id, label: idea.title })) ?? [];
   const profileFocusOptions = Object.values(BusinessProfileFocus);
 
   // Init Form
@@ -67,6 +71,7 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
         profileFocus: profile.profileFocus,
         productsIds: profile.products.map((x: TProduct) => x.id) ?? [],
         audiencesIds: profile.audiences.map((x: TAudience) => x.id) ?? [],
+        ideasIds: profile.ideas.map((x: TIdea) => x.id) ?? [],
         promptsIds: profile.prompts.map((x: TPrompt) => x.id) ?? [],
         photosIds: profile.photos?.map((x: TGalleryPhoto) => x.id) ?? [],
         isActive: profile.isActive,
@@ -79,6 +84,7 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
       profileFocus: BusinessProfileFocus.GeneratePosts,
       productsIds: [] as string[],
       audiencesIds: [] as string[],
+      ideasIds: [] as string[],
       promptsIds: [] as string[],
       photosIds: [] as string[],
       isActive: true,
@@ -93,8 +99,9 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
   const { errors, validateField, validateAll } = useValidation({
     name: (value) => minLength(value, 3),
     profileFocus: (value) => isRequired(value),
-    productsIds: (value) => isRequiredArray(value),
+    productsIds: (value) => isArray(value),
     audiencesIds: (value) => isRequiredArray(value),
+    ideasIds: (value) => isArray(value),
     promptsIds: (value) => isArray(value),
     photosIds: (value) => isArray(value),
     businessId: (value) => isRequired(value),
@@ -161,13 +168,14 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50">
         <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl p-6">
 
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-4 relative">
             <h2 className="text-lg font-semibold">{ isEdit ? "Edit" : "Create" } Profile</h2>
+
             <button
               onClick={onClose}
-              className="text-slate-500 hover:text-slate-700 rounded-full p-1 hover:bg-slate-100"
+              className="absolute top-0 right-0 text-white text-xl z-10 bg-blue-600 rounded-full p-2 hover:bg-blue-700 cursor-pointer"
             >
-              ✕
+              <X size={20} strokeWidth={2} color="white"></X>
             </button>
           </div>
 
@@ -228,6 +236,28 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
               />
 
               {errors.productsIds && <p className="text-red-500 text-sm mt-2 text-left">{errors.productsIds}</p>}
+            </div>
+
+            <div>
+              <div className="flex items-center gap-2 justify-between">
+                <label className="block text-sm font-medium text-slate-700 text-left">Idea</label>
+              </div>
+
+              <Select
+                options={ideasOptions}
+                value={ideasOptions.find(
+                  (option: { label: string, value: string }) => form.ideasIds[0] === option.value
+                )}
+                onChange={(selected) =>
+                  onChange({
+                    name: "ideasIds",
+                    value: selected ? [selected.value] : [],
+                  })
+                }
+                styles={centeredSelectStyles}
+              />
+
+              {errors.ideasIds && <p className="text-red-500 text-sm mt-2 text-left">{errors.ideasIds}</p>}
             </div>
 
             <div>

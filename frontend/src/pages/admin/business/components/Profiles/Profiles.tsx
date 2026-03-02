@@ -10,12 +10,14 @@ import { useGetProductsMutation } from "../../../../../store/products/productsAp
 import { useGetAudiencesMutation } from "../../../../../store/audience/audienceApi";
 import { useGetPlatformsMutation } from "../../../../../store/platform/platformApi";
 import { useGetPromptsMutation } from "../../../../../store/prompts/promptApi";
+import { useGetIdeasMutation } from "../../../../../store/idea/ideaApi";
 
 import { setProfiles } from "../../../../../store/profile/profileSlice";
 import { setProducts } from "../../../../../store/products/productsSlice";
 import { setAudiences } from "../../../../../store/audience/audienceSlice";
 import { setPlatforms } from "../../../../../store/platform/platformSlice";
 import { setPrompts } from "../../../../../store/prompts/promptSlice";
+import { setIdeas } from "../../../../../store/idea/ideaSlice";
 
 // Components
 import CreateProfileDlg from "./createProfileDlg/CreateProfileDlg";
@@ -30,6 +32,7 @@ import { TBusinessProfile } from "../../../../../models/BusinessProfile";
 import { TProduct } from "../../../../../models/Product";
 import { TAudience } from "../../../../../models/Audience";
 import { TPlatform } from "../../../../../models/Platform";
+import {TIdea} from "../../../../../models/Idea";
 
 function Profiles() {
   const dispatch = useAppDispatch();
@@ -42,6 +45,7 @@ function Profiles() {
   const [ getPlatforms ] = useGetPlatformsMutation();
   const [ generatePosts ] = useGeneratePostsMutation();
   const [ getPrompts ] = useGetPromptsMutation();
+  const [ getIdeas ] = useGetIdeasMutation();
 
   const { profiles } = useSelector((state: any) => state.profileModule);
   const [ open, setOpen ] = useState(false);
@@ -65,12 +69,14 @@ function Profiles() {
           const audiencesResponse: ApiResponse<TAudience[]> = await getAudiences(businessId).unwrap();
           const platformsResponse: ApiResponse<TPlatform[]> = await getPlatforms(businessId).unwrap();
           const promptsResponse: ApiResponse<any[]> = await getPrompts(businessId).unwrap();
+          const ideasResponse: ApiResponse<TIdea[]> = await getIdeas(businessId).unwrap();
 
           if(response && response?.data) dispatch(setProfiles(response.data));
           if(productsResponse && productsResponse?.data) dispatch(setProducts(productsResponse.data));
           if(audiencesResponse && audiencesResponse?.data) dispatch(setAudiences(audiencesResponse.data));
           if(platformsResponse && platformsResponse?.data) dispatch(setPlatforms(platformsResponse.data));
           if(promptsResponse && promptsResponse?.data) dispatch(setPrompts(promptsResponse.data));
+          if(ideasResponse && ideasResponse?.data) dispatch(setIdeas(ideasResponse.data));
         }
       } catch (error) {
         showError(error);
@@ -195,13 +201,13 @@ function Profiles() {
                         <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.name}</td>
                         <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.profileFocus}</td>
                         <td className="px-4 py-3 font-medium text-slate-900 text-left">
-                      <span className={`
-                        inline-flex items-center rounded-full px-2.5 py-1
-                        text-xs font-medium
-                        ${item.isActive ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600"}
-                      `}>
-                        {item.isActive ? "Yes" : "No"}
-                      </span>
+                          <span className={`
+                            inline-flex items-center rounded-full px-2.5 py-1
+                            text-xs font-medium
+                            ${item.isActive ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600"}
+                          `}>
+                            {item.isActive ? "Yes" : "No"}
+                          </span>
                         </td>
                         <td className="px-4 py-3 text-right">
                           <div className="flex items-center gap-2 justify-end">

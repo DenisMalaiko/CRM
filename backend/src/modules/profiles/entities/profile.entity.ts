@@ -3,6 +3,7 @@ import { TAudience } from "../../audience/entity/audience.entity";
 import { TBusiness } from "../../business/entities/business.entity";
 import { TPrompt } from "../../prompt/entities/prompt.entity";
 import { TGalleryPhoto } from "../../gallery/entities/gallery.entity";
+import { TIdea } from "../../idea/entities/idea.entity";
 
 type TProfileBase = {
   businessId: string;
@@ -16,21 +17,24 @@ export type TProfile = TProfileBase & {
   createdAt: Date;
   products: TProduct[];
   audiences: TAudience[];
+  ideas: TIdea[];
   prompts: TPrompt[];
   photos: TGalleryPhoto[];
   business?: TBusiness;
 }
 
 export type TProfileCreate = TProfileBase & {
-  productsIds: string[];
   audiencesIds: string[];
+  productsIds?: string[];
+  ideasIds?: string[];
   promptsIds?: string[];
   photosIds?: string[];
 }
 
 export type TProfileUpdate = TProfileBase & {
-  productsIds: string[];
   audiencesIds: string[];
+  productsIds?: string[];
+  ideasIds?: string[];
   promptsIds?: string[];
   photosIds?: string[];
 }

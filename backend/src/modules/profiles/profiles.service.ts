@@ -24,6 +24,7 @@ export class ProfilesService {
       include: {
         products: { include: { product: true } },
         audiences: { include: { targetAudience: true } },
+        ideas: { include: { idea: true } },
         prompts: { include: { prompt: true } },
         photos: { include: { galleryPhoto: true } },
         business: true
@@ -38,8 +39,9 @@ export class ProfilesService {
       isActive: profile.isActive,
       createdAt: profile.createdAt,
       business: profile?.business,
-      products: profile.products.map(p => p.product),
       audiences: profile.audiences.map(a => a.targetAudience),
+      products: profile?.products.map(p => p.product),
+      ideas: profile?.ideas.map(p => p.idea),
       prompts: profile?.prompts.map(p => p.prompt),
       photos: profile?.photos.map(p => p.galleryPhoto),
     }));
@@ -47,8 +49,9 @@ export class ProfilesService {
 
   async createProfile(body: TProfileCreate): Promise<TProfile> {
     const {
-      productsIds,
       audiencesIds,
+      productsIds = [],
+      ideasIds = [],
       promptsIds = [],
       photosIds = [],
       ...profileData
@@ -57,6 +60,13 @@ export class ProfilesService {
     const profile: any = await this.prisma.businessProfile.create({
       data: {
         ...profileData,
+        audiences: {
+          createMany: {
+            data: audiencesIds.map(targetAudienceId => ({
+              targetAudienceId,
+            })),
+          },
+        },
         products: {
           createMany: {
             data: productsIds.map(productId => ({
@@ -64,10 +74,10 @@ export class ProfilesService {
             })),
           },
         },
-        audiences: {
+        ideas: {
           createMany: {
-            data: audiencesIds.map(targetAudienceId => ({
-              targetAudienceId,
+            data: ideasIds.map(ideaId => ({
+              ideaId,
             })),
           },
         },
@@ -96,8 +106,9 @@ export class ProfilesService {
 
     try {
       const {
-        productsIds,
         audiencesIds,
+        productsIds = [],
+        ideasIds = [],
         promptsIds = [],
         photosIds = [],
         ...profileData
@@ -107,6 +118,17 @@ export class ProfilesService {
         where: { id },
         data: {
           ...profileData,
+          audiences: audiencesIds
+            ? {
+              deleteMany: {},
+              createMany: {
+                data: audiencesIds.map(targetAudienceId => ({
+                  targetAudienceId,
+                })),
+              },
+            }
+            : undefined,
+
           products: productsIds
             ? {
               deleteMany: {},
@@ -115,13 +137,12 @@ export class ProfilesService {
               },
             }
             : undefined,
-          audiences: audiencesIds
+
+          ideas: ideasIds
             ? {
               deleteMany: {},
               createMany: {
-                data: audiencesIds.map(targetAudienceId => ({
-                  targetAudienceId,
-                })),
+                data: ideasIds.map(ideaId => ({ideaId})),
               },
             }
             : undefined,
@@ -176,8 +197,17 @@ export class ProfilesService {
     const profile = await this.prisma.businessProfile.findUnique({
       where: { id },
       include: {
-        products: { include: { product: true } },
         audiences: { include: { targetAudience: true } },
+        products: { include: { product: true } },
+        ideas: {
+          include: {
+            idea: {
+              include: {
+                competitorPost: true,
+              },
+            },
+          },
+        },
         prompts: { include: { prompt: true } },
         photos: { include: { galleryPhoto: true } },
         business: true
@@ -193,11 +223,19 @@ export class ProfilesService {
         isActive: profile.isActive,
         createdAt: profile.createdAt,
         business: profile?.business,
-        products: profile.products.map(p => p.product),
         audiences: profile.audiences.map(a => a.targetAudience),
+        products: profile?.products.map(p => p.product),
+        ideas: profile.ideas.map(p => ({
+          ...p.idea,
+          competitorText: p.idea.competitorPost?.text ?? null,
+        })),
         prompts: profile.prompts.map(p => p.prompt),
         photos: profile?.photos.map(p => p.galleryPhoto),
       };
+
+      console.log("-------")
+      console.log("MAPPED PROFILE: ", mappedProfile)
+      console.log("-------")
 
       const galleryPhotosUrls = mappedProfile.photos.map((photo) => {
         return {
@@ -205,6 +243,7 @@ export class ProfilesService {
           url: photo.url ? this.storageUrlService.getPublicUrl(photo.url) : ""
         };
       });
+
 
       const posts: AiPost[] = await this.aiService.generatePostsBasedOnBusinessProfile(mappedProfile, galleryPhotosUrls);
 

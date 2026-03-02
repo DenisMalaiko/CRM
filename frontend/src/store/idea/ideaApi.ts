@@ -1,6 +1,6 @@
 import { api } from "../api/api";
 import { ApiResponse } from "../../models/ApiResponse";
-import { TIdea, TIdeaParams } from "../../models/Idea";
+import { TIdea, TIdeaParams, TIdeaUpdate } from "../../models/Idea";
 
 export const ideaApi = api.injectEndpoints({
   endpoints: (builder) => ({
@@ -30,6 +30,21 @@ export const ideaApi = api.injectEndpoints({
         method: "GET",
       })
     }),
+
+    updateIdea: builder.mutation<ApiResponse<TIdea>, { id: string, form: TIdeaUpdate }>({
+      query: ({ id, form }) => ({
+        url: `/ideas/${id}`,
+        method: "PATCH",
+        body: form,
+      })
+    }),
+
+    deleteIdea: builder.mutation<ApiResponse<TIdea>, string>({
+      query: (id: string) => ({
+        url: `/ideas/${id}`,
+        method: "DELETE",
+      })
+    }),
   }),
   overrideExisting: false,
 });
@@ -37,4 +52,6 @@ export const ideaApi = api.injectEndpoints({
 export const {
   useGetIdeasMutation,
   useFetchIdeasMutation,
+  useDeleteIdeaMutation,
+  useUpdateIdeaMutation,
 } = ideaApi;

@@ -1,3 +1,5 @@
+import { IdeaStatus } from "../enum/IdeaStatus";
+
 export type TIdea = {
   id: string;
   businessId: string;
@@ -10,9 +12,13 @@ export type TIdea = {
   feeling: string;
   score: number;
   createdAt: Date;
-  status: string;
+  status: IdeaStatus;
 }
 
 export type TIdeaParams = {
   onlyPostsNewerThan: Date;
+}
+
+export type TIdeaUpdate = {
+  status: IdeaStatus;
 }

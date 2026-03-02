@@ -12,10 +12,15 @@ export class ProfileBaseDto {
   profileFocus: string;
 
   @IsArray()
+  audiencesIds: string[];
+
+  @IsArray()
+  @IsOptional()
   productsIds: string[];
 
   @IsArray()
-  audiencesIds: string[];
+  @IsOptional()
+  ideasIds: string[];
 
   @IsArray()
   @IsOptional()
