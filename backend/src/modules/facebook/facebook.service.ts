@@ -45,6 +45,8 @@ export class FacebookService {
       }
     );
 
+    console.log("APIFY ITEMS ", items)
+
     return items
       .filter(i => !i.error)
       .map(i => this._postsMapper(competitorId, i));

@@ -1,4 +1,5 @@
-import {IsDateString, IsUUID} from 'class-validator';
+import {IsDateString, IsUUID, IsEnum} from 'class-validator';
+import { IdeaStatus } from "@prisma/client";
 
 
 export class IdeaIdParamDto {
@@ -9,4 +10,9 @@ export class IdeaIdParamDto {
 export class IdeaParamsDto {
   @IsDateString()
   onlyPostsNewerThan: string;
+}
+
+export class IdeaUpdateDto {
+  @IsEnum(IdeaStatus)
+  status: IdeaStatus;
 }

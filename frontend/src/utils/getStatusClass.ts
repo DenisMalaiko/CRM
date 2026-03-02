@@ -1,6 +1,7 @@
 import { PriceSegment } from "../enum/PriceSegment";
 import { BusinessStatus } from "../enum/BusinessStatus";
 import { AIArtifactStatus } from "../enum/AIArtifactStatus";
+import { IdeaStatus } from "../enum/IdeaStatus";
 
 export const getStatusClass = (status: string) => {
   switch (status) {
@@ -24,6 +25,17 @@ export const getStatusClass = (status: string) => {
       return "bg-amber-50 text-amber-700";
     case AIArtifactStatus.Rejected:
       return "bg-slate-100 text-slate-600";
+
+
+    case IdeaStatus.New:
+      return "bg-amber-50 text-amber-700";
+    case IdeaStatus.Planned:
+      return "bg-blue-50 text-blue-700";
+    case IdeaStatus.Used:
+      return "bg-emerald-50 text-emerald-700";
+    case IdeaStatus.Archived:
+      return "bg-slate-100 text-slate-600";
+
 
     default:
       return "bg-gray-50 text-gray-700";

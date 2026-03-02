@@ -1,9 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import {Injectable, InternalServerErrorException, NotFoundException} from '@nestjs/common';
 import { PrismaService } from "../../core/prisma/prisma.service";
 import { CompetitorService } from "../competitor/competitor.service";
 import { AiService } from "../ai/ai.service";
 import { FacebookService } from "../facebook/facebook.service";
-import { TIdeaParams } from "./entities/idea.entity";
+import { TIdea, TIdeaParams, TIdeaUpdate } from "./entities/idea.entity";
 
 @Injectable()
 export class IdeaService {
@@ -14,13 +14,13 @@ export class IdeaService {
     private readonly facebookService: FacebookService,
   ) {}
 
-  async getIdeas(businessId: string): Promise<any[]> {
+  async getIdeas(businessId: string): Promise<TIdea[]> {
     return await this.prisma.idea.findMany({
       where: { businessId: businessId },
     });
   }
 
-  async fetchIdeas(businessId: string, body: TIdeaParams): Promise<any> {
+  async fetchIdeas(businessId: string, body: TIdeaParams): Promise<TIdea[] | null> {
     const competitors = await this.competitorService.getCompetitors(businessId);
 
     const posts: any = [];
@@ -37,10 +37,6 @@ export class IdeaService {
       if(!competitorPosts) return null;
 
       const savedPosts = await this.competitorService.savePosts(competitor.id, competitorPosts);
-
-      console.log("----------")
-      console.log("SAVED POSTS");
-      console.log("----------")
 
       posts.push(...savedPosts);
     }
@@ -80,6 +76,36 @@ export class IdeaService {
         })
       )
     );
+  }
+
+  async updateIdea(id: string, body: TIdeaUpdate): Promise<TIdea> {
+    if (!id) {
+      throw new NotFoundException('Platform ID is required');
+    }
+
+    try {
+      return await this.prisma.idea.update({
+        where: { id },
+        data: { status: body.status }
+      });
+    } catch (err: any) {
+      if (err.code === 'P2025') {
+        throw new NotFoundException(`Idea with ID ${id} not found`);
+      }
+
+      throw new InternalServerErrorException('Failed to update idea');
+    }
+  }
+
+  async deleteIdea(id: string): Promise<any> {
+    try {
+      return await this.prisma.idea.delete({ where: { id } });
+    } catch (err: any) {
+      if (err.code === 'P2025') {
+        throw new NotFoundException(`Idea with ID ${id} not found`);
+      }
+      throw err;
+    }
   }
 
   calculateIdeaScore(post: any): number {

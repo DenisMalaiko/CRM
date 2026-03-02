@@ -16,10 +16,20 @@ export class ApifyService {
     });
 
     const runData = await runRes.json();
+    console.log("RUN DATA: ", runData)
+
+    if (runData.error) {
+      console.log("ERROR ", runData.error)
+      throw new BadRequestException(
+        runData.error.message || 'Failed to run actor'
+      )
+    }
+
     const runId = runData.data.id;
     const run = await this.waitForRun(runId);
     const datasetRes = await fetch(`${this.apifyApiURL}/datasets/${run.defaultDatasetId}/items?token=${this.apifyApiKey}`);
     const items = await datasetRes.json();
+
 
     if (items[0].error) {
       if(items[0].errorCode === "PAGE_PRIVATE") {

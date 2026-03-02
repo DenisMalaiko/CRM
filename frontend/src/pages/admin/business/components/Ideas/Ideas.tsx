@@ -1,29 +1,30 @@
 import React, {useEffect, useMemo, useState} from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
+import { ExternalLink } from "lucide-react";
 
 // Hooks
 import { usePagination } from "../../../../../hooks/usePagination";
-import { useCopyToClipboard } from "../../../../../hooks/useCopyToClipboard";
 
 // Redux
 import { useSelector } from "react-redux";
 import { RootState } from "../../../../../store";
 import { useAppDispatch } from "../../../../../store/hooks";
-import { useGetIdeasMutation, useFetchIdeasMutation } from "../../../../../store/idea/ideaApi";
+import { useGetIdeasMutation, useFetchIdeasMutation, useDeleteIdeaMutation } from "../../../../../store/idea/ideaApi";
 import { setIdeas } from "../../../../../store/idea/ideaSlice";
 
 // Components
 import { confirm } from "../../../../../components/confirmDlg/ConfirmDlg";
+import UpdateIdeaDlg from "./components/updateIdeaDlg/UpdateIdeaDlg";
 
 // Utils
 import { showError } from "../../../../../utils/showError";
 import { toDate } from "../../../../../utils/toDate";
+import { getStatusClass } from "../../../../../utils/getStatusClass";
 
 // Models
 import { ApiResponse } from "../../../../../models/ApiResponse";
 import { TIdea, TIdeaParams } from "../../../../../models/Idea";
-
 
 function Ideas() {
   const navigate = useNavigate();
@@ -31,16 +32,19 @@ function Ideas() {
   const { businessId } = useParams<{ businessId: string }>();
   const [ fetchIdeas, { isLoading: isLoadingFetch } ] = useFetchIdeasMutation();
   const [ getIdeas, { isLoading: isLoadingGet } ] = useGetIdeasMutation();
+  const [ deleteIdea ] = useDeleteIdeaMutation();
   const { ideas } = useSelector((state: RootState) => state.ideaModule)
 
-  const [sortKey, setSortKey] = useState<'createdAt' | 'score'>('score');
-  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+  const [ open, setOpen ] = useState(false);
+  const [ sortKey, setSortKey ] = useState<'createdAt' | 'score' | 'status'>('score');
+  const [ sortDir, setSortDir ] = useState<'asc' | 'desc'>('desc');
+  const [ selectedIdea, setSelectedIdea ] = useState<any | null>(null);
 
   // Init Form
   const initForm = useMemo<TIdeaParams>(() => {
     const date = new Date();
 
-    date.setDate(date.getDate() - 1);
+    date.setDate(date.getDate() - 7);
     date.setHours(0, 0, 0, 0);
 
     return {
@@ -52,7 +56,10 @@ function Ideas() {
     { name: "Title", key: "title" },
     { name: "Description", key: "description" },
     { name: "Score", key: "score" },
-    { name: "Created At", key: "createdAt" }
+    { name: "Status", key: "status" },
+    { name: "Created At", key: "createdAt" },
+    { name: "Url", key: "url" },
+    { name: "Actions", key: "actions" },
   ]
 
   // Get Data
@@ -63,7 +70,6 @@ function Ideas() {
           const response: ApiResponse<TIdea[]> = await getIdeas(businessId).unwrap();
 
           if(response && response?.data) {
-            console.log("IDEAS", response.data);
             dispatch(setIdeas(response.data));
           }
         }
@@ -79,21 +85,33 @@ function Ideas() {
     if (!ideas?.length) return [];
 
     return [...ideas].sort((a, b) => {
-      if (sortKey === 'createdAt') {
-        const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-        const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      const aVal = a[sortKey];
+      const bVal = b[sortKey];
 
-        return sortDir === 'desc'
+      // ---- DATE (createdAt) ----
+      if (sortKey === "createdAt") {
+        const aTime = aVal ? new Date(aVal as any).getTime() : 0;
+        const bTime = bVal ? new Date(bVal as any).getTime() : 0;
+
+        return sortDir === "desc"
           ? bTime - aTime
           : aTime - bTime;
       }
 
-      const aVal = a[sortKey] ?? 0;
-      const bVal = b[sortKey] ?? 0;
+      // ---- NUMBER ----
+      if (typeof aVal === "number" && typeof bVal === "number") {
+        return sortDir === "desc"
+          ? bVal - aVal
+          : aVal - bVal;
+      }
 
-      return sortDir === 'desc'
-        ? bVal - aVal
-        : aVal - bVal;
+      // ---- STRING / ENUM ----
+      const aStr = String(aVal ?? "");
+      const bStr = String(bVal ?? "");
+
+      return sortDir === "desc"
+        ? bStr.localeCompare(aStr)
+        : aStr.localeCompare(bStr);
     });
   }, [ideas, sortKey, sortDir]);
 
@@ -125,7 +143,7 @@ function Ideas() {
   }
 
   // Sort Ideas
-  const onSort = (key: 'score' | 'createdAt') => {
+  const onSort = (key: 'score' | 'createdAt' | 'status') => {
     if (sortKey === key) {
       setSortDir(prev => (prev === 'desc' ? 'asc' : 'desc'));
     } else {
@@ -133,6 +151,40 @@ function Ideas() {
       setSortDir('desc');
     }
   };
+
+  // Delete Audience
+  const openConfirmDlg = async (e: any, item: any) => {
+    e.preventDefault();
+
+    const ok = await confirm({
+      title: "Delete Idea",
+      message: "Are you sure you want to delete this idea?",
+    });
+
+    if(ok) {
+      try {
+        if (item?.id != null) {
+          const responseDelete = await deleteIdea(item.id).unwrap();
+          if(responseDelete && responseDelete?.data) {
+            toast.success(responseDelete.message);
+          }
+
+          const response: ApiResponse<any[]> = await getIdeas(businessId).unwrap();
+          if(response && response?.data) {
+            dispatch(setIdeas(response.data));
+          }
+        }
+      } catch (error: any) {
+        showError(error);
+      }
+    }
+  }
+
+  // Edit Idea
+  const openEditIdea = async (item: TIdea) => {
+    setSelectedIdea(item);
+    setOpen(true)
+  }
 
   return (
     <div>
@@ -151,9 +203,18 @@ function Ideas() {
                   <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"/>
                   Getting Ideas...
                 </>
-              ) : ("Get Ideas")
+                ) : ("Get Ideas")
               }
             </button>
+
+            <UpdateIdeaDlg
+              open={open}
+              onClose={() => {
+                setOpen(false);
+                setSelectedIdea(null);
+              }}
+              idea={selectedIdea}
+            ></UpdateIdeaDlg>
           </div>
 
           <div className="w-full mx-auto p-4">
@@ -177,10 +238,25 @@ function Ideas() {
                     </th>
 
                     <th
+                      onClick={() => onSort('status')}
+                      className="px-4 py-3 text-xs font-semibold uppercase tracking-wide cursor-pointer select-none text-slate-600 text-left text-nowrap"
+                    >
+                      Status {sortKey === 'status' ? (sortDir === 'desc' ? '↓' : '↑') : ''}
+                    </th>
+
+                    <th
                       onClick={() => onSort('createdAt')}
                       className="px-4 py-3 text-xs font-semibold uppercase tracking-wide cursor-pointer select-none text-slate-600 text-left text-nowrap"
                     >
                       Created At {sortKey === 'createdAt' ? (sortDir === 'desc' ? '↓' : '↑') : ''}
+                    </th>
+
+                    <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide cursor-pointer select-none text-slate-600 text-left">
+                      Url
+                    </th>
+
+                    <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide cursor-pointer select-none text-slate-600 text-left">
+                      Actions
                     </th>
                   </tr>
                 </thead>
@@ -201,7 +277,42 @@ function Ideas() {
                         <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.title}</td>
                         <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.description}</td>
                         <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.score}</td>
-                        <td className="px-4 py-3 font-medium text-slate-900 text-left">{ toDate(item.createdAt) }</td>
+                        <td className="px-4 py-3 font-medium text-slate-900 text-left">
+                          <span className={`
+                            inline-flex items-center rounded-full px-2.5 py-1
+                            text-xs font-medium
+                            ${getStatusClass(item.status)}
+                          `}>
+                             {item.status}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 font-medium text-slate-900 text-left text-nowrap">{ toDate(item.createdAt) }</td>
+                        <td className="px-4 py-3 font-medium text-slate-900 text-left">
+                          <a href={item.url} className="text-blue-600 text-left" target="_blank">
+                            <ExternalLink size={18} strokeWidth={2} ></ExternalLink>
+                          </a>
+                        </td>
+
+                        <td className="px-4 py-3 text-right">
+                          <div className="flex items-center gap-2 justify-end">
+                            <button
+                              onClick={() => openEditIdea(item)}
+                              className="h-8 w-8 flex items-center justify-center rounded-lg border  text-slate-600 hover:bg-slate-50"
+                            >
+                              ✎
+                            </button>
+
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                openConfirmDlg(e, item)
+                              }}
+                              className="h-8 w-8 flex items-center justify-center rounded-lg border text-rose-600 hover:bg-rose-50"
+                            >
+                              🗑
+                            </button>
+                          </div>
+                        </td>
                       </tr>
                     ))
                   )}

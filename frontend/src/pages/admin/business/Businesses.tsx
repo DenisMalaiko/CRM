@@ -153,13 +153,13 @@ function Businesses() {
                     </td>
                     <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.industry}</td>
                     <td className="px-4 py-3 font-medium text-slate-900 text-left">
-                    <span className={`
-                      inline-flex items-center rounded-full px-2.5 py-1
-                      text-xs font-medium
-                      ${getStatusClass(item.status)}
-                    `}>
-                       {item.status}
-                    </span>
+                      <span className={`
+                        inline-flex items-center rounded-full px-2.5 py-1
+                        text-xs font-medium
+                        ${getStatusClass(item.status)}
+                      `}>
+                         {item.status}
+                      </span>
                     </td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center gap-2 justify-end">

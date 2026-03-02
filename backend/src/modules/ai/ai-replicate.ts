@@ -88,27 +88,117 @@ export class AiReplicate {
                 - Bounding box: x%, y%, w%, h% (top-left origin)
                 - Readability notes: what supports contrast (dark overlay, blur, etc.)
                 
-                5) Decorative Graphic Elements (DETAILED)
-                List EACH decorative element as a spec object:
-                - Element type: diagonal stripe / line / frame / overlay / gradient / particle / icon etc.
-                - Geometry: angle (degrees), position (x%, y%), size (w%, h%), thickness (px) if applicable
-                - Color: HEX-like + opacity %
-                - Edge treatment: sharp/soft, feather, blur
-                - Layering: above/below subjects/text (if inferable)
-                - Purpose: guides eye to..., supports brand..., increases contrast...
+                5) GEOMETRIC INVARIANTS (ANALYSIS ONLY)
+
+                Identify geometric properties that define the visual identity.
                 
-                6) Photography / Image Treatment (if photo-based)
-                - Lighting type, time of day, weather cues
-                - Camera feel: focal length impression, depth of field, motion blur
-                - Color grading: cool/warm, contrast, vignette
+                Mark the following as STYLE INVARIANTS:
                 
-                7) Marketing Intent
+                - stripe angle
+                - spacing ratios
+                - layering order
+                - overlap rules
+                - alignment anchors
+                
+                IMPORTANT:
+                You are ONLY analyzing the existing image.
+                Do NOT propose changes or new scenes.
+                Do NOT redesign anything.
+                
+                6) Structural Overlay System (CRITICAL — HIGH PRECISION)
+                
+                Analyze decorative graphics as a GEOMETRIC SYSTEM, not individual elements.
+                
+                Identify whether overlays form a repeating or rule-based structure.
+                
+                For the FULL overlay system describe:
+                
+                - System type:
+                  (parallel stripes / radial / grid / frame / asymmetric accents / mixed)
+                
+                - Global orientation:
+                  angle in degrees relative to horizontal axis
+                
+                - Origin reference:
+                  where lines appear to start (outside frame / corner / center / edge)
+                
+                - Repetition logic:
+                  fixed spacing / variable spacing / grouped clusters
+                
+                - Stripe/element count:
+                  total visible + estimated off-frame continuation
+                
+                - Spacing:
+                  distance between elements in px AND % of image width
+                
+                - Width consistency:
+                  identical / alternating / progressive
+                
+                - Alignment rule:
+                  aligned to canvas / aligned to subject / aligned to perspective
+                
+                - Coverage:
+                  full-frame crossing / partial overlay / background-only
+                
+                - Depth layering model:
+                  foreground overlay / mid overlay / background wash
+                
+                - Opacity hierarchy:
+                  strongest → weakest element order
+                
+                - Interaction with subjects:
+                  intersects subjects / avoids faces / masked behind players / global overlay
+                
+                - Symmetry or rhythm:
+                  repeating cadence description
+                  
+                - Inter-element rule (CRITICAL):
+                describe whether elements are allowed to overlap.
+              
+                Choose one:
+                • overlapping allowed
+                • touching only
+                • fixed-gap non-overlapping (STRICT)
+                • layered stacking
+              
+                If non-overlapping:
+                - define gap size in px and %
+                - confirm elements never intersect
+                
+                IMPORTANT:
+                Treat stripes and graphic overlays as a mathematical layout system.
+                Do NOT describe visually only — describe construction logic.
+                
+                - Decorative elements must be described using a consistent coordinate system
+                  where (0%,0%) is top-left and (100%,100%) is bottom-right.
+                - If decorative elements extend outside the frame, estimate continuation.
+                - Prefer geometric relationships over visual adjectives.
+                
+                Rendering Constraints (MANDATORY FOR REBUILD):
+ 
+                - Elements must preserve original spacing ratios.
+                - Decorative elements must NOT intersect unless explicitly visible.
+                - Maintain constant perpendicular distance between parallel stripes.
+                - Treat gaps as design elements equal in importance to stripes.
+                
+                7) Decorative Graphic Elements (Instances)
+
+                Now list individual elements ONLY as variations of the structural system above.
+                
+                For each:
+                - Element index (Stripe 1, Stripe 2...)
+                - Relation to system (primary/accent/background)
+                - Offset from system origin (%)
+                - Width deviation (if any)
+                - Opacity deviation
+                
+                8) Marketing Intent
                 - Primary message
                 - Emotions triggered
                 - What barrier is addressed
                 - Positioning implied
                 
-                8) Rebuild Checklist (actionable)
+                9) Rebuild Checklist (actionable)
                 - 8–12 bullet checklist to recreate this style in a new creative.
                 
                 If typography is present, spend at least 40% of the total analysis on typography + decorative elements.
