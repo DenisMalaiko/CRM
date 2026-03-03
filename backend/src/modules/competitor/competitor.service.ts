@@ -1,6 +1,6 @@
 import { Injectable, InternalServerErrorException, NotFoundException, HttpException, BadRequestException } from '@nestjs/common';
-import {PrismaService} from '../../core/prisma/prisma.service';
-import {FacebookService} from "../facebook/facebook.service";
+import { PrismaService} from '../../core/prisma/prisma.service';
+import { FacebookService } from "../facebook/facebook.service";
 import { TCompetitor, TCompetitorCreate, TCompetitorUpdate, TCompetitorPostParams, TCompetitorAdsParams } from "./entities/competitor.entity";
 import { PlatformList } from "@prisma/client";
 

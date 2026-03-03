@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
-import { CompetitorController } from "./competitor.controller";
-import { CompetitorService } from './competitor.service';
 import { AuthModule } from "../auth/auth.module";
 import { FacebookModule } from "../facebook/facebook.module";
+import { CompetitorController } from "./competitor.controller";
+import { CompetitorService } from './competitor.service';
 
 @Module({
   imports: [AuthModule, FacebookModule],

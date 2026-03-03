@@ -24,6 +24,7 @@ import { confirm } from "../../../../../components/confirmDlg/ConfirmDlg";
 import { showError } from "../../../../../utils/showError";
 import { getStatusClass } from "../../../../../utils/getStatusClass";
 import { toDate } from "../../../../../utils/toDate";
+import { centeredSelectStyles } from "../../../../../utils/reactSelectStyles";
 
 // Models
 import { ApiResponse } from "../../../../../models/ApiResponse";
@@ -180,6 +181,7 @@ function Creatives() {
                   onChange={(selected) => {
                     setProfilesIds(selected.map(option => option.value));
                   }}
+                  styles={centeredSelectStyles}
                 />
               }
 
@@ -194,6 +196,7 @@ function Creatives() {
                   onChange={(selected) => {
                     setProductsIds(selected.map(option => option.value));
                   }}
+                  styles={centeredSelectStyles}
                 />
               }
 
