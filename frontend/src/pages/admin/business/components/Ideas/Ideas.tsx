@@ -1,30 +1,37 @@
 import React, {useEffect, useMemo, useState} from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, Link } from "react-router-dom";
 import { toast } from "react-toastify";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Eye, Copy } from "lucide-react";
+import Select from "react-select";
 
 // Hooks
 import { usePagination } from "../../../../../hooks/usePagination";
+import { useCopyToClipboard } from "../../../../../hooks/useCopyToClipboard";
 
 // Redux
 import { useSelector } from "react-redux";
 import { RootState } from "../../../../../store";
 import { useAppDispatch } from "../../../../../store/hooks";
 import { useGetIdeasMutation, useFetchIdeasMutation, useDeleteIdeaMutation } from "../../../../../store/idea/ideaApi";
+import { useGetCompetitorsMutation } from "../../../../../store/competitor/competitorApi";
 import { setIdeas } from "../../../../../store/idea/ideaSlice";
+import { setCompetitors } from "../../../../../store/competitor/competitorSlice";
 
 // Components
 import { confirm } from "../../../../../components/confirmDlg/ConfirmDlg";
 import UpdateIdeaDlg from "./components/updateIdeaDlg/UpdateIdeaDlg";
+import TextDlg from "../../../../../components/textDlg/TextDlg";
 
 // Utils
 import { showError } from "../../../../../utils/showError";
 import { toDate } from "../../../../../utils/toDate";
 import { getStatusClass } from "../../../../../utils/getStatusClass";
+import { centeredSelectStyles } from "../../../../../utils/reactSelectStyles";
 
 // Models
 import { ApiResponse } from "../../../../../models/ApiResponse";
 import { TIdea, TIdeaParams } from "../../../../../models/Idea";
+import { TCompetitor } from "../../../../../models/Competitor";
 
 function Ideas() {
   const navigate = useNavigate();
@@ -32,13 +39,21 @@ function Ideas() {
   const { businessId } = useParams<{ businessId: string }>();
   const [ fetchIdeas, { isLoading: isLoadingFetch } ] = useFetchIdeasMutation();
   const [ getIdeas, { isLoading: isLoadingGet } ] = useGetIdeasMutation();
+  const [ getCompetitors ] = useGetCompetitorsMutation();
   const [ deleteIdea ] = useDeleteIdeaMutation();
-  const { ideas } = useSelector((state: RootState) => state.ideaModule)
+
+  const { ideas } = useSelector((state: RootState) => state.ideaModule);
+  const { competitors } = useSelector((state: RootState) => state.competitorModule);
 
   const [ open, setOpen ] = useState(false);
   const [ sortKey, setSortKey ] = useState<'createdAt' | 'score' | 'status'>('score');
   const [ sortDir, setSortDir ] = useState<'asc' | 'desc'>('desc');
   const [ selectedIdea, setSelectedIdea ] = useState<any | null>(null);
+  const [ competitorsIds, setCompetitorsIds ] = useState<string[]>([]);
+  const [ openTextDlg, setOpenTextDlg ] = useState<any>(null);
+  const [ selectedText, setSelectedText ] = useState<any>(null);
+
+  const competitorsOptions = competitors?.map((competitor: TCompetitor) => ({ value: competitor.id, label: competitor.name })) || [];
 
   // Init Form
   const initForm = useMemo<TIdeaParams>(() => {
@@ -62,16 +77,20 @@ function Ideas() {
     { name: "Actions", key: "actions" },
   ]
 
+  const { copy, copied } = useCopyToClipboard();
+
   // Get Data
   useEffect(() => {
     const fetchData = async () => {
       try {
         if (businessId) {
           const response: ApiResponse<TIdea[]> = await getIdeas(businessId).unwrap();
+          const responseCompetitors: ApiResponse<TCompetitor[]> = await getCompetitors(businessId).unwrap();
 
-          if(response && response?.data) {
-            dispatch(setIdeas(response.data));
-          }
+          console.log("RESPONSE: ", response)
+
+          if(response && response?.data) dispatch(setIdeas(response.data));
+          if(responseCompetitors && responseCompetitors?.data) dispatch(setCompetitors(responseCompetitors.data));
         }
       } catch (error) {
         showError(error);
@@ -81,44 +100,48 @@ function Ideas() {
     fetchData();
   }, [dispatch]);
 
-  const sortedIdeas = useMemo(() => {
-    if (!ideas?.length) return [];
+  const competitorsMap = useMemo(() => {
+    const map = new Map<string, string>();
+    (competitors ?? []).forEach(c => map.set(c.id, c.name));
+    return map;
+  }, [competitors]);
 
-    return [...ideas].sort((a, b) => {
+  const filteredIdeas: TIdea[] = useMemo(() => {
+    if (!ideas?.length) return [];
+    if (!competitorsIds.length) return ideas; // нічого не обрано — показуємо всі
+
+    const selected = new Set(competitorsIds);
+    return ideas.filter((i: TIdea) => i.competitorId && selected.has(i.competitorId));
+  }, [ideas, competitorsIds]);
+
+  const sortedIdeas: TIdea[] = useMemo(() => {
+    if (!filteredIdeas?.length) return [];
+
+    return [...filteredIdeas].sort((a, b) => {
       const aVal = a[sortKey];
       const bVal = b[sortKey];
 
-      // ---- DATE (createdAt) ----
       if (sortKey === "createdAt") {
         const aTime = aVal ? new Date(aVal as any).getTime() : 0;
         const bTime = bVal ? new Date(bVal as any).getTime() : 0;
-
-        return sortDir === "desc"
-          ? bTime - aTime
-          : aTime - bTime;
+        return sortDir === "desc" ? bTime - aTime : aTime - bTime;
       }
 
-      // ---- NUMBER ----
       if (typeof aVal === "number" && typeof bVal === "number") {
-        return sortDir === "desc"
-          ? bVal - aVal
-          : aVal - bVal;
+        return sortDir === "desc" ? bVal - aVal : aVal - bVal;
       }
 
-      // ---- STRING / ENUM ----
       const aStr = String(aVal ?? "");
       const bStr = String(bVal ?? "");
 
-      return sortDir === "desc"
-        ? bStr.localeCompare(aStr)
-        : aStr.localeCompare(bStr);
+      return sortDir === "desc" ? bStr.localeCompare(aStr) : aStr.localeCompare(bStr);
     });
-  }, [ideas, sortKey, sortDir]);
+  }, [filteredIdeas, sortKey, sortDir]);
 
   const { page, setPage, totalPages, paginatedItems, hasPrev, hasNext } = usePagination({
     items: sortedIdeas,
     pageSize: 10,
-    resetDeps: [sortKey, sortDir],
+    resetDeps: [sortKey, sortDir, competitorsIds.join(",")],
   });
 
   if(!businessId) return null;
@@ -186,6 +209,12 @@ function Ideas() {
     setOpen(true)
   }
 
+  // Open Text
+  const openText = (text: string) => {
+    setSelectedText(text);
+    setOpenTextDlg(true);
+  }
+
   return (
     <div>
       <div className="rounded-2xl bg-white shadow border border-slate-200 mb-5">
@@ -193,28 +222,37 @@ function Ideas() {
           <div className="border-b p-4 flex items-center justify-between">
             <h2 className="text-lg text-left font-semibold text-slate-800">Posts Ideas</h2>
 
-            <button
-              disabled={isLoadingFetch}
-              onClick={() => getIdeasData()}
-              className="px-4 py-2 rounded-lg bg-blue-600 text-white flex items-center gap-2 justify-center"
-            >
-              { isLoadingFetch ? (
-                <>
-                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"/>
-                  Getting Ideas...
-                </>
-                ) : ("Get Ideas")
-              }
-            </button>
 
-            <UpdateIdeaDlg
-              open={open}
-              onClose={() => {
-                setOpen(false);
-                setSelectedIdea(null);
-              }}
-              idea={selectedIdea}
-            ></UpdateIdeaDlg>
+            <div className="flex items-center gap-3">
+              { competitors && competitors?.length > 0 &&
+                <Select
+                  isMulti
+                  placeholder="Select Competitors"
+                  options={competitorsOptions}
+                  value={competitorsOptions.filter((option: { value: string; label: string; }) =>
+                    competitorsIds.includes(option.value)
+                  )}
+                  onChange={(selected) => {
+                    setCompetitorsIds(selected.map((option: any) => option.value));
+                  }}
+                  styles={centeredSelectStyles}
+                />
+              }
+
+              <button
+                disabled={isLoadingFetch}
+                onClick={() => getIdeasData()}
+                className="px-4 py-2 rounded-lg bg-blue-600 text-white flex items-center gap-2 justify-center"
+              >
+                { isLoadingFetch ? (
+                  <>
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"/>
+                    Getting Ideas...
+                  </>
+                  ) : ("Get Ideas")
+                }
+              </button>
+            </div>
           </div>
 
           <div className="w-full mx-auto p-4">
@@ -228,6 +266,10 @@ function Ideas() {
 
                     <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide cursor-pointer select-none text-slate-600 text-left">
                       Description
+                    </th>
+
+                    <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide cursor-pointer select-none text-slate-600 text-left">
+                      Competitor
                     </th>
 
                     <th
@@ -274,8 +316,35 @@ function Ideas() {
                   ) : (
                     paginatedItems && paginatedItems.map((item: any) => (
                       <tr key={item.id} className="bg-white hover:bg-slate-50">
-                        <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.title}</td>
-                        <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.description}</td>
+                        <td className="px-4 py-3 font-medium text-slate-900 text-left">
+                          <>
+                            <p>{item.title}</p>
+                          </>
+                        </td>
+                        <td className="px-4 py-3 font-medium text-slate-900 text-left">
+                          <>
+                            <p className="line-clamp-2">{item.description}</p>
+
+                            <div className="flex items-center gap-2 text-slate-500 mt-3">
+                              <Eye
+                                size={20}
+                                onClick={() => openText(item.description)}
+                                className="cursor-pointer text-blue-600 hover:text-blue-700"
+                              />
+                              <Copy
+                                size={18}
+                                onClick={() => copy(item.description)}
+                                className="cursor-pointer text-blue-600 hover:text-blue-700"
+                              />
+                            </div>
+                          </>
+                        </td>
+
+                        <td className="px-4 py-3 font-medium text-slate-900 text-left">
+                          <Link to={`/profile/businesses/${businessId}/competitors/${item.competitorId}`} className="text-blue-600">
+                            {competitorsMap.get(item.competitorId) ?? "—"}
+                          </Link>
+                        </td>
                         <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.score}</td>
                         <td className="px-4 py-3 font-medium text-slate-900 text-left">
                           <span className={`
@@ -347,6 +416,23 @@ function Ideas() {
 
         </section>
       </div>
+
+      <UpdateIdeaDlg
+        open={open}
+        onClose={() => {
+          setOpen(false);
+          setSelectedIdea(null);
+        }}
+        idea={selectedIdea}
+      ></UpdateIdeaDlg>
+
+      <TextDlg
+        open={openTextDlg}
+        onClose={() => {
+          setOpenTextDlg(false);
+        }}
+        text={selectedText}
+      />
     </div>
   )
 }

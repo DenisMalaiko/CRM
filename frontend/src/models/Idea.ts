@@ -3,6 +3,8 @@ import { IdeaStatus } from "../enum/IdeaStatus";
 export type TIdea = {
   id: string;
   businessId: string;
+  competitorId: string;
+  competitorPostId: string;
   title: string;
   description: string;
   who: string;

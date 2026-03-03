@@ -1,5 +1,6 @@
 import { Injectable, InternalServerErrorException, NotFoundException} from '@nestjs/common';
 import { PrismaService } from 'src/core/prisma/prisma.service';
+import { S3Service } from 'src/core/s3/s3.service';
 import { StorageUrlService } from "../../core/storage/storage-url.service";
 import { AIArtifactBase } from "./entities/aiArtifact.entity";
 
@@ -7,6 +8,7 @@ import { AIArtifactBase } from "./entities/aiArtifact.entity";
 export class AiArtifactService {
   constructor(
     private readonly prisma: PrismaService,
+    private readonly s3Service: S3Service,
     private readonly storageUrlService: StorageUrlService
   ) {}
 
@@ -51,13 +53,23 @@ export class AiArtifactService {
   }
 
   async deleteAiArtifact(id: string) {
-    try {
-      return await this.prisma.aIArtifact.delete({ where: { id } });
-    } catch (err: any) {
-      if (err.code === 'P2025') {
-        throw new NotFoundException(`Artifact with ID ${id} not found`);
-      }
-      throw err;
+    const aIArtifact = await this.prisma.aIArtifact.findUnique({
+      where: { id },
+      select: { id: true, imageUrl: true },
+    });
+
+    if (!aIArtifact) {
+      throw new Error('AI artifact not found');
     }
+
+    if (aIArtifact.imageUrl) {
+      await this.s3Service.delete(aIArtifact.imageUrl);
+    }
+
+    return await this.prisma.$transaction(async (tx) => {
+      await tx.aIArtifact.delete({
+        where: { id },
+      });
+    });
   }
 }
