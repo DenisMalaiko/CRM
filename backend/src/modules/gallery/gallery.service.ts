@@ -1,8 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {Injectable, InternalServerErrorException, NotFoundException} from '@nestjs/common';
 import { GalleryPhotoType } from "@prisma/client";
 import { PrismaService } from "../../core/prisma/prisma.service";
 import { S3Service } from "../../core/s3/s3.service";
-import { UploadedImage, TGalleryPhoto, TGalleryPhotoBase } from "./entities/gallery.entity";
+import {UploadedImage, TGalleryPhoto, TGalleryPhotoBase, TGalleryPhotoUpdate} from "./entities/gallery.entity";
 import { StorageUrlService } from "../../core/storage/storage-url.service";
 
 
@@ -71,6 +71,27 @@ export class GalleryService {
       );
 
       throw error;
+    }
+  }
+
+  async updatePhoto(id: string, body: TGalleryPhotoUpdate): Promise<TGalleryPhoto>  {
+    if (!id) throw new NotFoundException('Artifact ID is required');
+
+    try {
+      return await this.prisma.galleryPhoto.update({
+        where: {id},
+        data: {
+          type: body.type,
+          isActive: body.isActive,
+          description: body.description,
+        },
+      });
+    } catch (err: any) {
+      if (err.code === 'P2025') {
+        throw new NotFoundException(`Artifact with ID ${id} not found`);
+      }
+
+      throw new InternalServerErrorException('Failed to update artifact');
     }
   }
 

@@ -6,8 +6,6 @@ function TextDlg({open, onClose, text }: { open: boolean, onClose: () => void, t
   if (!open) return null;
   if (!text) return null;
 
-  console.log("TEXT: ", text)
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50">
       <div className="w-full max-w-lg

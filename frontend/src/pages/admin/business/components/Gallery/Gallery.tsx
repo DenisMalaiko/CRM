@@ -5,7 +5,7 @@ import { showError } from "../../../../../utils/showError";
 // Redux
 import { useSelector } from "react-redux";
 import { useAppDispatch } from "../../../../../store/hooks";
-import { useGetPhotosMutation, useDeletePhotoMutation,  } from "../../../../../store/gallery/galleryApi";
+import { useGetPhotosMutation } from "../../../../../store/gallery/galleryApi";
 import { setGalleryPhotos } from "../../../../../store/gallery/gallerySlice";
 
 // Components
@@ -29,6 +29,7 @@ function Gallery() {
 
   const decorationPhotos = photos.filter((p: TGalleryPhoto) => p.type === GalleryType.Decoration);
   const imagePhotos = photos.filter((p: TGalleryPhoto) => p.type === GalleryType.Image);
+  const postPhotos = photos.filter((p: TGalleryPhoto) => p.type === GalleryType.Post);
 
   // Get Data
   useEffect(() => {
@@ -78,11 +79,35 @@ function Gallery() {
           <section>
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">
-                Images assets
+                Images
               </h3>
             </div>
 
             <Photos photos={imagePhotos}/>
+          </section>
+        </div>
+
+        <div className="p-5 space-y-10">
+          <section>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">
+                Decorations
+              </h3>
+            </div>
+
+            <Photos photos={decorationPhotos}/>
+          </section>
+        </div>
+
+        <div className="p-5 space-y-10">
+          <section>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">
+                Posts
+              </h3>
+            </div>
+
+            <Photos photos={postPhotos}/>
           </section>
         </div>
       </section>

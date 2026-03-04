@@ -1,19 +1,23 @@
 import React, { useState } from "react";
-import { Trash2, ImagePlay } from "lucide-react";
+import { Trash2, ImagePlay, PenBox } from "lucide-react";
 import { toast } from "react-toastify";
 
 // Redux
 import { useAppDispatch } from "../../../../../../../store/hooks";
-import { useGetPhotosMutation, useDeletePhotoMutation,  } from "../../../../../../../store/gallery/galleryApi";
+import { useGetPhotosMutation, useDeletePhotoMutation, useUpdatePhotoMutation } from "../../../../../../../store/gallery/galleryApi";
 import { setGalleryPhotos } from "../../../../../../../store/gallery/gallerySlice";
 
 // Components
 import SliderDlg from "../../../../../../../components/sliderDlg/SliderDlg";
+import PhotoEditDlg from "../photoEditDlg/PhotoEditDlg";
 import { confirm } from "../../../../../../../components/confirmDlg/ConfirmDlg";
 
 // Models
 import { ApiResponse } from "../../../../../../../models/ApiResponse";
-import { TGalleryPhoto } from "../../../../../../../models/Gallery";
+import { TGalleryPhoto, TGalleryPhotoUpdate } from "../../../../../../../models/Gallery";
+
+// Enum
+import { GalleryType } from "../../../../../../../enum/GalleryType";
 
 // Utils
 import { showError } from "../../../../../../../utils/showError";
@@ -26,7 +30,16 @@ function Photos({ photos }: { photos: any[] }) {
   const [ openSliderDlg, setOpenSliderDlg ] = useState<any>(null);
   const [ selectedMedia, setSelectedMedia ] = useState<any>(null);
 
+  const [ openPhotoEditDlg, setOpenPhotoEditDlg ] = useState(false);
+  const [ selectedPhoto, setSelectedPhoto ]  = useState({
+    id: "",
+    type: GalleryType.Image,
+    isActive: false,
+    description: ""
+  });
+
   const [ getPhotos ] = useGetPhotosMutation();
+  const [ updatePhoto ] = useUpdatePhotoMutation();
   const [ deletePhoto ] = useDeletePhotoMutation();
 
   if(!businessId) return null;
@@ -40,8 +53,6 @@ function Photos({ photos }: { photos: any[] }) {
   }
 
   const openConfirmDlg = async (e: any, id: string) => {
-    console.log("Delete ", id);
-
     e.preventDefault();
 
     const ok = await confirm({
@@ -76,6 +87,47 @@ function Photos({ photos }: { photos: any[] }) {
     setOpenSliderDlg(true);
   }
 
+  // Open Text Edit
+  const openPhotoEdit = (photo: TGalleryPhotoUpdate) => {
+    setSelectedPhoto({
+      id: photo.id,
+      type: photo.type,
+      isActive: photo.isActive,
+      description: photo.description
+    });
+    setOpenPhotoEditDlg(true);
+  }
+
+  // Save Text
+  const savePhoto = async (value: TGalleryPhotoUpdate) => {
+    setSelectedPhoto({
+      id: value.id,
+      type: value.type,
+      isActive: value.isActive,
+      description: value.description
+    });
+    setOpenPhotoEditDlg(false);
+
+    const response: ApiResponse<TGalleryPhoto> = await updatePhoto({
+      id: value.id,
+      form: {
+        type: value.type,
+        isActive: value.isActive,
+        description: value.description
+      }
+    }).unwrap();
+
+    if(response && response?.data) {
+      const responsePhotos: ApiResponse<TGalleryPhoto[]> = await getPhotos(businessId).unwrap();
+
+      if(responsePhotos && responsePhotos.data) {
+        dispatch(setGalleryPhotos(responsePhotos.data));
+      }
+
+      toast.success(response.message);
+    }
+  }
+
   return (
     <div className="grid gap-6 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5">
       {photos.map(photo => (
@@ -86,7 +138,7 @@ function Photos({ photos }: { photos: any[] }) {
           <img
             src={photo.url}
             className="w-full h-48 object-cover"
-            alt=""
+            alt={photo.description}
           />
 
           {/* Badges */}
@@ -99,20 +151,36 @@ function Photos({ photos }: { photos: any[] }) {
           </div>
 
           {/* Overlay */}
-          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition duration-300 flex items-center justify-center">
-            <button
-              onClick={() => openSlider([{url: photo.url}])}
-              className="opacity-0 group-hover:opacity-100 transition duration-300 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg mr-5"
-            >
-              <ImagePlay size={18} />
-            </button>
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition duration-300 flex items-center justify-center flex-col">
+            <div className="flex mb-3">
+              <button
+                onClick={() => openPhotoEdit(photo)}
+                className="opacity-0 group-hover:opacity-100 transition duration-300 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg mr-5"
+              >
+                <PenBox size={18} />
+              </button>
 
-            <button
-              onClick={(e) => openConfirmDlg(e, photo.id)}
-              className="opacity-0 group-hover:opacity-100 transition duration-300 bg-red-500 hover:bg-red-600 text-white p-3 rounded-full shadow-lg"
-            >
-              <Trash2 size={18} />
-            </button>
+              <button
+                onClick={() => openSlider([{url: photo.url}])}
+                className="opacity-0 group-hover:opacity-100 transition duration-300 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg mr-5"
+              >
+                <ImagePlay size={18} />
+              </button>
+
+              <button
+                onClick={(e) => openConfirmDlg(e, photo.id)}
+                className="opacity-0 group-hover:opacity-100 transition duration-300 bg-red-500 hover:bg-red-600 text-white p-3 rounded-full shadow-lg"
+              >
+                <Trash2 size={18} />
+              </button>
+            </div>
+
+
+            {photo.description && (
+              <p className="opacity-0 group-hover:opacity-100 transition duration-300 text-white text-sm mb-4 max-w-[80%] line-clamp-2">
+                {photo.description}
+              </p>
+            )}
           </div>
         </div>
       ))}
@@ -123,6 +191,17 @@ function Photos({ photos }: { photos: any[] }) {
           setOpenSliderDlg(false);
         }}
         medias={selectedMedia}
+      />
+
+      <PhotoEditDlg
+        open={openPhotoEditDlg}
+        photo={selectedPhoto}
+        onClose={() => {
+          setOpenPhotoEditDlg(false);
+        }}
+        onSave={(value: any) => {
+          savePhoto(value)
+        }}
       />
     </div>
   )

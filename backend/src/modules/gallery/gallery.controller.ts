@@ -1,7 +1,7 @@
-import { Controller, Get, Post, Delete, Param, Res, Body, UseGuards, UploadedFiles, UseInterceptors } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Param, Patch, Res, Body, UseGuards, UploadedFiles, UseInterceptors } from '@nestjs/common';
 import { JwtAuthGuard } from "../../core/guards/jwt-auth.guard";
 import { ResponseMessage } from "../../core/decorators/response-message.decorator";
-import { GalleryPhotoBaseDto, GalleryPhotoIdParamDto } from "./dto/gallery.dto";
+import { GalleryPhotoBaseDto, GalleryPhotoIdParamDto, UpdateGalleryPhotoDto } from "./dto/gallery.dto";
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { GalleryService } from "./gallery.service";
 
@@ -24,6 +24,15 @@ export class GalleryController {
     @UploadedFiles() files: Express.Multer.File[]
   ) {
     return await this.galleryService.uploadPhotos(dto, files);
+  }
+
+  @Patch("/:id")
+  @ResponseMessage('Photo has been updated!')
+  async updateGalleryPhoto(
+    @Param() { id }: GalleryPhotoIdParamDto,
+    @Body() body: UpdateGalleryPhotoDto
+  ) {
+    return await this.galleryService.updatePhoto(id, body);
   }
 
   @Delete("/:id")

@@ -1,7 +1,6 @@
 import { api } from "../api/api";
 import { ApiResponse} from "../../models/ApiResponse";
-import { TGalleryPhoto } from "../../models/Gallery";
-import {TCompetitorUpdate} from "../../models/Competitor";
+import { TGalleryPhoto, TGalleryPhotoUpdate, TGalleryPhotoUpdateForm } from "../../models/Gallery";
 
 export const galleryApi = api.injectEndpoints({
   endpoints: (builder) => ({
@@ -39,7 +38,7 @@ export const galleryApi = api.injectEndpoints({
       })
     }),
 
-    updatePhoto: builder.mutation<ApiResponse<TGalleryPhoto>, { id: string, form: TGalleryPhoto }>({
+    updatePhoto: builder.mutation<ApiResponse<TGalleryPhoto>, { id: string, form: TGalleryPhotoUpdateForm }>({
       query: ({ id, form }) => ({
         url: `/gallery/${id}`,
         method: "PATCH",

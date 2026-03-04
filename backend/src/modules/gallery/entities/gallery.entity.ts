@@ -14,5 +14,12 @@ export type TGalleryPhotoBase = {
 export type TGalleryPhoto = TGalleryPhotoBase & {
   id: string;
   url: string;
+  description?: string | null;
   createdAt: Date;
+}
+
+export type TGalleryPhotoUpdate = {
+  type: GalleryPhotoType;
+  isActive: boolean;
+  description?: string | null;
 }
