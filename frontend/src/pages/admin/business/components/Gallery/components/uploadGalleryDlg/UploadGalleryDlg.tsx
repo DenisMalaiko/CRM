@@ -27,8 +27,8 @@ import { isBoolean, isRequired, isValidPhoto } from "../../../../../../../utils/
 import { ChangeArg, isNativeEvent } from "../../../../../../../utils/isNativeEvent";
 
 // Models
-import {TGalleryPhoto, TGalleryPhotoPreview} from "../../../../../../../models/Gallery";
-import {ApiResponse} from "../../../../../../../models/ApiResponse";
+import { TGalleryPhoto, TGalleryPhotoPreview } from "../../../../../../../models/Gallery";
+import { ApiResponse } from "../../../../../../../models/ApiResponse";
 
 
 function UploadGalleryDlg({ open, onClose }: any) {
@@ -40,7 +40,7 @@ function UploadGalleryDlg({ open, onClose }: any) {
   const [ uploadPhotos, { isLoading } ] = useUploadPhotosMutation();
   const [ getPhotos ] = useGetPhotosMutation();
 
-  const TypesList = [GalleryType.Image];
+  const TypesList = Object.values(GalleryType);
 
   useEffect(() => {
     return () => {
