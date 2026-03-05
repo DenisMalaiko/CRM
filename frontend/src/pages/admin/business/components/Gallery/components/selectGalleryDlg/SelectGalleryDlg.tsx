@@ -20,7 +20,7 @@ import {GalleryType} from "../../../../../../../enum/GalleryType";
 function SelectGalleryDlg({ open, onClose, onSelect, selectedIds }: any) {
   const dispatch = useAppDispatch();
   const { businessId } = useParams<{ businessId: string }>();
-  const MAX_SELECTED = 2
+  const MAX_SELECTED = 3
 
   const [ localSelected, setLocalSelected ] = useState<string[]>([])
 

@@ -233,14 +233,11 @@ export class ProfilesService {
         photos: profile?.photos.map(p => p.galleryPhoto),
       };
 
-      console.log("-------")
-      console.log("MAPPED PROFILE: ", mappedProfile)
-      console.log("-------")
-
       const galleryPhotosUrls = mappedProfile.photos.map((photo) => {
         return {
           type: photo.type,
-          url: photo.url ? this.storageUrlService.getPublicUrl(photo.url) : ""
+          url: photo.url ? this.storageUrlService.getPublicUrl(photo.url) : "",
+          description: photo.description ?? null,
         };
       });
 
