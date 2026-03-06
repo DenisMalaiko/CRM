@@ -238,17 +238,17 @@ function AdsTable() {
                               </div>
                             </div>
                           ) : (
-                            <div className="relative">
-                              <span className="text-xs text-slate-500 flex items-center justify-center h-full">
-                                No media
-                              </span>
-                            </div>
+                            <span className="text-xs text-slate-500 flex items-center justify-center h-full">
+                              No media
+                            </span>
                           )
                         }
                       </div>
                     </td>
 
-                    <td className="px-4 py-3 font-medium text-slate-900 text-left text-sm">{ item.title }</td>
+                    <td className="px-4 py-3 font-medium text-slate-900 text-left text-sm">
+                      <span>{ item.title }</span>
+                    </td>
 
                     <td className="px-4 py-3 font-medium text-slate-900 text-left text-sm">
                       <p className="line-clamp-4">{ item.body }</p>

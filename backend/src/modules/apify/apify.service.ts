@@ -8,7 +8,6 @@ export class ApifyService {
 
   async runActor<T>(actor: string, input: any): Promise<T[]> {
     const runUrl = `${this.apifyApiURL}/acts/${actor}/runs?token=${this.apifyApiKey}`;
-
     const runRes = await fetch(runUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -16,10 +15,8 @@ export class ApifyService {
     });
 
     const runData = await runRes.json();
-    console.log("RUN DATA: ", runData)
 
     if (runData.error) {
-      console.log("ERROR ", runData.error)
       throw new BadRequestException(
         runData.error.message || 'Failed to run actor'
       )
@@ -29,7 +26,6 @@ export class ApifyService {
     const run = await this.waitForRun(runId);
     const datasetRes = await fetch(`${this.apifyApiURL}/datasets/${run.defaultDatasetId}/items?token=${this.apifyApiKey}`);
     const items = await datasetRes.json();
-
 
     if (items[0].error) {
       if(items[0].errorCode === "PAGE_PRIVATE") {

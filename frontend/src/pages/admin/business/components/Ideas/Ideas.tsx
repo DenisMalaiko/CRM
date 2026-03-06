@@ -59,7 +59,7 @@ function Ideas() {
   const initForm = useMemo<TIdeaParams>(() => {
     const date = new Date();
 
-    date.setDate(date.getDate() - 7);
+    date.setDate(date.getDate() - 1);
     date.setHours(0, 0, 0, 0);
 
     return {
@@ -157,8 +157,11 @@ function Ideas() {
       }).unwrap();
 
       if(response && response?.data) {
-        dispatch(setIdeas(response.data))
-        toast.success(response.message);
+        const responseIdeas: ApiResponse<TIdea[]> = await getIdeas(businessId).unwrap();
+        if(responseIdeas && responseIdeas?.data) {
+          dispatch(setIdeas(responseIdeas.data));
+          toast.success(response.message);
+        }
       }
     } catch (error: any) {
       showError(error);

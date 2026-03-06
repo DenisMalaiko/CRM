@@ -116,7 +116,7 @@ function App() {
             <Route path="audiences" element={<Audiences />} />
 
             {/*Generation*/}
-            <Route path="creatives" element={<Creatives />} />
+            <Route path="posts" element={<Creatives />} />
             <Route path="prompts" element={<Prompts />} />
             <Route path="gallery" element={<Gallery />} />
 

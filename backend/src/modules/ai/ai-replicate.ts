@@ -25,18 +25,9 @@ export class AiReplicate {
   }
 
   async generateImageOpenAI(prompt: string, businessId: string, photos: { url: string, type: GalleryPhotoType }[]): Promise<any> {
-
-
     const decorations = photos.filter(p => p.type === GalleryPhotoType.Decoration);
     const posts = photos.filter(p => p.type === GalleryPhotoType.Post);
     const businessPhotos = photos.filter(p => p.type === GalleryPhotoType.Image);
-
-    console.log("GENERATE IMAGE...")
-    console.log("PROMPT: ", prompt)
-    console.log("DECORATIONS: ", decorations)
-    console.log("POSTS: ", posts)
-    console.log("BUSINESS PHOTOS: ", businessPhotos)
-
     const content: any[] = [
       {
         type: "input_text",
@@ -340,7 +331,6 @@ export class AiReplicate {
       `
     });
 
-
     const analysis = await this.client.responses.create({
       model: "gpt-4.1",
       input: [
@@ -352,9 +342,6 @@ export class AiReplicate {
     });
 
     const designSystem = analysis.output_text;
-
-    console.log("OUTPUT: ", designSystem)
-    console.log("-----------")
 
     const NANO_BANANO = "google/nano-banana-pro";
 
