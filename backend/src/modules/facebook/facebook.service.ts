@@ -45,7 +45,7 @@ export class FacebookService {
       }
     );
 
-    console.log("APIFY ITEMS ", items)
+    console.log("GET COMPETITOR POSTS: ", items)
 
     return items
       .filter(i => !i.error)
@@ -67,6 +67,7 @@ export class FacebookService {
       likes: item?.likes ?? null,
       shares: item?.shares ?? null,
       views: item?.viewsCount ?? null,
+      comments: item?.comments ?? null,
 
       // meta
       postedAt: item?.time ? new Date(item.time) : null,
@@ -80,8 +81,8 @@ export class FacebookService {
       competitorId,
 
       // content
-      title: item?.snapshot?.title,
-      body: item?.snapshot?.body?.text,
+      title: item?.snapshot?.title.includes("{{product.name}}") ? item?.snapshot?.cards[0].title : item?.snapshot?.title,
+      body: item?.snapshot?.body?.text.includes("{{product.brand}}") ? item?.snapshot?.cards[0].body : item?.snapshot?.body?.text,
       caption: item?.snapshot?.caption,
       url: item?.ad_library_url,
       format: item?.snapshot?.display_format,
@@ -145,14 +146,21 @@ export class FacebookService {
   }
 
   private _images(item) {
-    if (!Array.isArray(item?.snapshot?.images)) return [];
-
-    return item?.snapshot?.images?.map((x) => {
-      return {
-        thumbnail: x?.resized_image_url,
-        url: x?.original_image_url,
-      };
-    })
+    if (!Array.isArray(item?.snapshot?.images)) {
+      return item?.snapshot?.images?.map((x) => {
+        return {
+          thumbnail: x?.resized_image_url,
+          url: x?.original_image_url,
+        };
+      })
+    } else {
+      return [
+        {
+          thumbnail: item?.snapshot?.cards[0]?.resized_image_url,
+          url: item?.snapshot?.cards[0]?.original_image_url,
+        }
+      ]
+    }
   }
 
   private _toDate(seconds?: number): Date | null {

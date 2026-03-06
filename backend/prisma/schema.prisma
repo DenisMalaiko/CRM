@@ -168,6 +168,7 @@ model CompetitorPost {
   media        Json?
   likes        Int?
   shares       Int?
+  comments     Int?
   postedAt     DateTime?
   fetchedAt    DateTime     @default(now())
   views        Int?

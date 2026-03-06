@@ -216,7 +216,7 @@ function Profiles() {
                               disabled={isGenerating}
                               className={`
                                 px-4 py-2 rounded-lg shadow text-white
-                                flex items-center gap-2 justify-center min-w-[170px]
+                                flex items-center gap-2 justify-center
                                 ${
                                     isThisRowLoading
                                       ? "bg-blue-400 cursor-not-allowed"
@@ -232,7 +232,7 @@ function Profiles() {
                                   Creating...
                                 </>
                               ) : (
-                                "Create Creatives"
+                                "Create Post"
                               )}
                             </button>
 

@@ -29,8 +29,8 @@ function Business() {
 
   const tabsGeneration = [
     {
-      id: "creatives",
-      title: "Creatives",
+      id: "posts",
+      title: "Posts",
     },
     {
       id: "prompts",

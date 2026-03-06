@@ -23,22 +23,41 @@ export class IdeaService {
   async fetchIdeas(businessId: string, body: TIdeaParams): Promise<TIdea[] | null> {
     const competitors = await this.competitorService.getCompetitors(businessId);
 
+    console.log("FETCH IDEAS")
+
     const posts: any = [];
 
     for (const competitor of competitors) {
-      if (!competitor?.facebookLink) return null;
+      if (!competitor?.facebookLink) continue;
 
-      const competitorPosts = await this.facebookService.fetchPosts(
-        competitor.id,
-        competitor.facebookLink,
-        body
-      );
+      try {
+        console.log("---------------")
+        console.log("COMPETITOR ID:", competitor.id)
+        console.log("COMPETITOR LINK:", competitor.facebookLink)
 
-      if(!competitorPosts) return null;
+        const competitorPosts = await this.facebookService.fetchPosts(
+          competitor.id,
+          competitor.facebookLink,
+          body
+        );
 
-      const savedPosts = await this.competitorService.savePosts(competitor.id, competitorPosts);
+        if (!competitorPosts?.length) continue;
 
-      posts.push(...savedPosts);
+        const savedPosts = await this.competitorService.savePosts(
+          competitor.id,
+          competitorPosts
+        );
+
+        posts.push(...savedPosts);
+
+      } catch (error) {
+        console.error(
+          `Failed to fetch posts for competitor ${competitor.id}`,
+          error.message
+        );
+
+        continue;
+      }
     }
 
     const result = await this.aiService.analyzeCompetitorPosts(posts);

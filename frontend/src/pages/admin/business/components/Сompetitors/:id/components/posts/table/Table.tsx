@@ -35,7 +35,7 @@ function PostsTable() {
   const [ openSliderDlg, setOpenSliderDlg ] = useState<any>(null);
   const [ selectedMedia, setSelectedMedia ] = useState<any>(null);
 
-  const [sortKey, setSortKey] = useState<'postedAt' | 'likes' | 'shares'>('postedAt');
+  const [sortKey, setSortKey] = useState<'postedAt' | 'likes' | 'shares' | 'comments'>('postedAt');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
 
   const [ getPosts ] = useGetPostsMutation();
@@ -48,7 +48,6 @@ function PostsTable() {
         if(id) {
           const responsePosts: ApiResponse<any> = await getPosts(id).unwrap();
 
-          console.log("POSTS ", responsePosts.data.slice(0, 5))
           if(responsePosts && responsePosts.data) dispatch(setPosts(responsePosts.data));
         }
       } catch (error) {
@@ -96,7 +95,7 @@ function PostsTable() {
   }
 
   // Sort Posts
-  const onSort = (key: 'likes' | 'shares' | 'postedAt') => {
+  const onSort = (key: 'likes' | 'shares' | 'comments' | 'postedAt') => {
     if (sortKey === key) {
       setSortDir(prev => (prev === 'desc' ? 'asc' : 'desc'));
     } else {
@@ -173,6 +172,13 @@ function PostsTable() {
                 </th>
 
                 <th
+                  onClick={() => onSort('comments')}
+                  className="px-4 py-3 text-xs font-semibold uppercase tracking-wide cursor-pointer select-none text-slate-600 text-left text-nowrap"
+                >
+                  Comments {sortKey === 'comments' ? (sortDir === 'desc' ? '↓' : '↑') : ''}
+                </th>
+
+                <th
                   onClick={() => onSort('postedAt')}
                   className="px-4 py-3 text-xs font-semibold uppercase tracking-wide cursor-pointer select-none text-slate-600 text-left text-nowrap"
                 >
@@ -245,6 +251,7 @@ function PostsTable() {
                   <td className="px-4 py-3 font-medium text-slate-900 text-left text-sm">{ item.platform }</td>
                   <td className="px-4 py-3 font-medium text-slate-900 text-left text-sm">{ item.likes }</td>
                   <td className="px-4 py-3 font-medium text-slate-900 text-left text-sm">{ item.shares }</td>
+                  <td className="px-4 py-3 font-medium text-slate-900 text-left text-sm">{ item.comments }</td>
                   <td className="px-4 py-3 font-medium text-slate-900 text-left text-sm text-nowrap">{ toDate(item.postedAt) }</td>
                   <td className="px-4 py-3 font-medium text-slate-900 text-left">
                     <a href={item.url} className="text-blue-600 text-left" target="_blank">

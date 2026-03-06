@@ -293,7 +293,7 @@ function Creatives() {
                       <p className="text-xs font-semibold uppercase tracking-wide text-slate-400 text-left">
                         Description
                       </p>
-                      <p className="mt-1 text-slate-700 leading-relaxed text-left">
+                      <p className="mt-1 text-slate-700 leading-relaxed text-left whitespace-pre-wrap">
                         {item.outputJson?.body || "—"}
                       </p>
                     </div>

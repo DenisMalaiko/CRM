@@ -80,8 +80,6 @@ export class CompetitorService {
       body
     );
 
-    console.log("POSTS ", posts);
-
     if(!posts) return [];
 
     return await this.savePosts(id, posts);
@@ -116,6 +114,7 @@ export class CompetitorService {
             likes: post.likes,
             shares: post.shares,
             views: post.views,
+            comments: post.comments,
 
             postedAt: post.postedAt,
           },
@@ -123,6 +122,8 @@ export class CompetitorService {
             likes: post.likes,
             shares: post.shares,
             views: post.views,
+            comments: post.comments,
+
             fetchedAt: new Date(),
             postedAt: post.postedAt,
             media: post.media,
@@ -148,10 +149,6 @@ export class CompetitorService {
         body
       );
 
-      console.log("--------------")
-      console.log("ADS ", ads);
-      console.log("--------------")
-
       if(!ads) return [];
 
       return await this.saveAds(id, ads);
@@ -167,18 +164,12 @@ export class CompetitorService {
   }
 
   async getAds(id: string): Promise<any> {
-    console.log("--------------")
-    console.log("GET ADS ", id)
-
     return await this.prisma.competitorAds.findMany({
       where: { competitorId: id },
     });
   }
 
   async saveAds(competitorId: string, ads: any[]) {
-    console.log("--------------")
-    console.log("SAVING ADS ", ads);
-
     return Promise.all(
       ads.map(ad =>
         this.prisma.competitorAds.upsert({
@@ -210,6 +201,11 @@ export class CompetitorService {
             isActive: ad.isActive,
           },
           update: {
+            title: ad.title,
+            body: ad.body,
+            videos: ad.videos,
+            images: ad.images,
+
             start: ad.start,
             end: ad.end,
             active_days: ad.active_days,
