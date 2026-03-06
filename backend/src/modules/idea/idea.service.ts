@@ -22,19 +22,12 @@ export class IdeaService {
 
   async fetchIdeas(businessId: string, body: TIdeaParams): Promise<TIdea[] | null> {
     const competitors = await this.competitorService.getCompetitors(businessId);
-
-    console.log("FETCH IDEAS")
-
     const posts: any = [];
 
     for (const competitor of competitors) {
       if (!competitor?.facebookLink) continue;
 
       try {
-        console.log("---------------")
-        console.log("COMPETITOR ID:", competitor.id)
-        console.log("COMPETITOR LINK:", competitor.facebookLink)
-
         const competitorPosts = await this.facebookService.fetchPosts(
           competitor.id,
           competitor.facebookLink,

@@ -8,8 +8,6 @@ export class ApifyService {
 
   async runActor<T>(actor: string, input: any): Promise<T[]> {
     const runUrl = `${this.apifyApiURL}/acts/${actor}/runs?token=${this.apifyApiKey}`;
-    console.log("RUN 111")
-
     const runRes = await fetch(runUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -18,30 +16,18 @@ export class ApifyService {
 
     const runData = await runRes.json();
 
-    console.log("RUN 222")
-
     if (runData.error) {
       throw new BadRequestException(
         runData.error.message || 'Failed to run actor'
       )
     }
 
-    console.log("RUN 333")
-
     const runId = runData.data.id;
     const run = await this.waitForRun(runId);
-
-    console.log("RUN 444")
     const datasetRes = await fetch(`${this.apifyApiURL}/datasets/${run.defaultDatasetId}/items?token=${this.apifyApiKey}`);
-
-    console.log("RUN 555")
     const items = await datasetRes.json();
 
-    console.log("RUN 666")
-
     if (items[0].error) {
-      console.log("ITEMS ERROR: ", items[0])
-
       if(items[0].errorCode === "PAGE_PRIVATE") {
         throw new BadRequestException('Page is private');
       }

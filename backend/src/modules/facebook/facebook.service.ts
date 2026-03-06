@@ -45,8 +45,6 @@ export class FacebookService {
       }
     );
 
-    console.log("GET COMPETITOR POSTS: ", items)
-
     return items
       .filter(i => !i.error)
       .map(i => this._postsMapper(competitorId, i));
