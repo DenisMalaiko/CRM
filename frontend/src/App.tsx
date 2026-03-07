@@ -46,6 +46,7 @@ import Competitors from "./pages/admin/business/components/Сompetitors/Competit
 import Competitor from "./pages/admin/business/components/Сompetitors/:id/Competitor";
 import Gallery from "./pages/admin/business/components/Gallery/Gallery";
 import Ideas from "./pages/admin/business/components/Ideas/Ideas";
+import Stories from "./pages/admin/business/components/Stories/Stories";
 
 // AI
 import Accountant from "./pages/admin/ai/accountant/Accountant";
@@ -117,6 +118,7 @@ function App() {
 
             {/*Generation*/}
             <Route path="posts" element={<Creatives />} />
+            <Route path="stories" element={<Stories />} />
             <Route path="prompts" element={<Prompts />} />
             <Route path="gallery" element={<Gallery />} />
 

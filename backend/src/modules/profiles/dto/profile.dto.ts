@@ -1,4 +1,5 @@
-import { IsOptional, IsString, IsUUID, IsArray, IsBoolean } from "class-validator";
+import {IsOptional, IsString, IsUUID, IsArray, IsBoolean, IsEnum} from "class-validator";
+import { ProfileFocus } from "@prisma/client"
 
 export class ProfileBaseDto {
   @IsUUID()
@@ -8,8 +9,8 @@ export class ProfileBaseDto {
   @IsString()
   name: string;
 
-  @IsString()
-  profileFocus: string;
+  @IsEnum(ProfileFocus)
+  profileFocus: ProfileFocus;
 
   @IsArray()
   audiencesIds: string[];

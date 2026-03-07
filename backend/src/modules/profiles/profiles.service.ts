@@ -8,6 +8,7 @@ import { AIArtifactStatus, AIArtifactType } from "@prisma/client";
 import { AiPost } from "../ai/entities/aiPost.entity";
 import { AIArtifactBase } from "../aiArtifact/entities/aiArtifact.entity";
 import { StorageUrlService } from "../../core/storage/storage-url.service";
+import { ProfileFocus } from "@prisma/client"
 
 @Injectable()
 export class ProfilesService {
@@ -232,7 +233,6 @@ export class ProfilesService {
         prompts: profile.prompts.map(p => p.prompt),
         photos: profile?.photos.map(p => p.galleryPhoto),
       };
-
       const galleryPhotosUrls = mappedProfile.photos.map((photo) => {
         return {
           type: photo.type,
@@ -241,40 +241,79 @@ export class ProfilesService {
         };
       });
 
+      // Generate Posts
+      if(profile.profileFocus === ProfileFocus.GeneratePosts) {
+        const posts: AiPost[] = await this.aiService.generatePostsBasedOnBusinessProfile(mappedProfile, galleryPhotosUrls);
 
-      const posts: AiPost[] = await this.aiService.generatePostsBasedOnBusinessProfile(mappedProfile, galleryPhotosUrls);
+        const createdArtifacts: AIArtifactBase[] = [];
 
-      const createdArtifacts: AIArtifactBase[] = [];
-
-      for (const post of posts) {
-        const artifact: AIArtifactBase = await this.prisma.aIArtifact.create({
-          data: {
-            businessId: profile.businessId,
-            businessProfileId: profile.id,
-            type: AIArtifactType.Post,
-            outputJson: post,
-            status: AIArtifactStatus.Draft,
-            imageUrl: post.imageUrl,
-            imagePrompt: post.image_prompt,
-            products: {
-              create: profile.products.map(p => ({
-                productId: p.product.id,
-              })),
-            },
-          },
-          include: {
-            products: {
-              include: {
-                product: true,
+        for (const post of posts) {
+          const artifact: AIArtifactBase = await this.prisma.aIArtifact.create({
+            data: {
+              businessId: profile.businessId,
+              businessProfileId: profile.id,
+              type: AIArtifactType.Post,
+              outputJson: post,
+              status: AIArtifactStatus.Draft,
+              imageUrl: post.imageUrl,
+              imagePrompt: post.image_prompt,
+              products: {
+                create: profile.products.map(p => ({
+                  productId: p.product.id,
+                })),
               },
             },
-          }
-        });
+            include: {
+              products: {
+                include: {
+                  product: true,
+                },
+              },
+            }
+          });
 
-        createdArtifacts.push(artifact);
+          createdArtifacts.push(artifact);
+        }
+
+        return createdArtifacts;
       }
 
-      return createdArtifacts;
+      // Generate Stories
+      if(profile.profileFocus === ProfileFocus.GenerateStories) {
+        const stories: AiPost[] = await this.aiService.generateStoriesBasedOnBusinessProfile(mappedProfile, galleryPhotosUrls);
+
+        const createdArtifacts: AIArtifactBase[] = [];
+
+        for (const story of stories) {
+          const artifact: AIArtifactBase = await this.prisma.aIArtifact.create({
+            data: {
+              businessId: profile.businessId,
+              businessProfileId: profile.id,
+              type: AIArtifactType.Story,
+              outputJson: story,
+              status: AIArtifactStatus.Draft,
+              imageUrl: story.imageUrl,
+              imagePrompt: story.image_prompt,
+              products: {
+                create: profile.products.map(p => ({
+                  productId: p.product.id,
+                })),
+              },
+            },
+            include: {
+              products: {
+                include: {
+                  product: true,
+                },
+              },
+            }
+          });
+
+          createdArtifacts.push(artifact);
+        }
+
+        return createdArtifacts;
+      }
     }
   }
 }

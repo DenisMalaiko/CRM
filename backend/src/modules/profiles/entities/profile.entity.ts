@@ -4,11 +4,12 @@ import { TBusiness } from "../../business/entities/business.entity";
 import { TPrompt } from "../../prompt/entities/prompt.entity";
 import { TGalleryPhoto } from "../../gallery/entities/gallery.entity";
 import { TIdea } from "../../idea/entities/idea.entity";
+import { ProfileFocus } from "@prisma/client"
 
 type TProfileBase = {
   businessId: string;
   name: string;
-  profileFocus: string;
+  profileFocus: ProfileFocus;
   isActive: boolean;
 };
 
