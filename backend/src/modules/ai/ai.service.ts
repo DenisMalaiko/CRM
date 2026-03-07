@@ -40,6 +40,23 @@ export class AiService {
     return posts;
   }
 
+  async generateStoriesBasedOnBusinessProfile(profile: TProfile, photos: { url: string, type: GalleryPhotoType }[]): Promise<any[]> {
+    console.log("GENERATE STORIES");
+    const prompt = this.buildPromptForStories(profile);
+    const response = await this.model.invoke(prompt);
+    const rawText = this.extractTextContent(response.content);
+    const stories: any[] = JSON.parse(rawText)?.stories ?? [];
+
+    for (const story of stories) {
+      if (story.image_prompt) {
+        story.imageUrl = await this.aiReplicate.generateImageOpenAI(story.image_prompt, profile.businessId, photos);
+      }
+    }
+
+    console.log("RESPONSE ", stories);
+    return stories;
+  }
+
   async analyzeCompetitorPosts(posts: any[]) {
     const structuredModel =
       this.model.withStructuredOutput(IdeasBatchSchema);
@@ -353,6 +370,224 @@ export class AiService {
       }
       
       Return ONLY the JSON object. No extra text.
+    `;
+  }
+
+  private buildPromptForStories(profile) {
+    const audienceBlock = profile.audiences
+      .map((a, i) => `
+        Audience ${i + 1}:
+        - Age range: ${a.ageRange}
+        - Gender: ${a.gender ?? 'any'}
+        - Location: ${a.geo}
+        - Pains: ${a.pains.join(', ')}
+        - Desires: ${a.desires.join(', ')}
+        - Triggers: ${a.triggers.join(', ')}
+        - Income level: ${a.incomeLevel ?? 'not specified'}
+        `)
+      .join('\n');
+
+    const productsBlock = profile.products
+      .filter(p => p.isActive)
+      .map((p, i) => `
+        Product ${i + 1}:
+        - Name: ${p.name}
+        - Type: ${p.type}
+        - Description: ${p.description}
+        - Price segment: ${p.priceSegment}
+        - Positioning hint: ${
+        p.priceSegment === 'Premium'
+          ? 'high value, quality, exclusivity'
+          : p.priceSegment === 'Middle'
+            ? 'balanced value and affordability'
+            : 'accessible, cost-effective, practical'
+      }
+        `)
+      .join('\n');
+
+    const ideasBlock =
+      profile.ideas && profile.ideas.length
+        ? profile.ideas
+          .map(
+            (idea, i) => `
+              Idea ${i + 1} (Creative Direction):
+              - Title: ${idea.title}
+              - Description: ${idea.description}
+              - Target emotion: ${idea.feeling}
+              - Audience intent (Who): ${idea.who}
+              - Content type (What): ${idea.what}
+              - Marketing goal (Why): ${idea.why}
+              - Execution style (How): ${idea.how}
+              
+              Competitor reference post (for structure only, NOT for copying):
+              """
+              ${idea.competitorText ?? 'not available'}
+              """
+              
+              How to use the competitor post (MANDATORY):
+              - Extract the STRUCTURE and PSYCHOLOGY:
+                - Hook pattern (1 sentence)
+                - Information blocks order (bullet list)
+                - CTA pattern (1 sentence)
+                - Emotional triggers used (bullet list)
+              - Rebuild the post from scratch for THIS business:
+                - Replace all entities (teams, cities, names, numbers, phone) with business-relevant details
+                - Keep only the idea + structure, not wording
+              - Hard anti-copy rules:
+                - Do NOT reuse phrases longer than 4 words from the competitor post
+                - Do NOT keep proper nouns (club names, cities, people, phone numbers, dates)
+                - Do NOT mention the competitor or that this is adapted
+              `
+          )
+          .join('\n')
+        : `
+              No specific idea provided.
+              Generate a post based only on business context and audience insights.
+            `;
+
+    return `
+      You are a senior performance marketer and short-form content strategist.
+
+      Generate exactly ONE social media story based on the provided business context.
+      
+      Stories must be optimized for Instagram / Facebook vertical story format.
+      
+      ---
+      
+      ## BUSINESS CONTEXT
+      
+      Business:
+      - Name: ${profile.business.name}
+      - Industry: ${profile.business.industry}
+      - Website: ${profile.business.website}
+      
+      Profile:
+      - Name: ${profile.name}
+      - Focus: ${profile.profileFocus}
+      
+      ---
+      
+      ## TARGET AUDIENCE
+      
+      ${audienceBlock}
+      
+      ---
+      
+      ## PRODUCTS / SERVICES
+      
+      ${productsBlock}
+      
+      ---
+      
+      ## CREATIVE IDEA (PRIMARY INSPIRATION)
+      
+      Use the following idea as the narrative direction for the story sequence.
+      
+      ${ideasBlock}
+      
+      Stories MUST follow this narrative direction if provided.
+      
+      ---
+      
+      ## STORY STRUCTURE
+      
+      Generate ONE story frame that works as a standalone story.
+      
+      The story should follow a psychological progression:
+      
+      1. Hook (attention)
+      2. Context or pain
+      3. Solution or insight
+      4. Product/service appearance
+      5. CTA
+      
+      Not every sequence must contain all steps, but the progression must feel natural.
+      
+      ---
+      
+      ## STORY WRITING RULES
+      
+      Each story frame must contain:
+      
+      - headline (very short)
+      - supporting text
+      - visual idea
+      - emotion trigger
+      - interaction element (optional)
+      
+      Rules:
+      
+      - Headline: 2–6 words
+      - Supporting text: 5–12 words
+      - Stories must be punchy and scroll-stopping
+      - Avoid long sentences
+      - Use emotionally engaging language
+      - Speak directly to audience pains/desires
+      - Avoid generic marketing clichés
+      - Do NOT invent business facts
+      - Do NOT mention AI
+      
+      Tone:
+      
+      - dynamic
+      - visual
+      - conversational
+      
+      Emojis allowed if natural.
+      
+      ---
+      
+      ## INTERACTION ELEMENTS (OPTIONAL)
+      
+      You may include:
+      
+      - poll
+      - question sticker
+      - slider
+      - swipe CTA
+      
+      Only include if they make sense.
+      
+      ---
+      
+      ## VISUAL GENERATION (IMAGE PROMPT)
+      
+      For each story frame generate an image_prompt.
+      
+      The image_prompt is a technical instruction for an image generation model.
+      
+      Rules:
+      
+      - Vertical composition (9:16)
+      - Clear focal subject
+      - Social-media-friendly visuals
+      - Scene must match the emotion of the frame
+      - Avoid clutter
+      - One coherent paragraph
+      
+      If layout requires visible text:
+      
+      Generate short visible headline text (2–5 words).
+      
+      ---
+      
+      ## OUTPUT FORMAT (STRICT JSON)
+      
+      {
+        "stories": [
+          {
+            "frame": 1,
+            "headline": "string",
+            "text": "string",
+            "emotion_trigger": "curiosity | desire | urgency | fear | excitement",
+            "interaction": "none | poll | question | slider | swipe",
+            "visual_description": "string",
+            "image_prompt": "string"
+          }
+        ]
+      }
+      
+      Return ONLY the JSON object. No explanations.
     `;
   }
 

@@ -123,7 +123,8 @@ export class IdeaService {
   calculateIdeaScore(post: any): number {
     const likes = post.likes ?? 0;
     const shares = post.shares ?? 0;
+    const comments = post.comments ?? 0;
 
-    return likes + shares * 3;
+    return likes + comments * 3 + shares * 5;
   }
 }

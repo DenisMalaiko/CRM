@@ -33,6 +33,10 @@ function Business() {
       title: "Posts",
     },
     {
+      id: "stories",
+      title: "Stories",
+    },
+    {
       id: "prompts",
       title: "Prompts",
     },

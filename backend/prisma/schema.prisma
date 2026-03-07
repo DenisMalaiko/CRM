@@ -60,7 +60,7 @@ model BusinessProfile {
   name         String
   isActive     Boolean                         @default(true)
   createdAt    DateTime                        @default(now())
-  profileFocus String
+  profileFocus ProfileFocus
   aiArtifacts  AIArtifact[]
   business     Business                        @relation(fields: [businessId], references: [id])
   photos       BusinessProfilePhoto[]
@@ -399,10 +399,8 @@ enum TagType {
 }
 
 enum AIArtifactType {
-  Idea
   Post
-  Script
-  Angle
+  Story
 }
 
 enum AIArtifactStatus {
@@ -487,4 +485,9 @@ enum IdeaStatus {
     Planned
     Used
     Archived
+}
+
+enum ProfileFocus {
+    GeneratePosts
+    GenerateStories
 }

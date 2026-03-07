@@ -1,3 +1,4 @@
 export enum BusinessProfileFocus {
-  GeneratePosts = "Generate Posts",
+  GeneratePosts = "GeneratePosts",
+  GenerateStories = "GenerateStories",
 }
