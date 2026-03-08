@@ -30,6 +30,7 @@ function SelectGalleryDlg({ open, onClose, onSelect, selectedIds }: any) {
   const imagePhotos: TGalleryPhoto[] = photos.filter((p: TGalleryPhoto) => p.type === GalleryType.Image);
   const decorationPhotos: TGalleryPhoto[] = photos.filter((p: TGalleryPhoto) => p.type === GalleryType.Decoration);
   const postPhotos: TGalleryPhoto[] = photos.filter((p: TGalleryPhoto) => p.type === GalleryType.Post);
+  const storyPhotos: TGalleryPhoto[] = photos.filter((p: TGalleryPhoto) => p.type === GalleryType.Story);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -177,6 +178,46 @@ function SelectGalleryDlg({ open, onClose, onSelect, selectedIds }: any) {
 
               <div className="grid gap-6 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6">
                 {postPhotos.map(photo => (
+                  <div
+                    key={photo.id}
+                    className="group rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition cursor-pointer"
+                  >
+                    <label className="relative cursor-pointer">
+                      <img
+                        src={photo.url}
+                        className="w-full h-40 object-cover"
+                        alt=""
+                      />
+
+                      <div className="absolute top-3 right-3 duration-300">
+                        <input
+                          type="checkbox"
+                          checked={localSelected.includes(photo.id)}
+                          disabled={
+                            !localSelected.includes(photo.id) &&
+                            localSelected.length >= MAX_SELECTED
+                          }
+                          onChange={() => toggle(photo.id)}
+                          className="h-4 w-4 rounded disabled:opacity-40 disabled:cursor-not-allowed"
+                        />
+                      </div>
+                    </label>
+                  </div>
+                ))}
+              </div>
+            </section>
+          </div>
+
+          <div className="space-y-10 p-6">
+            <section>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">
+                  Stories
+                </h3>
+              </div>
+
+              <div className="grid gap-6 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6">
+                {storyPhotos.map(photo => (
                   <div
                     key={photo.id}
                     className="group rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition cursor-pointer"

@@ -419,6 +419,7 @@ enum GalleryPhotoType {
   Image
   Decoration
   Post
+  Story
 }
 
 enum IdeaWho {
