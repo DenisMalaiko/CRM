@@ -30,6 +30,7 @@ function Gallery() {
   const decorationPhotos = photos.filter((p: TGalleryPhoto) => p.type === GalleryType.Decoration);
   const imagePhotos = photos.filter((p: TGalleryPhoto) => p.type === GalleryType.Image);
   const postPhotos = photos.filter((p: TGalleryPhoto) => p.type === GalleryType.Post);
+  const storyPhotos = photos.filter((p: TGalleryPhoto) => p.type === GalleryType.Story);
 
   // Get Data
   useEffect(() => {
@@ -108,6 +109,18 @@ function Gallery() {
             </div>
 
             <Photos photos={postPhotos}/>
+          </section>
+        </div>
+
+        <div className="p-5 space-y-10">
+          <section>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">
+                Stories
+              </h3>
+            </div>
+
+            <Photos photos={storyPhotos}/>
           </section>
         </div>
       </section>
