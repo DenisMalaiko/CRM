@@ -106,7 +106,7 @@ function SliderDlg({ open, onClose, medias }: { open: boolean, onClose: () => vo
                   key={index}
                   src={media.url ?? media.thumbnail}
                   alt="image"
-                  className="w-full h-full max-h-[80vh] object-cover"
+                  className="w-full h-full max-h-[80vh] object-contain"
                 />
               )
             )}
