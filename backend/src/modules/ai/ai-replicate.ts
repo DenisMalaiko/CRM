@@ -50,6 +50,8 @@ export class AiReplicate {
       }
     ];
 
+    console.log("POST PROMPT ", prompt)
+
     if (decorations.length) {
       content.push({
         type: "input_text",
@@ -432,7 +434,7 @@ export class AiReplicate {
     photos: { url: string, type: GalleryPhotoType }[]
   ) {
     const decorations = photos.filter(p => p.type === GalleryPhotoType.Decoration);
-    const posts = photos.filter(p => p.type === GalleryPhotoType.Post);
+    const stories = photos.filter(p => p.type === GalleryPhotoType.Story);
     const businessPhotos = photos.filter(p => p.type === GalleryPhotoType.Image);
     const content: any[] = [
       {
@@ -443,7 +445,7 @@ export class AiReplicate {
           You will receive three types of images:
           
           1) DECORATIONS – brand elements such as logos, shapes, overlays.
-          2) POSTS – marketing post designs that define the visual style.
+          2) STORIES – marketing story designs that define the visual style.
           3) BUSINESS PHOTOS – real photos of products, people or environment.
           
           Analyze each type differently according to the instructions provided before each image group.
@@ -455,6 +457,8 @@ export class AiReplicate {
           `
       }
     ];
+
+    console.log("STORY PROMPT ", prompt)
 
     if (decorations.length) {
       content.push({
@@ -506,26 +510,69 @@ export class AiReplicate {
       });
     }
 
-    if (posts.length) {
+    if (stories.length) {
       content.push({
         type: "input_text",
         text: `
-          POST DESIGN SYSTEM ANALYSIS
+          STORY DESIGN SYSTEM ANALYSIS
+
+          You are analyzing an INSTAGRAM / FACEBOOK STORY creative.
           
-          You are analyzing a MARKETING POST.
+          Stories use a vertical 9:16 layout and a fast visual hierarchy.
           
-          Your main task is to extract the COMPLETE TYPOGRAPHY SYSTEM.
+          Your task is to extract the STORY DESIGN SYSTEM so that similar story creatives
+          can be generated automatically.
           
-          Spend at least 50% of the analysis on text styling.
+          Focus on THREE main systems:
           
-          For EVERY text block visible in the image extract the following:
+          1) STORY LAYOUT STRUCTURE
+          2) TYPOGRAPHY SYSTEM
+          3) DECORATIVE GRAPHICS & OVERLAYS
           
-          TEXT BLOCK ANALYSIS
+          Spend roughly:
+          - 40% on layout
+          - 40% on typography
+          - 20% on decorative graphics.
           
-          For each block return:
+          --------------------------------
           
+          STORY LAYOUT ANALYSIS
+          
+          Extract the structural layout of the story.
+          
+          Identify:
+          
+          - canvas orientation (should be vertical)
+          - main focal zone
+          - text zones
+          - image zones
+          - CTA zones
+          - decorative overlay zones
+          
+          For each zone return:
+          
+          - zoneType (headline / info panel / CTA / background / hero image)
+          - boundingBox
+            - xPercent
+            - yPercent
+            - widthPercent
+            - heightPercent
+          
+          Also detect:
+          
+          - safe margins for UI (top and bottom areas usually empty)
+          - background structure (solid / texture / gradient / photo)
+          - layering order (background → overlays → text → CTA)
+          
+          --------------------------------
+          
+          TYPOGRAPHY SYSTEM
+          
+          For EVERY text block extract:
+          
+          TEXT CONTENT
           - textContent (exact text if readable)
-          - role (headline / subheadline / CTA / caption)
+          - role (headline / subheadline / CTA / info / caption)
           
           FONT STYLE
           - fontClassification (sans / serif / display)
@@ -562,38 +609,83 @@ export class AiReplicate {
             - widthPercent
             - heightPercent
           
-          READABILITY SUPPORT
-          - background blur
-          - dark overlay
-          - contrast strategy
+          --------------------------------
+          
+          DECORATIVE GRAPHICS & OVERLAYS
+          
+          Stories often use strong graphic overlays.
+          
+          Identify decorative elements such as:
+          
+          - diagonal color blocks
+          - geometric panels
+          - background gradients
+          - texture overlays
+          - color accents
+          - decorative stripes
+          - torn paper effects
+          - framing elements
+          
+          For each element return:
+          
+          - elementType
+          - shape (rectangle / stripe / diagonal / gradient / texture)
+          - color
+          - opacity
+          - orientation (horizontal / vertical / diagonal)
+          - angle (if diagonal)
+          - boundingBox
+          
+          --------------------------------
+          
+          HERO SUBJECT
+          
+          Identify the main visual subject:
+          
+          - person / player
+          - product
+          - object
+          - background scene
+          
+          Return:
+          
+          - subjectType
+          - position
+          - approximate size
+          - relation to layout (foreground / background)
+          
+          --------------------------------
           
           IMPORTANT RULES
           
-          - Do NOT skip text blocks.
-          - If text is visible but unreadable still analyze style.
-          - Estimate sizes visually if necessary.
-          - Be precise with stroke and shadow.
+          - Do NOT invent details that are not visible.
+          - If text is unreadable still analyze its style.
+          - Always estimate positions relative to the full story frame.
+          - Treat the story as a layered design system.
+          
+          Return precise structural information.
         `
       });
 
-      posts.forEach((photo: any) => {
+      stories.forEach((photo: any) => {
         const fileName = this.getFileName(photo.url);
 
         content.push({
           type: "input_text",
           text: `
-            Marketing post reference.
+            Instagram Story reference.
             
             IMAGE_ID: ${fileName}
             
-            Important element in this image:
-            ${photo.description ?? "Full post design"}
+            Important elements in this story:
+            ${photo.description ?? "Full story creative"}
             
-            Focus on:
-            - typography
-            - layout
+            Focus on extracting:
+            
+            - story layout zones
+            - typography system
             - decorative overlays
-            - spacing
+            - subject placement
             `
         });
 
@@ -676,10 +768,10 @@ export class AiReplicate {
             }
           ],
         
-          "posts": [
+          "stories": [
             {
               "imageId": "IMAGE_ID",
-              "postDesignSystem": {
+              "storyDesignSystem": {
                 "typography": {
                   "textBlocks": [
                     {
@@ -756,57 +848,70 @@ export class AiReplicate {
       {
         input: {
           prompt: `
-        You are a senior social media art director specializing in Instagram Story creatives.
-
-        Generate a vertical Instagram Story image.
-
-        STORY CONTEXT:
-        ${prompt}
-
-        STYLE GUIDELINES:
-        Use the following brand design system extracted from analysis:
-        ${designSystem}
-
-        FORMAT:
-        - Vertical 9:16
-        - Instagram story safe margins
-        - Leave space for UI (top and bottom)
-
-        COMPOSITION:
-        - One clear focal subject
-        - Large readable headline area
-        - Minimal distractions
-        - Clean hierarchy
-
-        TEXT PLACEMENT:
-        - Headline area in upper-middle section
-        - Large readable typography
-        - Avoid placing text near top 10% or bottom 15% of frame
-
-        VISUAL STYLE:
-        - Modern social media advertising
-        - High contrast for readability
-        - Bold composition
-        - Eye-catching layout
-
-        LIGHTING:
-        - Soft cinematic lighting
-        - Clear subject separation
-
-        COLORS:
-        - Follow brand palette
-        - Strong contrast for text readability
-
-        CAMERA:
-        - Professional photography look
-        - Shallow depth of field
-
-        QUALITY:
-        - Ultra realistic
-        - High resolution
-        - Clean background
-        - No visual noise
-      `,
+            You are a professional social media art director.
+            
+            Generate a high-quality Instagram Story marketing creative.
+            
+            STORY IDEA
+            ${prompt}
+            
+            BRAND DESIGN SYSTEM (STRICT)
+            
+            The following design system was extracted from real story creatives.
+            
+            You MUST reproduce the SAME visual layout structure.
+            
+            This includes:
+            
+            • same decorative stripe directions  
+            • same placement of color panels  
+            • same background composition  
+            • same typography zones  
+            • same hierarchy (headline → subject → CTA)
+            
+            Do NOT redesign the layout.
+            
+            Treat the reference design as a TEMPLATE.
+            
+            Only change the scene content (players, bus, environment).
+            
+            Design system:
+            ${designSystem}
+            
+            FORMAT
+            Vertical 9:16 Instagram Story.
+            
+            LAYOUT
+            • clear visual hierarchy
+            • one strong focal subject
+            • headline readable on mobile
+            • minimal clutter
+            
+            SAFE AREAS
+            Avoid placing important content in:
+            • top 15% of frame
+            • bottom 15% of frame
+            
+            STYLE
+            • modern advertising design
+            • strong contrast typography
+            • bold composition
+            • brand color palette
+            
+            SUBJECT
+            Use a clear hero subject related to the story context.
+            
+            QUALITY
+            • ultra realistic
+            • professional advertising look
+            • clean composition
+            • high resolution
+            
+            Avoid:
+            • clutter
+            • small unreadable text
+            • random stock-photo layouts
+          `,
           resolution: "2K",
           aspect_ratio: "9:16",
           safety_filter_level: "block_only_high",

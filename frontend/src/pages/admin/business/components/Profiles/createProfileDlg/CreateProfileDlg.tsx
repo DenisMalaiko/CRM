@@ -283,7 +283,7 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
               {errors.audiencesIds && <p className="text-red-500 text-sm mt-2 text-left">{errors.audiencesIds}</p>}
             </div>
 
-            <div>
+            <div className="relative z-20">
               <div className="flex items-center gap-2 justify-between">
                 <label className="block text-sm font-medium text-slate-700 text-left">Prompts</label>
               </div>
@@ -306,7 +306,7 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
               {errors.promptsIds && <p className="text-red-500 text-sm mt-2 text-left">{errors.promptsIds}</p>}
             </div>
 
-            <div>
+            <div className="relative z-10">
               <div className="flex items-center gap-2 justify-between">
                 <label className="block text-sm font-medium text-slate-700 text-left">Photos</label>
               </div>

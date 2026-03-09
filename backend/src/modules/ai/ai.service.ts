@@ -49,7 +49,7 @@ export class AiService {
 
     for (const story of stories) {
       if (story.image_prompt) {
-        story.imageUrl = await this.aiReplicate.generateImageOpenAI(story.image_prompt, profile.businessId, photos);
+        story.imageUrl = await this.aiReplicate.generateStoryImageOpenAI(story.image_prompt, profile.businessId, photos);
       }
     }
 
@@ -445,6 +445,19 @@ export class AiService {
               Generate a post based only on business context and audience insights.
             `;
 
+    const buildPromptsBlock = (prompts: any[]) =>
+      prompts
+        .filter(p => p.isActive)
+        .map((p, i) => `
+      Prompt ${i + 1}:
+      - ${p.text}
+    `)
+        .join('\n');
+
+    const imagePromptsBlock = buildPromptsBlock(
+      profile.prompts.filter(p => p.purpose === 'Image')
+    );
+
     return `
       You are a senior performance marketer and short-form content strategist.
 
@@ -550,24 +563,44 @@ export class AiService {
       
       ---
       
-      ## VISUAL GENERATION (IMAGE PROMPT)
+      ## IMAGE PROMPT GENERATION (STRICT MODE)
       
-      For each story frame generate an image_prompt.
+      Generate the field: image_prompt.
       
       The image_prompt is a technical instruction for an image generation model.
       
-      Rules:
+      Source of truth:
+      ${imagePromptsBlock}
       
-      - Vertical composition (9:16)
-      - Clear focal subject
-      - Social-media-friendly visuals
-      - Scene must match the emotion of the frame
-      - Avoid clutter
-      - One coherent paragraph
+      CRITICAL RULE:
       
-      If layout requires visible text:
+      The generated image_prompt MUST follow the provided image prompts.
       
-      Generate short visible headline text (2–5 words).
+      If the prompt describes a specific scene, you MUST reproduce that scene exactly.
+      
+      Do NOT invent a different scenario.
+      
+      Example:
+      If the prompt says:
+      "football field with Goalberi logo and team members near a bus"
+      
+      Then the image must include:
+      - football field
+      - Goalberi logo
+      - team members
+      - bus
+      - preparation for departure
+      
+      Do NOT replace the scene with generic stadium fans or unrelated events.
+      
+      ---
+      
+      IMAGE PROMPT WRITING RULES
+      
+      - Describe the scene precisely
+      - Mention all key objects
+      - Use one coherent paragraph
+      - Focus on visual clarity
       
       ---
       
