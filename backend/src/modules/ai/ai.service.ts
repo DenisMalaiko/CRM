@@ -30,6 +30,8 @@ export class AiService {
     const rawText = this.extractTextContent(response.content);
     const posts: AiPost[] = JSON.parse(rawText)?.posts ?? [];
 
+    console.log("POSTS ", posts);
+
     for (const post of posts) {
       if (post.image_prompt) {
         //post.imageUrl = await this.aiVertexImage.generateImage(post.image_prompt, profile.businessId);
@@ -41,7 +43,6 @@ export class AiService {
   }
 
   async generateStoriesBasedOnBusinessProfile(profile: TProfile, photos: { url: string, type: GalleryPhotoType }[]): Promise<any[]> {
-    console.log("GENERATE STORIES");
     const prompt = this.buildPromptForStories(profile);
     const response = await this.model.invoke(prompt);
     const rawText = this.extractTextContent(response.content);
@@ -321,36 +322,138 @@ export class AiService {
       ---
             
       ## IMAGE PROMPT GENERATION (STRICT MODE)
-      
+
       Generate the field: image_prompt.
       
       The image_prompt is a technical instruction for an image generation model.
-      It describes visual structure, layout, decorative elements, AND visible text.
+      It describes the visual scene and the exact text that must appear on the image.
       
-      Source of truth:
+      --------------------------------
+      
+      FRONTEND IMAGE PROMPTS (HIGHEST PRIORITY)
+      
       ${imagePromptsBlock}
       
-      STYLE RULES:
-      - Preserve decorative style exactly as described
-      - Do NOT add or remove decorative elements
-      - Do NOT redesign layout
-      - Visual concept MUST reflect the creative idea scenario and emotion
+      The frontend prompts come from the marketing team.
       
-      TEXT GENERATION (MANDATORY):
+      These instructions have the HIGHEST priority and MUST NOT be ignored.
       
-      If layout requires headline or description,
-      generate visible image text.
+      Rules:
       
-      Text rules:
-      - Headline: 2–6 words
-      - Description line: 5–15 words
-      - Must fit typography and layout
-      - Must match scene emotion
-      - Treated as visual element, not marketing copy
+      1. If a frontend prompt explicitly specifies text that must appear on the image
+         (for example: "add text", "title", "headline", quotes, etc.)
+         you MUST use that exact text in the generated image_prompt.
       
-      WRITING RULES:
-      - Describe visible elements clearly
-      - One coherent paragraph
+      2. The marketing text must be placed inside the VISIBLE TEXT ON IMAGE section.
+      
+      3. Do NOT replace or rewrite marketing text.
+      
+      4. Do NOT invent alternative headlines if marketing text is provided.
+      
+      Example:
+      
+      Frontend prompt:
+      Add text "Goalberi Переможець в Чернівцях"
+      
+      Correct output:
+      
+      VISIBLE TEXT ON IMAGE:
+      Title: "Goalberi Переможець в Чернівцях"
+      
+      --------------------------------
+      
+      TEXT GENERATION LOGIC (NO HARDCODE)
+      
+      Check if the frontend prompts contain explicit text that must appear on the image.
+      
+      Extraction rule:
+      
+      - If the frontend instructions contain 1 text → use it as Title.
+      - If the frontend instructions contain 2 texts → first = Title, second = Subtitle.
+      - If the frontend instructions contain more texts → use the first two only.
+      
+      Rules:
+      
+      - Use the marketing text exactly as written.
+      - Do NOT rewrite the marketing text.
+      - Do NOT translate the marketing text.
+      - Do NOT generate additional text if marketing text already exists.
+      
+      If the frontend prompts contain NO explicit text:
+      
+      Generate visible text using the post context.
+      
+      Title: 2–6 words  
+      Subtitle: 5–15 words  
+      
+      The generated text must reflect:
+      - the HOOK
+      - the main idea of the post
+      - the emotional angle
+      
+      --------------------------------
+      
+      IMAGE PROMPT STRUCTURE (MANDATORY)
+      
+      The image_prompt MUST follow this structure:
+      
+      SCENE:
+      
+      Use the frontend image prompt as the base scene description.
+      
+      Your task is NOT to invent a new scene.
+      
+      If the frontend prompt is written in another language,
+      translate it to English while preserving the exact meaning.
+      
+      Rules:
+      
+      - Do NOT add new objects
+      - Do NOT invent atmosphere or background details
+      - Do NOT add fans, banners, crowd, lights, etc.
+      - Do NOT expand the scene creatively
+      
+      Only convert the original instruction into a clear English image prompt.
+      
+      IMPORTANT:
+      
+      This rule applies ONLY to the SCENE description.
+      
+      The text overlay for the image must still be generated
+      inside the VISIBLE TEXT ON IMAGE section.
+      
+      VISIBLE TEXT ON IMAGE:
+      
+      First extract all quoted text fragments from the frontend image prompts.
+      
+      Use the extracted texts in the order they appear.
+      
+      Text placement rules:
+      
+      - If only one text exists → use it as Title.
+      - If two texts exist → first = Title, second = Subtitle.
+      - If more than two texts exist → use the first two only.
+      - If no text exists → generate Title and Subtitle based on the post idea.
+      
+      Output format:
+      
+      Title: "TEXT"
+      Subtitle: "TEXT"
+      
+      Rules:
+      
+      - Write the EXACT words that must appear on the image.
+      - Do NOT rewrite marketing text.
+      - Do NOT describe typography.
+      - Do NOT describe layout.
+      - Do NOT explain anything.
+      
+      Language rules:
+      
+      - Scene description must be written in English.
+      - Visible text must be written in the business language.
+      
+      Write everything in ONE paragraph suitable for an image generation model.
       
       ---
       
@@ -478,17 +581,36 @@ export class AiService {
       - Name: ${profile.name}
       - Focus: ${profile.profileFocus}
       
-      ---
-      
-      ## TARGET AUDIENCE
-      
+      Target audience:
       ${audienceBlock}
       
+      Products / services:
+      ${productsBlock}
+      
       ---
       
-      ## PRODUCTS / SERVICES
+      ## STORY UX RULES (VERTICAL FORMAT)
+
+      Stories are viewed on a mobile device in a vertical 9:16 format.
       
-      ${productsBlock}
+      Important composition rules:
+      
+      - Main subject must stay in the center area
+      - Avoid placing key objects at the top or bottom edges
+      - Leave space for interface elements
+      
+      Safe zones:
+      
+      Top 15% → reserved for Instagram UI  
+      Bottom 20% → reserved for buttons and reactions  
+      
+      Text placement:
+      
+      - Headline should appear in the upper-middle area
+      - Supporting text in the middle area
+      - CTA in the lower-middle area
+      
+      Do NOT place text in UI areas.
       
       ---
       
@@ -504,7 +626,7 @@ export class AiService {
       
       ## STORY STRUCTURE
       
-      Generate ONE story frame that works as a standalone story.
+      Generate ONE story frame that works as a standalone story but visually feels like part of a larger story sequence.
       
       The story should follow a psychological progression:
       
@@ -522,15 +644,20 @@ export class AiService {
       
       Each story frame must contain:
       
-      - headline (very short)
-      - supporting text
-      - visual idea
-      - emotion trigger
+      - headline (very short attention hook)
+      - supporting text (context or value)
+      - visual idea (what the viewer sees)
+      - emotion_trigger
       - interaction element (optional)
+      
+      Story principle:
+      
+      Stories must feel like a quick moment captured on camera,
+      not like a static marketing banner.
       
       Rules:
       
-      - Headline: 2–6 words
+      - Headline: 1–5 words
       - Supporting text: 5–12 words
       - Stories must be punchy and scroll-stopping
       - Avoid long sentences
@@ -552,18 +679,27 @@ export class AiService {
       
       ## INTERACTION ELEMENTS (OPTIONAL)
       
-      You may include:
+      Prefer interactive elements when appropriate.
       
-      - poll
+      Available elements:
+      
+      - poll (two options)
       - question sticker
-      - slider
+      - emoji slider
       - swipe CTA
+      
+      Use interaction when it helps engagement,
+      not randomly.
       
       Only include if they make sense.
       
       ---
       
-      ## IMAGE PROMPT GENERATION (STRICT MODE)
+      
+      
+      ## FRONTEND IMAGE PROMPTS (HIGHEST PRIORITY)
+      
+      ${imagePromptsBlock}
       
       Generate the field: image_prompt.
       
@@ -598,11 +734,86 @@ export class AiService {
       IMAGE PROMPT WRITING RULES
       
       - Describe the scene precisely
-      - Mention all key objects
+      - Mention all key objects from the frontend prompt
       - Use one coherent paragraph
       - Focus on visual clarity
+      - Optimize the scene for vertical 9:16 composition
+      - Ensure the main subject stays in the center safe area
       
       ---
+      
+      IMAGE PROMPT STRUCTURE (MANDATORY)
+      
+      The image_prompt MUST follow this structure:
+      
+      SCENE:
+      Describe the visual scene.
+      
+      VISIBLE TEXT ON IMAGE:
+      
+      First extract all quoted text fragments from the frontend image prompts.
+      
+      Use the extracted texts in the order they appear.
+      
+      Text placement rules:
+      
+      - If only one text exists → use it as Title.
+      - If two texts exist → first = Title, second = Subtitle.
+      - If more than two texts exist → use the first two only.
+      - If no text exists → generate Title and Subtitle based on the post idea.
+      
+      Output format:
+      
+      Title: "TEXT"
+      Subtitle: "TEXT"
+      
+      Rules:
+      
+      - Write the EXACT words that must appear on the image.
+      - Do NOT rewrite marketing text.
+      - Do NOT describe typography.
+      - Do NOT describe layout.
+      - Do NOT explain anything.
+      
+      Language rules:
+      
+      - Scene description must be written in English.
+      - Visible text must be written in the business language.
+      
+      Write everything in ONE paragraph suitable for an image generation model.
+      
+      ---
+      
+      VISIBLE TEXT ON STORY (IMPORTANT)
+      
+      Story images may contain text overlays.
+      
+      First extract all quoted text fragments from the frontend image prompts.
+      
+      Use the extracted texts in the order they appear.
+      
+      Text placement rules:
+      
+      - If only one text exists → use it as Headline.
+      - If two texts exist → first = Headline, second = Supporting text.
+      - If more than two texts exist → use the first two only.
+      - If no text exists → generate Headline and Supporting text based on the story idea.
+      
+      Output format inside image_prompt:
+      
+      Headline: "TEXT"
+      Supporting text: "TEXT"
+      
+      Rules:
+      
+      - Write the EXACT words that must appear on the story image.
+      - Do NOT rewrite marketing text.
+      - Do NOT translate marketing text.
+      - Do NOT describe typography or layout.
+      
+      The text overlay must match the generated headline and supporting text fields of the story.
+
+
       
       ## OUTPUT FORMAT (STRICT JSON)
       

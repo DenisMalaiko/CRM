@@ -1,8 +1,9 @@
-import { Controller, UseGuards, Get, Param,  Delete, Body, Patch} from '@nestjs/common';
+import { Controller, UseGuards, Get, Param,  Delete, Body, Patch, Query } from '@nestjs/common';
 import { AiArtifactIdParamDto, UpdateAiArtifactDto } from "./dto/aiartifact.dto";
 import { JwtAuthGuard } from "../../core/guards/jwt-auth.guard";
 import { AiArtifactService } from "./aiArtifact.service";
 import { ResponseMessage } from "../../core/decorators/response-message.decorator";
+import { AIArtifactType } from "@prisma/client";
 
 @UseGuards(JwtAuthGuard)
 @Controller('ai-artifact')
@@ -11,8 +12,8 @@ export class AiArtifactController {
 
   @Get("/:id")
   @ResponseMessage('Artifacts has been got!')
-  async getAiArtifacts(@Param() { id }: AiArtifactIdParamDto) {
-    return await this.aiArtifactService.getAiArtifacts(id);
+  async getAiArtifacts(@Param() { id }: AiArtifactIdParamDto, @Query("type") type?: AIArtifactType) {
+    return await this.aiArtifactService.getAiArtifacts(id, type);
   }
 
   @Patch("/:id")

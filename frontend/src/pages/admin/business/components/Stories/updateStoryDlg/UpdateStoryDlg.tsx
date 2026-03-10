@@ -12,12 +12,13 @@ import {
   useUpdateCreativeMutation,
   useLazyGetAiArtifactsQuery
 } from "../../../../../../store/artifact/artifactApi";
-import { setPosts } from "../../../../../../store/artifact/artifactSlice";
+import {setPosts, setStories} from "../../../../../../store/artifact/artifactSlice";
 
 // Utils
 import { showError } from "../../../../../../utils/showError";
 import { isRequired, minLength } from "../../../../../../utils/validations";
 import { ChangeArg, isNativeEvent } from "../../../../../../utils/isNativeEvent";
+
 
 // Models
 import { ApiResponse } from "../../../../../../models/ApiResponse";
@@ -28,7 +29,7 @@ import { AIArtifactStatus } from "../../../../../../enum/AIArtifactStatus";
 import { GalleryType } from "../../../../../../enum/GalleryType";
 import {X} from "lucide-react";
 
-function CreateCreativeDlg({ open, onClose, creative }: any) {
+function UpdateStoryDlg({ open, onClose, creative }: any) {
   const dispatch = useAppDispatch();
   const { businessId } = useParams<{ businessId: string }>();
 
@@ -43,17 +44,15 @@ function CreateCreativeDlg({ open, onClose, creative }: any) {
     if(isEdit && creative) {
       return {
         status: creative.status,
-        hook: creative.outputJson.hook,
-        body: creative.outputJson.body,
-        cta: creative.outputJson.cta,
+        headline: creative.outputJson.headline,
+        text: creative.outputJson.text,
       }
     }
 
     return {
       status: AIArtifactStatus.Draft,
-      hook: "",
-      body: "",
-      cta: "",
+      headline: "",
+      text: "",
     }
   }, [isEdit, creative, businessId]);
 
@@ -63,9 +62,8 @@ function CreateCreativeDlg({ open, onClose, creative }: any) {
   // Validation Hook
   const { errors, validateField, validateAll } = useValidation({
     status: (value) => isRequired(value),
-    hook: (value) => minLength(value, 10),
-    body: (value) => minLength(value, 10),
-    cta: (value) => minLength(value, 10),
+    headline: (value) => minLength(value, 10),
+    text: (value) => minLength(value, 10),
   });
 
   if (!open) return null;
@@ -82,9 +80,8 @@ function CreateCreativeDlg({ open, onClose, creative }: any) {
         const data = {
           status: form.status,
           outputJson: {
-            hook: form.hook,
-            body: form.body,
-            cta: form.cta,
+            headline: form.headline,
+            text: form.text,
           }
         }
 
@@ -94,10 +91,10 @@ function CreateCreativeDlg({ open, onClose, creative }: any) {
 
       const response: ApiResponse<TAIArtifact[]> = await getAiArtifacts({
         businessId,
-        type: GalleryType.Post
+        type: GalleryType.Story
       }).unwrap();
       if(response && response?.data) {
-        dispatch(setPosts(response.data));
+        dispatch(setStories(response.data));
         resetForm();
         onClose();
       }
@@ -124,11 +121,13 @@ function CreateCreativeDlg({ open, onClose, creative }: any) {
     validateField(name as keyof typeof form, value, form);
   };
 
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 overflow-hidden">
       <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl p-6">
         <div className="flex items-center justify-between mb-4 relative">
           <h2 className="text-lg font-semibold">{ isEdit ? "Edit" : "Create" } Creative</h2>
+
 
           {/* Close */}
           <button
@@ -160,48 +159,32 @@ function CreateCreativeDlg({ open, onClose, creative }: any) {
 
           <div>
             <div className="flex items-center gap-2 justify-between">
-              <label className="block text-sm font-medium text-slate-700 text-left">Hook</label>
+              <label className="block text-sm font-medium text-slate-700 text-left">Headline</label>
             </div>
 
             <textarea
-              name="hook"
-              value={form.hook}
+              name="headline"
+              value={form.headline}
               onChange={onChange}
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
-              placeholder="Enter hook"
+              placeholder="Enter headline"
             />
-            {errors.hook && <p className="text-red-500 text-sm mt-2 text-left">{errors.hook}</p>}
+            {errors.headline && <p className="text-red-500 text-sm mt-2 text-left">{errors.headline}</p>}
           </div>
 
           <div>
             <div className="flex items-center gap-2 justify-between">
-              <label className="block text-sm font-medium text-slate-700 text-left">CTA</label>
+              <label className="block text-sm font-medium text-slate-700 text-left">text</label>
             </div>
 
             <textarea
-              name="cta"
-              value={form.cta}
+              name="text"
+              value={form.text}
               onChange={onChange}
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
-              placeholder="Enter cta"
+              placeholder="Enter text"
             />
-            {errors.cta && <p className="text-red-500 text-sm mt-2 text-left">{errors.cta}</p>}
-          </div>
-
-          <div>
-            <div className="flex items-center gap-2 justify-between">
-              <label className="block text-sm font-medium text-slate-700 text-left">Body</label>
-            </div>
-
-            <textarea
-              name="body"
-              rows={5}
-              value={form.body}
-              onChange={onChange}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
-              placeholder="Enter body"
-            />
-            {errors.body && <p className="text-red-500 text-sm mt-2 text-left">{errors.body}</p>}
+            {errors.text && <p className="text-red-500 text-sm mt-2 text-left">{errors.text}</p>}
           </div>
 
           <div className="flex justify-end gap-3 pt-4">
@@ -231,11 +214,10 @@ function CreateCreativeDlg({ open, onClose, creative }: any) {
               }
             </button>
           </div>
-
         </form>
       </div>
     </div>
   )
 }
 
-export default CreateCreativeDlg;
+export default UpdateStoryDlg;

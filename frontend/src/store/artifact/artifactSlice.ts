@@ -2,22 +2,27 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { TAIArtifact } from "../../models/AIArtifact";
 
 type ArtifactState = {
-  creatives: TAIArtifact[] | null
+  posts: TAIArtifact[] | null
+  stories: TAIArtifact[] | null
 }
 
 const initialState: ArtifactState = {
-  creatives: null
+  posts: null,
+  stories: null
 }
 
 const artifactSlice = createSlice({
   name: "artifact",
   initialState,
   reducers: {
-    setCreatives: (state, action: PayloadAction<TAIArtifact[]>) => {
-      state.creatives = action.payload;
+    setPosts: (state, action: PayloadAction<TAIArtifact[]>) => {
+      state.posts = action.payload;
+    },
+    setStories: (state, action: PayloadAction<TAIArtifact[]>) => {
+      state.stories = action.payload;
     }
   }
 });
 
-export const { setCreatives } = artifactSlice.actions;
+export const { setPosts, setStories } = artifactSlice.actions;
 export default artifactSlice.reducer;
