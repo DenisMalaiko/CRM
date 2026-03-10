@@ -7,12 +7,12 @@ import Select from "react-select";
 import { useSelector } from "react-redux";
 import { useAppDispatch } from "../../../../../store/hooks";
 import {
-  useGetCreativesMutation,
-  useDeleteCreativeMutation
+  useDeleteCreativeMutation,
+  useLazyGetAiArtifactsQuery
 } from "../../../../../store/artifact/artifactApi";
 import { useGetProfilesMutation } from "../../../../../store/profile/profileApi";
 import { useGetProductsMutation} from "../../../../../store/products/productsApi";
-import { setCreatives } from "../../../../../store/artifact/artifactSlice";
+import { setPosts } from "../../../../../store/artifact/artifactSlice";
 import { setProfiles } from "../../../../../store/profile/profileSlice";
 import { setProducts } from "../../../../../store/products/productsSlice";
 
@@ -32,11 +32,14 @@ import { TAIArtifact } from "../../../../../models/AIArtifact";
 import { TBusinessProfile } from "../../../../../models/BusinessProfile";
 import { TProduct } from "../../../../../models/Product";
 
+// Enum
+import { GalleryType } from "../../../../../enum/GalleryType";
+
 function Creatives() {
   const dispatch = useAppDispatch();
   const { businessId } = useParams<{ businessId: string }>();
 
-  const [ getCreatives ] = useGetCreativesMutation();
+  const [ getAiArtifacts ] = useLazyGetAiArtifactsQuery();
   const [ deleteCreative ] = useDeleteCreativeMutation();
   const [ getProfiles ] = useGetProfilesMutation();
   const [ getProducts ] = useGetProductsMutation();
@@ -49,9 +52,9 @@ function Creatives() {
 
   // Creatives
   const filteredCreatives = useSelector(((state: any) => {
-    const { creatives } = state.artifactModule;
+    const { posts } = state.artifactModule;
 
-    return creatives?.filter((creative: TAIArtifact) => {
+    return posts?.filter((creative: TAIArtifact) => {
       const profileMatch =
         profilesIds.length === 0 ||
         profilesIds.includes(creative.businessProfileId);
@@ -81,11 +84,15 @@ function Creatives() {
     const fetchData = async () => {
       try {
         if(businessId) {
-          const response: ApiResponse<TAIArtifact[]> = await getCreatives(businessId).unwrap();
+          const response: ApiResponse<TAIArtifact[]> = await getAiArtifacts({
+            businessId,
+            type: GalleryType.Post
+          }).unwrap();
+
           const profilesResponse: ApiResponse<TBusinessProfile[]> = await getProfiles(businessId).unwrap();
           const productsResponse: ApiResponse<TProduct[]> = await getProducts(businessId).unwrap();
 
-          if(response && response?.data) dispatch(setCreatives(response.data));
+          if(response && response?.data) dispatch(setPosts(response.data));
           if(profilesResponse && profilesResponse?.data) dispatch(setProfiles(profilesResponse.data));
           if(productsResponse && productsResponse?.data) dispatch(setProducts(productsResponse.data));
         }
@@ -112,10 +119,13 @@ function Creatives() {
       try {
         if (item?.id != null) {
           await deleteCreative(item.id);
-          const response: any = await getCreatives(businessId).unwrap();
+          const response: ApiResponse<TAIArtifact[]> = await getAiArtifacts({
+            businessId,
+            type: GalleryType.Post
+          }).unwrap();
 
           if(response && response?.data) {
-            dispatch(setCreatives(response.data));
+            dispatch(setPosts(response.data));
             toast.success(response.message);
           }
         }
@@ -124,7 +134,6 @@ function Creatives() {
       }
     }
   }
-
 
   // Edit Creative
   const openEditCreative = async (item: TAIArtifact) => {
@@ -147,10 +156,13 @@ function Creatives() {
               await deleteCreative(id);
             })
           )
-          const response: any = await getCreatives(businessId).unwrap();
+          const response: ApiResponse<TAIArtifact[]> = await getAiArtifacts({
+            businessId,
+            type: GalleryType.Post
+          }).unwrap();
 
           if(response && response?.data) {
-            dispatch(setCreatives(response.data));
+            dispatch(setPosts(response.data));
             setSelectedIds([]);
             toast.success(response.message);
           }
@@ -160,7 +172,6 @@ function Creatives() {
       }
     }
   }
-
 
   return (
     <div className="rounded-2xl bg-white shadow border border-slate-200">
@@ -234,10 +245,6 @@ function Creatives() {
                         onChange={() => setSelectedIds(selectedIds.includes(item.id) ? selectedIds.filter(id => id !== item.id) : [...selectedIds, item.id])}
                         className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
                       />
-
-                      <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">
-                      {item.type}
-                    </span>
 
                       <span className={`
                       inline-flex items-center rounded-full px-2.5 py-1

@@ -50,8 +50,6 @@ export class AiReplicate {
       }
     ];
 
-    console.log("POST PROMPT ", prompt)
-
     if (decorations.length) {
       content.push({
         type: "input_text",
@@ -116,6 +114,30 @@ export class AiReplicate {
           
           For EVERY text block visible in the image extract the following:
           
+          IMPORTANT TEXT DETECTION RULE
+
+          Detect text blocks ONLY if the text is clearly visible as a graphic overlay added on top of the image.
+          
+          A valid text block must meet ALL conditions:
+          - clearly readable letters
+          - large enough to function as headline/subheadline
+          - intentionally placed as part of the post design
+          - visually separated from the photographed objects
+          
+          Do NOT detect text that appears on:
+          - clothing
+          - jerseys
+          - logos
+          - objects inside the photo
+          - background elements
+          - signage or environment
+          
+          Only detect text that is intentionally placed as part of the marketing design layer.
+          
+          If no clear overlay text exists, textBlocks MUST be an empty array.
+          
+          If you are uncertain whether text is a design overlay, assume there is NO text.
+
           TEXT BLOCK ANALYSIS
           
           For each block return:
@@ -129,7 +151,24 @@ export class AiReplicate {
           - weight (light / regular / bold / extra bold)
           
           TEXT SHAPE
-          - case (uppercase / lowercase / title)
+          
+          Analyze the exact letter casing used in the text.
+          
+          Determine whether the text is written as:
+          
+          - uppercase (ALL LETTERS CAPITALIZED)
+          - lowercase (all letters small)
+          - title case (Each Word Starts With Capital Letter)
+          - sentence case (Only first letter capitalized)
+          
+          Important:
+          
+          - The case value MUST reflect the exact typography style visible in the image.
+          - If the text is uppercase in the design, the case must be "uppercase".
+          - If the text uses mixed casing, describe it accurately.
+          
+          Fields:
+          - case (uppercase / lowercase / title / sentence)
           - alignment (left / center / right)
           
           TEXT COLOR
@@ -148,7 +187,6 @@ export class AiReplicate {
           - shadowOffset
           
           SIZE
-          - approximateTextHeightPx
           - approximateTextHeightPercentOfImage
           
           POSITION
@@ -163,12 +201,40 @@ export class AiReplicate {
           - dark overlay
           - contrast strategy
           
+          --------------------------------
+
+          DECORATIVE GRAPHIC ELEMENTS
+          
+          Identify graphic design elements that are layered over the photo.
+          
+          Examples include:
+          - diagonal color stripes
+          - diagonal translucent overlays
+          - geometric shapes
+          - color panels
+          - framing lines
+          - background accents
+          
+          For each decorative element return:
+          
+          - elementType (stripe / diagonal overlay / panel / shape)
+          - color (approx HEX)
+          - opacity
+          - orientation (horizontal / vertical / diagonal)
+          - angle (if diagonal)
+          - boundingBox
+            - xPercent
+            - yPercent
+            - widthPercent
+            - heightPercent
+          
           IMPORTANT RULES
           
           - Do NOT skip text blocks.
           - If text is visible but unreadable still analyze style.
           - Estimate sizes visually if necessary.
           - Be precise with stroke and shadow.
+          - Decorative overlays such as diagonal stripes MUST be detected and described.
         `
       });
 
@@ -284,7 +350,7 @@ export class AiReplicate {
                       "fontClassification": "",
                       "fontWidth": "",
                       "weight": "",
-                      "case": "",
+                      "case": "uppercase | lowercase | title | sentence",
                       "alignment": "",
                       "fillType": "solid | outline",
                       "fillColor": "",
@@ -329,7 +395,7 @@ export class AiReplicate {
         - Each entry must reference the IMAGE_ID that was provided earlier.
         - Do not merge multiple images into one analysis.
         - If multiple images exist, create multiple entries.
-        - Return ONLY valid JSON.
+        - Return ONLY STRICT valid JSON. Do NOT include comments (//) or explanations inside JSON.
       `
     });
 
@@ -343,7 +409,57 @@ export class AiReplicate {
       ]
     });
 
+
     const designSystem = analysis.output_text;
+
+    console.log("DESIGN SYSTEM ", designSystem)
+
+    const cleanJson = designSystem
+      .replace(/\/\/.*$/gm, "")
+      .replace(/,\s*]/g, "]")
+      .replace(/,\s*}/g, "}");
+
+    console.log("CLEAN JSON ", cleanJson)
+
+    const parsedDesign = JSON.parse(cleanJson);
+
+    const hasRealText =
+      parsedDesign.posts?.some(post =>
+        post.postDesignSystem?.typography?.textBlocks?.some(
+          block => block.textContent && block.textContent !== "Not visible"
+        )
+      );
+
+    console.log("HAS TEXT ", hasRealText)
+
+    console.log("ANALIZE ", designSystem)
+
+    let textRule = "";
+
+    if (hasRealText) {
+      textRule = `
+        The generated image MUST contain text.
+      
+        Replace the original headline with the new Title.
+        Replace the original subheadline with the new Subtitle.
+      
+        Preserve typography style and position.
+        `;
+    } else {
+      textRule = `
+        CRITICAL RULE:
+        This design DOES NOT contain text.
+      
+        The generated image MUST NOT contain:
+        - headlines
+        - captions
+        - slogans
+        - typography
+        - letters
+        - words
+        - UI text
+        `;
+    }
 
     const NANO_BANANO = "google/nano-banana-pro";
 
@@ -353,42 +469,97 @@ export class AiReplicate {
         input: {
           prompt: `
             You are a professional commercial product photographer and art director.
-
-            Generate a high-quality decorative product photo based on the provided reference images.
+            
+            Generate a high-quality decorative marketing photo based on the provided reference images.
             
             MAIN GOAL:
-            Create a visually appealing, premium-looking product image suitable for e-commerce and social media advertising.
+            Create a visually appealing, premium-looking marketing image suitable for social media advertising.
             
-            PRODUCT & SCENE:
+            --------------------------------------------------
+            
+            SCENE DESCRIPTION
             ${prompt}
             
-            DECORATION & STYLE GUIDELINES:
-            Use the following decorative style and visual rules extracted from analysis:
+            --------------------------------------------------
+            
+            REFERENCE DESIGN SYSTEM
+            Use the visual design system extracted from the reference images.
+            
             ${designSystem}
             
-            COMPOSITION:
-            - Clean, well-balanced composition
-            - Clear focal point on the product
-            - Decorative elements support the product, not overpower it
-            - Modern commercial photography style
+            IMPORTANT:
+            - Decorative graphic overlays must match the reference design.
+            - If a decorative element has a boundingBox it MUST appear in the same position.
+            - Do NOT change overlay angle.
+            - Do NOT change overlay size.
+            - Do NOT move overlays to another area.
             
-            LIGHTING:
-            - Soft, diffused studio lighting
+            --------------------------------------------------
+            
+            TEXT RULE
+            ${textRule}
+            
+            --------------------------------------------------
+            
+            CRITICAL RENDERING RULE
+            
+            The generated image MUST NOT contain any technical annotations.
+            
+            Do NOT render:
+            - HEX color codes
+            - opacity values
+            - percentages
+            - bounding boxes
+            - design notes
+            - debug labels
+            - layout measurements
+            
+            --------------------------------------------------
+            
+            TEXT SUPPRESSION RULE
+            
+            If the design does not contain text blocks,
+            the generated image must contain ZERO readable text.
+            
+            Do NOT place text on:
+            - vehicles
+            - clothing
+            - banners
+            - flags
+            - buildings
+            - signs
+            - products
+            
+            --------------------------------------------------
+            
+            COMPOSITION
+            
+            - Clean balanced composition
+            - Clear focal point
+            - Decorative overlays must match the reference style
+            - Modern marketing photography style
+            
+            --------------------------------------------------
+            
+            LIGHTING
+            
+            - Soft diffused lighting
+            - Natural highlights
             - No harsh shadows
-            - Natural highlights on product edges
             
-            COLORS:
-            - Consistent color palette
-            - Harmonize background and decoration colors
-            - Avoid overly saturated or clashing colors
+            --------------------------------------------------
             
-            CAMERA:
-            - Professional DSLR look
-            - Shallow depth of field
-            - Sharp focus on product
+            CAMERA
+            
+            - Professional DSLR style
+            - Sharp focus
             - High dynamic range
+            - Realistic perspective
             
-            QUALITY:
+            --------------------------------------------------
+            
+            QUALITY
+            
             - Ultra realistic
             - High resolution
             - Clean background
@@ -398,7 +569,7 @@ export class AiReplicate {
           resolution: "2K",
           safety_filter_level: "block_only_high",
           image_input: photos.map(photo => photo.url),
-          allow_fallback_model: true
+          allow_fallback_model: false
         },
       }
     );
@@ -580,7 +751,24 @@ export class AiReplicate {
           - weight (light / regular / bold / extra bold)
           
           TEXT SHAPE
-          - case (uppercase / lowercase / title)
+          
+          Analyze the exact letter casing used in the text.
+          
+          Determine whether the text is written as:
+          
+          - uppercase (ALL LETTERS CAPITALIZED)
+          - lowercase (all letters small)
+          - title case (Each Word Starts With Capital Letter)
+          - sentence case (Only first letter capitalized)
+          
+          Important:
+          
+          - The case value MUST reflect the exact typography style visible in the image.
+          - If the text is uppercase in the design, the case must be "uppercase".
+          - If the text uses mixed casing, describe it accurately.
+          
+          Fields:
+          - case (uppercase / lowercase / title / sentence)
           - alignment (left / center / right)
           
           TEXT COLOR
@@ -780,7 +968,7 @@ export class AiReplicate {
                       "fontClassification": "",
                       "fontWidth": "",
                       "weight": "",
-                      "case": "",
+                      "case": "uppercase | lowercase | title | sentence",
                       "alignment": "",
                       "fillType": "solid | outline",
                       "fillColor": "",

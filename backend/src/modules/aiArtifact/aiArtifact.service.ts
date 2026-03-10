@@ -3,6 +3,7 @@ import { PrismaService } from 'src/core/prisma/prisma.service';
 import { S3Service } from 'src/core/s3/s3.service';
 import { StorageUrlService } from "../../core/storage/storage-url.service";
 import { AIArtifactBase } from "./entities/aiArtifact.entity";
+import { AIArtifactType } from "@prisma/client";
 
 @Injectable()
 export class AiArtifactService {
@@ -12,9 +13,12 @@ export class AiArtifactService {
     private readonly storageUrlService: StorageUrlService
   ) {}
 
-  async getAiArtifacts(businessId: string): Promise<AIArtifactBase[]> {
+  async getAiArtifacts(businessId: string, type?: AIArtifactType): Promise<AIArtifactBase[]> {
     const artifacts = await this.prisma.aIArtifact.findMany({
-      where: { businessId: businessId },
+      where: {
+        businessId,
+        ...(type && { type })
+      },
       include: {
         products: { include: { product: true } },
       }

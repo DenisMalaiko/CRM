@@ -1,9 +1,17 @@
 import { api } from "../api/api";
 import { ApiResponse } from "../../models/ApiResponse";
 import { TAIArtifact } from "../../models/AIArtifact";
+import { GalleryType } from "../../enum/GalleryType";
 
 export const artifactApi = api.injectEndpoints({
   endpoints: (builder) => ({
+    getAiArtifacts: builder.query<ApiResponse<TAIArtifact[]>, { businessId: string; type: GalleryType }>({
+      query: ({ businessId, type }) => ({
+        url: `/ai-artifact/${businessId}`,
+        params: { type }
+      })
+    }),
+
     getCreatives: builder.mutation<ApiResponse<TAIArtifact[]>, string>({
       queryFn: async (businessId, api, _extraOptions, baseQuery) => {
         if (!businessId) {
@@ -44,5 +52,6 @@ export const artifactApi = api.injectEndpoints({
 export const {
   useGetCreativesMutation,
   useUpdateCreativeMutation,
-  useDeleteCreativeMutation
+  useDeleteCreativeMutation,
+  useLazyGetAiArtifactsQuery,
 } = artifactApi;
