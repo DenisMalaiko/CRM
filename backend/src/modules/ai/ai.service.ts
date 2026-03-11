@@ -50,11 +50,11 @@ export class AiService {
 
     for (const story of stories) {
       if (story.image_prompt) {
-        story.imageUrl = await this.aiReplicate.generateStoryImageOpenAI(story.image_prompt, profile.businessId, photos);
+        console.log("STORY ", story.image_prompt);
+        // story.imageUrl = await this.aiReplicate.generateStoryImageOpenAI(story.image_prompt, profile.businessId, photos);
       }
     }
 
-    console.log("RESPONSE ", stories);
     return stories;
   }
 
@@ -170,6 +170,7 @@ export class AiService {
     const imagePromptsBlock = buildPromptsBlock(
       profile.prompts.filter(p => p.purpose === 'Image')
     );
+
 
     const ideasBlock =
       profile.ideas && profile.ideas.length
@@ -430,10 +431,10 @@ export class AiService {
       
       Text placement rules:
       
-      - If only one text exists → use it as Title.
-      - If two texts exist → first = Title, second = Subtitle.
-      - If more than two texts exist → use the first two only.
-      - If no text exists → generate Title and Subtitle based on the post idea.
+      - If only one text exists → use it as Title, generate Subtitle and Caption from story context.
+      - If two texts exist → first = Title, second = Subtitle, generate Caption from story context.
+      - If three texts exist → first = Title, second = Subtitle, third = Caption.
+      - If more than three texts exist → use only the first three.
       
       Output format:
       
@@ -541,12 +542,8 @@ export class AiService {
                 - Do NOT keep proper nouns (club names, cities, people, phone numbers, dates)
                 - Do NOT mention the competitor or that this is adapted
               `
-          )
-          .join('\n')
-        : `
-              No specific idea provided.
-              Generate a post based only on business context and audience insights.
-            `;
+          ).join('\n')
+        : ` No specific idea provided. Generate a post based only on business context and audience insights.`;
 
     const buildPromptsBlock = (prompts: any[]) =>
       prompts
@@ -557,13 +554,11 @@ export class AiService {
     `)
         .join('\n');
 
-    const imagePromptsBlock = buildPromptsBlock(
-      profile.prompts.filter(p => p.purpose === 'Image')
-    );
+    const imagePromptsBlock = buildPromptsBlock(profile.prompts.filter(p => p.purpose === 'Image'));
 
     return `
       You are a senior performance marketer and short-form content strategist.
-
+    
       Generate exactly ONE social media story based on the provided business context.
       
       Stories must be optimized for Instagram / Facebook vertical story format.
@@ -590,7 +585,7 @@ export class AiService {
       ---
       
       ## STORY UX RULES (VERTICAL FORMAT)
-
+    
       Stories are viewed on a mobile device in a vertical 9:16 format.
       
       Important composition rules:
@@ -608,7 +603,7 @@ export class AiService {
       
       - Headline should appear in the upper-middle area
       - Supporting text in the middle area
-      - CTA in the lower-middle area
+      - CTA or reinforcement text in the lower-middle area
       
       Do NOT place text in UI areas.
       
@@ -645,8 +640,8 @@ export class AiService {
       Each story frame must contain:
       
       - headline (very short attention hook)
-      - supporting text (context or value)
-      - visual idea (what the viewer sees)
+      - supporting_text (context or value)
+      - visual_description (what the viewer sees)
       - emotion_trigger
       - interaction element (optional)
       
@@ -657,8 +652,9 @@ export class AiService {
       
       Rules:
       
-      - Headline: 1–5 words
-      - Supporting text: 5–12 words
+      - headline: 1–5 words
+      - supporting_text: 5–12 words
+      - caption_on_image: optional, short, 2–6 words
       - Stories must be punchy and scroll-stopping
       - Avoid long sentences
       - Use emotionally engaging language
@@ -677,25 +673,39 @@ export class AiService {
       
       ---
       
+      ## TEXT VISUAL HIERARCHY
+      
+      Story images use a clear visual hierarchy.
+      
+      Text layers:
+      
+      1. Headline — largest and most dominant text
+      2. Supporting text — medium size
+      3. Caption / CTA / reinforcement — smallest text
+      
+      Rules:
+      
+      - Headline must be the strongest message
+      - Supporting text explains the context
+      - Caption is the third text layer and should normally be present in story creatives.
+      
+      ---
+      
       ## INTERACTION ELEMENTS (OPTIONAL)
       
       Prefer interactive elements when appropriate.
       
       Available elements:
       
-      - poll (two options)
-      - question sticker
-      - emoji slider
-      - swipe CTA
+      - poll
+      - question
+      - slider
+      - swipe
+      - none
       
-      Use interaction when it helps engagement,
-      not randomly.
-      
-      Only include if they make sense.
+      Use interaction only when it improves engagement.
       
       ---
-      
-      
       
       ## FRONTEND IMAGE PROMPTS (HIGHEST PRIORITY)
       
@@ -705,115 +715,214 @@ export class AiService {
       
       The image_prompt is a technical instruction for an image generation model.
       
-      Source of truth:
+      Source of truth for visual scene:
       ${imagePromptsBlock}
       
       CRITICAL RULE:
       
-      The generated image_prompt MUST follow the provided image prompts.
+      The generated image_prompt MUST follow the provided frontend image prompts.
       
-      If the prompt describes a specific scene, you MUST reproduce that scene exactly.
+      If the frontend prompt describes a specific scene, you MUST preserve that scene.
       
       Do NOT invent a different scenario.
       
-      Example:
-      If the prompt says:
-      "football field with Goalberi logo and team members near a bus"
-      
-      Then the image must include:
-      - football field
-      - Goalberi logo
-      - team members
-      - bus
-      - preparation for departure
-      
-      Do NOT replace the scene with generic stadium fans or unrelated events.
+      Do NOT replace the scene with generic alternatives.
       
       ---
       
-      IMAGE PROMPT WRITING RULES
+      ## FRONTEND TEXT PRIORITY (CRITICAL)
       
-      - Describe the scene precisely
-      - Mention all key objects from the frontend prompt
-      - Use one coherent paragraph
-      - Focus on visual clarity
-      - Optimize the scene for vertical 9:16 composition
-      - Ensure the main subject stays in the center safe area
+      First check whether the frontend image prompts contain explicit text that must appear on the image.
+      
+      Explicit text means:
+      - quoted text fragments
+      - direct instructions like add text / title / headline / subtitle / caption
+      - marketing text explicitly provided for the image
+      
+      If explicit frontend text exists:
+      
+      Use it as the primary source for image text.
+      
+      Rules:
+      
+      - Do NOT rewrite the provided frontend text
+      - Do NOT translate the provided frontend text
+      
+      Text mapping:
+      
+      If 1 frontend text exists:
+      Title = frontend text
+      Subtitle = generate from story context
+      Caption = generate from story context
+      
+      If 2 frontend texts exist:
+      Title = first frontend text
+      Subtitle = second frontend text
+      Caption = generate from story context
+      
+      If 3 frontend texts exist:
+      Title = first frontend text
+      Subtitle = second frontend text
+      Caption = third frontend text
+      
+      If more than 3 texts exist:
+      Use only the first three.
+      
+      Only if NO explicit frontend text exists,
+      generate visible text from the story content.
       
       ---
       
-      IMAGE PROMPT STRUCTURE (MANDATORY)
+      ## IMAGE PROMPT WRITING RULES
       
       The image_prompt MUST follow this structure:
       
       SCENE:
-      Describe the visual scene.
-      
       VISIBLE TEXT ON IMAGE:
       
-      First extract all quoted text fragments from the frontend image prompts.
+      Write the image_prompt in two clear sections:
       
-      Use the extracted texts in the order they appear.
+      SCENE (one paragraph)
       
-      Text placement rules:
-      
-      - If only one text exists → use it as Title.
-      - If two texts exist → first = Title, second = Subtitle.
-      - If more than two texts exist → use the first two only.
-      - If no text exists → generate Title and Subtitle based on the post idea.
-      
-      Output format:
-      
-      Title: "TEXT"
-      Subtitle: "TEXT"
-      
-      Rules:
-      
-      - Write the EXACT words that must appear on the image.
-      - Do NOT rewrite marketing text.
-      - Do NOT describe typography.
-      - Do NOT describe layout.
-      - Do NOT explain anything.
-      
-      Language rules:
-      
-      - Scene description must be written in English.
-      - Visible text must be written in the business language.
-      
-      Write everything in ONE paragraph suitable for an image generation model.
+      VISIBLE TEXT ON IMAGE (structured lines)
+            
+      VISIBLE TEXT ON IMAGE:
+      Title: "..."
+      Subtitle: "..."
+      Caption: "..."
       
       ---
       
-      VISIBLE TEXT ON STORY (IMPORTANT)
+      ## SCENE
       
-      Story images may contain text overlays.
+      Use the frontend image prompt as the base scene description.
       
-      First extract all quoted text fragments from the frontend image prompts.
+      Your task is NOT to invent a new scene.
       
-      Use the extracted texts in the order they appear.
-      
-      Text placement rules:
-      
-      - If only one text exists → use it as Headline.
-      - If two texts exist → first = Headline, second = Supporting text.
-      - If more than two texts exist → use the first two only.
-      - If no text exists → generate Headline and Supporting text based on the story idea.
-      
-      Output format inside image_prompt:
-      
-      Headline: "TEXT"
-      Supporting text: "TEXT"
+      If the frontend prompt is written in another language,
+      translate only the SCENE description into English while preserving the exact meaning.
       
       Rules:
       
-      - Write the EXACT words that must appear on the story image.
-      - Do NOT rewrite marketing text.
-      - Do NOT translate marketing text.
-      - Do NOT describe typography or layout.
+      - Do NOT add new objects
+      - Do NOT invent atmosphere or background details
+      - Do NOT add fans, banners, crowd, lights, etc.
+      - Do NOT expand the scene creatively
+      - Mention the key objects from the frontend prompt
+      - Optimize composition for vertical 9:16
+      - Keep the main subject in the safe center area
       
-      The text overlay must match the generated headline and supporting text fields of the story.
+      IMPORTANT:
+      
+      This translation rule applies ONLY to the SCENE description.
+      
+      ---
+      
+      ## LANGUAGE DETECTION FOR IMAGE TEXT
 
+      Determine the language of the visible image text using the following priority:
+      
+      1. If the frontend image prompt contains explicit text → use that language.
+      2. If no explicit text exists → detect the language from the generated story headline and supporting_text.
+      3. If both contain mixed languages → prefer the language used by the business context.
+      
+      Rules:
+      
+      - Caption MUST use the same language as Title and Subtitle.
+      - Never switch languages inside the same image.
+      - Do NOT translate existing marketing text.
 
+      ---
+      
+      ## VISIBLE TEXT ON IMAGE
+      
+      First extract all explicit text fragments from the frontend image prompts.
+      
+      Use extracted texts in the order they appear.
+      
+      Text placement rules:
+      
+      - If only one text exists → use it as Title
+      - If two texts exist → first = Title, second = Subtitle
+      - If three texts exist → first = Title, second = Subtitle, third = Caption
+      - If more than three texts exist → use only the first three
+      - If no explicit frontend text exists → generate image text from the story fields
+      
+      Fallback generation rules when no explicit frontend text exists:
+      
+      - Title = story headline
+      - Subtitle = story supporting_text
+      - Caption = ALWAYS generate a contextual reinforcement line.
+      
+      Caption must always be generated when it is not explicitly provided.
+      
+      Caption rules:
+      
+      - 2–6 words
+      - MUST be written in the SAME language as Title and Subtitle
+      - derived from the story idea or business context
+      - reinforce emotion, achievement, momentum, or CTA
+      - must NOT repeat the Title or Subtitle
+            
+      TEXT HIERARCHY MAPPING:
+      
+      - primary_headline → Title
+      - secondary_headline → Subtitle
+      - caption / info_text / footer text → Caption
+      
+      Output format inside image_prompt:
+      
+      Title: "TEXT"
+      Subtitle: "TEXT"
+      Caption: "TEXT"
+      
+      Rules:
+      
+      - Write the EXACT words that must appear on the image
+      - Do NOT rewrite frontend marketing text
+      - Do NOT translate frontend marketing text
+      - Do NOT describe typography
+      - Do NOT describe layout
+      - Do NOT explain anything
+      
+      Language rules:
+      
+      - SCENE description must be written in English
+      - VISIBLE TEXT ON IMAGE must remain in the original business / marketing language
+      - If frontend image text is provided, preserve its original language exactly
+      
+      ---
+      
+      ## TEXT CONSISTENCY RULE
+      
+      If no explicit frontend image text is provided,
+      then the visible text on the image MUST match the generated story text.
+      
+      Mapping:
+      
+      - story headline → image Title
+      - story supporting_text → image Subtitle
+      - optional CTA / reinforcement → image Caption
+      
+      Never generate different wording between story text and image text in fallback mode.
+      
+      ---
+      
+      ## CAPTION GENERATION RULE
+
+      When Caption is generated automatically:
+      
+      - it must add new meaning
+      - it must not repeat Title or Subtitle
+      - it should reinforce emotion, result, or CTA
+      
+      Examples:
+      
+      Title: "Goalberi Переможець в Чернівцях"
+      Subtitle: "Команда Goalberi виграла 10 матчів"
+      Caption: "Гордість команди"
+      
+      ---
       
       ## OUTPUT FORMAT (STRICT JSON)
       
@@ -822,7 +931,7 @@ export class AiService {
           {
             "frame": 1,
             "headline": "string",
-            "text": "string",
+            "supporting_text": "string",
             "emotion_trigger": "curiosity | desire | urgency | fear | excitement",
             "interaction": "none | poll | question | slider | swipe",
             "visual_description": "string",
@@ -831,8 +940,8 @@ export class AiService {
         ]
       }
       
-      Return ONLY the JSON object. No explanations.
-    `;
+      Return ONLY the JSON object. No explanations.`
+    ;
   }
 
   private extractTextContent(content: any): string {
