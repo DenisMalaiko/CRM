@@ -25,6 +25,7 @@ import { confirm } from "../../../../../components/confirmDlg/ConfirmDlg";
 
 // Utils
 import { showError } from "../../../../../utils/showError";
+import { splitCamelCase } from "../../../../../utils/splitCamelCase";
 
 // Models
 import { ApiResponse } from "../../../../../models/ApiResponse";
@@ -32,7 +33,11 @@ import { TBusinessProfile } from "../../../../../models/BusinessProfile";
 import { TProduct } from "../../../../../models/Product";
 import { TAudience } from "../../../../../models/Audience";
 import { TPlatform } from "../../../../../models/Platform";
-import {TIdea} from "../../../../../models/Idea";
+import { TIdea } from "../../../../../models/Idea";
+
+
+// Enum
+import { BusinessProfileFocus } from "../../../../../enum/BusinessProfileFocus";
 
 function Profiles() {
   const dispatch = useAppDispatch();
@@ -199,7 +204,7 @@ function Profiles() {
                     return (
                       <tr key={item.id} className="bg-white hover:bg-slate-50">
                         <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.name}</td>
-                        <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.profileFocus}</td>
+                        <td className="px-4 py-3 font-medium text-slate-900 text-left">{ splitCamelCase(item.profileFocus) }</td>
                         <td className="px-4 py-3 font-medium text-slate-900 text-left">
                           <span className={`
                             inline-flex items-center rounded-full px-2.5 py-1
@@ -232,7 +237,7 @@ function Profiles() {
                                   Creating...
                                 </>
                               ) : (
-                                "Create Post"
+                                `Create ${item.profileFocus === BusinessProfileFocus.GeneratePosts ? "Post" : "Story"}`
                               )}
                             </button>
 

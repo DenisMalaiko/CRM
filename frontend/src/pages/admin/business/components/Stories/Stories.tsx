@@ -239,6 +239,13 @@ function Stories() {
                   key={item.id}
                   className="relative flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm hover:shadow-md transition"
                 >
+                  <button
+                    onClick={(e) => openConfirmDlg(e, item)}
+                    className="flex h-8 w-8 items-center justify-center rounded-lg bg-black/60 text-white hover:bg-black/80"
+                  >
+                    🗑
+                  </button>
+
                   {/* Image */}
                   {item?.imageUrl && (
                     <div className="relative w-full aspect-[9/16] bg-slate-100">

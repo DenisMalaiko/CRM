@@ -599,11 +599,7 @@ export class AiReplicate {
     return key;
   }
 
-  async generateStoryImageOpenAI(
-    prompt: string,
-    businessId: string,
-    photos: { url: string, type: GalleryPhotoType }[]
-  ) {
+  async generateStoryImageOpenAI(prompt: string, businessId: string, photos: { url: string, type: GalleryPhotoType }[]) {
     const decorations = photos.filter(p => p.type === GalleryPhotoType.Decoration);
     const stories = photos.filter(p => p.type === GalleryPhotoType.Story);
     const businessPhotos = photos.filter(p => p.type === GalleryPhotoType.Image);
@@ -629,7 +625,9 @@ export class AiReplicate {
       }
     ];
 
-    console.log("STORY PROMPT ", prompt)
+    console.log("----------")
+    console.log("PROMPT ", prompt)
+    console.log("----------")
 
     if (decorations.length) {
       content.push({
@@ -686,7 +684,7 @@ export class AiReplicate {
         type: "input_text",
         text: `
           STORY DESIGN SYSTEM ANALYSIS
-
+      
           You are analyzing an INSTAGRAM / FACEBOOK STORY creative.
           
           Stories use a vertical 9:16 layout and a fast visual hierarchy.
@@ -694,16 +692,18 @@ export class AiReplicate {
           Your task is to extract the STORY DESIGN SYSTEM so that similar story creatives
           can be generated automatically.
           
-          Focus on THREE main systems:
+          Focus on FOUR main systems:
           
           1) STORY LAYOUT STRUCTURE
-          2) TYPOGRAPHY SYSTEM
-          3) DECORATIVE GRAPHICS & OVERLAYS
+          2) TEXT ZONE DETECTION & TYPOGRAPHY SYSTEM
+          3) DECORATIVE GRAPHICS & TEXT SUPPORT DECORATIONS
+          4) HERO SUBJECT
           
           Spend roughly:
-          - 40% on layout
-          - 40% on typography
-          - 20% on decorative graphics.
+          - 30% on layout
+          - 35% on text detection + typography
+          - 20% on decorative graphics
+          - 15% on subject placement
           
           --------------------------------
           
@@ -716,13 +716,16 @@ export class AiReplicate {
           - canvas orientation (should be vertical)
           - main focal zone
           - text zones
+          - top intro text zones
           - image zones
           - CTA zones
           - decorative overlay zones
+          - text-attached decoration zones
+          - contrast helper zones
           
           For each zone return:
           
-          - zoneType (headline / info panel / CTA / background / hero image)
+          - zoneType (headline / subheadline / info panel / CTA / background / hero image / text decoration / contrast helper)
           - boundingBox
             - xPercent
             - yPercent
@@ -734,6 +737,124 @@ export class AiReplicate {
           - safe margins for UI (top and bottom areas usually empty)
           - background structure (solid / texture / gradient / photo)
           - layering order (background → overlays → text → CTA)
+          - relationship between text and nearby decorative contrast elements
+          - whether small upper text is a separate layout zone
+          
+          --------------------------------
+          
+          EXHAUSTIVE TEXT ZONE DETECTION
+          
+          Detect ALL visible text zones in the story, not only the largest headline.
+          
+          You must scan the FULL frame from top to bottom.
+          
+          Include:
+          - large headlines
+          - small intro text
+          - supporting text
+          - footer text
+          - CTA text
+          - text placed near the top safe area
+          - text placed over photo backgrounds
+          - text placed inside or near decorative contrast elements
+          
+          Important rules:
+          - Do NOT return only the dominant headline.
+          - Small text can still be structurally important.
+          - Text in the top 0–30% of the frame must be checked carefully.
+          - If a text block is readable, return its exact text.
+          - If a text block is not fully readable, still return its style and approximate position.
+          - Multi-line text must be treated as a single text block if it belongs to one message.
+          
+          For each detected text block also return:
+          - isSmallButImportant (true / false)
+          - isTopZoneText (true / false)
+          
+          --------------------------------
+          
+          TEXT HIERARCHY
+      
+          Determine the visual hierarchy of all text blocks.
+          
+          Rank them by visual importance based on:
+          
+          • text size
+          • font weight
+          • central placement
+          • contrast
+          
+          Return fields:
+          
+          hierarchyLevel
+          visualRank
+          
+          Possible values for hierarchyLevel:
+          
+          - primary_headline
+          - secondary_headline
+          - info_text
+          - caption
+          - CTA
+          
+          visualRank rules:
+          
+          1 = largest and most dominant text  
+          2 = secondary headline  
+          3 = supporting info text  
+          4 = caption or footer text  
+          5 = CTA button text
+          
+          Important:
+          Hierarchy is NOT the same as importance to detection.
+          
+          Even if a text block has low visualRank, it must still be returned if it contributes to the layout structure.
+          
+          Return all textBlocks SORTED by visualRank from largest to smallest.
+          
+          --------------------------------
+          
+          PRIMARY HEADLINE DETECTION
+      
+          Identify the largest and most dominant text in the story.
+          
+          This text defines the main marketing message.
+          
+          Detection signals:
+          
+          • largest text height
+          • strong font weight (bold / extra bold)
+          • uppercase typography
+          • strong contrast color
+          • positioned in upper or central area
+          
+          Return:
+          
+          isPrimaryHeadline: true / false
+          
+          --------------------------------
+          
+          TYPOGRAPHY CONTRAST ANALYSIS
+      
+          Do NOT assume all text blocks use the same typography.
+          
+          For each text block determine whether it differs from other blocks in:
+          - font width
+          - font weight
+          - case
+          - text height
+          - spacing
+          - visual density
+          - contrast level
+          
+          Return:
+          - styleGroup
+          - differsFromPrimaryStyle (true / false)
+          
+          Examples of styleGroup:
+          - primary_condensed_bold
+          - secondary_narrow_light
+          - caption_small_regular
+          - info_italic_light
           
           --------------------------------
           
@@ -799,6 +920,36 @@ export class AiReplicate {
           
           --------------------------------
           
+          TEXT SUPPORT DECORATIONS
+      
+          Detect decorative elements that specifically support text readability, contrast, or hierarchy.
+      
+          Examples:
+          - colored bars near text
+          - slashes
+          - diagonal accents
+          - underline accents
+          - contrast panels behind text
+          - dark gradient behind text
+          - paint strokes behind text
+          - framing marks attached to a headline
+      
+          Important:
+          These elements are often small but structurally important.
+          Do NOT ignore decorative accents attached to top text.
+      
+          For each such element return:
+          - relatedTextBlockIndex
+          - decorationRole (contrast / emphasis / separator / framing / readability support)
+          - shape
+          - color
+          - opacity
+          - orientation
+          - angle
+          - boundingBox
+          
+          --------------------------------
+          
           DECORATIVE GRAPHICS & OVERLAYS
           
           Stories often use strong graphic overlays.
@@ -850,6 +1001,11 @@ export class AiReplicate {
           - If text is unreadable still analyze its style.
           - Always estimate positions relative to the full story frame.
           - Treat the story as a layered design system.
+          - Return ALL detected text blocks, not only dominant ones.
+          - Do NOT summarize multiple text zones into one simplified headline.
+          - Small upper text is often structurally important and must not be ignored.
+          - If a text block has a nearby decorative accent, return both the text block and the decoration.
+          - If different text blocks clearly use different font styles, preserve them as separate style groups.
           
           Return precise structural information.
         `
@@ -870,10 +1026,15 @@ export class AiReplicate {
             
             Focus on extracting:
             
-            - story layout zones
-            - typography system
-            - decorative overlays
+            - all story layout zones
+            - all visible text blocks from top to bottom
+            - small top text and intro text
+            - decorative accents attached to text
+            - typography differences between text blocks
             - subject placement
+            
+            Do NOT ignore small text in the upper part of the story.
+            Do NOT simplify the story into only one main headline.
             `
         });
 
@@ -883,6 +1044,7 @@ export class AiReplicate {
         });
       });
     }
+
 
     if (businessPhotos.length) {
       content.push({
@@ -964,6 +1126,14 @@ export class AiReplicate {
                   "textBlocks": [
                     {
                       "role": "",
+                      "hierarchyLevel": "",
+                      "visualRank": 0,
+                      "isPrimaryHeadline": false,
+                      "isSmallButImportant": false,
+                      "isTopZoneText": false,
+                      "styleGroup": "",
+                      "differsFromPrimaryStyle": false,
+                      "relatedDecorations": [],
                       "textContent": "",
                       "fontClassification": "",
                       "fontWidth": "",
@@ -972,6 +1142,7 @@ export class AiReplicate {
                       "alignment": "",
                       "fillType": "solid | outline",
                       "fillColor": "",
+                      "opacity": "",
                       "hasStroke": false,
                       "strokeColor": "",
                       "strokeWidth": "",
@@ -984,7 +1155,22 @@ export class AiReplicate {
                       "boundingBox": {}
                     }
                   ]
-                }
+                },
+                "decorativeGraphics": {
+                  "elements": [
+                    {
+                      "elementType": "",
+                      "shape": "",
+                      "color": "",
+                      "opacity": "",
+                      "orientation": "",
+                      "angle": "",
+                      "relatedTextBlockIndex": null,
+                      "decorationRole": "",
+                      "boundingBox": {}
+                    }
+                  ]
+                },
                 "layout": {},
                 "colorSystem": {},
                 "decorativeGraphics": {},
@@ -1029,6 +1215,8 @@ export class AiReplicate {
 
     const designSystem = analysis.output_text;
 
+    console.log("DESIGN SYSTEM ", designSystem)
+
     const NANO_BANANO = "google/nano-banana-pro";
 
     const stream = await this.replicate.run(
@@ -1066,6 +1254,31 @@ export class AiReplicate {
             Design system:
             ${designSystem}
             
+            TEXT REPLACEMENT RULES
+
+            Use the typography hierarchy from the design system.
+            
+            1. Replace the PRIMARY HEADLINE first
+               (text block where isPrimaryHeadline = true).
+            
+            2. Keep the exact style:
+               • same casing
+               • same alignment
+               • same font weight
+               • same size
+               • same position
+            
+            3. Secondary texts must follow the same hierarchy order:
+            
+            primary_headline
+            secondary_headline
+            info_text
+            caption
+            CTA
+            
+            Never move headline placement.
+            Never change typography structure.
+            
             FORMAT
             Vertical 9:16 Instagram Story.
             
@@ -1089,6 +1302,14 @@ export class AiReplicate {
             SUBJECT
             Use a clear hero subject related to the story context.
             
+            TEXT GENERATION
+            All text must respect the typography system.
+            
+            If the reference headline is uppercase,
+            the generated headline must also be uppercase.
+            
+            Do not invent additional text blocks.
+            
             QUALITY
             • ultra realistic
             • professional advertising look
@@ -1104,7 +1325,7 @@ export class AiReplicate {
           aspect_ratio: "9:16",
           safety_filter_level: "block_only_high",
           image_input: photos.map(p => p.url),
-          allow_fallback_model: true
+          allow_fallback_model: false
         }
       }
     );
