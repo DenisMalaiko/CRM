@@ -47,6 +47,7 @@ import Competitor from "./pages/admin/business/components/Сompetitors/:id/Compe
 import Gallery from "./pages/admin/business/components/Gallery/Gallery";
 import Ideas from "./pages/admin/business/components/Ideas/Ideas";
 import Stories from "./pages/admin/business/components/Stories/Stories";
+import Trends from "./pages/admin/business/components/Trends/Trends";
 
 // AI
 import Accountant from "./pages/admin/ai/accountant/Accountant";
@@ -126,6 +127,9 @@ function App() {
             <Route path="competitors" element={<Competitors />}></Route>
             <Route path="competitors/:id" element={<Competitor/>} />
             <Route path="ideas" element={<Ideas />}></Route>
+
+            {/*Trends*/}
+            <Route path="trends" element={<Trends />}></Route>
 
             {/*Inactive*/}
             <Route path="settings" element={<Settings />} />

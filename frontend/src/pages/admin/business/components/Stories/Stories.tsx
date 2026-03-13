@@ -22,18 +22,17 @@ import { confirm } from "../../../../../components/confirmDlg/ConfirmDlg";
 
 // Utils
 import { showError } from "../../../../../utils/showError";
+import { toDate } from "../../../../../utils/toDate";
+import { centeredSelectStyles } from "../../../../../utils/reactSelectStyles";
 
 // Models
 import { ApiResponse } from "../../../../../models/ApiResponse";
 import { TAIArtifact } from "../../../../../models/AIArtifact";
+import { TBusinessProfile } from "../../../../../models/BusinessProfile";
+import { TProduct } from "../../../../../models/Product";
 
 // Enum
 import { GalleryType } from "../../../../../enum/GalleryType";
-import {TBusinessProfile} from "../../../../../models/BusinessProfile";
-import {TProduct} from "../../../../../models/Product";
-import {centeredSelectStyles} from "../../../../../utils/reactSelectStyles";
-import {getStatusClass} from "../../../../../utils/getStatusClass";
-import {toDate} from "../../../../../utils/toDate";
 
 function Stories() {
   const dispatch = useAppDispatch();
@@ -228,24 +227,17 @@ function Stories() {
         </section>
 
         <div className="w-full mx-auto p-4">
-          <div className="grid grid-cols-4 gap-6">
-            {filteredStories?.length === 0 ? (
-              <div className="col-span-2 flex flex-col items-center justify-center py-2">
-                <span className="text-gray-400">No data</span>
-              </div>
-            ) : (
-              filteredStories?.map((item: TAIArtifact) => (
+          {filteredStories?.length === 0 ? (
+            <div className="col-span-2 flex flex-col items-center justify-center py-2">
+              <span className="text-gray-400">No data</span>
+            </div>
+          ) : (
+            <div className="grid grid-cols-4 gap-6">
+              {filteredStories?.map((item: TAIArtifact) => (
                 <div
                   key={item.id}
                   className="relative flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm hover:shadow-md transition"
                 >
-                  <button
-                    onClick={(e) => openConfirmDlg(e, item)}
-                    className="flex h-8 w-8 items-center justify-center rounded-lg bg-black/60 text-white hover:bg-black/80"
-                  >
-                    🗑
-                  </button>
-
                   {/* Image */}
                   {item?.imageUrl && (
                     <div className="relative w-full aspect-[9/16] bg-slate-100">
@@ -302,9 +294,9 @@ function Stories() {
                     </div>
                   )}
                 </div>
-              ))
-            )}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <UpdateStoryDlg
