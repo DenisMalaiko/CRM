@@ -51,7 +51,7 @@ export class AiService {
     for (const story of stories) {
       if (story.image_prompt) {
         console.log("STORY ", story.image_prompt);
-        // story.imageUrl = await this.aiReplicate.generateStoryImageOpenAI(story.image_prompt, profile.businessId, photos);
+        story.imageUrl = await this.aiReplicate.generateStoryImageOpenAI(story.image_prompt, profile.businessId, photos);
       }
     }
 

@@ -13,6 +13,7 @@ import promptModule from "./prompts/promptSlice";
 import competitorModule from "./competitor/competitorSlice";
 import galleryModule from "./gallery/gallerySlice";
 import ideaModule from "./idea/ideaSlice";
+import trendsModule from "./trends/trendsSlice";
 import { api } from './api/api'
 
 export const store = configureStore({
@@ -31,6 +32,7 @@ export const store = configureStore({
     competitorModule: competitorModule,
     galleryModule: galleryModule,
     ideaModule: ideaModule,
+    trendsModule: trendsModule,
     [api.reducerPath]: api.reducer,
   },
   middleware: (getDefaultMiddleware: any) => getDefaultMiddleware().concat(api.middleware),
