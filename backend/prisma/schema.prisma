@@ -219,6 +219,13 @@ model GalleryPhoto {
   business   Business               @relation(fields: [businessId], references: [id])
 }
 
+model DefaultPhoto {
+  id          String @id @default(uuid())
+  type        GalleryPhotoType
+  url         String
+  description String?
+}
+
 model Idea {
   id            String    @id @default(uuid())
   businessId    String

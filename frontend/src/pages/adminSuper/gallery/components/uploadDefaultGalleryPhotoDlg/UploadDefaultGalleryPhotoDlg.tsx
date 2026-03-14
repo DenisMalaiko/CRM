@@ -1,41 +1,39 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
 import { toast } from "react-toastify";
 import { X, Trash2 } from "lucide-react";
 
 // Hooks
-import { useForm } from "../../../../../../../hooks/useForm";
-import { useValidation } from "../../../../../../../hooks/useValidation";
+import { useForm } from "../../../../../hooks/useForm";
+import { useValidation } from "../../../../../hooks/useValidation";
 
 // Redux
-import { useAppDispatch } from "../../../../../../../store/hooks";
+import { useAppDispatch } from "../../../../../store/hooks";
 import {
-  useUploadPhotosMutation,
-  useGetPhotosMutation
-} from "../../../../../../../store/gallery/galleryApi";
-import { setGalleryPhotos } from "../../../../../../../store/gallery/gallerySlice";
+  useUploadDefaultPhotosMutation,
+  useLazyGetDefaultPhotosQuery
+} from "../../../../../store/gallery/galleryApi";
+import { setDefaultGalleryPhotos } from "../../../../../store/gallery/gallerySlice";
 
 // Enum
-import { GalleryType } from "../../../../../../../enum/GalleryType";
+import { GalleryType } from "../../../../../enum/GalleryType";
 
 // Utils
-import { showError } from "../../../../../../../utils/showError";
-import { isBoolean, isRequired, isValidPhoto } from "../../../../../../../utils/validations";
-import { ChangeArg, isNativeEvent } from "../../../../../../../utils/isNativeEvent";
+import { showError } from "../../../../../utils/showError";
+import { isRequired, isValidPhoto } from "../../../../../utils/validations";
+import { ChangeArg, isNativeEvent } from "../../../../../utils/isNativeEvent";
 
 // Models
-import { TGalleryPhoto, TGalleryPhotoPreview } from "../../../../../../../models/Gallery";
-import { ApiResponse } from "../../../../../../../models/ApiResponse";
+import { TDefaultGalleryPhoto, TDefaultGalleryPhotoPreview } from "../../../../../models/Gallery";
+import { ApiResponse } from "../../../../../models/ApiResponse";
 
 
-function UploadGalleryDlg({ open, onClose }: any) {
+function UploadDefaultGalleryPhotoDlg({ open, onClose }: any) {
   const dispatch = useAppDispatch();
-  const { businessId } = useParams<{ businessId: string }>();
 
-  const [ photos, setPhotos ] = useState<TGalleryPhotoPreview[]>([]);
+  const [ photos, setPhotos ] = useState<TDefaultGalleryPhotoPreview[]>([]);
 
-  const [ uploadPhotos, { isLoading } ] = useUploadPhotosMutation();
-  const [ getPhotos ] = useGetPhotosMutation();
+  const [ uploadPhotos, { isLoading } ] = useUploadDefaultPhotosMutation();
+  const [ getPhotos ] = useLazyGetDefaultPhotosQuery();
 
   const TypesList = Object.values(GalleryType);
 
@@ -49,10 +47,8 @@ function UploadGalleryDlg({ open, onClose }: any) {
   const initialForm = useMemo(() => {
     return {
       type: GalleryType.Image,
-      isActive: true,
-      businessId: businessId ?? "",
     }
-  }, [businessId]);
+  }, []);
 
   // Form Hook
   const { form, handleChange } = useForm(initialForm);
@@ -60,12 +56,9 @@ function UploadGalleryDlg({ open, onClose }: any) {
   // Validation Hook
   const { errors, validateField, validateAll } = useValidation({
     type: (value) => isRequired(value),
-    isActive: (value) => isBoolean(value),
-    businessId: (value) => isRequired(value),
   })
 
   if (!open) return null;
-  if (!businessId) return null;
 
   // Upload Photo
   const upload = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -77,8 +70,6 @@ function UploadGalleryDlg({ open, onClose }: any) {
       const formData = new FormData();
 
       formData.append('type', form.type as string);
-      formData.append('isActive', form.isActive ? "true" : "false");
-      formData.append('businessId', form.businessId ?? "");
 
       photos.forEach((photo) => {
         formData.append('files', photo.file);
@@ -87,8 +78,8 @@ function UploadGalleryDlg({ open, onClose }: any) {
       const response: ApiResponse<{ count: number } | []> = await uploadPhotos(formData).unwrap();
       if(response && response?.data) toast.success(response.message);
 
-      const responsePhotos: ApiResponse<TGalleryPhoto[]> = await getPhotos(businessId).unwrap();
-      dispatch(setGalleryPhotos(responsePhotos.data ?? []))
+      const responsePhotos: ApiResponse<TDefaultGalleryPhoto[]> = await getPhotos().unwrap();
+      dispatch(setDefaultGalleryPhotos(responsePhotos.data ?? []))
       onClose()
       setPhotos([])
     } catch (error) {
@@ -118,7 +109,7 @@ function UploadGalleryDlg({ open, onClose }: any) {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
-    const newPhotos: TGalleryPhotoPreview[] = [];
+    const newPhotos: TDefaultGalleryPhotoPreview[] = [];
 
     Array.from(files).forEach((file) => {
       try {
@@ -236,19 +227,6 @@ function UploadGalleryDlg({ open, onClose }: any) {
             ))}
           </div>
 
-
-          <label className="flex items-start gap-3 cursor-pointer select-none">
-            <input
-              name="isActive"
-              type="checkbox"
-              checked={form.isActive}
-              onChange={handleChange}
-              className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-            />
-
-            <span className="block text-sm font-medium text-slate-700 text-left">Active Photo</span>
-          </label>
-
           <div className="flex justify-end gap-3 pt-4">
             <button
               type="button"
@@ -282,4 +260,4 @@ function UploadGalleryDlg({ open, onClose }: any) {
   )
 }
 
-export default UploadGalleryDlg;
+export default UploadDefaultGalleryPhotoDlg;

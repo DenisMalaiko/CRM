@@ -3,29 +3,31 @@ import { Trash2, ImagePlay, PenBox } from "lucide-react";
 import { toast } from "react-toastify";
 
 // Redux
-import { useAppDispatch } from "../../../../../../../store/hooks";
-import { useGetPhotosMutation, useDeletePhotoMutation, useUpdatePhotoMutation } from "../../../../../../../store/gallery/galleryApi";
-import { setGalleryPhotos } from "../../../../../../../store/gallery/gallerySlice";
+import { useAppDispatch } from "../../../../../store/hooks";
+import {
+  useLazyGetDefaultPhotosQuery,
+  useUpdateDefaultPhotoMutation,
+  useDeleteDefaultPhotoMutation
+} from "../../../../../store/gallery/galleryApi";
+import { setDefaultGalleryPhotos } from "../../../../../store/gallery/gallerySlice";
 
 // Components
-import SliderDlg from "../../../../../../../components/sliderDlg/SliderDlg";
-import PhotoEditDlg from "../photoEditDlg/PhotoEditDlg";
-import { confirm } from "../../../../../../../components/confirmDlg/ConfirmDlg";
+import SliderDlg from "../../../../../components/sliderDlg/SliderDlg";
+import EditDefaultGalleryPhotoDlg from "../editDefaultGalleryPhotoDlg/EditDefaultGalleryPhotoDlg";
+import { confirm } from "../../../../../components/confirmDlg/ConfirmDlg";
 
 // Models
-import { ApiResponse } from "../../../../../../../models/ApiResponse";
-import { TGalleryPhoto, TGalleryPhotoUpdate } from "../../../../../../../models/Gallery";
+import { ApiResponse } from "../../../../../models/ApiResponse";
 
 // Enum
-import { GalleryType } from "../../../../../../../enum/GalleryType";
+import { GalleryType } from "../../../../../enum/GalleryType";
 
 // Utils
-import { showError } from "../../../../../../../utils/showError";
-import { useParams } from "react-router-dom";
+import { showError } from "../../../../../utils/showError";
+import { TDefaultGalleryPhoto, TDefaultGalleryPhotoUpdate } from "../../../../../models/Gallery";
 
-function Photos({ photos }: { photos: any[] }) {
+function DefaultGalleryPhotos({ photos }: { photos: any[] }) {
   const dispatch = useAppDispatch();
-  const { businessId } = useParams<{ businessId: string }>();
 
   const [ openSliderDlg, setOpenSliderDlg ] = useState<any>(null);
   const [ selectedMedia, setSelectedMedia ] = useState<any>(null);
@@ -34,15 +36,12 @@ function Photos({ photos }: { photos: any[] }) {
   const [ selectedPhoto, setSelectedPhoto ]  = useState({
     id: "",
     type: GalleryType.Image,
-    isActive: false,
     description: ""
   });
 
-  const [ getPhotos ] = useGetPhotosMutation();
-  const [ updatePhoto ] = useUpdatePhotoMutation();
-  const [ deletePhoto ] = useDeletePhotoMutation();
-
-  if(!businessId) return null;
+  const [ getPhotos ] = useLazyGetDefaultPhotosQuery();
+  const [ updatePhoto ] = useUpdateDefaultPhotoMutation();
+  const [ deletePhoto ] = useDeleteDefaultPhotoMutation();
 
   if (photos.length === 0) {
     return (
@@ -56,7 +55,7 @@ function Photos({ photos }: { photos: any[] }) {
     e.preventDefault();
 
     const ok = await confirm({
-      title: "Delete Gallery Photo",
+      title: "Delete Default Gallery Photo",
       message: "Are you sure you want to delete this photo?",
     });
 
@@ -66,10 +65,10 @@ function Photos({ photos }: { photos: any[] }) {
           const responseDeleted: ApiResponse<null> = await deletePhoto(id).unwrap();
 
           if(responseDeleted && responseDeleted?.success) {
-            const response: ApiResponse<TGalleryPhoto[]> = await getPhotos(businessId).unwrap();
+            const response: ApiResponse<TDefaultGalleryPhoto[]> = await getPhotos().unwrap();
 
             if(response && response?.data) {
-              dispatch(setGalleryPhotos(response.data));
+              dispatch(setDefaultGalleryPhotos(response.data));
             }
 
             toast.success(responseDeleted.message);
@@ -88,40 +87,37 @@ function Photos({ photos }: { photos: any[] }) {
   }
 
   // Open Text Edit
-  const openPhotoEdit = (photo: TGalleryPhotoUpdate) => {
+  const openPhotoEdit = (photo: TDefaultGalleryPhotoUpdate) => {
     setSelectedPhoto({
       id: photo.id,
       type: photo.type,
-      isActive: photo.isActive,
       description: photo.description
     });
     setOpenPhotoEditDlg(true);
   }
 
   // Save Text
-  const savePhoto = async (value: TGalleryPhotoUpdate) => {
+  const savePhoto = async (value: TDefaultGalleryPhotoUpdate) => {
     setSelectedPhoto({
       id: value.id,
       type: value.type,
-      isActive: value.isActive,
       description: value.description
     });
     setOpenPhotoEditDlg(false);
 
-    const response: ApiResponse<TGalleryPhoto> = await updatePhoto({
+    const response: ApiResponse<TDefaultGalleryPhoto> = await updatePhoto({
       id: value.id,
       form: {
         type: value.type,
-        isActive: value.isActive,
         description: value.description
       }
     }).unwrap();
 
     if(response && response?.data) {
-      const responsePhotos: ApiResponse<TGalleryPhoto[]> = await getPhotos(businessId).unwrap();
+      const responsePhotos: ApiResponse<TDefaultGalleryPhoto[]> = await getPhotos().unwrap();
 
       if(responsePhotos && responsePhotos.data) {
-        dispatch(setGalleryPhotos(responsePhotos.data));
+        dispatch(setDefaultGalleryPhotos(responsePhotos.data));
       }
 
       toast.success(response.message);
@@ -141,32 +137,15 @@ function Photos({ photos }: { photos: any[] }) {
             alt={photo.description}
           />
 
-          {/* Badges */}
-          <div className="absolute top-2 left-2 flex gap-2">
-            {!photo.isActive && !photo.isDefault && (
-              <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-md">
-                Inactive
-              </span>
-            )}
-
-            {photo.isDefault && (
-              <span className="bg-blue-600 text-white text-xs px-2 py-1 rounded-md">
-                Default
-              </span>
-            )}
-          </div>
-
           {/* Overlay */}
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition duration-300 flex items-center justify-center flex-col">
             <div className="flex mb-3">
-              {!photo.isDefault && (
-                <button
-                  onClick={() => openPhotoEdit(photo)}
-                  className="opacity-0 group-hover:opacity-100 transition duration-300 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg mr-5"
-                >
-                  <PenBox size={18} />
-                </button>
-              )}
+              <button
+                onClick={() => openPhotoEdit(photo)}
+                className="opacity-0 group-hover:opacity-100 transition duration-300 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg mr-5"
+              >
+                <PenBox size={18} />
+              </button>
 
               <button
                 onClick={() => openSlider([{url: photo.url}])}
@@ -175,14 +154,12 @@ function Photos({ photos }: { photos: any[] }) {
                 <ImagePlay size={18} />
               </button>
 
-              {!photo.isDefault && (
-                <button
-                  onClick={(e) => openConfirmDlg(e, photo.id)}
-                  className="opacity-0 group-hover:opacity-100 transition duration-300 bg-red-500 hover:bg-red-600 text-white p-3 rounded-full shadow-lg"
-                >
-                  <Trash2 size={18} />
-                </button>
-              )}
+              <button
+                onClick={(e) => openConfirmDlg(e, photo.id)}
+                className="opacity-0 group-hover:opacity-100 transition duration-300 bg-red-500 hover:bg-red-600 text-white p-3 rounded-full shadow-lg"
+              >
+                <Trash2 size={18} />
+              </button>
             </div>
 
 
@@ -203,7 +180,7 @@ function Photos({ photos }: { photos: any[] }) {
         medias={selectedMedia}
       />
 
-      <PhotoEditDlg
+      <EditDefaultGalleryPhotoDlg
         open={openPhotoEditDlg}
         photo={selectedPhoto}
         onClose={() => {
@@ -217,4 +194,4 @@ function Photos({ photos }: { photos: any[] }) {
   )
 }
 
-export default Photos;
+export default DefaultGalleryPhotos;

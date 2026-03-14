@@ -29,3 +29,20 @@ export class UpdateGalleryPhotoDto {
   @IsString()
   description?: string;
 }
+
+
+
+// Default Gallery Photo
+export class DefaultGalleryPhotoBaseDto {
+  @IsEnum(GalleryPhotoType)
+  type: GalleryPhotoType;
+}
+
+export class DefaultUpdateGalleryPhotoDto {
+  @IsEnum(GalleryPhotoType)
+  type: GalleryPhotoType;
+
+  @IsOptional()
+  @IsString()
+  description?: string;
+}
