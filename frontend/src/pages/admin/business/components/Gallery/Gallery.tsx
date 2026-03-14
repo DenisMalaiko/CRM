@@ -5,8 +5,8 @@ import { showError } from "../../../../../utils/showError";
 // Redux
 import { useSelector } from "react-redux";
 import { useAppDispatch } from "../../../../../store/hooks";
-import { useGetPhotosMutation } from "../../../../../store/gallery/galleryApi";
-import { setGalleryPhotos } from "../../../../../store/gallery/gallerySlice";
+import { useGetPhotosMutation, useLazyGetDefaultPhotosQuery } from "../../../../../store/gallery/galleryApi";
+import { setGalleryPhotos, setDefaultGalleryPhotos } from "../../../../../store/gallery/gallerySlice";
 
 // Components
 import UploadGalleryDlg from "./components/uploadGalleryDlg/UploadGalleryDlg"
@@ -14,7 +14,7 @@ import Photos from "./components/photos/Photos"
 
 // Models
 import { ApiResponse } from "../../../../../models/ApiResponse";
-import { TGalleryPhoto } from "../../../../../models/Gallery";
+import {TDefaultGalleryPhoto, TGalleryPhoto} from "../../../../../models/Gallery";
 import { GalleryType } from "../../../../../enum/GalleryType";
 
 function Gallery() {
@@ -25,12 +25,16 @@ function Gallery() {
   const [ selectedPhoto, setSelectedPhoto ] = useState<File | null>(null);
 
   const [ getPhotos ] = useGetPhotosMutation();
-  const { photos } = useSelector((state: any) => state.galleryModule);
+  const [ getDefaultPhotos ] = useLazyGetDefaultPhotosQuery();
+  const { photos, defaultPhotos } = useSelector((state: any) => state.galleryModule);
 
-  const decorationPhotos = photos.filter((p: TGalleryPhoto) => p.type === GalleryType.Decoration);
-  const imagePhotos = photos.filter((p: TGalleryPhoto) => p.type === GalleryType.Image);
-  const postPhotos = photos.filter((p: TGalleryPhoto) => p.type === GalleryType.Post);
-  const storyPhotos = photos.filter((p: TGalleryPhoto) => p.type === GalleryType.Story);
+  const mappedDefaultPhotos = defaultPhotos.map((photo: any) => ({ ...photo, isDefault: true }));
+  const allPhotos = [...mappedDefaultPhotos, ...photos];
+
+  const decorationPhotos = allPhotos.filter((p: TGalleryPhoto) => p.type === GalleryType.Decoration);
+  const imagePhotos = allPhotos.filter((p: TGalleryPhoto) => p.type === GalleryType.Image);
+  const postPhotos = allPhotos.filter((p: TGalleryPhoto) => p.type === GalleryType.Post);
+  const storyPhotos = allPhotos.filter((p: TGalleryPhoto) => p.type === GalleryType.Story);
 
   // Get Data
   useEffect(() => {
@@ -38,10 +42,10 @@ function Gallery() {
       try {
         if(businessId) {
           const response: ApiResponse<TGalleryPhoto[]> = await getPhotos(businessId).unwrap();
+          const responseDefault: ApiResponse<TDefaultGalleryPhoto[]> = await getDefaultPhotos().unwrap();
 
-          if(response && response.data) {
-            dispatch(setGalleryPhotos(response.data));
-          }
+          if(response && response.data) dispatch(setGalleryPhotos(response.data));
+          if(responseDefault && responseDefault.data) dispatch(setDefaultGalleryPhotos(responseDefault.data));
         }
       } catch (error) {
         showError(error);

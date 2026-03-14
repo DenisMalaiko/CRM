@@ -1,6 +1,12 @@
 import { api } from "../api/api";
 import { ApiResponse} from "../../models/ApiResponse";
-import { TGalleryPhoto, TGalleryPhotoUpdate, TGalleryPhotoUpdateForm } from "../../models/Gallery";
+import {
+  TGalleryPhoto,
+  TGalleryPhotoUpdate,
+  TGalleryPhotoUpdateForm,
+  TDefaultGalleryPhoto,
+  TDefaultGalleryPhotoUpdateForm
+} from "../../models/Gallery";
 
 export const galleryApi = api.injectEndpoints({
   endpoints: (builder) => ({
@@ -51,15 +57,50 @@ export const galleryApi = api.injectEndpoints({
         url: `/gallery/${id}`,
         method: "DELETE",
       })
-    })
+    }),
+
+
+    // Default DefaultGalleryPhotos
+    getDefaultPhotos: builder.query<ApiResponse<TDefaultGalleryPhoto[]>, void>({
+      query: () => ({
+        url: `/gallery/default-list`,
+      })
+    }),
+
+    uploadDefaultPhotos: builder.mutation<ApiResponse<{ count: number } | []>, FormData>({
+      query: (form: FormData) => ({
+        url: `/gallery/default-list`,
+        method: "POST",
+        body: form,
+      })
+    }),
+
+    updateDefaultPhoto: builder.mutation<ApiResponse<TDefaultGalleryPhoto>, { id: string, form: TDefaultGalleryPhotoUpdateForm }>({
+      query: ({ id, form }) => ({
+        url: `/gallery/default-list/${id}`,
+        method: "PATCH",
+        body: form,
+      })
+    }),
+
+    deleteDefaultPhoto: builder.mutation<ApiResponse<any>, string>({
+      query: (id: string) => ({
+        url: `/gallery/default-list/${id}`,
+        method: "DELETE",
+      })
+    }),
   }),
   overrideExisting: false,
 });
 
 export const {
   useGetPhotosMutation,
-  useGetPhotoMutation,
   useUploadPhotosMutation,
   useUpdatePhotoMutation,
   useDeletePhotoMutation,
+
+  useLazyGetDefaultPhotosQuery,
+  useUploadDefaultPhotosMutation,
+  useUpdateDefaultPhotoMutation,
+  useDeleteDefaultPhotoMutation,
 } = galleryApi;

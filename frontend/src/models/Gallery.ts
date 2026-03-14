@@ -29,3 +29,30 @@ export type TGalleryPhotoUpdateForm = {
 export type TGalleryPhotoUpdate = TGalleryPhotoUpdateForm & {
   id: string;
 };
+
+
+
+// Default Gallery Photo
+export type TDefaultGalleryPhotoBase = {
+  type: GalleryType;
+}
+
+export type TDefaultGalleryPhoto = TDefaultGalleryPhotoBase & {
+  id: string;
+  url: string;
+  description: string;
+}
+
+export type TDefaultGalleryPhotoPreview = {
+  file: File;
+  preview: string;
+};
+
+export type TDefaultGalleryPhotoUpdateForm = {
+  type: GalleryType;
+  description: string;
+}
+
+export type TDefaultGalleryPhotoUpdate = TDefaultGalleryPhotoUpdateForm & {
+  id: string;
+};

@@ -23,10 +23,10 @@ function SignIn() {
   const [ showPassword, setShowPassword ] = useState(false);
 
   // Init Form
-    const initialForm = useMemo(() => ({
-      email: 'malaiko.denis@gmail.com',
-      password: 'Ab12345$'
-    }), []);
+  const initialForm = useMemo(() => ({
+    email: 'malaiko.denis@gmail.com',
+    password: 'Ab12345$'
+  }), []);
 
   // Init Form
 /*  const initialForm = useMemo(() => ({

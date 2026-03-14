@@ -25,6 +25,7 @@ import SignUpAdmin from './pages/adminSuper/signUp/signUpAdmin';
 import Panel from './pages/adminSuper/panel/panel';
 import List from './pages/adminSuper/list/list';
 import Agency from './pages/adminSuper/agency/agency';
+import AdminGallery from "./pages/adminSuper/gallery/AdminGallery";
 
 // Profile
 import Profile from "./pages/admin/Profile";
@@ -148,6 +149,7 @@ function App() {
         >
           <Route path="list" element={<List />} />
           <Route path="list/:id" element={<Agency />} />
+          <Route path="gallery" element={<AdminGallery />} />
         </Route>
       </Routes>
 

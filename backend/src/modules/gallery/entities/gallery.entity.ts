@@ -23,3 +23,20 @@ export type TGalleryPhotoUpdate = {
   isActive: boolean;
   description?: string | null;
 }
+
+
+// Default Gallery Photo
+export type TDefaultGalleryPhotoBase = {
+  type: GalleryPhotoType;
+}
+
+export type TDefaultGalleryPhoto = TDefaultGalleryPhotoBase & {
+  id: string;
+  url: string;
+  description?: string | null;
+}
+
+export type TDefaultGalleryPhotoUpdate = {
+  type: GalleryPhotoType;
+  description?: string | null;
+}
