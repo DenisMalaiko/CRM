@@ -2,7 +2,7 @@ import { TProduct } from "../../products/entities/product.entity";
 import { TAudience } from "../../audience/entity/audience.entity";
 import { TBusiness } from "../../business/entities/business.entity";
 import { TPrompt } from "../../prompt/entities/prompt.entity";
-import { TGalleryPhoto } from "../../gallery/entities/gallery.entity";
+import { TGalleryPhoto, TDefaultGalleryPhoto } from "../../gallery/entities/gallery.entity";
 import { TIdea } from "../../idea/entities/idea.entity";
 import { ProfileFocus } from "@prisma/client"
 
@@ -21,6 +21,7 @@ export type TProfile = TProfileBase & {
   ideas: TIdea[];
   prompts: TPrompt[];
   photos: TGalleryPhoto[];
+  defaultPhotos: TDefaultGalleryPhoto[];
   business?: TBusiness;
 }
 
@@ -30,6 +31,7 @@ export type TProfileCreate = TProfileBase & {
   ideasIds?: string[];
   promptsIds?: string[];
   photosIds?: string[];
+  defaultPhotosIds?: string[];
 }
 
 export type TProfileUpdate = TProfileBase & {
@@ -38,4 +40,5 @@ export type TProfileUpdate = TProfileBase & {
   ideasIds?: string[];
   promptsIds?: string[];
   photosIds?: string[];
+  defaultPhotosIds?: string[];
 }

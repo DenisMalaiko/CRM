@@ -70,6 +70,7 @@ export class GalleryService {
           type: dto.type,
           isActive: dto.isActive,
           url: img.key,
+          description: "",
         })),
       });
     } catch (error) {
@@ -161,6 +162,7 @@ export class GalleryService {
         data: uploaded.map((img) => ({
           type: dto.type,
           url: img.key,
+          isActive: dto.isActive,
           description: "",
         })),
       });
@@ -183,6 +185,7 @@ export class GalleryService {
         where: {id},
         data: {
           type: body.type,
+          isActive: body.isActive,
           description: body.description,
         },
       });

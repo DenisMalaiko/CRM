@@ -11,6 +11,7 @@ export type TGalleryPhoto = TGalleryPhotoBase & {
   url: string;
   description: string;
   createdAt: Date;
+  isDefault?: boolean;
 }
 
 export type TGalleryPhotoPreview = {
@@ -35,12 +36,14 @@ export type TGalleryPhotoUpdate = TGalleryPhotoUpdateForm & {
 // Default Gallery Photo
 export type TDefaultGalleryPhotoBase = {
   type: GalleryType;
+  isActive: boolean;
 }
 
 export type TDefaultGalleryPhoto = TDefaultGalleryPhotoBase & {
   id: string;
   url: string;
   description: string;
+  createdAt: Date;
 }
 
 export type TDefaultGalleryPhotoPreview = {
@@ -49,6 +52,7 @@ export type TDefaultGalleryPhotoPreview = {
 };
 
 export type TDefaultGalleryPhotoUpdateForm = {
+  isActive: boolean;
   type: GalleryType;
   description: string;
 }

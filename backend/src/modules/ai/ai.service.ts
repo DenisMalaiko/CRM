@@ -30,10 +30,9 @@ export class AiService {
     const rawText = this.extractTextContent(response.content);
     const posts: AiPost[] = JSON.parse(rawText)?.posts ?? [];
 
-    console.log("POSTS ", posts);
-
     for (const post of posts) {
       if (post.image_prompt) {
+        console.log("IMAGE PROMPT ", post.image_prompt);
         //post.imageUrl = await this.aiVertexImage.generateImage(post.image_prompt, profile.businessId);
         post.imageUrl = await this.aiReplicate.generateImageOpenAI(post.image_prompt, profile.businessId, photos);
       }
@@ -50,7 +49,7 @@ export class AiService {
 
     for (const story of stories) {
       if (story.image_prompt) {
-        console.log("STORY ", story.image_prompt);
+        console.log("IMAGE PROMPT ", story.image_prompt);
         story.imageUrl = await this.aiReplicate.generateStoryImageOpenAI(story.image_prompt, profile.businessId, photos);
       }
     }
@@ -167,10 +166,11 @@ export class AiService {
       profile.prompts.filter(p => p.purpose === 'Text')
     );
 
-    const imagePromptsBlock = buildPromptsBlock(
-      profile.prompts.filter(p => p.purpose === 'Image')
-    );
+    const imagePrompts = profile.prompts
+      .filter(p => p.purpose === "Image" && p.isActive)
+      .map(p => p.text);
 
+    console.log("IMAGES PROMPTS ", imagePrompts);
 
     const ideasBlock =
       profile.ideas && profile.ideas.length
@@ -331,70 +331,104 @@ export class AiService {
       
       --------------------------------
       
-      FRONTEND IMAGE PROMPTS (HIGHEST PRIORITY)
+      FRONTEND IMAGE PROMPTS (SOURCE OF SCENE AND TEXT)
       
-      ${imagePromptsBlock}
+      The following prompts were provided by the marketing team.
       
-      The frontend prompts come from the marketing team.
+      ${imagePrompts}
       
-      These instructions have the HIGHEST priority and MUST NOT be ignored.
+      These prompts define the visual scene and may also contain text that must appear on the image.
       
-      Rules:
       
-      1. If a frontend prompt explicitly specifies text that must appear on the image
-         (for example: "add text", "title", "headline", quotes, etc.)
-         you MUST use that exact text in the generated image_prompt.
+      TEXT EXTRACTION
       
-      2. The marketing text must be placed inside the VISIBLE TEXT ON IMAGE section.
+      Some prompts may contain instruction phrases such as:
       
-      3. Do NOT replace or rewrite marketing text.
+      - Add text
+      - Add title
+      - Add headline
+      - Додай текст
+      - Додай заголовок
       
-      4. Do NOT invent alternative headlines if marketing text is provided.
+      These phrases are instructions and are NOT part of the final image text.
+      
+      When extracting quoted text ("..."):
+      
+      - ignore the instruction words
+      - keep ONLY the quoted text content
       
       Example:
       
-      Frontend prompt:
       Add text "Goalberi Переможець в Чернівцях"
       
-      Correct output:
+      Extracted text:
+      Goalberi Переможець в Чернівцях
       
-      VISIBLE TEXT ON IMAGE:
-      Title: "Goalberi Переможець в Чернівцях"
+      
+      TEXT MAPPING RULE
+      
+      Extract all quoted text fragments in the order they appear.
+      
+      Mapping:
+      
+      - first extracted text → Title
+      - second extracted text → Subtitle
+      - ignore any additional texts
+      
+      
+      RULES
+      
+      - Use the marketing text exactly as written
+      - Do NOT rewrite marketing text
+      - Do NOT translate marketing text
+      - Do NOT invent alternative text if marketing text exists
       
       --------------------------------
       
-      TEXT GENERATION LOGIC (NO HARDCODE)
+      ## FRONTEND TEXT PRIORITY (CRITICAL)
       
-      Check if the frontend prompts contain explicit text that must appear on the image.
+      First check whether the frontend image prompts contain explicit text that must appear on the image.
       
-      Extraction rule:
+      Explicit text means:
+      - quoted text fragments
+      - direct instructions like add text / title / headline / subtitle / caption
+      - marketing text explicitly provided for the image
       
-      - If the frontend instructions contain 1 text → use it as Title.
-      - If the frontend instructions contain 2 texts → first = Title, second = Subtitle.
-      - If the frontend instructions contain more texts → use the first two only.
+      If explicit frontend text exists:
+      
+      Use it as the primary source for image text.
       
       Rules:
       
-      - Use the marketing text exactly as written.
-      - Do NOT rewrite the marketing text.
-      - Do NOT translate the marketing text.
-      - Do NOT generate additional text if marketing text already exists.
+      - Do NOT rewrite the provided frontend text
+      - Do NOT translate the provided frontend text
       
-      If the frontend prompts contain NO explicit text:
+      Text mapping:
       
-      Generate visible text using the post context.
+      If 1 frontend text exists:
+      Title = frontend text
+      Subtitle = generate from story context
+      Caption = generate from story context
       
-      Title: 2–6 words  
-      Subtitle: 5–15 words  
+      If 2 frontend texts exist:
+      Title = first frontend text
+      Subtitle = second frontend text
+      Caption = generate from story context
       
-      The generated text must reflect:
-      - the HOOK
-      - the main idea of the post
-      - the emotional angle
+      If 3 frontend texts exist:
+      Title = first frontend text
+      Subtitle = second frontend text
+      Caption = third frontend text
+      
+      If more than 3 texts exist:
+      Use only the first three.
+      
+      Only if NO explicit frontend text exists,
+      generate visible text from the story content.
       
       --------------------------------
       
-      IMAGE PROMPT STRUCTURE (MANDATORY)
+      ## IMAGE PROMPT STRUCTURE (MANDATORY)
       
       The image_prompt MUST follow this structure:
       
@@ -554,7 +588,9 @@ export class AiService {
     `)
         .join('\n');
 
-    const imagePromptsBlock = buildPromptsBlock(profile.prompts.filter(p => p.purpose === 'Image'));
+    const imagePrompts = profile.prompts
+      .filter(p => p.purpose === "Image" && p.isActive)
+      .map(p => p.text);
 
     return `
       You are a senior performance marketer and short-form content strategist.
@@ -705,30 +741,61 @@ export class AiService {
       
       Use interaction only when it improves engagement.
       
-      ---
+      --------------------------------
       
-      ## FRONTEND IMAGE PROMPTS (HIGHEST PRIORITY)
+      FRONTEND IMAGE PROMPTS (SOURCE OF SCENE AND TEXT)
       
-      ${imagePromptsBlock}
+      The following prompts were provided by the marketing team.
       
-      Generate the field: image_prompt.
+      ${imagePrompts}
       
-      The image_prompt is a technical instruction for an image generation model.
+      These prompts define the visual scene and may also contain text that must appear on the image.
       
-      Source of truth for visual scene:
-      ${imagePromptsBlock}
       
-      CRITICAL RULE:
+      TEXT EXTRACTION
       
-      The generated image_prompt MUST follow the provided frontend image prompts.
+      Some prompts may contain instruction phrases such as:
       
-      If the frontend prompt describes a specific scene, you MUST preserve that scene.
+      - Add text
+      - Add title
+      - Add headline
+      - Додай текст
+      - Додай заголовок
       
-      Do NOT invent a different scenario.
+      These phrases are instructions and are NOT part of the final image text.
       
-      Do NOT replace the scene with generic alternatives.
+      When extracting quoted text ("..."):
       
-      ---
+      - ignore the instruction words
+      - keep ONLY the quoted text content
+      
+      Example:
+      
+      Add text "Goalberi Переможець в Чернівцях"
+      
+      Extracted text:
+      Goalberi Переможець в Чернівцях
+      
+      
+      TEXT MAPPING RULE
+      
+      Extract all quoted text fragments in the order they appear.
+      
+      Mapping:
+      
+      - first extracted text → Title
+      - second extracted text → Subtitle
+      - ignore any additional texts
+      
+      
+      RULES
+      
+      - Use the marketing text exactly as written
+      - Do NOT rewrite marketing text
+      - Do NOT translate marketing text
+      - Do NOT invent alternative text if marketing text exists
+      
+      --------------------------------
       
       ## FRONTEND TEXT PRIORITY (CRITICAL)
       
@@ -771,7 +838,7 @@ export class AiService {
       Only if NO explicit frontend text exists,
       generate visible text from the story content.
       
-      ---
+      --------------------------------
       
       ## IMAGE PROMPT WRITING RULES
       
@@ -791,7 +858,7 @@ export class AiService {
       Subtitle: "..."
       Caption: "..."
       
-      ---
+      --------------------------------
       
       ## SCENE
       
@@ -816,7 +883,7 @@ export class AiService {
       
       This translation rule applies ONLY to the SCENE description.
       
-      ---
+      --------------------------------
       
       ## LANGUAGE DETECTION FOR IMAGE TEXT
 
@@ -832,7 +899,7 @@ export class AiService {
       - Never switch languages inside the same image.
       - Do NOT translate existing marketing text.
 
-      ---
+      --------------------------------
       
       ## VISIBLE TEXT ON IMAGE
       
@@ -891,7 +958,7 @@ export class AiService {
       - VISIBLE TEXT ON IMAGE must remain in the original business / marketing language
       - If frontend image text is provided, preserve its original language exactly
       
-      ---
+      --------------------------------
       
       ## TEXT CONSISTENCY RULE
       
@@ -906,7 +973,7 @@ export class AiService {
       
       Never generate different wording between story text and image text in fallback mode.
       
-      ---
+      --------------------------------
       
       ## CAPTION GENERATION RULE
 
@@ -922,7 +989,7 @@ export class AiService {
       Subtitle: "Команда Goalberi виграла 10 матчів"
       Caption: "Гордість команди"
       
-      ---
+      --------------------------------
       
       ## OUTPUT FORMAT (STRICT JSON)
       

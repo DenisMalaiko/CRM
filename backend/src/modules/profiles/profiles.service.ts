@@ -28,6 +28,7 @@ export class ProfilesService {
         ideas: { include: { idea: true } },
         prompts: { include: { prompt: true } },
         photos: { include: { galleryPhoto: true } },
+        defaultPhotos: { include: { defaultPhoto: true } },
         business: true
       },
     });
@@ -45,6 +46,7 @@ export class ProfilesService {
       ideas: profile?.ideas.map(p => p.idea),
       prompts: profile?.prompts.map(p => p.prompt),
       photos: profile?.photos.map(p => p.galleryPhoto),
+      defaultPhotos: profile?.defaultPhotos.map(p => p.defaultPhoto),
     }));
   }
 
@@ -55,6 +57,7 @@ export class ProfilesService {
       ideasIds = [],
       promptsIds = [],
       photosIds = [],
+      defaultPhotosIds = [],
       ...profileData
     } = body;
 
@@ -96,6 +99,13 @@ export class ProfilesService {
             })),
           },
         },
+        defaultPhotos: {
+          createMany: {
+            data: defaultPhotosIds.map(defaultPhotoId => ({
+              defaultPhotoId,
+            })),
+          },
+        }
       }
     });
 
@@ -112,6 +122,7 @@ export class ProfilesService {
         ideasIds = [],
         promptsIds = [],
         photosIds = [],
+        defaultPhotosIds = [],
         ...profileData
       } = body;
 
@@ -165,13 +176,23 @@ export class ProfilesService {
               },
             }
             : undefined,
+
+          defaultPhotos: defaultPhotosIds
+            ? {
+              deleteMany: {},
+              createMany: {
+                data: defaultPhotosIds.map(defaultPhotoId => ({defaultPhotoId})),
+              },
+            }
+            : undefined,
         },
 
         include: {
           products: true,
           audiences: true,
           prompts: true,
-          photos: true
+          photos: true,
+          defaultPhotos: true,
         },
       });
     } catch (err: any) {
@@ -211,6 +232,7 @@ export class ProfilesService {
         },
         prompts: { include: { prompt: true } },
         photos: { include: { galleryPhoto: true } },
+        defaultPhotos: { include: { defaultPhoto: true } },
         business: true
       },
     });
@@ -232,8 +254,9 @@ export class ProfilesService {
         })),
         prompts: profile.prompts.map(p => p.prompt),
         photos: profile?.photos.map(p => p.galleryPhoto),
+        defaultPhotos: profile?.defaultPhotos.map(p => p.defaultPhoto),
       };
-      const galleryPhotosUrls = mappedProfile.photos.map((photo) => {
+      const galleryPhotosUrls = [...mappedProfile.defaultPhotos, ...mappedProfile.photos].map((photo) => {
         return {
           type: photo.type,
           url: photo.url ? this.storageUrlService.getPublicUrl(photo.url) : "",

@@ -346,6 +346,14 @@ export class AiReplicate {
                   "textBlocks": [
                     {
                       "role": "",
+                      "hierarchyLevel": "",
+                      "visualRank": 0,
+                      "isPrimaryHeadline": false,
+                      "isSmallButImportant": false,
+                      "isTopZoneText": false,
+                      "styleGroup": "",
+                      "differsFromPrimaryStyle": false,
+                      "relatedDecorations": [],
                       "textContent": "",
                       "fontClassification": "",
                       "fontWidth": "",
@@ -354,6 +362,7 @@ export class AiReplicate {
                       "alignment": "",
                       "fillType": "solid | outline",
                       "fillColor": "",
+                      "opacity": "",
                       "hasStroke": false,
                       "strokeColor": "",
                       "strokeWidth": "",
@@ -412,14 +421,10 @@ export class AiReplicate {
 
     const designSystem = analysis.output_text;
 
-    console.log("DESIGN SYSTEM ", designSystem)
-
     const cleanJson = designSystem
       .replace(/\/\/.*$/gm, "")
       .replace(/,\s*]/g, "]")
       .replace(/,\s*}/g, "}");
-
-    console.log("CLEAN JSON ", cleanJson)
 
     const parsedDesign = JSON.parse(cleanJson);
 
@@ -429,10 +434,6 @@ export class AiReplicate {
           block => block.textContent && block.textContent !== "Not visible"
         )
       );
-
-    console.log("HAS TEXT ", hasRealText)
-
-    console.log("ANALIZE ", designSystem)
 
     let textRule = "";
 
@@ -472,13 +473,36 @@ export class AiReplicate {
             
             Generate a high-quality decorative marketing photo based on the provided reference images.
             
-            MAIN GOAL:
-            Create a visually appealing, premium-looking marketing image suitable for social media advertising.
-            
             --------------------------------------------------
             
-            SCENE DESCRIPTION
+            POST IDEA
             ${prompt}
+            
+           
+            TEMPLATE REPLICATION MODE
+
+            The reference post images define a strict visual template.
+            
+            You MUST preserve:
+            
+            • layout structure  
+            • position of graphic elements  
+            • overlay shapes  
+            • color panels  
+            • decorative stripes  
+            • spacing between elements  
+            
+            Do NOT redesign the composition.
+            
+            Treat the reference post as a TEMPLATE.
+            
+            Only change:
+            
+            • the scene content
+            • the headline text
+            • the subtitle text
+            
+            Everything else must follow the reference layout.
             
             --------------------------------------------------
             
@@ -513,6 +537,15 @@ export class AiReplicate {
             - design notes
             - debug labels
             - layout measurements
+            
+            --------------------------------------------------
+            
+            TEXT GENERATION
+            
+            All text must respect the typography system.
+            
+            If the reference headline is uppercase,
+            the generated headline must also be uppercase.
             
             --------------------------------------------------
             
@@ -624,10 +657,6 @@ export class AiReplicate {
           `
       }
     ];
-
-    console.log("----------")
-    console.log("PROMPT ", prompt)
-    console.log("----------")
 
     if (decorations.length) {
       content.push({
@@ -1215,8 +1244,6 @@ export class AiReplicate {
 
     const designSystem = analysis.output_text;
 
-    console.log("DESIGN SYSTEM ", designSystem)
-
     const NANO_BANANO = "google/nano-banana-pro";
 
     const stream = await this.replicate.run(
@@ -1227,6 +1254,8 @@ export class AiReplicate {
             You are a professional social media art director.
             
             Generate a high-quality Instagram Story marketing creative.
+            
+            --------------------------------------------------
             
             STORY IDEA
             ${prompt}

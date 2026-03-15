@@ -34,6 +34,9 @@ export class UpdateGalleryPhotoDto {
 
 // Default Gallery Photo
 export class DefaultGalleryPhotoBaseDto {
+  @IsBoolean()
+  isActive: boolean;
+
   @IsEnum(GalleryPhotoType)
   type: GalleryPhotoType;
 }
@@ -41,6 +44,9 @@ export class DefaultGalleryPhotoBaseDto {
 export class DefaultUpdateGalleryPhotoDto {
   @IsEnum(GalleryPhotoType)
   type: GalleryPhotoType;
+
+  @IsBoolean()
+  isActive: boolean;
 
   @IsOptional()
   @IsString()
