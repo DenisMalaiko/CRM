@@ -346,6 +346,14 @@ export class AiReplicate {
                   "textBlocks": [
                     {
                       "role": "",
+                      "hierarchyLevel": "",
+                      "visualRank": 0,
+                      "isPrimaryHeadline": false,
+                      "isSmallButImportant": false,
+                      "isTopZoneText": false,
+                      "styleGroup": "",
+                      "differsFromPrimaryStyle": false,
+                      "relatedDecorations": [],
                       "textContent": "",
                       "fontClassification": "",
                       "fontWidth": "",
@@ -354,6 +362,7 @@ export class AiReplicate {
                       "alignment": "",
                       "fillType": "solid | outline",
                       "fillColor": "",
+                      "opacity": "",
                       "hasStroke": false,
                       "strokeColor": "",
                       "strokeWidth": "",
@@ -464,13 +473,36 @@ export class AiReplicate {
             
             Generate a high-quality decorative marketing photo based on the provided reference images.
             
-            MAIN GOAL:
-            Create a visually appealing, premium-looking marketing image suitable for social media advertising.
-            
             --------------------------------------------------
             
-            SCENE DESCRIPTION
+            POST IDEA
             ${prompt}
+            
+           
+            TEMPLATE REPLICATION MODE
+
+            The reference post images define a strict visual template.
+            
+            You MUST preserve:
+            
+            • layout structure  
+            • position of graphic elements  
+            • overlay shapes  
+            • color panels  
+            • decorative stripes  
+            • spacing between elements  
+            
+            Do NOT redesign the composition.
+            
+            Treat the reference post as a TEMPLATE.
+            
+            Only change:
+            
+            • the scene content
+            • the headline text
+            • the subtitle text
+            
+            Everything else must follow the reference layout.
             
             --------------------------------------------------
             
@@ -1222,6 +1254,8 @@ export class AiReplicate {
             You are a professional social media art director.
             
             Generate a high-quality Instagram Story marketing creative.
+            
+            --------------------------------------------------
             
             STORY IDEA
             ${prompt}
