@@ -43,10 +43,13 @@ import {TIdea} from "../../../../../../models/Idea";
 function CreateProfileDlg({ open, onClose, profile }: any) {
   const dispatch = useAppDispatch();
 
+  console.log("PROFILE ", profile);
+
+
   const { products } = useSelector((state: any) => state.productsModule);
   const { audiences } = useSelector((state: any) => state.audienceModule);
   const { prompts } = useSelector((state: any) => state.promptModule);
-  const { photos } = useSelector((state: any) => state.galleryModule);
+  const { photos, defaultPhotos } = useSelector((state: any) => state.galleryModule);
   const { ideas } = useSelector((state: any) => state.ideaModule);
 
   const isEdit = !!profile;
@@ -57,6 +60,8 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
 
   const [openGalleryDlg, setOpenGalleryDlg] = useState(false)
 
+  const mappedDefaultPhotos = defaultPhotos.map((photo: any) => ({ ...photo, isDefault: true }));
+  const allPhotos = [...mappedDefaultPhotos, ...photos];
   const productsOptions = products?.map((product: any) => ({ value: product.id, label: product.name })) ?? [];
   const audiencesOptions = audiences?.map((audience: any) => ({ value: audience.id, label: audience.name })) ?? [];
   const promptsOptions = prompts?.map((prompt: TPrompt) => ({ value: prompt.id, label: `${prompt.name} | ${prompt.purpose}` })) ?? [];
@@ -74,6 +79,7 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
         ideasIds: profile.ideas.map((x: TIdea) => x.id) ?? [],
         promptsIds: profile.prompts.map((x: TPrompt) => x.id) ?? [],
         photosIds: profile.photos?.map((x: TGalleryPhoto) => x.id) ?? [],
+        defaultPhotosIds: profile.defaultPhotos?.map((x: TGalleryPhoto) => x.id) ?? [],
         isActive: profile.isActive,
         businessId: profile.businessId ?? "",
       }
@@ -87,6 +93,7 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
       ideasIds: [] as string[],
       promptsIds: [] as string[],
       photosIds: [] as string[],
+      defaultPhotosIds: [] as string[],
       isActive: true,
       businessId: businessId ?? "",
     }
@@ -104,6 +111,7 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
     ideasIds: (value) => isArray(value),
     promptsIds: (value) => isArray(value),
     photosIds: (value) => isArray(value),
+    defaultPhotosIds: (value) => isArray(value),
     businessId: (value) => isRequired(value),
     isActive: (value) => isBoolean(value),
   });
@@ -159,7 +167,8 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
   const deleteImage = async (imageId?: string) => {
     setForm(prev => ({
       ...prev,
-      photosIds: prev.photosIds.filter((id: string) => id !== imageId)
+      photosIds: prev.photosIds.filter((id: string) => id !== imageId),
+      defaultPhotosIds: prev.defaultPhotosIds.filter((id: string) => id !== imageId)
     }))
   }
 
@@ -312,7 +321,10 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
               </div>
 
               <div className="flex gap-2">
-                {photos.filter((x: TGalleryPhoto) => form.photosIds.includes(x.id)).map((photo: TGalleryPhoto) => (
+                {allPhotos.filter((x: TGalleryPhoto) =>
+                  form.photosIds.includes(x.id) ||
+                  form.defaultPhotosIds.includes(x.id)
+                ).map((photo: TGalleryPhoto) => (
                   <div key={photo.id} className="h-24 w-24 rounded-md border relative">
                     <img className="object-cover" src={photo.url} alt=""/>
                     <button
@@ -381,16 +393,26 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
         selectedIds={form.photosIds}
         onClose={() => setOpenGalleryDlg(false)}
         onSelect={(selectedPhotos: TGalleryPhoto[]) => {
+
+          const businessIds = selectedPhotos
+            .filter(p => !p.isDefault)
+            .map(p => p.id);
+
+          const defaultIds = selectedPhotos
+            .filter(p => p.isDefault)
+            .map(p => p.id);
+
           setForm(prev => ({
             ...prev,
             photosIds: Array.from(
-              new Set([
-                ...prev.photosIds,
-                ...selectedPhotos.map(img => img.id)
-              ])
+              new Set([...prev.photosIds, ...businessIds])
+            ),
+            defaultPhotosIds: Array.from(
+              new Set([...prev.defaultPhotosIds, ...defaultIds])
             )
-          }))
-          setOpenGalleryDlg(false)
+          }));
+
+          setOpenGalleryDlg(false);
         }}
       />
     </>

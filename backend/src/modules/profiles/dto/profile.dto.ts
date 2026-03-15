@@ -31,6 +31,10 @@ export class ProfileBaseDto {
   @IsOptional()
   photosIds: string[];
 
+  @IsArray()
+  @IsOptional()
+  defaultPhotosIds: string[];
+
   @IsBoolean()
   isActive: boolean;
 }

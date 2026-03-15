@@ -412,14 +412,10 @@ export class AiReplicate {
 
     const designSystem = analysis.output_text;
 
-    console.log("DESIGN SYSTEM ", designSystem)
-
     const cleanJson = designSystem
       .replace(/\/\/.*$/gm, "")
       .replace(/,\s*]/g, "]")
       .replace(/,\s*}/g, "}");
-
-    console.log("CLEAN JSON ", cleanJson)
 
     const parsedDesign = JSON.parse(cleanJson);
 
@@ -429,10 +425,6 @@ export class AiReplicate {
           block => block.textContent && block.textContent !== "Not visible"
         )
       );
-
-    console.log("HAS TEXT ", hasRealText)
-
-    console.log("ANALIZE ", designSystem)
 
     let textRule = "";
 
@@ -513,6 +505,15 @@ export class AiReplicate {
             - design notes
             - debug labels
             - layout measurements
+            
+            --------------------------------------------------
+            
+            TEXT GENERATION
+            
+            All text must respect the typography system.
+            
+            If the reference headline is uppercase,
+            the generated headline must also be uppercase.
             
             --------------------------------------------------
             
@@ -624,10 +625,6 @@ export class AiReplicate {
           `
       }
     ];
-
-    console.log("----------")
-    console.log("PROMPT ", prompt)
-    console.log("----------")
 
     if (decorations.length) {
       content.push({
@@ -1214,8 +1211,6 @@ export class AiReplicate {
     });
 
     const designSystem = analysis.output_text;
-
-    console.log("DESIGN SYSTEM ", designSystem)
 
     const NANO_BANANO = "google/nano-banana-pro";
 

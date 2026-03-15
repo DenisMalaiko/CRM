@@ -36,6 +36,7 @@ function DefaultGalleryPhotos({ photos }: { photos: any[] }) {
   const [ selectedPhoto, setSelectedPhoto ]  = useState({
     id: "",
     type: GalleryType.Image,
+    isActive: true,
     description: ""
   });
 
@@ -91,6 +92,7 @@ function DefaultGalleryPhotos({ photos }: { photos: any[] }) {
     setSelectedPhoto({
       id: photo.id,
       type: photo.type,
+      isActive: photo.isActive,
       description: photo.description
     });
     setOpenPhotoEditDlg(true);
@@ -101,14 +103,17 @@ function DefaultGalleryPhotos({ photos }: { photos: any[] }) {
     setSelectedPhoto({
       id: value.id,
       type: value.type,
+      isActive: value.isActive,
       description: value.description
     });
     setOpenPhotoEditDlg(false);
+
 
     const response: ApiResponse<TDefaultGalleryPhoto> = await updatePhoto({
       id: value.id,
       form: {
         type: value.type,
+        isActive: value.isActive,
         description: value.description
       }
     }).unwrap();

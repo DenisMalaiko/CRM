@@ -16,7 +16,6 @@ import { showError } from "../../../../../../../utils/showError";
 import {useSelector} from "react-redux";
 import {GalleryType} from "../../../../../../../enum/GalleryType";
 
-
 function SelectGalleryDlg({ open, onClose, onSelect, selectedIds }: any) {
   const dispatch = useAppDispatch();
   const { businessId } = useParams<{ businessId: string }>();
@@ -28,8 +27,9 @@ function SelectGalleryDlg({ open, onClose, onSelect, selectedIds }: any) {
   const [ getDefaultPhotos ] = useLazyGetDefaultPhotosQuery();
   const { photos, defaultPhotos } = useSelector((state: any) => state.galleryModule);
 
+  const mappedPhotos = photos.map((photo: any) => ({ ...photo, isDefault: false }));
   const mappedDefaultPhotos = defaultPhotos.map((photo: any) => ({ ...photo, isDefault: true }));
-  const allPhotos = [...mappedDefaultPhotos, ...photos];
+  const allPhotos = [...mappedDefaultPhotos, ...mappedPhotos];
 
   const decorationPhotos: TGalleryPhoto[] = allPhotos.filter((p: TGalleryPhoto) => p.type === GalleryType.Decoration);
   const imagePhotos: TGalleryPhoto[] = allPhotos.filter((p: TGalleryPhoto) => p.type === GalleryType.Image);
@@ -68,6 +68,8 @@ function SelectGalleryDlg({ open, onClose, onSelect, selectedIds }: any) {
       if (prev.length >= MAX_SELECTED) {
         return prev
       }
+
+      console.log("IDS ", [...prev, id])
 
       return [...prev, id]
     })
@@ -268,7 +270,7 @@ function SelectGalleryDlg({ open, onClose, onSelect, selectedIds }: any) {
             disabled={localSelected.length === 0}
             onClick={() =>
               onSelect(
-                photos.filter((p: TGalleryPhoto) => localSelected.includes(p.id))
+                allPhotos.filter((p: TGalleryPhoto) => localSelected.includes(p.id))
               )
             }
           >

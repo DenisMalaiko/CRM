@@ -28,8 +28,9 @@ function Gallery() {
   const [ getDefaultPhotos ] = useLazyGetDefaultPhotosQuery();
   const { photos, defaultPhotos } = useSelector((state: any) => state.galleryModule);
 
+  const mappedPhotos = photos.map((photo: any) => ({ ...photo, isDefault: false }));
   const mappedDefaultPhotos = defaultPhotos.map((photo: any) => ({ ...photo, isDefault: true }));
-  const allPhotos = [...mappedDefaultPhotos, ...photos];
+  const allPhotos = [...mappedDefaultPhotos, ...mappedPhotos];
 
   const decorationPhotos = allPhotos.filter((p: TGalleryPhoto) => p.type === GalleryType.Decoration);
   const imagePhotos = allPhotos.filter((p: TGalleryPhoto) => p.type === GalleryType.Image);
@@ -46,6 +47,9 @@ function Gallery() {
 
           if(response && response.data) dispatch(setGalleryPhotos(response.data));
           if(responseDefault && responseDefault.data) dispatch(setDefaultGalleryPhotos(responseDefault.data));
+
+          console.log("BUSINESS PHOTOS: ", response.data);
+          console.log("DEFAULT PHOTOS: ", responseDefault.data);
         }
       } catch (error) {
         showError(error);
@@ -84,30 +88,6 @@ function Gallery() {
           <section>
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">
-                Images
-              </h3>
-            </div>
-
-            <Photos photos={imagePhotos}/>
-          </section>
-        </div>
-
-        <div className="p-5 space-y-10">
-          <section>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">
-                Decorations
-              </h3>
-            </div>
-
-            <Photos photos={decorationPhotos}/>
-          </section>
-        </div>
-
-        <div className="p-5 space-y-10">
-          <section>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">
                 Posts
               </h3>
             </div>
@@ -125,6 +105,30 @@ function Gallery() {
             </div>
 
             <Photos photos={storyPhotos}/>
+          </section>
+        </div>
+
+        <div className="p-5 space-y-10">
+          <section>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">
+                Images
+              </h3>
+            </div>
+
+            <Photos photos={imagePhotos}/>
+          </section>
+        </div>
+
+        <div className="p-5 space-y-10">
+          <section>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">
+                Decorations
+              </h3>
+            </div>
+
+            <Photos photos={decorationPhotos}/>
           </section>
         </div>
       </section>

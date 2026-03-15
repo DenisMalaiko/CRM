@@ -64,6 +64,7 @@ model BusinessProfile {
   aiArtifacts  AIArtifact[]
   business     Business                        @relation(fields: [businessId], references: [id])
   photos       BusinessProfilePhoto[]
+  defaultPhotos BusinessProfileDefaultPhoto[]
   platforms    BusinessProfilePlatform[]
   products     BusinessProfileProduct[]
   prompts      BusinessProfilePrompt[]
@@ -222,8 +223,11 @@ model GalleryPhoto {
 model DefaultPhoto {
   id          String @id @default(uuid())
   type        GalleryPhotoType
+  isActive    Boolean @default(true)
   url         String
   description String?
+  createdAt   DateTime @default(now())
+  profiles    BusinessProfileDefaultPhoto[]
 }
 
 model Idea {
@@ -325,11 +329,24 @@ model BusinessProfilePrompt {
 model BusinessProfilePhoto {
   businessProfileId String
   galleryPhotoId    String
+
   businessProfile   BusinessProfile @relation(fields: [businessProfileId], references: [id], onDelete: Cascade)
   galleryPhoto      GalleryPhoto    @relation(fields: [galleryPhotoId], references: [id], onDelete: Cascade)
 
   @@id([businessProfileId, galleryPhotoId])
   @@index([galleryPhotoId])
+}
+
+model BusinessProfileDefaultPhoto {
+  businessProfileId String
+  defaultPhotoId    String
+
+  businessProfile   BusinessProfile @relation(fields: [businessProfileId], references: [id], onDelete: Cascade)
+  defaultPhoto      DefaultPhoto    @relation(fields: [defaultPhotoId], references: [id], onDelete: Cascade)
+
+  @@id([businessProfileId, defaultPhotoId])
+  @@index([defaultPhotoId])
+  @@index([businessProfileId])
 }
 
 model BusinessProfilePlatform {
