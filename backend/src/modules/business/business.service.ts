@@ -18,6 +18,7 @@ export class BusinessService {
         website: true,
         industry: true,
         status: true,
+        language: true,
         brand: true,
         advantages: true,
         goals: true
@@ -36,6 +37,7 @@ export class BusinessService {
           website: true,
           industry: true,
           status: true,
+          language: true,
           brand: true,
           advantages: true,
           goals: true
@@ -74,6 +76,7 @@ export class BusinessService {
           website: true,
           industry: true,
           status: true,
+          language: true,
           brand: true,
           advantages: true,
           goals: true
@@ -98,6 +101,7 @@ export class BusinessService {
           website: true,
           industry: true,
           status: true,
+          language: true,
           brand: true,
           advantages: true,
           goals: true

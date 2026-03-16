@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { toast } from "react-toastify";
-import { Plus } from "lucide-react";
+import {Plus, X} from "lucide-react";
+import Select from "react-select";
 
 // Hooks
 import { useForm } from "../../../../hooks/useForm";
@@ -19,6 +20,7 @@ import { setBusiness, setBusinesses } from "../../../../store/businesses/busines
 import { showError } from "../../../../utils/showError";
 import { minLength, isRequired, isString } from "../../../../utils/validations";
 import { ChangeArg, isNativeEvent } from "../../../../utils/isNativeEvent";
+import { centeredSelectStyles } from "../../../../utils/reactSelectStyles";
 
 // Models
 import { TBusiness } from "../../../../models/Business";
@@ -26,6 +28,9 @@ import { ApiResponse } from "../../../../models/ApiResponse";
 
 // Enums
 import { BusinessStatus } from "../../../../enum/BusinessStatus";
+
+// Const
+import { Languages } from "../../../../const/Languages";
 
 function CreateBusinessDlg({ open, onClose, business }: any) {
   const dispatch = useAppDispatch();
@@ -49,6 +54,7 @@ function CreateBusinessDlg({ open, onClose, business }: any) {
         brand: business.brand ?? "",
         advantages: business.advantages ?? [""],
         goals: business.goals ?? [""],
+        language: business.language ?? Languages[0].value,
       };
     }
 
@@ -61,6 +67,7 @@ function CreateBusinessDlg({ open, onClose, business }: any) {
       brand: "",
       advantages: [""],
       goals: [""],
+      language: Languages[0].value
     };
   }, [isEdit, business, user?.agencyId]);
 
@@ -77,6 +84,7 @@ function CreateBusinessDlg({ open, onClose, business }: any) {
     brand: (value) => isString(value),
     advantages: (value) => isRequired(value),
     goals: (value) => isRequired(value),
+    language: (value) => isRequired(value),
   })
 
   if (!open) return null;
@@ -95,7 +103,6 @@ function CreateBusinessDlg({ open, onClose, business }: any) {
           toast.success(response.message);
         }
       } else {
-        console.log("FORM ", form)
         const response: ApiResponse<TBusiness> = await createBusiness(form).unwrap();
         if(response && response?.data) {
           dispatch(setBusiness(response.data));
@@ -164,13 +171,13 @@ function CreateBusinessDlg({ open, onClose, business }: any) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50">
       <div className="w-full max-w-2xl rounded-2xl bg-white shadow-xl p-6 max-h-[90vh] overflow-auto">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-4 relative">
           <h2 className="text-lg font-semibold">{ isEdit ? "Edit" : "Create"} Business</h2>
           <button
             onClick={onClose}
-            className="text-slate-500 hover:text-slate-700 rounded-full p-1 hover:bg-slate-100"
+            className="absolute right-0 text-white text-xl z-10 bg-blue-600 rounded-full p-2 hover:bg-blue-700 cursor-pointer"
           >
-            ✕
+            <X size={20} strokeWidth={2} color="white"></X>
           </button>
         </div>
 
@@ -233,6 +240,27 @@ function CreateBusinessDlg({ open, onClose, business }: any) {
                 )) }
               </select>
             </div>
+          </div>
+
+          <div>
+            <div className="flex items-center gap-2 justify-between mb-1">
+              <label className="block text-sm font-medium text-slate-700 text-left">Language</label>
+            </div>
+
+            <Select
+              options={Languages}
+              value={Languages.filter((option) =>
+                form.language.includes(option.value)
+              )}
+              onChange={(selected: any) =>
+                onChange({
+                  name: "language",
+                  value: selected ? selected?.value : "",
+                })
+              }
+              styles={centeredSelectStyles}
+              placeholder="Select Language"
+            ></Select>
           </div>
 
           <div className="grid">

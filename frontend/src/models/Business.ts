@@ -9,7 +9,7 @@ export type TBusiness = TBaseModel & {
   website: string;
   industry: string;
   status: BusinessStatus;
-
+  language: string;
 
   brand: string;
   goals: string[];
@@ -25,9 +25,11 @@ export type TBusinessCreate = {
   website: string;
   industry: string;
   status: BusinessStatus;
-  agencyId: string;
+  language: string;
 
   brand: string;
   goals: string[];
   advantages: string[];
+
+  agencyId: string;
 }

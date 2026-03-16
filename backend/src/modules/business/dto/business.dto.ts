@@ -18,6 +18,9 @@ export class BusinessBaseDto {
   status: BusinessStatusUI;
 
   @IsString()
+  language: string;
+
+  @IsString()
   brand: string;
 
   @IsArray()

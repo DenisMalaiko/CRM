@@ -20,12 +20,15 @@ import { trimID } from "../../../../../utils/trimID";
 import { showError } from "../../../../../utils/showError";
 import { getStatusClass } from "../../../../../utils/getStatusClass";
 
+// Const
+import { Languages } from "../../../../../const/Languages";
+
 function BaseData() {
   const dispatch = useAppDispatch();
   const { businessId } = useParams<{ businessId: string }>();
   const [ getBusiness ] = useGetBusinessMutation();
-  const [open, setOpen] = useState(false);
-  const [selectedBusiness, setSelectedBusiness] = useState<TBusiness | null>(null);
+  const [ open, setOpen ] = useState(false);
+  const [ selectedBusiness, setSelectedBusiness ] = useState<TBusiness | null>(null);
   const { business } = useSelector((state: RootState) => state.businessModule)
 
   // Get Data
@@ -96,11 +99,15 @@ function BaseData() {
                   <span className="font-medium">Industry</span>
                   <span className="text-slate-500">{business?.industry}</span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between border-b pb-2">
                   <span className="font-medium">Status</span>
                   <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${getStatusClass(business.status)}`}>
                      {business?.status}
                   </span>
+                </div>
+                <div className="flex justify-between border-b pb-2">
+                  <span className="font-medium">Language</span>
+                  <span className="text-slate-500">{Languages.find(x => x.value === business?.language)?.label}</span>
                 </div>
               </div>
             }

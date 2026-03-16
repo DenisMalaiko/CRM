@@ -172,7 +172,6 @@ function Business() {
                 ))}
               </div>
             </div>
-
           </aside>
 
           <main className="col-span-10">

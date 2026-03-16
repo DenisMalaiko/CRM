@@ -132,8 +132,10 @@ function App() {
             {/*Trends*/}
             <Route path="trends" element={<Trends />}></Route>
 
-            {/*Inactive*/}
+            {/*Settings*/}
             <Route path="settings" element={<Settings />} />
+
+            {/*Inactive*/}
             <Route path="platforms" element={<Platforms />} />
           </Route>
         </Route>

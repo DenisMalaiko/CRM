@@ -32,7 +32,7 @@ export class AiService {
 
     for (const post of posts) {
       if (post.image_prompt) {
-        console.log("IMAGE PROMPT ", post.image_prompt);
+        console.log("IMAGE PROMPT ", post);
         //post.imageUrl = await this.aiVertexImage.generateImage(post.image_prompt, profile.businessId);
         post.imageUrl = await this.aiReplicate.generateImageOpenAI(post.image_prompt, profile.businessId, photos);
       }
@@ -40,6 +40,7 @@ export class AiService {
 
     return posts;
   }
+
 
   async generateStoriesBasedOnBusinessProfile(profile: TProfile, photos: { url: string, type: GalleryPhotoType }[]): Promise<any[]> {
     const prompt = this.buildPromptForStories(profile);
@@ -49,7 +50,7 @@ export class AiService {
 
     for (const story of stories) {
       if (story.image_prompt) {
-        console.log("IMAGE PROMPT ", story.image_prompt);
+        console.log("IMAGE PROMPT ", story);
         story.imageUrl = await this.aiReplicate.generateStoryImageOpenAI(story.image_prompt, profile.businessId, photos);
       }
     }
@@ -170,8 +171,6 @@ export class AiService {
       .filter(p => p.purpose === "Image" && p.isActive)
       .map(p => p.text);
 
-    console.log("IMAGES PROMPTS ", imagePrompts);
-
     const ideasBlock =
       profile.ideas && profile.ideas.length
         ? profile.ideas
@@ -225,6 +224,7 @@ export class AiService {
       - Name: ${profile.business.name}
       - Industry: ${profile.business.industry}
       - Website: ${profile.business.website}
+      - Language: ${profile.business.language}
       
       Profile:
       - Name: ${profile.name}
@@ -490,7 +490,24 @@ export class AiService {
       
       Write everything in ONE paragraph suitable for an image generation model.
       
-      ---
+      --------------------------------
+      
+      ## LANGUAGE RULES FOR IMAGE TEXT, HOOK, BODY, CTA (MANDATORY) 
+      
+      All visible text inside the image MUST be written in ${profile.business.language}.
+      
+      Language selection priority:
+      
+      1. If the frontend image prompt contains explicit text → use that language.
+      2. Otherwise → use ${profile.business.language}.
+      3. Never mix languages.
+      
+      Rules:
+      - Caption MUST use the same language as Title and Subtitle.
+      - Never switch languages inside the same image.
+      - Do NOT translate existing marketing text.
+      
+      --------------------------------
       
       ## OUTPUT FORMAT (STRICT JSON)
       
@@ -607,6 +624,7 @@ export class AiService {
       - Name: ${profile.business.name}
       - Industry: ${profile.business.industry}
       - Website: ${profile.business.website}
+      - Language: ${profile.business.language}
       
       Profile:
       - Name: ${profile.name}
@@ -885,16 +903,17 @@ export class AiService {
       
       --------------------------------
       
-      ## LANGUAGE DETECTION FOR IMAGE TEXT
-
-      Determine the language of the visible image text using the following priority:
+      ## LANGUAGE RULES FOR IMAGE TEXT, HEADLINE, SUPPORTING TEXT
+      
+      All visible text inside the image MUST be written in ${profile.business.language}.
+      
+      Language selection priority:
       
       1. If the frontend image prompt contains explicit text → use that language.
-      2. If no explicit text exists → detect the language from the generated story headline and supporting_text.
-      3. If both contain mixed languages → prefer the language used by the business context.
+      2. Otherwise → use ${profile.business.language}.
+      3. Never mix languages.
       
       Rules:
-      
       - Caption MUST use the same language as Title and Subtitle.
       - Never switch languages inside the same image.
       - Do NOT translate existing marketing text.
