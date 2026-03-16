@@ -19,7 +19,7 @@ import { GalleryType } from "../../../../../enum/GalleryType";
 
 // Utils
 import { showError } from "../../../../../utils/showError";
-import { isRequired, isValidPhoto } from "../../../../../utils/validations";
+import {isBoolean, isRequired, isValidPhoto} from "../../../../../utils/validations";
 import { ChangeArg, isNativeEvent } from "../../../../../utils/isNativeEvent";
 
 // Models
@@ -47,6 +47,7 @@ function UploadDefaultGalleryPhotoDlg({ open, onClose }: any) {
   const initialForm = useMemo(() => {
     return {
       type: GalleryType.Image,
+      isActive: true,
     }
   }, []);
 
@@ -56,6 +57,7 @@ function UploadDefaultGalleryPhotoDlg({ open, onClose }: any) {
   // Validation Hook
   const { errors, validateField, validateAll } = useValidation({
     type: (value) => isRequired(value),
+    isActive: (value) => isBoolean(value),
   })
 
   if (!open) return null;
@@ -70,6 +72,7 @@ function UploadDefaultGalleryPhotoDlg({ open, onClose }: any) {
       const formData = new FormData();
 
       formData.append('type', form.type as string);
+      formData.append('isActive', form.isActive ? "true" : "false");
 
       photos.forEach((photo) => {
         formData.append('files', photo.file);
