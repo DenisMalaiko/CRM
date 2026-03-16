@@ -170,7 +170,7 @@ function Photos({ photos }: { photos: any[] }) {
 
               <button
                 onClick={() => openSlider([{url: photo.url}])}
-                className="opacity-0 group-hover:opacity-100 transition duration-300 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg mr-5"
+                className="opacity-0 group-hover:opacity-100 transition duration-300 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg"
               >
                 <ImagePlay size={18} />
               </button>
@@ -178,7 +178,7 @@ function Photos({ photos }: { photos: any[] }) {
               {!photo.isDefault && (
                 <button
                   onClick={(e) => openConfirmDlg(e, photo.id)}
-                  className="opacity-0 group-hover:opacity-100 transition duration-300 bg-red-500 hover:bg-red-600 text-white p-3 rounded-full shadow-lg"
+                  className="opacity-0 group-hover:opacity-100 transition duration-300 bg-red-500 hover:bg-red-600 text-white p-3 rounded-full shadow-lg ml-5"
                 >
                   <Trash2 size={18} />
                 </button>
