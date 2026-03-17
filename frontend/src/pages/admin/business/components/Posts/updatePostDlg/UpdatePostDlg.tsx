@@ -28,7 +28,7 @@ import { AIArtifactStatus } from "../../../../../../enum/AIArtifactStatus";
 import { GalleryType } from "../../../../../../enum/GalleryType";
 import {X} from "lucide-react";
 
-function CreateCreativeDlg({ open, onClose, creative }: any) {
+function UpdatePostDlg({ open, onClose, creative }: any) {
   const dispatch = useAppDispatch();
   const { businessId } = useParams<{ businessId: string }>();
 
@@ -238,4 +238,4 @@ function CreateCreativeDlg({ open, onClose, creative }: any) {
   )
 }
 
-export default CreateCreativeDlg;
+export default UpdatePostDlg;

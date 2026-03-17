@@ -5,6 +5,7 @@ import './App.css';
 import 'react-datepicker/dist/react-datepicker.css';
 import "slick-carousel/slick/slick.css"
 import "slick-carousel/slick/slick-theme.css"
+import { RootState } from "./store";
 
 
 import {toast, ToastContainer} from 'react-toastify';
@@ -40,7 +41,7 @@ import Products from "./pages/admin/business/components/Products/Products"
 import Platforms from "./pages/admin/business/components/old/Platforms/Platforms"
 import Profiles from "./pages/admin/business/components/Profiles/Profiles";
 import Audiences from "./pages/admin/business/components/Audiences/Audiences";
-import Creatives from "./pages/admin/business/components/Creatives/Creatives";
+import Posts from "./pages/admin/business/components/Posts/Posts";
 import Prompts from "./pages/admin/business/components/Prompts/Prompts";
 import Settings from "./pages/admin/business/components/old/Settings/Settings";
 import Competitors from "./pages/admin/business/components/Сompetitors/Competitors";
@@ -57,34 +58,44 @@ import Manager from "./pages/admin/ai/manager/Manager";
 
 import { useAppDispatch } from "./store/hooks";
 import { useSignInByTokenMutation } from "./store/auth/authApi";
-import { setUser, setAccessToken, logout } from "./store/auth/authSlice";
-
+import { setUser, setAccessToken, logout, setAuthInitialized } from "./store/auth/authSlice";
+import { useSelector } from "react-redux";
+import { TUser } from "./models/User";
 
 function App() {
   const ConfirmDialog = useConfirmDialog();
   const [ signInByToken ] = useSignInByTokenMutation();
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const { authInitialized } = useSelector((state: RootState) => state.authModule);
+
 
   useEffect(() => {
-    const token: string | null = localStorage.getItem('accessToken');
-    if (!token) return;
+    const token = localStorage.getItem('accessToken');
+
+    if (!token) {
+      dispatch(setAuthInitialized());
+      return;
+    }
 
     const checkAuth = async () => {
       try {
-        const response = await signInByToken(token).unwrap();
-        dispatch(setUser(response.data.user));
-        dispatch(setAccessToken(response.data.accessToken));
-
-        toast.success(response.message);
-        navigate("/profile/businesses");
-      } catch (error) {
+        const response: { accessToken: string, refreshToken: string, user: TUser } = await signInByToken(token).unwrap();
+        dispatch(setUser(response.user));
+        dispatch(setAccessToken(response.accessToken));
+      } catch {
         dispatch(logout());
+      } finally {
+        dispatch(setAuthInitialized());
       }
     }
 
     checkAuth();
-  }, [])
+  }, []);
+
+  if (!authInitialized) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="App">
@@ -119,7 +130,7 @@ function App() {
             <Route path="audiences" element={<Audiences />} />
 
             {/*Generation*/}
-            <Route path="posts" element={<Creatives />} />
+            <Route path="posts" element={<Posts />} />
             <Route path="stories" element={<Stories />} />
             <Route path="prompts" element={<Prompts />} />
             <Route path="gallery" element={<Gallery />} />

@@ -35,7 +35,6 @@ import { TAudience } from "../../../../../models/Audience";
 import { TPlatform } from "../../../../../models/Platform";
 import { TIdea } from "../../../../../models/Idea";
 
-
 // Enum
 import { BusinessProfileFocus } from "../../../../../enum/BusinessProfileFocus";
 
@@ -98,8 +97,8 @@ function Profiles() {
     e.preventDefault();
 
     const ok = await confirm({
-      title: "Delete Profile",
-      message: "Are you sure you want to delete this profile?",
+      title: "Delete Context",
+      message: "Are you sure you want to delete this context?",
     });
 
     if(ok) {
@@ -149,13 +148,13 @@ function Profiles() {
       <section>
         <section>
           <div className="border-b p-4 flex items-center justify-between">
-            <h2 className="text-lg text-left font-semibold text-slate-800">Profiles</h2>
+            <h2 className="text-lg text-left font-semibold text-slate-800">Context</h2>
 
             <button
               onClick={() => setOpen(true)}
               className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700"
             >
-              Add Profile
+              Add Context
             </button>
 
             <CreateProfileDlg

@@ -132,7 +132,7 @@ model Platform {
 model AIArtifact {
   id                String              @id @default(uuid())
   type              AIArtifactType
-  businessProfileId String
+  businessProfileId String?
   trendId           String?
   outputJson        Json
   score             Float?
@@ -141,7 +141,7 @@ model AIArtifact {
   businessId        String
   imagePrompt       String?
   imageUrl          String?
-  businessProfile   BusinessProfile     @relation(fields: [businessProfileId], references: [id], onDelete: Cascade)
+  businessProfile   BusinessProfile?     @relation(fields: [businessProfileId], references: [id], onDelete: Cascade)
   trend             Trend?              @relation(fields: [trendId], references: [id])
   products          AIArtifactProduct[]
 

@@ -1,5 +1,18 @@
 import React from "react";
-import { ArrowLeft } from "lucide-react";
+import {
+  ArrowLeft,
+  Database,
+  Package,
+  Users,
+  FileText,
+  Sparkles,
+  Layers,
+  Wand2,
+  Image,
+  Swords,
+  Lightbulb,
+  TrendingUp
+} from "lucide-react"
 import { Outlet, NavLink, useNavigate } from "react-router-dom";
 
 function Business() {
@@ -9,21 +22,17 @@ function Business() {
     {
       id: "baseData",
       title: "Base Data",
-    },
-  ]
-
-  const tabsContext = [
-    {
-      id: "profiles",
-      title: "Profiles",
+      icon: Database,
     },
     {
       id: "products",
       title: "Products",
+      icon: Package,
     },
     {
       id: "audiences",
       title: "Audiences",
+      icon: Users,
     },
   ]
 
@@ -31,18 +40,30 @@ function Business() {
     {
       id: "posts",
       title: "Posts",
+      icon: FileText,
     },
     {
       id: "stories",
       title: "Stories",
+      icon: Sparkles,
+    },
+  ]
+
+  const tabsCreator = [
+    {
+      id: "profiles",
+      title: "Context",
+      icon: Layers,
     },
     {
       id: "prompts",
       title: "Prompts",
+      icon: Wand2,
     },
     {
       id: "gallery",
       title: "Gallery",
+      icon: Image,
     },
   ]
 
@@ -50,18 +71,21 @@ function Business() {
     {
       id: "competitors",
       title: "Competitors",
+      icon: Swords,
     },
     {
       id: "ideas",
       title: "Ideas",
-    }
+      icon: Lightbulb,
+    },
   ]
 
   const tabsTrends = [
     {
       id: "trends",
       title: "Trends",
-    }
+      icon: TrendingUp,
+    },
   ]
 
   return (
@@ -83,93 +107,128 @@ function Business() {
         <div className="container mx-auto grid grid-cols-12 gap-6 mb-5">
           <aside className="col-span-2 bg-gray-100">
             <div className="rounded-2xl bg-white shadow border border-slate-200 py-2 px-2 mb-5">
-              <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide text-left">
-                Основна Інформація
-              </div>
-
               <div className="flex flex-col gap-1">
-                {tabsBaseData.map((tab) => (
-                  <NavLink
-                    to={tab.id}
-                    key={tab.id}
-                    className={({ isActive }) => `flex items-center gap-3 px-3 py-2 rounded-lg font-medium ${isActive ? "bg-blue-100 text-blue-600" : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"}`}
-                  >
-                    {tab.title}
-                  </NavLink>
-                ))}
+                {tabsBaseData.map((tab) => {
+                  const Icon = tab.icon
+
+                  return (
+                    <NavLink
+                      to={tab.id}
+                      key={tab.id}
+                      className={({ isActive }) =>
+                        `flex items-center gap-3 px-3 py-2 rounded-lg font-medium ${
+                          isActive
+                            ? "bg-blue-100 text-blue-600"
+                            : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"
+                        }`
+                      }
+                    >
+                      <Icon size={18} />
+                      {tab.title}
+                    </NavLink>
+                  )
+                })}
               </div>
             </div>
 
             <div className="rounded-2xl bg-white shadow border border-slate-200 py-2 px-2 mb-5">
-              <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide text-left">
-                Конекст
-              </div>
-
               <div className="flex flex-col gap-1">
-                {tabsContext.map((tab) => (
-                  <NavLink
-                    to={tab.id}
-                    key={tab.id}
-                    className={({ isActive }) => `flex items-center gap-3 px-3 py-2 rounded-lg font-medium ${isActive ? "bg-blue-100 text-blue-600" : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"}`}
-                  >
-                    {tab.title}
-                  </NavLink>
-                ))}
+                {tabsGeneration.map((tab) => {
+                  const Icon = tab.icon
+
+                  return (
+                    <NavLink
+                      to={tab.id}
+                      key={tab.id}
+                      className={({ isActive }) =>
+                        `flex items-center gap-3 px-3 py-2 rounded-lg font-medium ${
+                          isActive
+                            ? "bg-blue-100 text-blue-600"
+                            : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"
+                        }`
+                      }
+                    >
+                      <Icon size={18} />
+                      {tab.title}
+                    </NavLink>
+                  )
+                })}
               </div>
             </div>
 
             <div className="rounded-2xl bg-white shadow border border-slate-200 py-2 px-2 mb-5">
-              <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide text-left">
-                Генерація
-              </div>
-
               <div className="flex flex-col gap-1">
-                {tabsGeneration.map((tab) => (
-                  <NavLink
-                    to={tab.id}
-                    key={tab.id}
-                    className={({ isActive }) => `flex items-center gap-3 px-3 py-2 rounded-lg font-medium ${isActive ? "bg-blue-100 text-blue-600" : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"}`}
-                  >
-                    {tab.title}
-                  </NavLink>
-                ))}
+                {tabsCreator.map((tab) => {
+                  const Icon = tab.icon
+
+                  return (
+                    <NavLink
+                      to={tab.id}
+                      key={tab.id}
+                      className={({ isActive }) =>
+                        `flex items-center gap-3 px-3 py-2 rounded-lg font-medium ${
+                          isActive
+                            ? "bg-blue-100 text-blue-600"
+                            : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"
+                        }`
+                      }
+                    >
+                      <Icon size={18} />
+                      {tab.title}
+                    </NavLink>
+                  )
+                })}
               </div>
             </div>
 
             <div className="rounded-2xl bg-white shadow border border-slate-200 py-2 px-2 mb-5">
-              <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide text-left">
-                Аналіз конкурентів
-              </div>
-
               <div className="flex flex-col gap-1">
-                {tabsCompetitors.map((tab) => (
-                  <NavLink
-                    to={tab.id}
-                    key={tab.id}
-                    className={({ isActive }) => `flex items-center gap-3 px-3 py-2 rounded-lg font-medium ${isActive ? "bg-blue-100 text-blue-600" : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"}`}
-                  >
-                    {tab.title}
-                  </NavLink>
-                ))}
+                {tabsCompetitors.map((tab) => {
+                  const Icon = tab.icon
+
+                  return (
+                    <NavLink
+                      to={tab.id}
+                      key={tab.id}
+                      className={({ isActive }) =>
+                        `flex items-center gap-3 px-3 py-2 rounded-lg font-medium ${
+                          isActive
+                            ? "bg-blue-100 text-blue-600"
+                            : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"
+                        }`
+                      }
+                    >
+                      <Icon size={18} />
+                      {tab.title}
+                    </NavLink>
+                  )
+                })}
               </div>
             </div>
 
 
             <div className="rounded-2xl bg-white shadow border border-slate-200 py-2 px-2 mb-5">
-              <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide text-left">
-                Тренди
-              </div>
-
               <div className="flex flex-col gap-1">
-                {tabsTrends.map((tab) => (
-                  <NavLink
-                    to={tab.id}
-                    key={tab.id}
-                    className={({ isActive }) => `flex items-center gap-3 px-3 py-2 rounded-lg font-medium ${isActive ? "bg-blue-100 text-blue-600" : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"}`}
-                  >
-                    {tab.title}
-                  </NavLink>
-                ))}
+                {tabsTrends.map((tab) => {
+                  const Icon = tab.icon
+
+                  return (
+                    <NavLink
+                      to={tab.id}
+                      key={tab.id}
+                      className={({ isActive }) =>
+                        `flex items-center gap-3 px-3 py-2 rounded-lg font-medium ${
+                          isActive
+                            ? "bg-blue-100 text-blue-600"
+                            : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"
+                        }`
+                      }
+                    >
+                      <Icon size={18} />
+                      {tab.title}
+                    </NavLink>
+                  )
+                })}
               </div>
             </div>
           </aside>

@@ -1,4 +1,4 @@
-import {IsEnum, IsOptional, IsUUID} from "class-validator";
+import {IsArray, IsEnum, IsOptional, IsUUID} from "class-validator";
 import {AIArtifactStatus, AIArtifactType} from "@prisma/client";
 
 export class AiArtifactBaseDto {
@@ -9,7 +9,34 @@ export class AiArtifactBaseDto {
   status: AIArtifactStatus
 }
 
-export class CreateAiArtifactDto extends AiArtifactBaseDto {}
+export class CreateAiArtifactDto {
+  @IsEnum(AIArtifactType)
+  type: AIArtifactType;
+
+  @IsArray()
+  @IsOptional()
+  productsIds: string[];
+
+  @IsArray()
+  @IsOptional()
+  audiencesIds: string[];
+
+  @IsArray()
+  @IsOptional()
+  ideasIds: string[];
+
+  @IsArray()
+  @IsOptional()
+  promptsIds: string[];
+
+  @IsArray()
+  @IsOptional()
+  photosIds: string[];
+
+  @IsArray()
+  @IsOptional()
+  defaultPhotosIds: string[];
+}
 
 export class UpdateAiArtifactDto extends AiArtifactBaseDto {}
 

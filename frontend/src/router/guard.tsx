@@ -7,9 +7,11 @@ type Props = {
 };
 
 export function Guard({ children }: Props) {
-  const isAuthenticated = useSelector((state: any) => state.authModule.isAuthenticatedUser);
+  const { user, accessToken } = useSelector(
+    (state: any) => state.authModule
+  );
 
-  if (!isAuthenticated) {
+  if (!user || !accessToken) {
     return <Navigate to="/signIn" replace />;
   }
 

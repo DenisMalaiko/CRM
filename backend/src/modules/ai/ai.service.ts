@@ -2,20 +2,22 @@ import {Injectable} from '@nestjs/common';
 import {ChatOpenAI} from "@langchain/openai";
 import {TProfile} from "../profiles/entities/profile.entity";
 import {AiPost} from "./entities/aiPost.entity";
-import {AiImageService} from "./ai-image.service";
 import {AiReplicate} from "./ai-replicate";
-import {AiVertexImage} from "./ai-vertex";
 import {GalleryPhotoType} from "@prisma/client";
 import {IdeasBatchSchema} from "../idea/schema/idea.schema";
+
+type Photo = {
+  url: string,
+  type: GalleryPhotoType,
+  description: string | null,
+};
 
 @Injectable()
 export class AiService {
   private model: ChatOpenAI;
 
   constructor(
-    private readonly aiImageService: AiImageService,
     private readonly aiReplicate: AiReplicate,
-    private readonly aiVertexImage: AiVertexImage,
   ) {
     this.model = new ChatOpenAI({
       model: 'gpt-4o-mini',
@@ -24,7 +26,7 @@ export class AiService {
     });
   }
 
-  async generatePostsBasedOnBusinessProfile(profile: TProfile, photos: { url: string, type: GalleryPhotoType }[]): Promise<AiPost[]> {
+  async generatePostsBasedOnBusinessProfile(profile: TProfile, photos: Photo[]): Promise<AiPost[]> {
     const prompt = this.buildPromptForPosts(profile);
     const response = await this.model.invoke(prompt);
     const rawText = this.extractTextContent(response.content);
@@ -33,7 +35,6 @@ export class AiService {
     for (const post of posts) {
       if (post.image_prompt) {
         console.log("IMAGE PROMPT ", post);
-        //post.imageUrl = await this.aiVertexImage.generateImage(post.image_prompt, profile.businessId);
         post.imageUrl = await this.aiReplicate.generateImageOpenAI(post.image_prompt, profile.businessId, photos);
       }
     }
@@ -41,8 +42,7 @@ export class AiService {
     return posts;
   }
 
-
-  async generateStoriesBasedOnBusinessProfile(profile: TProfile, photos: { url: string, type: GalleryPhotoType }[]): Promise<any[]> {
+  async generateStoriesBasedOnBusinessProfile(profile: TProfile, photos: Photo[]): Promise<any[]> {
     const prompt = this.buildPromptForStories(profile);
     const response = await this.model.invoke(prompt);
     const rawText = this.extractTextContent(response.content);
@@ -52,6 +52,39 @@ export class AiService {
       if (story.image_prompt) {
         console.log("IMAGE PROMPT ", story);
         story.imageUrl = await this.aiReplicate.generateStoryImageOpenAI(story.image_prompt, profile.businessId, photos);
+      }
+    }
+
+    return stories;
+  }
+
+  async generatePostsBasedOnManuallySettings(settings, photos: Photo[]): Promise<AiPost[]> {
+    console.log("GENERATE POSTS BASED ON MANUALLY SETTINGS")
+    const prompt = this.buildPromptForPosts(settings);
+    const response = await this.model.invoke(prompt);
+    const rawText = this.extractTextContent(response.content);
+    const posts: AiPost[] = JSON.parse(rawText)?.posts ?? [];
+
+    for (const post of posts) {
+      if (post.image_prompt) {
+        console.log("IMAGE PROMPT ", post);
+        post.imageUrl = await this.aiReplicate.generateImageOpenAI(post.image_prompt, settings.business.id, photos);
+      }
+    }
+
+    return posts;
+  }
+
+  async generateStoriesBasedOnManuallySettings(settings, photos: Photo[]): Promise<AiPost[]> {
+    const prompt = this.buildPromptForStories(settings);
+    const response = await this.model.invoke(prompt);
+    const rawText = this.extractTextContent(response.content);
+    const stories: AiPost[] = JSON.parse(rawText)?.stories ?? [];
+
+    for (const story of stories) {
+      if (story.image_prompt) {
+        console.log("IMAGE PROMPT ", story);
+        story.imageUrl = await this.aiReplicate.generateStoryImageOpenAI(story.image_prompt, settings.business.id, photos);
       }
     }
 
@@ -123,93 +156,12 @@ export class AiService {
   }
 
   private buildPromptForPosts(profile) {
-    const audienceBlock = profile.audiences
-      .map((a, i) => `
-        Audience ${i + 1}:
-        - Age range: ${a.ageRange}
-        - Gender: ${a.gender ?? 'any'}
-        - Location: ${a.geo}
-        - Pains: ${a.pains.join(', ')}
-        - Desires: ${a.desires.join(', ')}
-        - Triggers: ${a.triggers.join(', ')}
-        - Income level: ${a.incomeLevel ?? 'not specified'}
-        `)
-      .join('\n');
+    const audienceBlock = this.getAudiences(profile.audiences);
+    const productsBlock = this.getProducts(profile.products);
+    const ideasBlock = this.getIdeas(profile.ideas);
+    const textPrompts = this.buildPromptsBlock(profile.prompts.filter(p => p.purpose === 'Text'));
+    const imagePrompts = profile.prompts.filter(p => p.purpose === "Image" && p.isActive).map(p => p.text);
 
-    const productsBlock = profile.products
-      .filter(p => p.isActive)
-      .map((p, i) => `
-        Product ${i + 1}:
-        - Name: ${p.name}
-        - Type: ${p.type}
-        - Description: ${p.description}
-        - Price segment: ${p.priceSegment}
-        - Positioning hint: ${
-                p.priceSegment === 'Premium'
-                  ? 'high value, quality, exclusivity'
-                  : p.priceSegment === 'Middle'
-                    ? 'balanced value and affordability'
-                    : 'accessible, cost-effective, practical'
-              }
-        `)
-      .join('\n');
-
-    const buildPromptsBlock = (prompts: any[]) =>
-      prompts
-        .filter(p => p.isActive)
-        .map((p, i) => `
-          Prompt ${i + 1}:
-          - ${p.text}
-          `)
-        .join('\n');
-
-    const textPromptsBlock = buildPromptsBlock(
-      profile.prompts.filter(p => p.purpose === 'Text')
-    );
-
-    const imagePrompts = profile.prompts
-      .filter(p => p.purpose === "Image" && p.isActive)
-      .map(p => p.text);
-
-    const ideasBlock =
-      profile.ideas && profile.ideas.length
-        ? profile.ideas
-          .map(
-            (idea, i) => `
-              Idea ${i + 1} (Creative Direction):
-              - Title: ${idea.title}
-              - Description: ${idea.description}
-              - Target emotion: ${idea.feeling}
-              - Audience intent (Who): ${idea.who}
-              - Content type (What): ${idea.what}
-              - Marketing goal (Why): ${idea.why}
-              - Execution style (How): ${idea.how}
-              
-              Competitor reference post (for structure only, NOT for copying):
-              """
-              ${idea.competitorText ?? 'not available'}
-              """
-              
-              How to use the competitor post (MANDATORY):
-              - Extract the STRUCTURE and PSYCHOLOGY:
-                - Hook pattern (1 sentence)
-                - Information blocks order (bullet list)
-                - CTA pattern (1 sentence)
-                - Emotional triggers used (bullet list)
-              - Rebuild the post from scratch for THIS business:
-                - Replace all entities (teams, cities, names, numbers, phone) with business-relevant details
-                - Keep only the idea + structure, not wording
-              - Hard anti-copy rules:
-                - Do NOT reuse phrases longer than 4 words from the competitor post
-                - Do NOT keep proper nouns (club names, cities, people, phone numbers, dates)
-                - Do NOT mention the competitor or that this is adapted
-              `
-                        )
-                        .join('\n')
-                      : `
-              No specific idea provided.
-              Generate a post based only on business context and audience insights.
-            `;
 
     return `
       You are a senior performance marketer and creative strategist.
@@ -285,7 +237,7 @@ export class AiService {
       - Do NOT mention AI or explanations
       
       Additional constraints:
-      ${textPromptsBlock}
+      ${textPrompts}
       
       ---
       
@@ -529,85 +481,12 @@ export class AiService {
   }
 
   private buildPromptForStories(profile) {
-    const audienceBlock = profile.audiences
-      .map((a, i) => `
-        Audience ${i + 1}:
-        - Age range: ${a.ageRange}
-        - Gender: ${a.gender ?? 'any'}
-        - Location: ${a.geo}
-        - Pains: ${a.pains.join(', ')}
-        - Desires: ${a.desires.join(', ')}
-        - Triggers: ${a.triggers.join(', ')}
-        - Income level: ${a.incomeLevel ?? 'not specified'}
-        `)
-      .join('\n');
+    const audienceBlock = this.getAudiences(profile.audiences);
+    const productsBlock = this.getProducts(profile.products);
+    const ideasBlock = this.getIdeas(profile.ideas);
+    const textPrompts = this.buildPromptsBlock(profile.prompts.filter(p => p.purpose === 'Text'));
+    const imagePrompts = profile.prompts.filter(p => p.purpose === "Image" && p.isActive).map(p => p.text);
 
-    const productsBlock = profile.products
-      .filter(p => p.isActive)
-      .map((p, i) => `
-        Product ${i + 1}:
-        - Name: ${p.name}
-        - Type: ${p.type}
-        - Description: ${p.description}
-        - Price segment: ${p.priceSegment}
-        - Positioning hint: ${
-        p.priceSegment === 'Premium'
-          ? 'high value, quality, exclusivity'
-          : p.priceSegment === 'Middle'
-            ? 'balanced value and affordability'
-            : 'accessible, cost-effective, practical'
-      }
-        `)
-      .join('\n');
-
-    const ideasBlock =
-      profile.ideas && profile.ideas.length
-        ? profile.ideas
-          .map(
-            (idea, i) => `
-              Idea ${i + 1} (Creative Direction):
-              - Title: ${idea.title}
-              - Description: ${idea.description}
-              - Target emotion: ${idea.feeling}
-              - Audience intent (Who): ${idea.who}
-              - Content type (What): ${idea.what}
-              - Marketing goal (Why): ${idea.why}
-              - Execution style (How): ${idea.how}
-              
-              Competitor reference post (for structure only, NOT for copying):
-              """
-              ${idea.competitorText ?? 'not available'}
-              """
-              
-              How to use the competitor post (MANDATORY):
-              - Extract the STRUCTURE and PSYCHOLOGY:
-                - Hook pattern (1 sentence)
-                - Information blocks order (bullet list)
-                - CTA pattern (1 sentence)
-                - Emotional triggers used (bullet list)
-              - Rebuild the post from scratch for THIS business:
-                - Replace all entities (teams, cities, names, numbers, phone) with business-relevant details
-                - Keep only the idea + structure, not wording
-              - Hard anti-copy rules:
-                - Do NOT reuse phrases longer than 4 words from the competitor post
-                - Do NOT keep proper nouns (club names, cities, people, phone numbers, dates)
-                - Do NOT mention the competitor or that this is adapted
-              `
-          ).join('\n')
-        : ` No specific idea provided. Generate a post based only on business context and audience insights.`;
-
-    const buildPromptsBlock = (prompts: any[]) =>
-      prompts
-        .filter(p => p.isActive)
-        .map((p, i) => `
-      Prompt ${i + 1}:
-      - ${p.text}
-    `)
-        .join('\n');
-
-    const imagePrompts = profile.prompts
-      .filter(p => p.purpose === "Image" && p.isActive)
-      .map(p => p.text);
 
     return `
       You are a senior performance marketer and short-form content strategist.
@@ -1046,5 +925,82 @@ export class AiService {
     }
 
     return "";
+  }
+
+  getAudiences(audiences?) {
+    return audiences
+      .map((a, i) => `
+        Audience ${i + 1}:
+        - Age range: ${a.ageRange}
+        - Gender: ${a.gender ?? 'any'}
+        - Location: ${a.geo}
+        - Pains: ${a.pains.join(', ')}
+        - Desires: ${a.desires.join(', ')}
+        - Triggers: ${a.triggers.join(', ')}
+        - Income level: ${a.incomeLevel ?? 'not specified'}
+        `)
+      .join('\n');
+  }
+
+  getProducts(products?) {
+    return products
+      .filter(p => p.isActive)
+      .map((p, i) => `
+        Product ${i + 1}:
+        - Name: ${p.name}
+        - Type: ${p.type}
+        - Description: ${p.description}
+        - Price segment: ${p.priceSegment}
+        - Positioning hint: ${
+        p.priceSegment === 'Premium'
+          ? 'high value, quality, exclusivity'
+          : p.priceSegment === 'Middle'
+            ? 'balanced value and affordability'
+            : 'accessible, cost-effective, practical'
+      }
+        `)
+      .join('\n');
+  }
+
+  getIdeas(ideas?) {
+    return ideas && ideas.length
+      ? ideas.map((idea, i) => `
+        Idea ${i + 1} (Creative Direction):
+        - Title: ${idea.title}
+        - Description: ${idea.description}
+        - Target emotion: ${idea.feeling}
+        - Audience intent (Who): ${idea.who}
+        - Content type (What): ${idea.what}
+        - Marketing goal (Why): ${idea.why}
+        - Execution style (How): ${idea.how}
+        
+        Competitor reference post (for structure only, NOT for copying):
+        """
+        ${idea.competitorText ?? 'not available'}
+        """
+        
+        How to use the competitor post (MANDATORY):
+        - Extract the STRUCTURE and PSYCHOLOGY:
+          - Hook pattern (1 sentence)
+          - Information blocks order (bullet list)
+          - CTA pattern (1 sentence)
+          - Emotional triggers used (bullet list)
+        - Rebuild the post from scratch for THIS business:
+          - Replace all entities (teams, cities, names, numbers, phone) with business-relevant details
+          - Keep only the idea + structure, not wording
+        - Hard anti-copy rules:
+          - Do NOT reuse phrases longer than 4 words from the competitor post
+          - Do NOT keep proper nouns (club names, cities, people, phone numbers, dates)
+          - Do NOT mention the competitor or that this is adapted
+        `
+      ).join('\n')
+      : ` No specific idea provided. Generate a post based only on business context and audience insights.`;
+  }
+
+  buildPromptsBlock(prompts: any[]) {
+    return prompts
+      .filter(p => p.isActive)
+      .map((p, i) => `Prompt ${i + 1}: - ${p.text}`)
+      .join('\n');
   }
 }

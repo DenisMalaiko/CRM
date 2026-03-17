@@ -1,5 +1,5 @@
-import { Controller, UseGuards, Get, Param,  Delete, Body, Patch, Query } from '@nestjs/common';
-import { AiArtifactIdParamDto, UpdateAiArtifactDto } from "./dto/aiartifact.dto";
+import {Controller, UseGuards, Get, Param, Delete, Body, Patch, Query, Post} from '@nestjs/common';
+import { AiArtifactIdParamDto, UpdateAiArtifactDto, CreateAiArtifactDto } from "./dto/aiartifact.dto";
 import { JwtAuthGuard } from "../../core/guards/jwt-auth.guard";
 import { AiArtifactService } from "./aiArtifact.service";
 import { ResponseMessage } from "../../core/decorators/response-message.decorator";
@@ -26,5 +26,11 @@ export class AiArtifactController {
   @ResponseMessage('Creative has been deleted!')
   deleteAiArtifact(@Param() { id }: AiArtifactIdParamDto) {
     return this.aiArtifactService.deleteAiArtifact(id);
+  }
+
+  @Post("/:id")
+  @ResponseMessage('Creative has been created!')
+  createAiArtifact(@Param() { id }: AiArtifactIdParamDto, @Body() body: CreateAiArtifactDto) {
+    return this.aiArtifactService.createArtifact(id, body);
   }
 }

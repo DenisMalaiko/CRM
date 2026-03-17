@@ -4,9 +4,10 @@ import { S3Module } from "../../core/s3/s3.module";
 import { StorageModule } from "../../core/storage/storage.module";
 import { AiArtifactController } from "./aiArtifact.controller";
 import { AiArtifactService } from "./aiArtifact.service";
+import { AiModule } from "../ai/ai.module";
 
 @Module({
-  imports: [AuthModule, S3Module, StorageModule],
+  imports: [AuthModule, AiModule, S3Module, StorageModule],
   controllers: [AiArtifactController],
   providers: [AiArtifactService],
 })

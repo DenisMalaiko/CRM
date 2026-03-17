@@ -22,10 +22,11 @@ import {setProfiles} from "../../../../../../store/profile/profileSlice";
 import SelectGalleryDlg from "../../Gallery/components/selectGalleryDlg/SelectGalleryDlg";
 
 // Utils
-import {showError} from "../../../../../../utils/showError";
-import {isArray, isBoolean, isRequired, isRequiredArray, minLength} from "../../../../../../utils/validations";
-import {ChangeArg, isNativeEvent} from "../../../../../../utils/isNativeEvent";
-import {centeredSelectStyles} from "../../../../../../utils/reactSelectStyles";
+import { showError} from "../../../../../../utils/showError";
+import { isArray, isBoolean, isRequired, isRequiredArray, minLength } from "../../../../../../utils/validations";
+import { ChangeArg, isNativeEvent } from "../../../../../../utils/isNativeEvent";
+import { centeredSelectStyles } from "../../../../../../utils/reactSelectStyles";
+import { splitCamelCase } from "../../../../../../utils/splitCamelCase";
 
 // Enum
 import {BusinessProfileFocus} from "../../../../../../enum/BusinessProfileFocus";
@@ -107,7 +108,7 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
     name: (value) => minLength(value, 3),
     profileFocus: (value) => isRequired(value),
     productsIds: (value) => isArray(value),
-    audiencesIds: (value) => isRequiredArray(value),
+    audiencesIds: (value) => isArray(value),
     ideasIds: (value) => isArray(value),
     promptsIds: (value) => isArray(value),
     photosIds: (value) => isArray(value),
@@ -178,7 +179,7 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
         <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl p-6">
 
           <div className="flex items-center justify-between mb-4 relative">
-            <h2 className="text-lg font-semibold">{ isEdit ? "Edit" : "Create" } Profile</h2>
+            <h2 className="text-lg font-semibold">{ isEdit ? "Edit" : "Create" } Context</h2>
 
             <button
               onClick={onClose}
@@ -218,7 +219,7 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
                 className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
               >
                 { profileFocusOptions.map((option: string) => (
-                  <option key={option} value={option}>{option}</option>
+                  <option key={option} value={option}>{splitCamelCase(option)}</option>
                 )) }
               </select>
 
@@ -227,7 +228,7 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
 
             <div>
               <div className="flex items-center gap-2 justify-between">
-                <label className="block text-sm font-medium text-slate-700 text-left">Product</label>
+                <label className="block text-sm font-medium text-slate-700 text-left mb-1">Product</label>
               </div>
 
               <Select
@@ -249,7 +250,7 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
 
             <div>
               <div className="flex items-center gap-2 justify-between">
-                <label className="block text-sm font-medium text-slate-700 text-left">Idea</label>
+                <label className="block text-sm font-medium text-slate-700 text-left mb-1">Idea</label>
               </div>
 
               <Select
@@ -271,7 +272,7 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
 
             <div>
               <div className="flex items-center gap-2 justify-between">
-                <label className="block text-sm font-medium text-slate-700 text-left">Audiences</label>
+                <label className="block text-sm font-medium text-slate-700 text-left mb-1">Audiences</label>
               </div>
 
               <Select
@@ -294,7 +295,7 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
 
             <div className="relative z-20">
               <div className="flex items-center gap-2 justify-between">
-                <label className="block text-sm font-medium text-slate-700 text-left">Prompts</label>
+                <label className="block text-sm font-medium text-slate-700 text-left mb-1">Prompts</label>
               </div>
 
               <Select
@@ -316,17 +317,18 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
             </div>
 
             <div className="relative z-10">
-              <div className="flex items-center gap-2 justify-between">
-                <label className="block text-sm font-medium text-slate-700 text-left">Photos</label>
+              <div className="flex items-center gap-2 justify-between mb-1">
+                <label className="block text-sm font-medium text-slate-700 text-left">Photos (max 3)</label>
               </div>
 
-              <div className="flex gap-2">
+              <div className="grid grid-cols-3 gap-3">
                 {allPhotos.filter((x: TGalleryPhoto) =>
                   form.photosIds.includes(x.id) ||
                   form.defaultPhotosIds.includes(x.id)
                 ).map((photo: TGalleryPhoto) => (
-                  <div key={photo.id} className="h-24 w-24 rounded-md border relative">
-                    <img className="object-cover" src={photo.url} alt=""/>
+                  <div key={photo.id} className="relative w-full aspect-square rounded-xl overflow-hidden border group">
+                    <img src={photo.url} className="w-full h-full object-cover" alt=""/>
+
                     <button
                       onClick={() => deleteImage(photo.id)}
                       className="absolute top-2 right-2 text-white text-xl z-10 bg-blue-600 rounded-full p-1 hover:bg-blue-700 cursor-pointer"
@@ -341,7 +343,7 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
                 onClick={() => setOpenGalleryDlg(true)}
                 className="px-4 mt-3 py-2 rounded-lg bg-blue-600 text-white flex items-center gap-2 justify-center cursor-pointer hover:bg-blue-700 w-max"
               >
-                Select Image
+                Select Photos
               </div>
             </div>
 
@@ -390,7 +392,7 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
 
       <SelectGalleryDlg
         open={openGalleryDlg}
-        selectedIds={form.photosIds}
+        selectedIds={[...form.photosIds, ...form.defaultPhotosIds]}
         onClose={() => setOpenGalleryDlg(false)}
         onSelect={(selectedPhotos: TGalleryPhoto[]) => {
 

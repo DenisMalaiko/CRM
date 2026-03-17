@@ -26,7 +26,7 @@ export type TProfile = TProfileBase & {
 }
 
 export type TProfileCreate = TProfileBase & {
-  audiencesIds: string[];
+  audiencesIds?: string[];
   productsIds?: string[];
   ideasIds?: string[];
   promptsIds?: string[];
@@ -35,7 +35,7 @@ export type TProfileCreate = TProfileBase & {
 }
 
 export type TProfileUpdate = TProfileBase & {
-  audiencesIds: string[];
+  audiencesIds?: string[];
   productsIds?: string[];
   ideasIds?: string[];
   promptsIds?: string[];

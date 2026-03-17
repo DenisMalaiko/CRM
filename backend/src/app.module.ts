@@ -32,7 +32,7 @@ import { IdeaModule } from "./modules/idea/idea.module";
       {
         name: 'short',
         ttl: 1000,
-        limit: 3,
+        limit: 10,
       },
       {
         name: 'medium',

@@ -24,7 +24,7 @@ export const authApi = api.injectEndpoints({
         method: 'POST',
       }),
     }),
-    signInByToken: builder.mutation<ApiResponse<any>, string>({
+    signInByToken: builder.mutation<any, string>({
       query: (token: string) => ({
         url: '/auth/me',
         method: "GET",
