@@ -17,7 +17,8 @@ import { setProfiles } from "../../../../../store/profile/profileSlice";
 import { setProducts } from "../../../../../store/products/productsSlice";
 
 // Components
-import CreateCreativeDlg from "./createCreativeDlg/CreateCreativeDlg";
+import UpdatePostDlg from "./updatePostDlg/UpdatePostDlg";
+import CreateCreativeDlg from "../../../../../components/createCreativeDlg/CreateCreativeDlg";
 import { confirm } from "../../../../../components/confirmDlg/ConfirmDlg";
 
 // Utils
@@ -34,8 +35,9 @@ import { TProduct } from "../../../../../models/Product";
 
 // Enum
 import { GalleryType } from "../../../../../enum/GalleryType";
+import { BusinessProfileFocus } from "../../../../../enum/BusinessProfileFocus";
 
-function Creatives() {
+function Posts() {
   const dispatch = useAppDispatch();
   const { businessId } = useParams<{ businessId: string }>();
 
@@ -45,23 +47,24 @@ function Creatives() {
   const [ getProducts ] = useGetProductsMutation();
 
   const [ open, setOpen ] = useState(false);
-  const [ selectedCreative, setSelectedCreative ] = useState<TAIArtifact | null>(null);
+  const [ selectedPost, setSelectedPost ] = useState<TAIArtifact | null>(null);
+  const [ openCreative, setOpenCreative ] = useState(false);
   const [ selectedIds, setSelectedIds ] = useState<string[]>([]);
   const [ profilesIds, setProfilesIds ] = useState<string[]>([]);
   const [ productsIds, setProductsIds ] = useState<string[]>([]);
 
-  // Creatives
-  const filteredCreatives = useSelector(((state: any) => {
+  // Posts
+  const filteredPosts = useSelector(((state: any) => {
     const { posts } = state.artifactModule;
 
-    return posts?.filter((creative: TAIArtifact) => {
+    return posts?.filter((post: TAIArtifact) => {
       const profileMatch =
         profilesIds.length === 0 ||
-        profilesIds.includes(creative.businessProfileId);
+        profilesIds.includes(post.businessProfileId);
 
       const productMatch =
         productsIds.length === 0 ||
-        (Array.isArray(creative.products) && creative.products.some((p: any) => productsIds.includes(p.productId)));
+        (Array.isArray(post.products) && post.products.some((p: any) => productsIds.includes(p.productId)));
 
       return profileMatch && productMatch;
     })
@@ -106,13 +109,13 @@ function Creatives() {
 
   if(!businessId) return null;
 
-  // Delete Creative
+  // Delete Post
   const openConfirmDlg = async (e: any, item: TAIArtifact) => {
     e.preventDefault();
 
     const ok = await confirm({
-      title: "Delete Creative",
-      message: "Are you sure you want to delete this creative?",
+      title: "Delete Post",
+      message: "Are you sure you want to delete this post?",
     });
 
     if(ok) {
@@ -126,7 +129,6 @@ function Creatives() {
 
           if(response && response?.data) {
             dispatch(setPosts(response.data));
-            toast.success(response.message);
           }
         }
       } catch (error: any) {
@@ -135,17 +137,22 @@ function Creatives() {
     }
   }
 
-  // Edit Creative
-  const openEditCreative = async (item: TAIArtifact) => {
-    setSelectedCreative(item);
+  // Create Post
+  const openCreatePost = async () => {
+    setOpenCreative(true);
+  }
+
+  // Edit Post
+  const openEditPost = async (item: TAIArtifact) => {
+    setSelectedPost(item);
     setOpen(true)
   }
 
   // Delete Selected
-  const deleteCreatives = async () => {
+  const deletePosts = async () => {
     const ok = await confirm({
-      title: "Delete Artifacts",
-      message: "Are you sure you want to delete this artifacts?",
+      title: "Delete Posts",
+      message: "Are you sure you want to delete these posts?",
     });
 
     if(ok) {
@@ -173,12 +180,13 @@ function Creatives() {
     }
   }
 
+
   return (
     <div className="rounded-2xl bg-white shadow border border-slate-200">
       <section>
         <section>
           <div className="border-b p-4 flex items-center justify-between">
-            <h2 className="text-lg text-left font-semibold text-slate-800">Creatives</h2>
+            <h2 className="text-lg text-left font-semibold text-slate-800">Posts</h2>
 
             <div className="flex items-center gap-3">
               { profiles && profiles.length > 0 &&
@@ -213,24 +221,27 @@ function Creatives() {
 
               { selectedIds.length > 0 &&
                 <button
-                  onClick={() => deleteCreatives()}
+                  onClick={() => deletePosts()}
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700"
-                >
-                    Delete Creatives
-                </button>
+                > Delete Posts </button>
               }
+
+              <button
+                onClick={() => openCreatePost()}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700"
+              > Create Post </button>
             </div>
           </div>
         </section>
 
         <div className="w-full mx-auto p-4">
           <div className="grid grid-cols-2 gap-6">
-            {filteredCreatives?.length === 0 ? (
+            {filteredPosts?.length === 0 ? (
               <div className="col-span-2 flex flex-col items-center justify-center py-2">
                 <span className="text-gray-400">No data</span>
               </div>
             ) : (
-              filteredCreatives?.map((item: TAIArtifact) => (
+              filteredPosts?.map((item: TAIArtifact) => (
                 <div
                   key={item.id}
                   className="flex h-full flex-col rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md"
@@ -265,7 +276,7 @@ function Creatives() {
                   </button>*/}
 
                     <div className="flex items-center gap-3">
-                      <button onClick={() => openEditCreative(item)} className="h-8 w-8 flex items-center justify-center rounded-lg border  text-slate-600 hover:bg-slate-50">
+                      <button onClick={() => openEditPost(item)} className="h-8 w-8 flex items-center justify-center rounded-lg border  text-slate-600 hover:bg-slate-50">
                         ✎
                       </button>
                       <button onClick={(e) => openConfirmDlg(e, item)} className="h-8 w-8 flex items-center justify-center rounded-lg border text-rose-600 hover:bg-rose-50">
@@ -329,17 +340,26 @@ function Creatives() {
           </div>
         </div>
 
-        <CreateCreativeDlg
+        <UpdatePostDlg
           open={open}
           onClose={() => {
             setOpen(false);
-            setSelectedCreative(null);
+            setSelectedPost(null);
           }}
-          creative={selectedCreative}
+          creative={selectedPost}
+        ></UpdatePostDlg>
+
+
+        <CreateCreativeDlg
+          open={openCreative}
+          onClose={() => {
+            setOpenCreative(false);
+          }}
+          focus={BusinessProfileFocus.GeneratePosts}
         ></CreateCreativeDlg>
       </section>
     </div>
   )
 }
 
-export default Creatives;
+export default Posts;

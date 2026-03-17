@@ -18,6 +18,7 @@ import { setProducts } from "../../../../../store/products/productsSlice";
 
 // Components
 import UpdateStoryDlg from "./updateStoryDlg/UpdateStoryDlg";
+import CreateCreativeDlg from "../../../../../components/createCreativeDlg/CreateCreativeDlg";
 import { confirm } from "../../../../../components/confirmDlg/ConfirmDlg";
 
 // Utils
@@ -33,6 +34,8 @@ import { TProduct } from "../../../../../models/Product";
 
 // Enum
 import { GalleryType } from "../../../../../enum/GalleryType";
+import { BusinessProfileFocus } from "../../../../../enum/BusinessProfileFocus";
+
 
 function Stories() {
   const dispatch = useAppDispatch();
@@ -44,25 +47,24 @@ function Stories() {
   const [ getProducts ] = useGetProductsMutation();
 
   const [ open, setOpen ] = useState(false);
-  const [ selectedCreative, setSelectedCreative ] = useState<TAIArtifact | null>(null);
+  const [ selectedStory, setSelectedStory ] = useState<TAIArtifact | null>(null);
+  const [ openCreative, setOpenCreative ] = useState(false);
   const [ selectedIds, setSelectedIds ] = useState<string[]>([]);
   const [ profilesIds, setProfilesIds ] = useState<string[]>([]);
   const [ productsIds, setProductsIds ] = useState<string[]>([]);
 
-  // Creatives
+  // Posts
   const filteredStories = useSelector(((state: any) => {
     const { stories } = state.artifactModule;
 
-    console.log("STORIES", stories)
-
-    return stories?.filter((creative: TAIArtifact) => {
+    return stories?.filter((story: TAIArtifact) => {
       const profileMatch =
         profilesIds.length === 0 ||
-        profilesIds.includes(creative.businessProfileId);
+        profilesIds.includes(story.businessProfileId);
 
       const productMatch =
         productsIds.length === 0 ||
-        (Array.isArray(creative.products) && creative.products.some((p: any) => productsIds.includes(p.productId)));
+        (Array.isArray(story.products) && story.products.some((p: any) => productsIds.includes(p.productId)));
 
       return profileMatch && productMatch;
     })
@@ -79,7 +81,6 @@ function Stories() {
   const profilesOptions = profiles?.map((profile: any) => ({ value: profile.id, label: profile.name })) || [];
   const productsOptions = products?.map((product: any) => ({ value: product.id, label: product.name })) || [];
 
-
   // Get Data
   useEffect(() => {
     const fetchData = async () => {
@@ -89,8 +90,6 @@ function Stories() {
             businessId,
             type: GalleryType.Story
           }).unwrap();
-
-          console.log("RESPONSE ", response)
 
           const profilesResponse: ApiResponse<TBusinessProfile[]> = await getProfiles(businessId).unwrap();
           const productsResponse: ApiResponse<TProduct[]> = await getProducts(businessId).unwrap();
@@ -109,7 +108,7 @@ function Stories() {
 
   if(!businessId) return null;
 
-  // Delete Creative
+  // Delete Story
   const openConfirmDlg = async (e: any, item: TAIArtifact) => {
     e.preventDefault();
 
@@ -138,17 +137,22 @@ function Stories() {
     }
   }
 
-  // Edit Creative
-  const openEditCreative = async (item: TAIArtifact) => {
-    setSelectedCreative(item);
+  // Create Story
+  const openCreateStory = async () => {
+    setOpenCreative(true);
+  }
+
+  // Edit Story
+  const openEditStory = async (item: TAIArtifact) => {
+    setSelectedStory(item);
     setOpen(true)
   }
 
   // Delete Selected
-  const deleteCreatives = async () => {
+  const deleteStories = async () => {
     const ok = await confirm({
-      title: "Delete Artifacts",
-      message: "Are you sure you want to delete this artifacts?",
+      title: "Delete Stories",
+      message: "Are you sure you want to delete these stories?",
     });
 
     if(ok) {
@@ -216,12 +220,15 @@ function Stories() {
 
               { selectedIds.length > 0 &&
                 <button
-                  onClick={() => deleteCreatives()}
+                  onClick={() => deleteStories()}
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700"
-                >
-                    Delete Stories
-                </button>
+                > Delete Stories </button>
               }
+
+              <button
+                onClick={() => openCreateStory()}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700"
+              > Create Story </button>
             </div>
           </div>
         </section>
@@ -266,7 +273,7 @@ function Stories() {
 
                         <div className="flex items-center gap-3">
                           <button
-                            onClick={() => openEditCreative(item)}
+                            onClick={() => openEditStory(item)}
                             className="flex h-8 w-8 items-center justify-center rounded-lg bg-black/60 text-white hover:bg-black/80"
                           >
                             ✎
@@ -303,10 +310,18 @@ function Stories() {
           open={open}
           onClose={() => {
             setOpen(false);
-            setSelectedCreative(null);
+            setSelectedStory(null);
           }}
-          creative={selectedCreative}
+          creative={selectedStory}
         ></UpdateStoryDlg>
+
+        <CreateCreativeDlg
+          open={openCreative}
+          onClose={() => {
+            setOpenCreative(false);
+          }}
+          focus={BusinessProfileFocus.GenerateStories}
+        ></CreateCreativeDlg>
       </section>
     </div>
   )

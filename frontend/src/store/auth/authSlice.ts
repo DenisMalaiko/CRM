@@ -3,6 +3,7 @@ import { TUser } from "../../models/User";
 
 type AuthState = {
   isAuthenticatedUser: boolean
+  authInitialized: boolean
   user: TUser | null
   usersByBusinessId: TUser[] | null
   loading: boolean
@@ -12,6 +13,7 @@ type AuthState = {
 
 const initialState: AuthState = {
   isAuthenticatedUser: false,
+  authInitialized: false,
   user: null,
   usersByBusinessId: null,
   loading: false,
@@ -35,6 +37,9 @@ const authSlice = createSlice({
         localStorage.removeItem('accessToken');
       }
     },
+    setAuthInitialized: (state) => {
+      state.authInitialized = true
+    },
     logout: (state) => {
       state.user = null;
       state.accessToken = null;
@@ -44,5 +49,5 @@ const authSlice = createSlice({
   },
 })
 
-export const { setUser, setAccessToken, logout } = authSlice.actions;
+export const { setUser, setAccessToken, logout, setAuthInitialized } = authSlice.actions;
 export default authSlice.reducer;

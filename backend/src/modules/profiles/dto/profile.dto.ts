@@ -13,6 +13,7 @@ export class ProfileBaseDto {
   profileFocus: ProfileFocus;
 
   @IsArray()
+  @IsOptional()
   audiencesIds: string[];
 
   @IsArray()

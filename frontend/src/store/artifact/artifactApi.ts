@@ -45,6 +45,14 @@ export const artifactApi = api.injectEndpoints({
         method: "DELETE",
       })
     }),
+
+    createCreativeManually: builder.mutation<ApiResponse<TAIArtifact>, { id: string, form: any }>({
+      query: ({ id, form }) => ({
+        url: `/ai-artifact/${id}`,
+        method: "POST",
+        body: form,
+      })
+    })
   }),
   overrideExisting: false,
 })
@@ -54,4 +62,5 @@ export const {
   useUpdateCreativeMutation,
   useDeleteCreativeMutation,
   useLazyGetAiArtifactsQuery,
+  useCreateCreativeManuallyMutation,
 } = artifactApi;

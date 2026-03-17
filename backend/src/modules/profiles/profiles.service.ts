@@ -52,7 +52,7 @@ export class ProfilesService {
 
   async createProfile(body: TProfileCreate): Promise<TProfile> {
     const {
-      audiencesIds,
+      audiencesIds = [],
       productsIds = [],
       ideasIds = [],
       promptsIds = [],
@@ -117,7 +117,7 @@ export class ProfilesService {
 
     try {
       const {
-        audiencesIds,
+        audiencesIds = [],
         productsIds = [],
         ideasIds = [],
         promptsIds = [],

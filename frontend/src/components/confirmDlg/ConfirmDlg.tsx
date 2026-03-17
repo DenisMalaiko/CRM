@@ -14,10 +14,6 @@ type ConfirmState = {
 
 let confirmInstance: (options: ConfirmOptions) => Promise<boolean>;
 
-/**
- * Викликати через:
- * const result = await confirm({ message: "Delete this product?" });
- */
 export function useConfirmDialog() {
   const [state, setState] = useState<ConfirmState>({
     isOpen: false,
