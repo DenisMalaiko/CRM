@@ -279,7 +279,7 @@ export class ProfilesService {
               outputJson: post,
               status: AIArtifactStatus.Draft,
               imageUrl: post.imageUrl,
-              imagePrompt: post.image_prompt,
+              imagePrompt: this.serializeImagePrompt(post.image_prompt),
               products: {
                 create: profile.products.map(p => ({
                   productId: p.product.id,
@@ -338,5 +338,19 @@ export class ProfilesService {
         return createdArtifacts;
       }
     }
+  }
+
+  private serializeImagePrompt(imagePrompt: {
+    scene: string;
+    title: string;
+    subtitle: string;
+    caption: string;
+  }) {
+    return `
+      SCENE: ${imagePrompt.scene}
+      TITLE: ${imagePrompt.title}
+      SUBTITLE: ${imagePrompt.subtitle}
+      CAPTION: ${imagePrompt.caption}
+    `.trim();
   }
 }

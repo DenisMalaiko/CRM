@@ -6,6 +6,17 @@ import {AiReplicate} from "./ai-replicate";
 import {GalleryPhotoType} from "@prisma/client";
 import {IdeasBatchSchema} from "../idea/schema/idea.schema";
 
+import {
+  postRoleBlock,
+  postBusinessContextBlock,
+  postCompetitorBlock,
+  postIdeaBlock,
+  postTextGenerationBlock,
+  postFormatReplicationBlock,
+  postImagePromptBlock,
+  postOutputBlock
+} from "./prompts/post/content";
+
 type Photo = {
   url: string,
   type: GalleryPhotoType,
@@ -162,8 +173,20 @@ export class AiService {
     const textPrompts = this.buildPromptsBlock(profile.prompts.filter(p => p.purpose === 'Text'));
     const imagePrompts = profile.prompts.filter(p => p.purpose === "Image" && p.isActive).map(p => p.text);
 
+    const prompt = [
+      postRoleBlock(),
+      postBusinessContextBlock(profile, audienceBlock, productsBlock),
+      postCompetitorBlock(),
+      postIdeaBlock(ideasBlock),
+      postTextGenerationBlock(textPrompts),
+      postFormatReplicationBlock(),
+      postImagePromptBlock(imagePrompts, profile),
+      postOutputBlock()
+    ]
 
-    return `
+    return prompt.join('\n\n');
+
+    /*return `
       You are a senior performance marketer and creative strategist.
       
       Generate exactly 1 social media post based on the provided business context.
@@ -477,7 +500,7 @@ export class AiService {
       }
       
       Return ONLY the JSON object. No extra text.
-    `;
+    `;*/
   }
 
   private buildPromptForStories(profile) {
