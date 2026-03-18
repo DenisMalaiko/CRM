@@ -81,9 +81,6 @@ export class AiArtifactService {
   }
 
   async createArtifact(businessId: string, body: CreateAIArtifact) {
-    console.log("Create Artifact")
-    console.log("---------------")
-
     const [
       business,
       audiences,
@@ -102,15 +99,6 @@ export class AiArtifactService {
       this.prisma.galleryPhoto.findMany({ where: { id: { in: body.photosIds }}})
     ]);
 
-    console.log("BUSINESS ", business)
-    console.log("AUDIENCES ", audiences)
-    console.log("PRODUCTS ", products)
-    console.log("PROMPTS ", prompts)
-    console.log("IDEAS ", ideas)
-    console.log("DEFAULT PHOTOS ", defaultPhotos)
-    console.log("PHOTOS ", photos)
-    console.log("---------------")
-
     const settings = {
       business,
       audiences,
@@ -118,9 +106,6 @@ export class AiArtifactService {
       prompts,
       ideas,
     }
-
-    console.log("SETTINGS ", settings)
-    console.log("---------------")
 
     const galleryPhotosUrls = [...defaultPhotos, ...photos].map((photo) => {
       return {
@@ -130,19 +115,8 @@ export class AiArtifactService {
       };
     });
 
-    console.log("PHOTOS ", galleryPhotosUrls)
-    console.log("---------------")
-
-
     if(body.type === AIArtifactType.Post) {
-      console.log("CREATE POST");
-      console.log("---------------")
-
       const posts: AiPost[] = await this.aiService.generatePostsBasedOnManuallySettings(settings, galleryPhotosUrls)
-
-      console.log("POSTS ", posts)
-      console.log("---------------")
-
       const createdArtifacts: AIArtifactBase[] = [];
 
       for (const post of posts) {
@@ -154,7 +128,7 @@ export class AiArtifactService {
             outputJson: post,
             status: AIArtifactStatus.Draft,
             imageUrl: post.imageUrl,
-            imagePrompt: post.image_prompt,
+            imagePrompt: this.serializeImagePrompt(post.image_prompt),
             products: {
               create: products.map(p => ({
                 productId: p.id,
@@ -177,14 +151,7 @@ export class AiArtifactService {
     }
 
     if(body.type === AIArtifactType.Story) {
-      console.log("CREATE STORY");
-      console.log("---------------")
-
       const stories: AiPost[] = await this.aiService.generateStoriesBasedOnManuallySettings(settings, galleryPhotosUrls)
-
-      console.log("STORIES ", stories)
-      console.log("---------------")
-
       const createdArtifacts: AIArtifactBase[] = [];
 
       for (const story of stories) {
@@ -217,5 +184,19 @@ export class AiArtifactService {
 
       return createdArtifacts;
     }
+  }
+
+  private serializeImagePrompt(imagePrompt: {
+    scene: string;
+    title: string;
+    subtitle: string;
+    caption: string;
+  }) {
+    return `
+      SCENE: ${imagePrompt.scene}
+      TITLE: ${imagePrompt.title}
+      SUBTITLE: ${imagePrompt.subtitle}
+      CAPTION: ${imagePrompt.caption}
+    `.trim();
   }
 }

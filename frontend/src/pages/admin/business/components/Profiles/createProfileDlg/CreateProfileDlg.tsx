@@ -43,10 +43,6 @@ import {TIdea} from "../../../../../../models/Idea";
 
 function CreateProfileDlg({ open, onClose, profile }: any) {
   const dispatch = useAppDispatch();
-
-  console.log("PROFILE ", profile);
-
-
   const { products } = useSelector((state: any) => state.productsModule);
   const { audiences } = useSelector((state: any) => state.audienceModule);
   const { prompts } = useSelector((state: any) => state.promptModule);
@@ -190,130 +186,132 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
           </div>
 
           <form className="space-y-4" onSubmit={create} action="">
-            <div>
-              <div className="flex items-center gap-2 justify-between">
-                <label className="block text-sm font-medium text-slate-700 text-left">Name</label>
-              </div>
-
-              <input
-                type="text"
-                name="name"
-                value={form.name}
-                onChange={onChange}
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter name"
-                autoComplete="off"
-              />
-              {errors.name && <p className="text-red-500 text-sm mt-2 text-left">{errors.name}</p>}
-            </div>
-
-            <div>
-              <div className="flex items-center gap-2 justify-between">
-                <label className="block text-sm font-medium text-slate-700 text-left">Profile Focus</label>
-              </div>
-
-              <select
-                name="profileFocus"
-                value={form.profileFocus}
-                onChange={onChange}
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
-              >
-                { profileFocusOptions.map((option: string) => (
-                  <option key={option} value={option}>{splitCamelCase(option)}</option>
-                )) }
-              </select>
-
-              {errors.profileFocus && <p className="text-red-500 text-sm mt-2 text-left">{errors.profileFocus}</p>}
-            </div>
-
-            <div>
-              <div className="flex items-center gap-2 justify-between">
-                <label className="block text-sm font-medium text-slate-700 text-left mb-1">Product</label>
-              </div>
-
-              <Select
-                options={productsOptions}
-                value={productsOptions.find(
-                  (option: { label: string, value: string }) => form.productsIds[0] === option.value
-                )}
-                onChange={(selected) =>
-                  onChange({
-                    name: "productsIds",
-                    value: selected ? [selected.value] : [],
-                  })
-                }
-                styles={centeredSelectStyles}
-              />
-
-              {errors.productsIds && <p className="text-red-500 text-sm mt-2 text-left">{errors.productsIds}</p>}
-            </div>
-
-            <div>
-              <div className="flex items-center gap-2 justify-between">
-                <label className="block text-sm font-medium text-slate-700 text-left mb-1">Idea</label>
-              </div>
-
-              <Select
-                options={ideasOptions}
-                value={ideasOptions.find(
-                  (option: { label: string, value: string }) => form.ideasIds[0] === option.value
-                )}
-                onChange={(selected) =>
-                  onChange({
-                    name: "ideasIds",
-                    value: selected ? [selected.value] : [],
-                  })
-                }
-                styles={centeredSelectStyles}
-              />
-
-              {errors.ideasIds && <p className="text-red-500 text-sm mt-2 text-left">{errors.ideasIds}</p>}
-            </div>
-
-            <div>
-              <div className="flex items-center gap-2 justify-between">
-                <label className="block text-sm font-medium text-slate-700 text-left mb-1">Audiences</label>
-              </div>
-
-              <Select
-                isMulti
-                options={audiencesOptions}
-                value={audiencesOptions.filter((option: any) =>
-                  form.audiencesIds.includes(option.value)
-                )}
-                onChange={(selected) =>
-                  onChange({
-                    name: "audiencesIds",
-                    value: selected.map((o) => o.value),
-                  })
-                }
-                styles={centeredSelectStyles}
-              />
-
-              {errors.audiencesIds && <p className="text-red-500 text-sm mt-2 text-left">{errors.audiencesIds}</p>}
-            </div>
-
             <div className="relative z-20">
-              <div className="flex items-center gap-2 justify-between">
-                <label className="block text-sm font-medium text-slate-700 text-left mb-1">Prompts</label>
+              <div className="mb-4">
+                <div className="flex items-center gap-2 justify-between">
+                  <label className="block text-sm font-medium text-slate-700 text-left">Name</label>
+                </div>
+
+                <input
+                  type="text"
+                  name="name"
+                  value={form.name}
+                  onChange={onChange}
+                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter name"
+                  autoComplete="off"
+                />
+                {errors.name && <p className="text-red-500 text-sm mt-2 text-left">{errors.name}</p>}
               </div>
 
-              <Select
-                isMulti
-                options={promptsOptions}
-                value={promptsOptions.filter((option: any) =>
-                  form.promptsIds.includes(option.value)
-                )}
-                onChange={(selected) =>
-                  onChange({
-                    name: "promptsIds",
-                    value: selected.map((o) => o.value),
-                  })
-                }
-                styles={centeredSelectStyles}
-              />
+              <div className="mb-4">
+                <div className="flex items-center gap-2 justify-between">
+                  <label className="block text-sm font-medium text-slate-700 text-left">Profile Focus</label>
+                </div>
 
-              {errors.promptsIds && <p className="text-red-500 text-sm mt-2 text-left">{errors.promptsIds}</p>}
+                <select
+                  name="profileFocus"
+                  value={form.profileFocus}
+                  onChange={onChange}
+                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
+                >
+                  { profileFocusOptions.map((option: string) => (
+                    <option key={option} value={option}>{splitCamelCase(option)}</option>
+                  )) }
+                </select>
+
+                {errors.profileFocus && <p className="text-red-500 text-sm mt-2 text-left">{errors.profileFocus}</p>}
+              </div>
+
+              <div className="mb-4">
+                <div className="flex items-center gap-2 justify-between">
+                  <label className="block text-sm font-medium text-slate-700 text-left mb-1">Product</label>
+                </div>
+
+                <Select
+                  options={productsOptions}
+                  value={productsOptions.find(
+                    (option: { label: string, value: string }) => form.productsIds[0] === option.value
+                  )}
+                  onChange={(selected) =>
+                    onChange({
+                      name: "productsIds",
+                      value: selected ? [selected.value] : [],
+                    })
+                  }
+                  styles={centeredSelectStyles}
+                />
+
+                {errors.productsIds && <p className="text-red-500 text-sm mt-2 text-left">{errors.productsIds}</p>}
+              </div>
+
+              <div className="mb-4">
+                <div className="flex items-center gap-2 justify-between">
+                  <label className="block text-sm font-medium text-slate-700 text-left mb-1">Idea</label>
+                </div>
+
+                <Select
+                  options={ideasOptions}
+                  value={ideasOptions.find(
+                    (option: { label: string, value: string }) => form.ideasIds[0] === option.value
+                  )}
+                  onChange={(selected) =>
+                    onChange({
+                      name: "ideasIds",
+                      value: selected ? [selected.value] : [],
+                    })
+                  }
+                  styles={centeredSelectStyles}
+                />
+
+                {errors.ideasIds && <p className="text-red-500 text-sm mt-2 text-left">{errors.ideasIds}</p>}
+              </div>
+
+              <div className="mb-4">
+                <div className="flex items-center gap-2 justify-between">
+                  <label className="block text-sm font-medium text-slate-700 text-left mb-1">Audiences</label>
+                </div>
+
+                <Select
+                  isMulti
+                  options={audiencesOptions}
+                  value={audiencesOptions.filter((option: any) =>
+                    form.audiencesIds.includes(option.value)
+                  )}
+                  onChange={(selected) =>
+                    onChange({
+                      name: "audiencesIds",
+                      value: selected.map((o) => o.value),
+                    })
+                  }
+                  styles={centeredSelectStyles}
+                />
+
+                {errors.audiencesIds && <p className="text-red-500 text-sm mt-2 text-left">{errors.audiencesIds}</p>}
+              </div>
+
+              <div className="mb-4">
+                <div className="flex items-center gap-2 justify-between">
+                  <label className="block text-sm font-medium text-slate-700 text-left mb-1">Prompts</label>
+                </div>
+
+                <Select
+                  isMulti
+                  options={promptsOptions}
+                  value={promptsOptions.filter((option: any) =>
+                    form.promptsIds.includes(option.value)
+                  )}
+                  onChange={(selected) =>
+                    onChange({
+                      name: "promptsIds",
+                      value: selected.map((o) => o.value),
+                    })
+                  }
+                  styles={centeredSelectStyles}
+                />
+
+                {errors.promptsIds && <p className="text-red-500 text-sm mt-2 text-left">{errors.promptsIds}</p>}
+              </div>
             </div>
 
             <div className="relative z-10">

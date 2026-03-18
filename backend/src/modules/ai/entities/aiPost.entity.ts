@@ -4,6 +4,6 @@ export type AiPost = {
   body: string;
   cta: string;
   emotional_angle: string;
-  image_prompt: string;
+  image_prompt: any;
   imageUrl: string;
 }

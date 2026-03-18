@@ -70,8 +70,6 @@ function SelectGalleryDlg({ open, onClose, onSelect, selectedIds }: any) {
         return prev
       }
 
-      console.log("IDS ", [...prev, id])
-
       return [...prev, id]
     })
   }
