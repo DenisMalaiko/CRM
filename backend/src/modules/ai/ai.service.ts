@@ -38,7 +38,7 @@ export class AiService {
   }
 
   async generatePostsBasedOnBusinessProfile(profile: TProfile, photos: Photo[]): Promise<AiPost[]> {
-    const prompt = this.buildPromptForPosts(profile);
+    const prompt = this.buildPromptForPosts(profile, photos);
     const response = await this.model.invoke(prompt);
     const rawText = this.extractTextContent(response.content);
     const posts: AiPost[] = JSON.parse(rawText)?.posts ?? [];
@@ -46,7 +46,7 @@ export class AiService {
     for (const post of posts) {
       if (post.image_prompt) {
         console.log("IMAGE PROMPT ", post);
-        post.imageUrl = await this.aiReplicate.generateImageOpenAI(post.image_prompt, profile.businessId, photos);
+        // post.imageUrl = await this.aiReplicate.generateImageOpenAI(post.image_prompt, profile.businessId, photos);
       }
     }
 
@@ -62,7 +62,7 @@ export class AiService {
     for (const story of stories) {
       if (story.image_prompt) {
         console.log("IMAGE PROMPT ", story);
-        story.imageUrl = await this.aiReplicate.generateStoryImageOpenAI(story.image_prompt, profile.businessId, photos);
+        // story.imageUrl = await this.aiReplicate.generateStoryImageOpenAI(story.image_prompt, profile.businessId, photos);
       }
     }
 
@@ -71,7 +71,7 @@ export class AiService {
 
   async generatePostsBasedOnManuallySettings(settings, photos: Photo[]): Promise<AiPost[]> {
     console.log("GENERATE POSTS BASED ON MANUALLY SETTINGS")
-    const prompt = this.buildPromptForPosts(settings);
+    const prompt = this.buildPromptForPosts(settings, photos);
     const response = await this.model.invoke(prompt);
     const rawText = this.extractTextContent(response.content);
     const posts: AiPost[] = JSON.parse(rawText)?.posts ?? [];
@@ -79,7 +79,7 @@ export class AiService {
     for (const post of posts) {
       if (post.image_prompt) {
         console.log("IMAGE PROMPT ", post);
-        post.imageUrl = await this.aiReplicate.generateImageOpenAI(post.image_prompt, settings.business.id, photos);
+        // post.imageUrl = await this.aiReplicate.generateImageOpenAI(post.image_prompt, settings.business.id, photos);
       }
     }
 
@@ -95,7 +95,7 @@ export class AiService {
     for (const story of stories) {
       if (story.image_prompt) {
         console.log("IMAGE PROMPT ", story);
-        story.imageUrl = await this.aiReplicate.generateStoryImageOpenAI(story.image_prompt, settings.business.id, photos);
+        // story.imageUrl = await this.aiReplicate.generateStoryImageOpenAI(story.image_prompt, settings.business.id, photos);
       }
     }
 
@@ -166,12 +166,13 @@ export class AiService {
     return result.ideas;
   }
 
-  private buildPromptForPosts(profile) {
+  private buildPromptForPosts(profile, photos) {
     const audienceBlock = this.getAudiences(profile.audiences);
     const productsBlock = this.getProducts(profile.products);
     const ideasBlock = this.getIdeas(profile.ideas);
     const textPrompts = this.buildPromptsBlock(profile.prompts.filter(p => p.purpose === 'Text'));
     const imagePrompts = profile.prompts.filter(p => p.purpose === "Image" && p.isActive).map(p => p.text);
+    const imagesGallery =  photos.filter(p => p.type === GalleryPhotoType.Image);
 
     const prompt = [
       postRoleBlock(),
@@ -180,7 +181,7 @@ export class AiService {
       postIdeaBlock(ideasBlock),
       postTextGenerationBlock(textPrompts),
       postFormatReplicationBlock(),
-      postImagePromptBlock(imagePrompts, profile),
+      postImagePromptBlock(imagePrompts, profile, imagesGallery),
       postOutputBlock()
     ]
 

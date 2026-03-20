@@ -258,7 +258,7 @@ export class AiReplicate {
           resolution: "2K",
           safety_filter_level: "block_only_high",
           image_input: photos.map(photo => photo.url),
-          allow_fallback_model: true
+          allow_fallback_model: false
         },
       }
     );
@@ -995,7 +995,7 @@ export class AiReplicate {
           aspect_ratio: "9:16",
           safety_filter_level: "block_only_high",
           image_input: photos.map(p => p.url),
-          allow_fallback_model: true
+          allow_fallback_model: false
         }
       }
     );

@@ -1,3 +1,5 @@
+import {GalleryPhotoType} from "@prisma/client";
+
 export function postRoleBlock() {
   return `
     You are a senior performance marketer and creative strategist.
@@ -100,7 +102,7 @@ export function postFormatReplicationBlock() {
   `;
 }
 
-function postImageStructureBlock(profile) {
+function postImageStructureBlock(profile, hasPhotos) {
   return `
     ## IMAGE PROMPT STRUCTURE
     
@@ -133,8 +135,40 @@ function postImageStructureBlock(profile) {
   `;
 }
 
-export function postImagePromptBlock(imagePrompts, profile) {
-  return `
+export function postImagePromptBlock(imagePrompts, profile, photos) {
+  console.log("IMAGE PROMPTS ", imagePrompts);
+
+  const hasImagePrompts = imagePrompts?.length > 0;
+  const hasPhotos = photos?.length > 0;
+
+  if (hasImagePrompts) {
+    return `
+    ## IMAGE PROMPT GENERATION (STRICT FRONTEND MODE)
+    
+    FRONTEND INPUT (JSON):
+    ${JSON.stringify(imagePrompts)}
+    
+    🚨 CRITICAL:
+    You are in STRICT MODE.
+    
+    - Use ONLY frontend input
+    - Ignore any previously generated content
+    - Do NOT generate text
+    - Do NOT rewrite text
+    
+    Mapping:
+    - title = first item
+    - subtitle = second item
+    - caption = third item (or empty)
+    
+    Output exactly.
+    
+    Language: ${profile.business.language}
+    
+    ${postImageStructureBlock(profile, hasPhotos)}
+  `;
+  } else {
+    return `
     ## IMAGE PROMPT GENERATION
     
     FRONTEND INPUT:
@@ -168,8 +202,9 @@ export function postImagePromptBlock(imagePrompts, profile) {
     - Do NOT invent new ideas
     - Stay consistent with your generated post
     
-    ${postImageStructureBlock(profile)}
+    ${postImageStructureBlock(profile, hasPhotos)}
   `;
+  }
 }
 
 export function postOutputBlock() {
