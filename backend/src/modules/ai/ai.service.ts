@@ -79,7 +79,7 @@ export class AiService {
     for (const post of posts) {
       if (post.image_prompt) {
         console.log("IMAGE PROMPT ", post);
-        // post.imageUrl = await this.aiReplicate.generateImageOpenAI(post.image_prompt, settings.business.id, photos);
+        post.imageUrl = await this.aiReplicate.generateImageOpenAI(post.image_prompt, settings.business.id, photos);
       }
     }
 
@@ -172,7 +172,6 @@ export class AiService {
     const ideasBlock = this.getIdeas(profile.ideas);
     const textPrompts = this.buildPromptsBlock(profile.prompts.filter(p => p.purpose === 'Text'));
     const imagePrompts = profile.prompts.filter(p => p.purpose === "Image" && p.isActive).map(p => p.text);
-    const imagesGallery =  photos.filter(p => p.type === GalleryPhotoType.Image);
 
     const prompt = [
       postRoleBlock(),
@@ -181,7 +180,7 @@ export class AiService {
       postIdeaBlock(ideasBlock),
       postTextGenerationBlock(textPrompts),
       postFormatReplicationBlock(),
-      postImagePromptBlock(imagePrompts, profile, imagesGallery),
+      postImagePromptBlock(imagePrompts, profile, photos),
       postOutputBlock()
     ]
 

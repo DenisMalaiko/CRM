@@ -102,15 +102,88 @@ export function postFormatReplicationBlock() {
   `;
 }
 
-function postImageStructureBlock(profile, hasPhotos) {
+function getImageName(url: string) {
+  return url.split('/').pop();
+}
+
+function postImageStructureBlock(profile, photos) {
+  const businessImages= photos.filter(p => p.type === GalleryPhotoType.Image);
+  const decorationsImages= photos.filter(p => p.type === GalleryPhotoType.Decoration);
+  const designImages = photos.filter(p => p.type === GalleryPhotoType.Post);
+
+  console.log("BUSINESS IMAGES ", businessImages);
+  console.log("DECORATIONS IMAGES ", decorationsImages);
+  console.log("DESIGN IMAGES ", designImages);
+
+  const hasBusiness = businessImages.length > 0;
+  const hasDecor = decorationsImages.length > 0;
+  const hasDesign = designImages.length > 0;
+
+  const businessNames = businessImages.map(img => getImageName(img.url));
+  const decorNames = decorationsImages.map(img => getImageName(img.url));
+  const designNames = designImages.map(img => getImageName(img.url));
+
+  let scene = '';
+
+  if (hasBusiness && !hasDecor && !hasDesign) {
+    scene = `Use only the business image(s): ${businessNames.join(', ')}. Do not add, remove, or modify anything.`;
+  } else if (hasBusiness && hasDecor && !hasDesign) {
+    scene = `Use the business image(s): ${businessNames.join(', ')} as the base without any changes. 
+    
+      Add decorative overlays from: ${decorNames.join(', ')}.
+      Use them as subtle visual accents such as shapes, icons, or patterns.
+      Integrate them naturally into the composition.
+      Maintain balance and spacing between elements.
+      Ensure they enhance the image without overpowering it.
+      Avoid random or clustered placement.
+    `;
+
+  } else if (hasBusiness && !hasDecor && hasDesign) {
+    scene = `Use the business image(s): ${businessNames.join(', ')} as the base without any changes. 
+    
+      Apply design-style overlays from: ${designNames.join(', ')}.
+      Follow the visual style, typography, and graphic elements from these design references.
+      Arrange all overlay elements in a clean and balanced composition.
+      Distribute elements evenly across the image.
+      Avoid random placement in corners.
+      Do not cover key subjects or important areas of the image.
+    `;
+
+  } else if (hasBusiness && hasDecor && hasDesign) {
+    scene = `Use the business image(s): ${businessNames.join(', ')} as the base without any changes.
+
+      Add decorative overlays from: ${decorNames.join(', ')}.
+      Use them as subtle visual accents such as shapes, icons, or patterns.
+      Integrate them naturally into the composition.
+      Maintain balance and spacing between elements.
+      Ensure they enhance the image without overpowering it.
+      Avoid random or clustered placement.
+  
+      Apply design-style overlays from: ${designNames.join(', ')}.
+      Follow the visual style, typography, and graphic elements from these design references.
+      Arrange all overlay elements in a clean and balanced composition.
+      Distribute elements evenly across the image.
+      Avoid random placement in corners.
+      Do not cover key subjects or important areas of the image.
+    `;
+  }
+
+
   return `
     ## IMAGE PROMPT STRUCTURE
     
+    You MUST follow STRICT composition rules based on provided image types.
+    
     ### SCENE (ENGLISH ONLY):
-    - Describe ONLY visual scene
-    - Translate frontend prompt to English
-    - Do NOT invent new elements
-    - Do NOT include any text inside the scene description
+    Scene: "${scene}"
+    
+    #### GENERAL RULES:
+    - Scene MUST be in English
+    - Describe ONLY the provided images
+    - DO NOT invent anything
+    - DO NOT use post text (hook, body, CTA)
+    - Treat images as immutable
+    - Do NOT describe text inside the image
     
     ### VISIBLE TEXT ON IMAGE:
     You MUST ALWAYS include Title, Subtitle and Caption.
@@ -139,7 +212,6 @@ export function postImagePromptBlock(imagePrompts, profile, photos) {
   console.log("IMAGE PROMPTS ", imagePrompts);
 
   const hasImagePrompts = imagePrompts?.length > 0;
-  const hasPhotos = photos?.length > 0;
 
   if (hasImagePrompts) {
     return `
@@ -165,7 +237,7 @@ export function postImagePromptBlock(imagePrompts, profile, photos) {
     
     Language: ${profile.business.language}
     
-    ${postImageStructureBlock(profile, hasPhotos)}
+    ${postImageStructureBlock(profile, photos)}
   `;
   } else {
     return `
@@ -202,7 +274,7 @@ export function postImagePromptBlock(imagePrompts, profile, photos) {
     - Do NOT invent new ideas
     - Stay consistent with your generated post
     
-    ${postImageStructureBlock(profile, hasPhotos)}
+    ${postImageStructureBlock(profile, photos)}
   `;
   }
 }
