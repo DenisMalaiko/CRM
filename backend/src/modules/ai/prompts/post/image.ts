@@ -387,3 +387,178 @@ export function postImageReferenceImages() {
     Use reference images and design system strictly.
   `
 }
+
+
+
+export function postImageProfessionalContext() {
+  return `
+    You are a professional commercial product photographer and art director.
+            
+    Generate a high-quality decorative marketing photo based on the provided reference images.
+  `
+}
+
+export function postImageTemplateReplicationMode(referenceRule) {
+  return `
+    The reference post images define a strict visual template.
+            
+    You MUST preserve:
+    
+    • layout structure  
+    • position of graphic elements  
+    • overlay shapes  
+    • color panels  
+    • decorative stripes  
+    • spacing between elements  
+    
+    Do NOT redesign the composition.
+    
+    Treat the reference post as a TEMPLATE.
+    
+    Only change:
+    ${referenceRule}
+    
+    Everything else must follow the reference layout.
+  `
+}
+
+export function postImageReferenceDesignSystem(designSystem) {
+  return `
+    Use the visual design system extracted from the reference images.
+    
+    ${designSystem}
+    
+    IMPORTANT:
+    - Decorative graphic overlays must match the reference design.
+    - If a decorative element has a boundingBox it MUST appear in the same position.
+    - Do NOT change overlay angle.
+    - Do NOT change overlay size.
+    - Do NOT move overlays to another area.
+  `
+}
+
+
+export function postImageTextRenderingPrompt(prompt) {
+  return `
+    IMAGE TEXT CONTENT (MANDATORY)
+            
+    Title:
+    ${prompt.title}
+    
+    Subtitle:
+    ${prompt.subtitle}
+    
+    Caption:
+    ${prompt.caption}
+    
+    RULES:
+    
+    - You MUST render this exact text on the image
+    - Do NOT modify text
+    - Do NOT translate text
+    - Do NOT omit any text
+    
+    Replace:
+    - original headline → Title
+    - original subheadline → Subtitle
+    
+    Preserve:
+    - typography style
+    - position
+  `
+}
+
+export function postImageSuppressionPrompt() {
+  return `
+    TEXT MUST NOT BE RENDERED
+            
+    CRITICAL:
+    
+    - Ignore any text content provided
+    - Do NOT render:
+      - headlines
+      - captions
+      - slogans
+      - letters
+      - words
+      - UI text
+    
+    If layout contains text areas → leave them empty
+  `;
+}
+
+export function postImageCriticalRenderingRule() {
+  return `
+     The generated image MUST NOT contain any technical annotations.
+            
+      Do NOT render:
+      - HEX color codes
+      - opacity values
+      - percentages
+      - bounding boxes
+      - design notes
+      - debug labels
+      - layout measurements
+  `
+}
+
+export function postImageTextGeneration() {
+  return `
+    All text must respect the typography system.
+    
+    If the reference headline is uppercase,
+    the generated headline must also be uppercase.
+  `
+}
+
+export function postImageTextSuppressionRule() {
+  return `
+    If the design does not contain text blocks,
+    the generated image must contain ZERO readable text.
+    
+    Do NOT place text on:
+    - vehicles
+    - clothing
+    - banners
+    - flags
+    - buildings
+    - signs
+    - products
+  `
+}
+
+export function postImageComposition() {
+  return `
+    - Clean balanced composition
+    - Clear focal point
+    - Decorative overlays must match the reference style
+    - Modern marketing photography style
+  `
+}
+
+export function postImageLighting() {
+  return `
+    - Soft diffused lighting
+    - Natural highlights
+    - No harsh shadows
+  `
+}
+
+export function postImageCamera() {
+  return `
+    - Professional DSLR style
+    - Sharp focus
+    - High dynamic range
+    - Realistic perspective
+  `
+}
+
+export function postImageQuality() {
+  return `
+    - Ultra realistic
+    - High resolution
+    - Clean background
+    - No visual noise
+    - No distortions
+  `
+}
