@@ -1,5 +1,6 @@
 import { randomUUID } from "crypto";
 import { GalleryPhotoType } from "@prisma/client";
+import { inspect } from "util";
 
 import OpenAI from "openai";
 const Replicate = require("replicate");
@@ -55,7 +56,7 @@ export class AiReplicate {
     const businessPhotos = photos.filter(p => p.type === GalleryPhotoType.Image);
     const hasReferenceImages = decorations.length || posts.length || businessPhotos.length;
 
-    let designSystem = ``;
+    let designSystem: any;
     let textRule = ``;
     let referenceRule = ``;
     let isTextEnabled = false;
@@ -75,7 +76,7 @@ export class AiReplicate {
       const hasRealText = this.hasRealTextInPosts(parsedDesign);
       console.log("HAS TEXT IN PHOTO")
 
-      designSystem = parsedDesign;
+      designSystem = inspect(parsedDesign, { depth: null, colors: true });
       isTextEnabled = hasRealText;
       textRule = hasRealText ? postImageHasRealText() : postImageDoesntHaveRealText();
       referenceRule = postImageReferenceImages();
@@ -84,7 +85,15 @@ export class AiReplicate {
       referenceRule = postImageNoReferenceImages();
     }
 
-    console.log("DESIGN SYSTEM ", designSystem);
+
+    console.log("-----------------")
+    console.log("DESIGN SYSTEM ", designSystem)
+    console.log("-----------------")
+    console.log("DECORATIONS ", designSystem.decorations);
+    console.log("-----------------")
+    console.log("POST ", designSystem.posts);
+    console.log("-----------------")
+    console.log("BUSINESS PHOTOS ", designSystem.businessPhotos);
     console.log("-----------------")
     console.log("TEXT RULE ", textRule);
     console.log("-----------------")
@@ -1040,5 +1049,4 @@ export class AiReplicate {
 
     return key;
   }
-
 }
