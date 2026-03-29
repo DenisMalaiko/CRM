@@ -1,15 +1,16 @@
 import { GalleryPhotoType } from "@prisma/client";
 
-export function postRoleBlock() {
+export function storyRoleBlock() {
   return `
-    You are a senior performance marketer and creative strategist.
-    Generate exactly 1 social media post based on the provided business context.
-  `;
+    You are a senior performance marketer and short-form content strategist.
+    Generate exactly ONE social media story based on the provided business context.
+    Stories must be optimized for Instagram / Facebook vertical story format.
+  `
 }
 
-export function postBusinessContextBlock(profile, audienceBlock, productsBlock) {
+export function storyBusinessContextBlock(profile, audienceBlock, productsBlock) {
   return `
-    ## BUSINESS CONTEXT
+   ## BUSINESS CONTEXT
     
     Business:
     - Name: ${profile.business.name}
@@ -20,7 +21,7 @@ export function postBusinessContextBlock(profile, audienceBlock, productsBlock) 
     - Brand Advantages: ${profile.business.advantages.join(', ')}
     - Brand Goals: ${profile.business.goals.join(', ')}
     
-    Context:
+    Profile:
     - Name: ${profile.name}
     - Focus: ${profile.profileFocus}
     - Idea: ${profile.ideas}
@@ -30,10 +31,37 @@ export function postBusinessContextBlock(profile, audienceBlock, productsBlock) 
     
     Products / services:
     ${productsBlock}
-  `;
+  `
 }
 
-export function postCompetitorBlock() {
+export function storyRulesBlock() {
+  return `
+    ## STORY UX RULES (VERTICAL FORMAT)
+    
+    Stories are viewed on a mobile device in a vertical 9:16 format.
+    
+    Important composition rules:
+    
+    - Main subject must stay in the center area
+    - Avoid placing key objects at the top or bottom edges
+    - Leave space for interface elements
+    
+    Safe zones:
+    
+    Top 15% → reserved for Instagram UI  
+    Bottom 20% → reserved for buttons and reactions  
+    
+    Text placement:
+    
+    - Headline should appear in the upper-middle area
+    - Supporting text in the middle area
+    - CTA or reinforcement text in the lower-middle area
+    
+    Do NOT place text in UI areas.
+  `
+}
+
+export function storyCompetitorBlock() {
   return `
     ## COMPETITOR STRUCTURE TRANSFER (REQUIRED)
     
@@ -46,59 +74,63 @@ export function postCompetitorBlock() {
   `;
 }
 
-export function postIdeaBlock(ideasBlock) {
+export function storyIdeaBlock(ideasBlock) {
   return `
     ## CREATIVE IDEA (PRIMARY INSPIRATION)
     
-    Use the idea as the main creative direction.
-    
-    The idea defines:
-    - WHAT
-    - WHY
-    - EMOTION
-    - STORY FRAME
-    
-    If ignored → INVALID.
+    Use the following idea as the narrative direction for the story sequence.
     
     ${ideasBlock}
-  `;
+    
+    Stories MUST follow this narrative direction if provided.
+  `
 }
 
-export function postTextGenerationBlock(textPrompts) {
+export function storyTextGenerationBlock(textPrompts) {
   return `
     ## TEXT GENERATION
     
     Fields:
-    - hook
-    - body
-    - cta
-    - emotional_angle
+    - headline
+    - supporting_text
+    - emotion_trigger
+    - interaction
+    - visual_description
     
     Rules:
+    - short, punchy, scroll-stopping
+    - headline: 1–5 words
+    - supporting_text: 5–12 words
     - human, emotional
-    - SEO natural
     - no clichés
     - no fake facts
     - no AI mentions
+    
+    Tone:
+    - dynamic
+    - visual
+    - conversational
     
     ${textPrompts}
   `;
 }
 
-export function postFormatReplicationBlock() {
+export function storyFormatReplicationBlock() {
   return `
-    ## POST FORMAT REPLICATION (STRICT)
+    ## STORY FORMAT REPLICATION (STRICT)
     
-    If competitor exists:
-    - replicate structure
-    - replicate line format
+    If competitor story exists:
+    - replicate narrative flow
     - replicate pacing
+    - replicate visual rhythm
     
     DO NOT:
     - copy wording
+    - copy exact visuals
     
     DO:
     - copy structure
+    - copy storytelling style
   `;
 }
 
@@ -106,9 +138,9 @@ function getImageName(url: string) {
   return url.split('/').pop();
 }
 
-function postImageStructureBlock(profile, photos) {
-  const businessImages= photos.filter(p => p.type === GalleryPhotoType.Image);
-  const decorationsImages= photos.filter(p => p.type === GalleryPhotoType.Decoration);
+function storyImageStructureBlock(profile, photos) {
+  const businessImages = photos.filter(p => p.type === GalleryPhotoType.Image);
+  const decorationsImages = photos.filter(p => p.type === GalleryPhotoType.Decoration);
   const designImages = photos.filter(p => p.type === GalleryPhotoType.Post);
 
   const hasBusiness = businessImages.length > 0;
@@ -124,7 +156,7 @@ function postImageStructureBlock(profile, photos) {
   if (hasBusiness && !hasDecor && !hasDesign) {
     scene = `Use only the business image(s): ${businessNames.join(', ')}. Do not add, remove, or modify anything.`;
   } else if (hasBusiness && hasDecor && !hasDesign) {
-    scene = `Use the business image(s): ${businessNames.join(', ')} as the base without any changes. 
+    scene = `Use the business image(s): ${businessNames.join(', ')} as the base without any changes.
     
       Add decorative overlays from: ${decorNames.join(', ')}.
       Use them as subtle visual accents such as shapes, icons, or patterns.
@@ -133,10 +165,9 @@ function postImageStructureBlock(profile, photos) {
       Ensure they enhance the image without overpowering it.
       Avoid random or clustered placement.
     `;
-
   } else if (hasBusiness && !hasDecor && hasDesign) {
-    scene = `Use the business image(s): ${businessNames.join(', ')} as the base without any changes. 
-    
+    scene = `Use the business image(s): ${businessNames.join(', ')} as the base without any changes.
+
       Apply design-style overlays from: ${designNames.join(', ')}.
       Follow the visual style, typography, and graphic elements from these design references.
       Arrange all overlay elements in a clean and balanced composition.
@@ -144,7 +175,6 @@ function postImageStructureBlock(profile, photos) {
       Avoid random placement in corners.
       Do not cover key subjects or important areas of the image.
     `;
-
   } else if (hasBusiness && hasDecor && hasDesign) {
     scene = `Use the business image(s): ${businessNames.join(', ')} as the base without any changes.
 
@@ -164,11 +194,8 @@ function postImageStructureBlock(profile, photos) {
     `;
   }
 
-
   return `
     ## IMAGE PROMPT STRUCTURE
-    
-    You MUST follow STRICT composition rules based on provided image types.
     
     ### SCENE (ENGLISH ONLY):
     Scene: "${scene}"
@@ -198,13 +225,13 @@ function postImageStructureBlock(profile, photos) {
     Subtitle: "TEXT"
     Caption: "TEXT"
     
-    ### LANGUAGE RULE:
-    - ALL visible text MUST be in ${profile.business.language}
-    - NEVER mix languages
+    ### LANGUAGE:
+    - Use ${profile.business.language}
+    - Never mix languages
   `;
 }
 
-export function postImagePromptBlock(imagePrompts, profile, photos) {
+export function storyImagePromptBlock(imagePrompts, profile, photos) {
   const hasImagePrompts = imagePrompts?.length > 0;
 
   if (hasImagePrompts) {
@@ -219,8 +246,8 @@ export function postImagePromptBlock(imagePrompts, profile, photos) {
     
     - Use ONLY frontend input
     - Ignore any previously generated content
-    - Do NOT generate text
-    - Do NOT rewrite text
+    - Do NOT rewrite
+    - Do NOT generate new text
     
     Mapping:
     - title = first item
@@ -231,7 +258,7 @@ export function postImagePromptBlock(imagePrompts, profile, photos) {
     
     Language: ${profile.business.language}
     
-    ${postImageStructureBlock(profile, photos)}
+    ${storyImageStructureBlock(profile, photos)}
   `;
   } else {
     return `
@@ -268,23 +295,24 @@ export function postImagePromptBlock(imagePrompts, profile, photos) {
     - Do NOT invent new ideas
     - Stay consistent with your generated post
     
-    ${postImageStructureBlock(profile, photos)}
+    ${storyImageStructureBlock(profile, photos)}
   `;
   }
 }
 
-export function postOutputBlock() {
+export function storyOutputBlock() {
   return `
     ## OUTPUT FORMAT (STRICT JSON)
     
     {
-      "posts": [
+      "stories": [
         {
-          "platform": "...",
-          "hook": "...",
-          "body": "...",
-          "cta": "...",
-          "emotional_angle": "...",
+          "frame": 1,
+          "headline": "string",
+          "supporting_text": "string",
+          "emotion_trigger": "curiosity | desire | urgency | fear | excitement",
+          "interaction": "none | poll | question | slider | swipe",
+          "visual_description": "string",
           "image_prompt": {
             "scene": "string",
             "title": "string",
@@ -298,3 +326,9 @@ export function postOutputBlock() {
     Return ONLY JSON.
   `;
 }
+
+
+
+
+
+

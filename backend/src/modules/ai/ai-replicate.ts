@@ -74,7 +74,6 @@ export class AiReplicate {
       });
       const parsedDesign = this.safeParseJson(response.output_text);
       const hasRealText = this.hasRealTextInPosts(parsedDesign);
-      console.log("HAS TEXT IN PHOTO")
 
       designSystem = inspect(parsedDesign, { depth: null, colors: true });
       isTextEnabled = hasRealText;
@@ -84,21 +83,6 @@ export class AiReplicate {
       textRule = postImageDoesntHaveRealText();
       referenceRule = postImageNoReferenceImages();
     }
-
-
-    console.log("-----------------")
-    console.log("DESIGN SYSTEM ", designSystem)
-    console.log("-----------------")
-    console.log("DECORATIONS ", designSystem.decorations);
-    console.log("-----------------")
-    console.log("POST ", designSystem.posts);
-    console.log("-----------------")
-    console.log("BUSINESS PHOTOS ", designSystem.businessPhotos);
-    console.log("-----------------")
-    console.log("TEXT RULE ", textRule);
-    console.log("-----------------")
-    console.log("REFERENCE RULE ", referenceRule);
-    console.log("-----------------")
 
     const stream = await this.replicate.run(
       process.env.REPLICATE_API_ACTOR,
