@@ -331,113 +331,115 @@ function CreateCreativeDlg({ open, onClose, focus }: Props) {
           <div>
             {selected === "manual" && (
               <div>
-                <div className="mb-3">
-                  { !!productsOptions.length && (
-                    <>
-                      <div className="flex items-center gap-2 justify-between">
-                        <label className="block text-sm font-medium text-slate-700 text-left mb-1">Products</label>
-                      </div>
+                <div className="relative z-20">
+                  <div className="mb-3">
+                    { !!productsOptions.length && (
+                      <>
+                        <div className="flex items-center gap-2 justify-between">
+                          <label className="block text-sm font-medium text-slate-700 text-left mb-1">Products</label>
+                        </div>
 
-                      <Select
-                        options={productsOptions}
-                        value={productsOptions.find(
-                          (option: { label: string, value: string }) => form.productsIds[0] === option.value
-                        )}
-                        onChange={(selected) =>
-                          onChange({
-                            name: "productsIds",
-                            value: selected ? [selected.value] : [],
-                          })
-                        }
-                        styles={centeredSelectStyles}
-                      />
+                        <Select
+                          options={productsOptions}
+                          value={productsOptions.find(
+                            (option: { label: string, value: string }) => form.productsIds[0] === option.value
+                          )}
+                          onChange={(selected) =>
+                            onChange({
+                              name: "productsIds",
+                              value: selected ? [selected.value] : [],
+                            })
+                          }
+                          styles={centeredSelectStyles}
+                        />
 
-                      {errors.productsIds && <p className="text-red-500 text-sm mt-2 text-left">{errors.productsIds}</p>}
-                    </>
-                  )}
+                        {errors.productsIds && <p className="text-red-500 text-sm mt-2 text-left">{errors.productsIds}</p>}
+                      </>
+                    )}
+                  </div>
+
+                  <div className="mb-3">
+                    { !!ideasOptions.length && (
+                      <>
+                        <div className="flex items-center gap-2 justify-between">
+                          <label className="block text-sm font-medium text-slate-700 text-left mb-1">Ideas</label>
+                        </div>
+
+                        <Select
+                          options={ideasOptions}
+                          value={ideasOptions.find(
+                            (option: { label: string, value: string }) => form.ideasIds[0] === option.value
+                          )}
+                          onChange={(selected) =>
+                            onChange({
+                              name: "ideasIds",
+                              value: selected ? [selected.value] : [],
+                            })
+                          }
+                          styles={centeredSelectStyles}
+                        />
+
+                        {errors.ideasIds && <p className="text-red-500 text-sm mt-2 text-left">{errors.ideasIds}</p>}
+                      </>
+                    )}
+                  </div>
+
+                  <div className="mb-3">
+                    { !!audiencesOptions.length && (
+                      <>
+                        <div className="flex items-center gap-2 justify-between">
+                          <label className="block text-sm font-medium text-slate-700 text-left mb-1">Audiences</label>
+                        </div>
+
+                        <Select
+                          isMulti
+                          options={audiencesOptions}
+                          value={audiencesOptions.filter((option: any) =>
+                            form.audiencesIds.includes(option.value)
+                          )}
+                          onChange={(selected: any) =>
+                            onChange({
+                              name: "audiencesIds",
+                              value: selected.map((o: any) => o.value),
+                            })
+                          }
+                          styles={centeredSelectStyles}
+                        />
+
+                        {errors.audiencesIds && <p className="text-red-500 text-sm mt-2 text-left">{errors.audiencesIds}</p>}
+                      </>
+                    )}
+                  </div>
+
+                  <div className="mb-3">
+                    { !!promptsOptions.length && (
+                      <>
+                        <div className="flex items-center gap-2 justify-between">
+                          <label className="block text-sm font-medium text-slate-700 text-left mb-1">Prompts</label>
+                        </div>
+
+                        <Select
+                          isMulti
+                          options={promptsOptions}
+                          value={promptsOptions.filter((option: any) =>
+                            form.promptsIds.includes(option.value)
+                          )}
+                          onChange={(selected: any) =>
+                            onChange({
+                              name: "promptsIds",
+                              value: selected.map((o: any) => o.value),
+                            })
+                          }
+                          styles={centeredSelectStyles}
+                        />
+
+                        {errors.promptsIds && <p className="text-red-500 text-sm mt-2 text-left">{errors.promptsIds}</p>}
+                      </>
+                    )}
+                  </div>
                 </div>
 
-                <div className="mb-3">
-                  { !!ideasOptions.length && (
-                    <>
-                      <div className="flex items-center gap-2 justify-between">
-                        <label className="block text-sm font-medium text-slate-700 text-left mb-1">Ideas</label>
-                      </div>
-
-                      <Select
-                        options={ideasOptions}
-                        value={ideasOptions.find(
-                          (option: { label: string, value: string }) => form.ideasIds[0] === option.value
-                        )}
-                        onChange={(selected) =>
-                          onChange({
-                            name: "ideasIds",
-                            value: selected ? [selected.value] : [],
-                          })
-                        }
-                        styles={centeredSelectStyles}
-                      />
-
-                      {errors.ideasIds && <p className="text-red-500 text-sm mt-2 text-left">{errors.ideasIds}</p>}
-                    </>
-                  )}
-                </div>
-
-                <div className="mb-3">
-                  { !!audiencesOptions.length && (
-                    <>
-                      <div className="flex items-center gap-2 justify-between">
-                        <label className="block text-sm font-medium text-slate-700 text-left mb-1">Audiences</label>
-                      </div>
-
-                      <Select
-                        isMulti
-                        options={audiencesOptions}
-                        value={audiencesOptions.filter((option: any) =>
-                          form.audiencesIds.includes(option.value)
-                        )}
-                        onChange={(selected: any) =>
-                          onChange({
-                            name: "audiencesIds",
-                            value: selected.map((o: any) => o.value),
-                          })
-                        }
-                        styles={centeredSelectStyles}
-                      />
-
-                      {errors.audiencesIds && <p className="text-red-500 text-sm mt-2 text-left">{errors.audiencesIds}</p>}
-                    </>
-                  )}
-                </div>
-
-                <div className="mb-3">
-                  { !!promptsOptions.length && (
-                    <>
-                      <div className="flex items-center gap-2 justify-between">
-                        <label className="block text-sm font-medium text-slate-700 text-left mb-1">Prompts</label>
-                      </div>
-
-                      <Select
-                        isMulti
-                        options={promptsOptions}
-                        value={promptsOptions.filter((option: any) =>
-                          form.promptsIds.includes(option.value)
-                        )}
-                        onChange={(selected: any) =>
-                          onChange({
-                            name: "promptsIds",
-                            value: selected.map((o: any) => o.value),
-                          })
-                        }
-                        styles={centeredSelectStyles}
-                      />
-
-                      {errors.promptsIds && <p className="text-red-500 text-sm mt-2 text-left">{errors.promptsIds}</p>}
-                    </>
-                  )}
-                </div>
-
-                <div className="mb-3">
+                <div className="relative z-10 mb-3">
                   <div className="flex items-center gap-2 justify-between mb-1">
                     <label className="block text-sm font-medium text-slate-700 text-left">Photos (max 3)</label>
                   </div>
