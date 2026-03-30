@@ -163,7 +163,7 @@ export class AiArtifactService {
             outputJson: story,
             status: AIArtifactStatus.Draft,
             imageUrl: story.imageUrl,
-            imagePrompt: story.image_prompt,
+            imagePrompt: this.serializeImagePrompt(story.image_prompt),
             products: {
               create: products.map(p => ({
                 productId: p.id,

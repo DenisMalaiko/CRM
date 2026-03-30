@@ -331,7 +331,11 @@ export function postImageOutputBlock() {
     - Each entry must reference the IMAGE_ID that was provided earlier.
     - Do not merge multiple images into one analysis.
     - If multiple images exist, create multiple entries.
-    - Return ONLY STRICT valid JSON. Do NOT include comments (//) or explanations inside JSON.
+    - Return ONLY valid JSON.
+    - Do NOT include comments
+    - Do NOT use // or /* */
+    - Do NOT explain anything
+    - Do NOT add trailing commas
   `
 }
 

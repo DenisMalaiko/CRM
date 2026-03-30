@@ -15,7 +15,6 @@ export class ProfilesService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly aiService: AiService,
-    private readonly galleryService: GalleryService,
     private readonly storageUrlService: StorageUrlService
   ) {}
 
@@ -267,7 +266,6 @@ export class ProfilesService {
       // Generate Posts
       if(profile.profileFocus === ProfileFocus.GeneratePosts) {
         const posts: AiPost[] = await this.aiService.generatePostsBasedOnBusinessProfile(mappedProfile, galleryPhotosUrls);
-
         const createdArtifacts: AIArtifactBase[] = [];
 
         for (const post of posts) {
@@ -304,7 +302,6 @@ export class ProfilesService {
       // Generate Stories
       if(profile.profileFocus === ProfileFocus.GenerateStories) {
         const stories: AiPost[] = await this.aiService.generateStoriesBasedOnBusinessProfile(mappedProfile, galleryPhotosUrls);
-
         const createdArtifacts: AIArtifactBase[] = [];
 
         for (const story of stories) {
@@ -316,7 +313,7 @@ export class ProfilesService {
               outputJson: story,
               status: AIArtifactStatus.Draft,
               imageUrl: story.imageUrl,
-              imagePrompt: story.image_prompt,
+              imagePrompt: this.serializeImagePrompt(story.image_prompt),
               products: {
                 create: profile.products.map(p => ({
                   productId: p.product.id,
