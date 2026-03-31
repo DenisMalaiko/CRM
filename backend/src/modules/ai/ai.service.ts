@@ -14,7 +14,7 @@ import {
   postTextGenerationBlock,
   postFormatReplicationBlock,
   postImagePromptBlock,
-  postOutputBlock
+  postOutputBlock, normalizeUserPromptBlock
 } from "./prompts/post/content";
 
 import {
@@ -81,8 +81,8 @@ export class AiService {
     return stories;
   }
 
-  async generatePostsBasedOnManuallySettings(settings, photos: Photo[]): Promise<AiPost[]> {
-    const prompt = this.buildPromptForPosts(settings, photos);
+  async generatePostsBasedOnManuallySettings(settings, photos: Photo[]): Promise<any> {
+    const prompt = await this.buildPromptForPostsManually(settings, photos);
     const response = await this.model.invoke(prompt);
     const rawText = this.extractTextContent(response.content);
     const posts: AiPost[] = JSON.parse(rawText)?.posts ?? [];
@@ -98,7 +98,7 @@ export class AiService {
   }
 
   async generateStoriesBasedOnManuallySettings(settings, photos: Photo[]): Promise<AiPost[]> {
-    const prompt = this.buildPromptForStories(settings, photos);
+    const prompt = this.buildPromptForStoriesManually(settings, photos);
     const response = await this.model.invoke(prompt);
     const rawText = this.extractTextContent(response.content);
     const stories: AiPost[] = JSON.parse(rawText)?.stories ?? [];
@@ -181,6 +181,7 @@ export class AiService {
     const audienceBlock = this.getAudiences(profile.audiences);
     const productsBlock = this.getProducts(profile.products);
     const ideasBlock = this.getIdeas(profile.ideas);
+
     const textPrompts = this.buildPromptsBlock(profile.prompts.filter(p => p.purpose === 'Text'));
     const imagePrompts = profile.prompts.filter(p => p.purpose === "Image" && p.isActive).map(p => p.text);
 
@@ -196,6 +197,41 @@ export class AiService {
     ]
 
     return prompt.join('\n\n');
+  }
+
+  private async buildPromptForPostsManually(profile, photos) {
+    const customPrompt = normalizeUserPromptBlock(profile.settings.prompt);
+    const customPromptResponse = await this.model.invoke(customPrompt);
+    const customPromptRawText = this.extractTextContent(customPromptResponse.content);
+    const text = JSON.parse(customPromptRawText)?.text ?? [];
+    const image = JSON.parse(customPromptRawText)?.image ?? [];
+
+    console.log("CUSTOM PROMPT ", customPromptRawText);
+    console.log("TEXT PROMPT ", text);
+    console.log("IMAGE PROMPT ", image);
+
+    return "";
+
+
+/*    const audienceBlock = this.getAudiences(profile.audiences);
+    const productsBlock = this.getProducts(profile.products);
+    const ideasBlock = this.getIdeas(profile.ideas);
+
+    const textPrompts = this.buildPromptsBlock(profile.prompts.filter(p => p.purpose === 'Text'));
+    const imagePrompts = profile.prompts.filter(p => p.purpose === "Image" && p.isActive).map(p => p.text);
+
+    const prompt = [
+      postRoleBlock(),
+      postBusinessContextBlock(profile, audienceBlock, productsBlock),
+      postCompetitorBlock(),
+      postIdeaBlock(ideasBlock),
+      postTextGenerationBlock(textPrompts),
+      postFormatReplicationBlock(),
+      postImagePromptBlock(imagePrompts, profile, photos),
+      postOutputBlock()
+    ]
+
+    return prompt.join('\n\n');*/
   }
 
   private buildPromptForStories(profile, photos) {
@@ -635,6 +671,28 @@ export class AiService {
           }
 
           Return ONLY the JSON object. No explanations.`*/
+  }
+
+  private buildPromptForStoriesManually(profile, photos) {
+    const audienceBlock = this.getAudiences(profile.audiences);
+    const productsBlock = this.getProducts(profile.products);
+    const ideasBlock = this.getIdeas(profile.ideas);
+    const textPrompts = this.buildPromptsBlock(profile.prompts.filter(p => p.purpose === 'Text'));
+    const imagePrompts = profile.prompts.filter(p => p.purpose === "Image" && p.isActive).map(p => p.text);
+
+    const prompt = [
+      storyRoleBlock(),
+      storyBusinessContextBlock(profile, audienceBlock, productsBlock),
+      storyRulesBlock(),
+      storyCompetitorBlock(),
+      storyIdeaBlock(ideasBlock),
+      storyTextGenerationBlock(textPrompts),
+      storyFormatReplicationBlock(),
+      storyImagePromptBlock(imagePrompts, profile, photos),
+      storyOutputBlock(),
+    ]
+
+    return prompt.join('\n\n');
   }
 
   private extractTextContent(content: any): string {

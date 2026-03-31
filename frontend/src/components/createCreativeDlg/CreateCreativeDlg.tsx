@@ -44,7 +44,7 @@ import SelectGalleryDlg
 import { showError } from "../../utils/showError";
 import { centeredSelectStyles } from "../../utils/reactSelectStyles";
 import { ChangeArg, isNativeEvent } from "../../utils/isNativeEvent";
-import { isArray, isRequired } from "../../utils/validations";
+import {isArray, isRequired, isString} from "../../utils/validations";
 
 // Enum
 import { BusinessProfileFocus } from "../../enum/BusinessProfileFocus";
@@ -101,9 +101,9 @@ function CreateCreativeDlg({ open, onClose, focus }: Props) {
       productsIds: [] as string [],
       audiencesIds: [] as string[],
       ideasIds: [] as string[],
-      promptsIds: [] as string[],
       photosIds: [] as string[],
       defaultPhotosIds: [] as string[],
+      prompt: "" as string,
     }
   }, [businessId]);
 
@@ -116,7 +116,7 @@ function CreateCreativeDlg({ open, onClose, focus }: Props) {
     productsIds: (value) => isArray(value),
     audiencesIds: (value) => isArray(value),
     ideasIds: (value) => isArray(value),
-    promptsIds: (value) => isArray(value),
+    prompt: (value) => isString(value),
     photosIds: (value) => isArray(value),
     defaultPhotosIds: (value) => isArray(value),
   });
@@ -239,6 +239,7 @@ function CreateCreativeDlg({ open, onClose, focus }: Props) {
     e.preventDefault();
 
     if(selected === "manual") {
+      console.log("FORM ", form);
       await _createCreativeByManual();
     }
 
@@ -412,30 +413,23 @@ function CreateCreativeDlg({ open, onClose, focus }: Props) {
                   </div>
 
                   <div className="mb-3">
-                    { !!promptsOptions.length && (
-                      <>
-                        <div className="flex items-center gap-2 justify-between">
-                          <label className="block text-sm font-medium text-slate-700 text-left mb-1">Prompts</label>
-                        </div>
+                    <>
+                      <div className="flex items-center gap-2 justify-between">
+                        <label className="block text-sm font-medium text-slate-700 text-left mb-1">Prompt</label>
+                      </div>
 
-                        <Select
-                          isMulti
-                          options={promptsOptions}
-                          value={promptsOptions.filter((option: any) =>
-                            form.promptsIds.includes(option.value)
-                          )}
-                          onChange={(selected: any) =>
-                            onChange({
-                              name: "promptsIds",
-                              value: selected.map((o: any) => o.value),
-                            })
-                          }
-                          styles={centeredSelectStyles}
-                        />
-
-                        {errors.promptsIds && <p className="text-red-500 text-sm mt-2 text-left">{errors.promptsIds}</p>}
-                      </>
-                    )}
+                      <textarea
+                        value={form.prompt}
+                        onChange={(e) =>
+                          onChange({
+                            name: "prompt",
+                            value: e.target.value,
+                          })
+                        }
+                        className="w-full mt-1 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
+                        rows={5}
+                      />
+                    </>
                   </div>
                 </div>
 

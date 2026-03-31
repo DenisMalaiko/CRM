@@ -85,7 +85,6 @@ export class AiArtifactService {
       business,
       audiences,
       products,
-      prompts,
       ideas,
       defaultPhotos,
       photos,
@@ -93,7 +92,6 @@ export class AiArtifactService {
       this.prisma.business.findUnique({ where: { id: businessId }}),
       this.prisma.targetAudience.findMany({ where: { id: { in: body.audiencesIds }}}),
       this.prisma.product.findMany({ where: { id: { in: body.productsIds }}}),
-      this.prisma.prompt.findMany({ where: { id: { in: body.promptsIds }}}),
       this.prisma.idea.findMany({ where: { id: { in: body.ideasIds }}}),
       this.prisma.defaultPhoto.findMany({ where: { id: { in: body.defaultPhotosIds }}}),
       this.prisma.galleryPhoto.findMany({ where: { id: { in: body.photosIds }}})
@@ -103,7 +101,7 @@ export class AiArtifactService {
       business,
       audiences,
       products,
-      prompts,
+      prompt: body.prompt,
       ideas,
     }
 

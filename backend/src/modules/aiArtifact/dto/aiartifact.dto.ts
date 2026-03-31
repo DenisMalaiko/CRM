@@ -1,4 +1,4 @@
-import {IsArray, IsEnum, IsOptional, IsUUID} from "class-validator";
+import {IsArray, IsEnum, IsOptional, IsUUID, IsString} from "class-validator";
 import {AIArtifactStatus, AIArtifactType} from "@prisma/client";
 
 export class AiArtifactBaseDto {
@@ -25,9 +25,9 @@ export class CreateAiArtifactDto {
   @IsOptional()
   ideasIds: string[];
 
-  @IsArray()
+  @IsString()
   @IsOptional()
-  promptsIds: string[];
+  prompt: string;
 
   @IsArray()
   @IsOptional()
