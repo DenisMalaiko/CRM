@@ -298,3 +298,72 @@ export function postOutputBlock() {
     Return ONLY JSON.
   `;
 }
+
+export function normalizeUserPromptBlock(prompt: string) {
+  return `
+    ## PROMPT INTERPRETER
+    
+    You receive user prompts (any language, unstructured).
+    
+    INPUT:
+    ${prompt}
+    
+    ---
+    
+    ## YOUR TASK
+    
+    Analyze the input and split it into TWO categories only:
+    
+    1. text → instructions for generating the post text
+    2. image → instructions for generating the image
+    
+    ---
+    
+    ## RULES
+    
+    - Detect language automatically
+    - Understand meaning, not keywords
+    - Translate internally if needed (but output stays in original language if possible)
+    
+    - If instruction relates to:
+      - storytelling, tone, CTA, emotions → text
+      - visual scene, objects, composition, style → image
+    
+    - If something applies to both → include it in BOTH arrays
+    
+    - If user provides explicit text for image (e.g. "write 'SALE' on image"):
+      → include it in "image" (do NOT move to text)
+    
+    - Do NOT invent anything
+    - Do NOT lose important details
+    - Keep instructions short and clear
+    - Extract FULL instructions (complete sentences or meaningful instruction blocks)
+    - DO NOT split instructions into smaller parts or phrases
+    - Each array item must represent ONE complete instruction
+    
+    - Preserve original structure of the user request
+    - If one sentence contains multiple intents:
+      → keep it as ONE item (do not split)
+    
+    - Avoid duplication:
+      → the same instruction should not appear twice in the same category
+    
+    ---
+    
+    ## OUTPUT FORMAT (STRICT JSON ONLY)
+    
+    {
+      "text": string[],
+      "image": string[]
+    }
+    
+    ---
+    
+    ## IMPORTANT
+    
+    - No explanations
+    - No extra fields
+    - No markdown
+    - Only valid JSON
+    `;
+}
