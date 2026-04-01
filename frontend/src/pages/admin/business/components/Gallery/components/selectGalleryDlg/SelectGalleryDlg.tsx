@@ -16,8 +16,9 @@ import {TDefaultGalleryPhoto, TGalleryPhoto} from "../../../../../../../models/G
 import { showError } from "../../../../../../../utils/showError";
 import {useSelector} from "react-redux";
 import {GalleryType} from "../../../../../../../enum/GalleryType";
+import {BusinessProfileFocus} from "../../../../../../../enum/BusinessProfileFocus";
 
-function SelectGalleryDlg({ open, onClose, onSelect, selectedIds }: any) {
+function SelectGalleryDlg({ open, onClose, onSelect, selectedIds, focus }: any) {
   const dispatch = useAppDispatch();
   const { businessId } = useParams<{ businessId: string }>();
   const MAX_SELECTED = 3
@@ -96,85 +97,90 @@ function SelectGalleryDlg({ open, onClose, onSelect, selectedIds }: any) {
 
         {/* Content */}
         <div className="flex-1 overflow-auto">
-          <div className="space-y-10 p-6">
-            <section>
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">
-                  Templates For Posts
-                </h3>
-              </div>
 
-              <div className="grid gap-6 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6">
-                {postPhotos.map(photo => (
-                  <div
-                    key={photo.id}
-                    className="group rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition cursor-pointer"
-                  >
-                    <label className="relative cursor-pointer">
-                      <img
-                        src={photo.url}
-                        className="w-full h-40 object-cover"
-                        alt=""
-                      />
+          {focus === BusinessProfileFocus.GeneratePosts && (
+            <div className="space-y-10 p-6">
+              <section>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">
+                    Templates For Posts
+                  </h3>
+                </div>
 
-                      <div className="absolute top-3 right-3 duration-300">
-                        <input
-                          type="checkbox"
-                          checked={localSelected.includes(photo.id)}
-                          disabled={
-                            !localSelected.includes(photo.id) &&
-                            localSelected.length >= MAX_SELECTED
-                          }
-                          onChange={() => toggle(photo.id)}
-                          className="h-4 w-4 rounded disabled:opacity-40 disabled:cursor-not-allowed"
+                <div className="grid gap-6 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6">
+                  {postPhotos.map(photo => (
+                    <div
+                      key={photo.id}
+                      className="group rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition cursor-pointer"
+                    >
+                      <label className="relative cursor-pointer">
+                        <img
+                          src={photo.url}
+                          className="w-full h-40 object-cover"
+                          alt=""
                         />
-                      </div>
-                    </label>
-                  </div>
-                ))}
-              </div>
-            </section>
-          </div>
 
-          <div className="space-y-10 p-6">
-            <section>
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">
-                  Templates For Stories
-                </h3>
-              </div>
+                        <div className="absolute top-3 right-3 duration-300">
+                          <input
+                            type="checkbox"
+                            checked={localSelected.includes(photo.id)}
+                            disabled={
+                              !localSelected.includes(photo.id) &&
+                              localSelected.length >= MAX_SELECTED
+                            }
+                            onChange={() => toggle(photo.id)}
+                            className="h-4 w-4 rounded disabled:opacity-40 disabled:cursor-not-allowed"
+                          />
+                        </div>
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            </div>
+          )}
 
-              <div className="grid gap-6 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6">
-                {storyPhotos.map(photo => (
-                  <div
-                    key={photo.id}
-                    className="group rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition cursor-pointer"
-                  >
-                    <label className="relative cursor-pointer">
-                      <img
-                        src={photo.url}
-                        className="w-full h-40 object-cover"
-                        alt=""
-                      />
+          {focus === BusinessProfileFocus.GenerateStories && (
+            <div className="space-y-10 p-6">
+              <section>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">
+                    Templates For Stories
+                  </h3>
+                </div>
 
-                      <div className="absolute top-3 right-3 duration-300">
-                        <input
-                          type="checkbox"
-                          checked={localSelected.includes(photo.id)}
-                          disabled={
-                            !localSelected.includes(photo.id) &&
-                            localSelected.length >= MAX_SELECTED
-                          }
-                          onChange={() => toggle(photo.id)}
-                          className="h-4 w-4 rounded disabled:opacity-40 disabled:cursor-not-allowed"
+                <div className="grid gap-6 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6">
+                  {storyPhotos.map(photo => (
+                    <div
+                      key={photo.id}
+                      className="group rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition cursor-pointer"
+                    >
+                      <label className="relative cursor-pointer">
+                        <img
+                          src={photo.url}
+                          className="w-full h-40 object-cover"
+                          alt=""
                         />
-                      </div>
-                    </label>
-                  </div>
-                ))}
-              </div>
-            </section>
-          </div>
+
+                        <div className="absolute top-3 right-3 duration-300">
+                          <input
+                            type="checkbox"
+                            checked={localSelected.includes(photo.id)}
+                            disabled={
+                              !localSelected.includes(photo.id) &&
+                              localSelected.length >= MAX_SELECTED
+                            }
+                            onChange={() => toggle(photo.id)}
+                            className="h-4 w-4 rounded disabled:opacity-40 disabled:cursor-not-allowed"
+                          />
+                        </div>
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            </div>
+          )}
 
           <div className="space-y-10 p-6">
             <section>

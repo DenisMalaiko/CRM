@@ -519,6 +519,7 @@ function CreateCreativeDlg({ open, onClose, focus }: Props) {
 
       <SelectGalleryDlg
         open={openGalleryDlg}
+        focus={focus}
         selectedIds={[...form.photosIds, ...form.defaultPhotosIds]}
         onClose={() => setOpenGalleryDlg(false)}
         onSelect={(selectedPhotos: TGalleryPhoto[]) => {
