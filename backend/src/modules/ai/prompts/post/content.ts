@@ -106,7 +106,7 @@ function getImageName(url: string) {
   return url.split('/').pop();
 }
 
-function postImageStructureBlock(profile, photos) {
+function postImageStructureBlock(profile, photos, imagePrompts) {
   const businessImages= photos.filter(p => p.type === GalleryPhotoType.Image);
   const decorationsImages= photos.filter(p => p.type === GalleryPhotoType.Decoration);
   const designImages = photos.filter(p => p.type === GalleryPhotoType.Post);
@@ -164,7 +164,6 @@ function postImageStructureBlock(profile, photos) {
     `;
   }
 
-
   return `
     ## IMAGE PROMPT STRUCTURE
     
@@ -173,8 +172,26 @@ function postImageStructureBlock(profile, photos) {
     ### SCENE (ENGLISH ONLY):
     Scene: "${scene}"
     
+    ### USER CUSTOM PROMPT (TRANSLATE + APPLY)
+    Original instructions:
+    UserPrompt: "${imagePrompts.join('\n')}"
+    
+    🚨 CRITICAL:
+    
+    You MUST:
+    - Translate the instructions to English
+    - Immediately apply them inside the UserPrompt
+    
+    ❗ DO NOT output the translation separately
+    ❗ DO NOT keep original language
+    ❗ ONLY use English inside UserPrompt
+    
+    If instructions are not applied → INVALID OUTPUT
+    
+    
     #### GENERAL RULES:
     - Scene MUST be in English
+    - UserPrompt MUST be in English
     - Describe ONLY the provided images
     - DO NOT invent anything
     - DO NOT use post text (hook, body, CTA)
@@ -220,7 +237,7 @@ export function postImagePromptBlock(imagePrompts, profile, photos) {
     - Use ONLY frontend input
     - Ignore any previously generated content
     - Do NOT generate text
-    - Do NOT rewrite text
+    - You MAY transform text ONLY for translation purposes
     
     Mapping:
     - title = first item
@@ -231,7 +248,7 @@ export function postImagePromptBlock(imagePrompts, profile, photos) {
     
     Language: ${profile.business.language}
     
-    ${postImageStructureBlock(profile, photos)}
+    ${postImageStructureBlock(profile, photos, imagePrompts)}
   `;
   } else {
     return `
@@ -268,7 +285,7 @@ export function postImagePromptBlock(imagePrompts, profile, photos) {
     - Do NOT invent new ideas
     - Stay consistent with your generated post
     
-    ${postImageStructureBlock(profile, photos)}
+    ${postImageStructureBlock(profile, photos, imagePrompts)}
   `;
   }
 }
@@ -287,6 +304,7 @@ export function postOutputBlock() {
           "emotional_angle": "...",
           "image_prompt": {
             "scene": "string",
+            "userPrompt": "string",
             "title": "string",
             "subtitle": "string",
             "caption": "string"

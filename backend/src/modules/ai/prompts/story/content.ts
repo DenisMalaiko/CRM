@@ -138,7 +138,7 @@ function getImageName(url: string) {
   return url.split('/').pop();
 }
 
-function storyImageStructureBlock(profile, photos) {
+function storyImageStructureBlock(profile, photos, imagePrompts) {
   const businessImages = photos.filter(p => p.type === GalleryPhotoType.Image);
   const decorationsImages = photos.filter(p => p.type === GalleryPhotoType.Decoration);
   const designImages = photos.filter(p => p.type === GalleryPhotoType.Post);
@@ -200,8 +200,25 @@ function storyImageStructureBlock(profile, photos) {
     ### SCENE (ENGLISH ONLY):
     Scene: "${scene}"
     
+    ### USER CUSTOM PROMPT (TRANSLATE + APPLY)
+    Original instructions:
+    UserPrompt: "${imagePrompts.join('\n')}"
+    
+    🚨 CRITICAL:
+    
+    You MUST:
+    - Translate the instructions to English
+    - Immediately apply them inside the UserPrompt
+    
+    ❗ DO NOT output the translation separately
+    ❗ DO NOT keep original language
+    ❗ ONLY use English inside UserPrompt
+    
+    If instructions are not applied → INVALID OUTPUT
+    
     #### GENERAL RULES:
     - Scene MUST be in English
+    - UserPrompt MUST be in English
     - Describe ONLY the provided images
     - DO NOT invent anything
     - DO NOT use post text (hook, body, CTA)
@@ -258,7 +275,7 @@ export function storyImagePromptBlock(imagePrompts, profile, photos) {
     
     Language: ${profile.business.language}
     
-    ${storyImageStructureBlock(profile, photos)}
+    ${storyImageStructureBlock(profile, photos, imagePrompts)}
   `;
   } else {
     return `
@@ -295,7 +312,7 @@ export function storyImagePromptBlock(imagePrompts, profile, photos) {
     - Do NOT invent new ideas
     - Stay consistent with your generated post
     
-    ${storyImageStructureBlock(profile, photos)}
+    ${storyImageStructureBlock(profile, photos, imagePrompts)}
   `;
   }
 }
@@ -315,6 +332,7 @@ export function storyOutputBlock() {
           "visual_description": "string",
           "image_prompt": {
             "scene": "string",
+            "userPrompt": "string",
             "title": "string",
             "subtitle": "string",
             "caption": "string"

@@ -89,7 +89,7 @@ export class AiService {
 
     for (const post of posts) {
       if (post.image_prompt) {
-        console.log("POST ", post);
+        console.log("MANUAL POST ", post);
         post.imageUrl = await this.aiReplicate.generateImageOpenAI(post.image_prompt, settings.business.id, photos);
       }
     }
@@ -98,14 +98,14 @@ export class AiService {
   }
 
   async generateStoriesBasedOnManuallySettings(settings, photos: Photo[]): Promise<AiPost[]> {
-    const prompt = this.buildPromptForStoriesManually(settings, photos);
+    const prompt = await this.buildPromptForStoriesManually(settings, photos);
     const response = await this.model.invoke(prompt);
     const rawText = this.extractTextContent(response.content);
     const stories: AiPost[] = JSON.parse(rawText)?.stories ?? [];
 
     for (const story of stories) {
       if (story.image_prompt) {
-        console.log("STORY ", story);
+        console.log("MANUAL STORY ", story);
         story.imageUrl = await this.aiReplicate.generateStoryImageOpenAI(story.image_prompt, settings.business.id, photos);
       }
     }
@@ -200,25 +200,15 @@ export class AiService {
   }
 
   private async buildPromptForPostsManually(profile, photos) {
-    const customPrompt = normalizeUserPromptBlock(profile.settings.prompt);
+    const customPrompt = normalizeUserPromptBlock(profile.prompt);
     const customPromptResponse = await this.model.invoke(customPrompt);
     const customPromptRawText = this.extractTextContent(customPromptResponse.content);
-    const text = JSON.parse(customPromptRawText)?.text ?? [];
-    const image = JSON.parse(customPromptRawText)?.image ?? [];
+    const textPrompts = JSON.parse(customPromptRawText)?.text ?? [];
+    const imagePrompts = JSON.parse(customPromptRawText)?.image ?? [];
 
-    console.log("CUSTOM PROMPT ", customPromptRawText);
-    console.log("TEXT PROMPT ", text);
-    console.log("IMAGE PROMPT ", image);
-
-    return "";
-
-
-/*    const audienceBlock = this.getAudiences(profile.audiences);
+    const audienceBlock = this.getAudiences(profile.audiences);
     const productsBlock = this.getProducts(profile.products);
     const ideasBlock = this.getIdeas(profile.ideas);
-
-    const textPrompts = this.buildPromptsBlock(profile.prompts.filter(p => p.purpose === 'Text'));
-    const imagePrompts = profile.prompts.filter(p => p.purpose === "Image" && p.isActive).map(p => p.text);
 
     const prompt = [
       postRoleBlock(),
@@ -231,7 +221,7 @@ export class AiService {
       postOutputBlock()
     ]
 
-    return prompt.join('\n\n');*/
+    return prompt.join('\n\n');
   }
 
   private buildPromptForStories(profile, photos) {
@@ -673,12 +663,16 @@ export class AiService {
           Return ONLY the JSON object. No explanations.`*/
   }
 
-  private buildPromptForStoriesManually(profile, photos) {
+  private async buildPromptForStoriesManually(profile, photos) {
+    const customPrompt = normalizeUserPromptBlock(profile.prompt);
+    const customPromptResponse = await this.model.invoke(customPrompt);
+    const customPromptRawText = this.extractTextContent(customPromptResponse.content);
+    const textPrompts = JSON.parse(customPromptRawText)?.text ?? [];
+    const imagePrompts = JSON.parse(customPromptRawText)?.image ?? [];
+
     const audienceBlock = this.getAudiences(profile.audiences);
     const productsBlock = this.getProducts(profile.products);
     const ideasBlock = this.getIdeas(profile.ideas);
-    const textPrompts = this.buildPromptsBlock(profile.prompts.filter(p => p.purpose === 'Text'));
-    const imagePrompts = profile.prompts.filter(p => p.purpose === "Image" && p.isActive).map(p => p.text);
 
     const prompt = [
       storyRoleBlock(),

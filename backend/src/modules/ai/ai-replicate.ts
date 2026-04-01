@@ -126,6 +126,11 @@ export class AiReplicate {
             
             --------------------------------------------------
             
+            USER INSTRUCTION
+            ${prompt.userPrompt}
+            
+            --------------------------------------------------
+            
            
             TEMPLATE REPLICATION MODE
             ${postImageTemplateReplicationMode(referenceRule)}
@@ -243,6 +248,11 @@ export class AiReplicate {
             
             STORY IDEA
             ${prompt.scene}
+            
+            --------------------------------------------------
+            
+            USER INSTRUCTION
+            ${prompt.userPrompt}
             
             --------------------------------------------------
             
