@@ -100,6 +100,7 @@ export class AiReplicate {
           }
         ]
       });
+
       const parsedDesign = this.safeParseJson(response.output_text);
       const hasRealText = this.hasRealTextInPosts(parsedDesign);
 
@@ -183,6 +184,7 @@ export class AiReplicate {
             ${postImageQuality()}
           `,
           resolution: "2K",
+          aspect_ratio: "1:1",
           safety_filter_level: "block_only_high",
           image_input: photos.map(photo => photo.url),
           allow_fallback_model: false
@@ -307,6 +309,7 @@ export class AiReplicate {
             ${storyImageQuality()}
           `,
           resolution: "2K",
+          aspect_ratio: "9:16",
           safety_filter_level: "block_only_high",
           image_input: photos.map(photo => photo.url),
           allow_fallback_model: false
@@ -327,7 +330,6 @@ export class AiReplicate {
 
 
   // Utils
-
   private getFileName(url: string) {
     return url.split("/").pop();
   }

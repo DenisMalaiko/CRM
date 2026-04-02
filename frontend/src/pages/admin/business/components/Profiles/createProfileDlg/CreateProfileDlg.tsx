@@ -390,6 +390,7 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
 
       <SelectGalleryDlg
         open={openGalleryDlg}
+        focus={form.profileFocus}
         selectedIds={[...form.photosIds, ...form.defaultPhotosIds]}
         onClose={() => setOpenGalleryDlg(false)}
         onSelect={(selectedPhotos: TGalleryPhoto[]) => {
