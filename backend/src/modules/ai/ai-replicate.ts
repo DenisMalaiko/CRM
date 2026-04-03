@@ -117,9 +117,10 @@ export class AiReplicate {
     console.log("-----------")
     console.log("ACTOR ", process.env.REPLICATE_API_ACTOR)
     console.log("-----------")
+    /*process.env.REPLICATE_API_ACTOR,*/
 
     const stream = await this.replicate.run(
-      process.env.REPLICATE_API_ACTOR,
+      'google/nano-banana-pro',
       {
         input: {
           prompt: `
@@ -248,8 +249,9 @@ export class AiReplicate {
     console.log("ACTOR ", process.env.REPLICATE_API_ACTOR)
     console.log("-----------")
 
+    /*process.env.REPLICATE_API_ACTOR,*/
     const stream = await this.replicate.run(
-      process.env.REPLICATE_API_ACTOR,
+      'google/nano-banana-pro',
       {
         input: {
           prompt: `
