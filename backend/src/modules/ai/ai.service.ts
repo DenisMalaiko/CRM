@@ -5,6 +5,7 @@ import {AiPost} from "./entities/aiPost.entity";
 import {AiReplicate} from "./ai-replicate";
 import {GalleryPhotoType} from "@prisma/client";
 import {IdeasBatchSchema} from "../idea/schema/idea.schema";
+import * as process from "node:process";
 
 import {
   postRoleBlock,
