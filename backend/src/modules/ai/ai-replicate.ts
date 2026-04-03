@@ -1,6 +1,7 @@
 import { randomUUID } from "crypto";
 import { GalleryPhotoType } from "@prisma/client";
 import { inspect } from "util";
+import * as process from "node:process";
 
 import OpenAI from "openai";
 const Replicate = require("replicate");
@@ -112,6 +113,10 @@ export class AiReplicate {
       textRule = postImageDoesntHaveRealText();
       referenceRule = postImageNoReferenceImages();
     }
+
+    console.log("-----------")
+    console.log("ACTOR ", process.env.REPLICATE_API_ACTOR)
+    console.log("-----------")
 
     const stream = await this.replicate.run(
       process.env.REPLICATE_API_ACTOR,
@@ -238,6 +243,10 @@ export class AiReplicate {
       textRule = storyImageDoesntHaveRealText();
       referenceRule = storyImageNoReferenceImages();
     }
+
+    console.log("-----------")
+    console.log("ACTOR ", process.env.REPLICATE_API_ACTOR)
+    console.log("-----------")
 
     const stream = await this.replicate.run(
       process.env.REPLICATE_API_ACTOR,
