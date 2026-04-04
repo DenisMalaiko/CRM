@@ -22,50 +22,54 @@ export class IdeaService {
 
   async fetchIdeas(businessId: string, body: TIdeaParams): Promise<TIdea[] | null> {
     const competitors = await this.competitorService.getCompetitors(businessId);
-    const posts: any = [];
 
-    for (const competitor of competitors) {
-      if (!competitor?.facebookLink) continue;
+    const results = await Promise.allSettled(
+      competitors
+        .filter(c => c?.facebookLink)
+        .map(async (competitor) => {
+          try {
+            const competitorPosts = await this.facebookService.fetchPosts(
+              competitor.id,
+              competitor.facebookLink,
+              body
+            );
 
-      try {
-        const competitorPosts = await this.facebookService.fetchPosts(
-          competitor.id,
-          competitor.facebookLink,
-          body
-        );
+            if (!competitorPosts?.length) return [];
 
-        if (!competitorPosts?.length) continue;
+            const savedPosts = await this.competitorService.savePosts(
+              competitor.id,
+              competitorPosts
+            );
 
-        const savedPosts = await this.competitorService.savePosts(
-          competitor.id,
-          competitorPosts
-        );
+            return savedPosts;
 
-        posts.push(...savedPosts);
+          } catch (error) {
+            console.error(
+              `Failed to fetch posts for competitor ${competitor.id}`,
+              error.message
+            );
+            return [];
+          }
+        })
+    );
 
-      } catch (error) {
-        console.error(
-          `Failed to fetch posts for competitor ${competitor.id}`,
-          error.message
-        );
-
-        continue;
-      }
-    }
+    const posts = results
+      .filter(r => r.status === 'fulfilled')
+      .flatMap((r: any) => r.value);
 
     const result = await this.aiService.analyzeCompetitorPosts(posts);
 
     const data = result.map((post: any) => {
-      const item = posts.find((p) => p.id === post.competitorPostId);
+      const item: any = posts.find((p) => p.id === post.competitorPostId);
 
       return {
         ...post,
-        businessId: businessId,
+        businessId,
         competitorId: item.competitorId,
         score: this.calculateIdeaScore(item),
         url: item.url,
-      }
-    })
+      };
+    });
 
     return await this.saveIdeas(data);
   }
