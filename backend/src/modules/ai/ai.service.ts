@@ -59,7 +59,7 @@ export class AiService {
     for (const post of posts) {
       if (post.image_prompt) {
         console.log("POST ", post);
-        post.imageUrl = await this.aiReplicate.generateImageOpenAI(post.image_prompt, profile.businessId, photos);
+        // post.imageUrl = await this.aiReplicate.generateImageOpenAI(post.image_prompt, profile.businessId, photos);
       }
     }
 
@@ -75,7 +75,7 @@ export class AiService {
     for (const story of stories) {
       if (story.image_prompt) {
         console.log("STORY ", story);
-        story.imageUrl = await this.aiReplicate.generateStoryImageOpenAI(story.image_prompt, profile.businessId, photos);
+        // story.imageUrl = await this.aiReplicate.generateStoryImageOpenAI(story.image_prompt, profile.businessId, photos);
       }
     }
 
@@ -91,7 +91,7 @@ export class AiService {
     for (const post of posts) {
       if (post.image_prompt) {
         console.log("MANUAL POST ", post);
-        post.imageUrl = await this.aiReplicate.generateImageOpenAI(post.image_prompt, settings.business.id, photos);
+        // post.imageUrl = await this.aiReplicate.generateImageOpenAI(post.image_prompt, settings.business.id, photos);
       }
     }
 
@@ -107,7 +107,7 @@ export class AiService {
     for (const story of stories) {
       if (story.image_prompt) {
         console.log("MANUAL STORY ", story);
-        story.imageUrl = await this.aiReplicate.generateStoryImageOpenAI(story.image_prompt, settings.business.id, photos);
+        // story.imageUrl = await this.aiReplicate.generateStoryImageOpenAI(story.image_prompt, settings.business.id, photos);
       }
     }
 
