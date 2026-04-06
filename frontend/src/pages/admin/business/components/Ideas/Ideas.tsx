@@ -223,7 +223,7 @@ function Ideas() {
       <div className="rounded-2xl bg-white shadow border border-slate-200 mb-5">
         <section>
           <div className="border-b p-4 flex items-center justify-between">
-            <h2 className="text-lg text-left font-semibold text-slate-800">Posts Ideas</h2>
+            <h2 className="text-lg text-left font-semibold text-slate-800">Competitors Ideas</h2>
 
 
             <div className="flex items-center gap-3">

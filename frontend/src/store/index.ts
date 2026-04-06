@@ -14,6 +14,7 @@ import competitorModule from "./competitor/competitorSlice";
 import galleryModule from "./gallery/gallerySlice";
 import ideaModule from "./idea/ideaSlice";
 import trendsModule from "./trends/trendsSlice";
+import ideaAiModule from "./ai/ideas/ideaAiSlice";
 import { api } from './api/api'
 
 export const store = configureStore({
@@ -32,6 +33,7 @@ export const store = configureStore({
     competitorModule: competitorModule,
     galleryModule: galleryModule,
     ideaModule: ideaModule,
+    ideaAiModule: ideaAiModule,
     trendsModule: trendsModule,
     [api.reducerPath]: api.reducer,
   },
