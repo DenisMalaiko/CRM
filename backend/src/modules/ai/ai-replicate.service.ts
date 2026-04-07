@@ -63,7 +63,7 @@ import {
 } from "./prompts/story/image";
 
 @Injectable()
-export class AiReplicate {
+export class AiReplicateService {
   private readonly replicate;
   private client: any;
 

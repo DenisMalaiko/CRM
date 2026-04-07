@@ -2,10 +2,12 @@ import {Injectable} from '@nestjs/common';
 import {ChatOpenAI} from "@langchain/openai";
 import {TProfile} from "../profiles/entities/profile.entity";
 import {AiPost} from "./entities/aiPost.entity";
-import {AiReplicate} from "./ai-replicate";
+import {AiReplicateService} from "./ai-replicate.service";
 import {GalleryPhotoType} from "@prisma/client";
 import {IdeasBatchSchema} from "../idea/schema/idea.schema";
+import {IdeaAISchema} from "../ideaAI/schema/ideaAI.schema";
 import * as process from "node:process";
+import {ideaPrompt} from "./prompts/idea/idea";
 
 import {
   postRoleBlock,
@@ -41,7 +43,7 @@ export class AiService {
   private model: ChatOpenAI;
 
   constructor(
-    private readonly aiReplicate: AiReplicate,
+    private readonly aiReplicate: AiReplicateService,
   ) {
     this.model = new ChatOpenAI({
       model: 'gpt-4o-mini',
@@ -172,6 +174,16 @@ export class AiService {
       Posts:
       ${JSON.stringify(payload)}
      `;
+
+    const result = await structuredModel.invoke(prompt);
+
+    return result.ideas;
+  }
+
+  async generateIdeas(business) {
+    const structuredModel = this.model.withStructuredOutput(IdeaAISchema);
+
+    const prompt = ideaPrompt(business);
 
     const result = await structuredModel.invoke(prompt);
 
