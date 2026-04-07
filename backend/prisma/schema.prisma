@@ -53,6 +53,7 @@ model Business {
   products         Product[]
   prompts          Prompt[]
   ideas            Idea[]
+  ideasAI          IdeaAI[]
 }
 
 model BusinessProfile {
@@ -72,6 +73,7 @@ model BusinessProfile {
   tags         BusinessProfileTag[]
   audiences    BusinessProfileTargetAudience[]
   ideas        BusinessProfileIdea[]
+  ideasAI      BusinessProfileIdeaAI[]
   trendMatches BusinessTrendMatch[]
 }
 
@@ -255,6 +257,23 @@ model Idea {
   @@unique([businessId, competitorPostId, competitorId])
 }
 
+model IdeaAI {
+  id        String  @id @default(uuid())
+  businessId    String
+  title         String
+  description   String
+  who           IdeaWho
+  what          IdeaWhat
+  why           IdeaWhy
+  how           IdeaHow
+  feeling       IdeaFeeling
+  createdAt     DateTime   @default(now())
+  status        IdeaStatus @default(New)
+
+  profiles      BusinessProfileIdeaAI[]
+  business      Business   @relation(fields: [businessId], references: [id])
+}
+
 model Trend {
   id          String                 @id @default(uuid())
   platformId  String
@@ -316,6 +335,15 @@ model BusinessProfileIdea {
   idea              Idea            @relation(fields: [ideaId], references: [id], onDelete: Cascade)
 
   @@id([businessProfileId, ideaId])
+}
+
+model BusinessProfileIdeaAI {
+  businessProfileId String
+  ideaAIId          String
+  businessProfile   BusinessProfile @relation(fields: [businessProfileId], references: [id], onDelete: Cascade)
+  ideaAI            IdeaAI            @relation(fields: [ideaAIId], references: [id], onDelete: Cascade)
+
+  @@id([businessProfileId, ideaAIId])
 }
 
 model BusinessProfilePrompt {

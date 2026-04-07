@@ -96,7 +96,7 @@ export class IdeaService {
 
   async updateIdea(id: string, body: TIdeaUpdate): Promise<TIdea> {
     if (!id) {
-      throw new NotFoundException('Platform ID is required');
+      throw new NotFoundException('Idea ID is required');
     }
 
     try {

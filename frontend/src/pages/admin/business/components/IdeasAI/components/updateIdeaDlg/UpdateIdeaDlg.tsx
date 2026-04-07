@@ -10,28 +10,30 @@ import { useValidation } from "../../../../../../../hooks/useValidation";
 // Redux
 import { useAppDispatch } from "../../../../../../../store/hooks";
 import {
-  useUpdateIdeaMutation,
-  useGetIdeasMutation
-} from "../../../../../../../store/idea/ideaApi";
-import { setIdeas } from "../../../../../../../store/idea/ideaSlice";
+  useUpdateIdeaAIMutation,
+  useLazyGetIdeasAIQuery
+} from "../../../../../../../store/ai/ideas/ideaAiApi";
+import { setIdeasAi } from "../../../../../../../store/ai/ideas/ideaAiSlice";
 
 // ENUM
 import { IdeaStatus } from "../../../../../../../enum/IdeaStatus";
 
-// UTILS
-import { isRequired, minLength } from "../../../../../../../utils/validations";
+// Models
+import { ApiResponse } from "../../../../../../../models/ApiResponse";
+import { TIdeaAI } from "../../../../../../../models/IdeaAI";
+
+// Utils
+import { isRequired } from "../../../../../../../utils/validations";
 import { showError } from "../../../../../../../utils/showError";
 import { ChangeArg, isNativeEvent } from "../../../../../../../utils/isNativeEvent";
-import {ApiResponse} from "../../../../../../../models/ApiResponse";
-import {TIdea} from "../../../../../../../models/Idea";
 
-function UpdateIdeaDlg({ open, onClose, idea }: any) {
+function UpdateIdeaAIDlg({ open, onClose, idea }: any) {
   const dispatch = useAppDispatch();
   const { businessId } = useParams<{ businessId: string }>();
   const StatusList = Object.values(IdeaStatus);
 
-  const [ updateIdea, { isLoading } ] = useUpdateIdeaMutation();
-  const [ getIdeas ] = useGetIdeasMutation();
+  const [ updateIdeaAI, { isLoading } ] = useUpdateIdeaAIMutation();
+  const [ getIdeasAI ] = useLazyGetIdeasAIQuery();
 
   // Init Form
   const initialForm = useMemo(() => {
@@ -63,13 +65,13 @@ function UpdateIdeaDlg({ open, onClose, idea }: any) {
     if (!validateAll(form)) return;
 
     try {
-      const response = await updateIdea({ id: idea!.id, form }).unwrap();
+      const response = await updateIdeaAI({ id: idea!.id, form }).unwrap();
 
       if(response && response?.data) {
-        const responseIdeas: ApiResponse<TIdea[]> = await getIdeas(businessId).unwrap();
+        const responseIdeas: ApiResponse<TIdeaAI[]> = await getIdeasAI(businessId).unwrap();
 
         if(responseIdeas && responseIdeas?.data) {
-          dispatch(setIdeas(responseIdeas.data));
+          dispatch(setIdeasAi(responseIdeas.data));
           toast.success(response.message);
           onClose()
         }
@@ -97,12 +99,13 @@ function UpdateIdeaDlg({ open, onClose, idea }: any) {
     validateField(name as keyof typeof form, value, form);
   };
 
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50">
       <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl p-6">
 
         <div className="flex items-center justify-between mb-4 relative">
-          <h2 className="text-lg font-semibold">Edit Idea</h2>
+          <h2 className="text-lg font-semibold">Edit Idea AI</h2>
 
           <button
             onClick={onClose}
@@ -166,4 +169,4 @@ function UpdateIdeaDlg({ open, onClose, idea }: any) {
   )
 }
 
-export default UpdateIdeaDlg;
+export default UpdateIdeaAIDlg;

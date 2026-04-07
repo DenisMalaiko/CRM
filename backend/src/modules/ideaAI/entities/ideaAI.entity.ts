@@ -1,10 +1,6 @@
 import { IdeaWho, IdeaWhat, IdeaWhy, IdeaHow, IdeaFeeling, IdeaStatus } from "@prisma/client";
 
-export type TIdeaParams = {
-  onlyPostsNewerThan: string;
-};
-
-export type TIdea = {
+export type TIdeaAI = {
   id: string;
   businessId: string;
   title: string;
@@ -14,11 +10,10 @@ export type TIdea = {
   why: IdeaWhy;
   how: IdeaHow;
   feeling: IdeaFeeling;
-  score: number;
   createdAt: Date;
   status: IdeaStatus;
 }
 
-export class TIdeaUpdate {
+export type TIdeaAIUpdate = {
   status: IdeaStatus;
 }
