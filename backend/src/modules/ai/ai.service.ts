@@ -180,10 +180,10 @@ export class AiService {
     return result.ideas;
   }
 
-  async generateIdeas(business) {
+  async generateIdeas(business, existingIdeas: Array<{ title: string; description: string }>) {
     const structuredModel = this.model.withStructuredOutput(IdeaAISchema);
 
-    const prompt = ideaPrompt(business);
+    const prompt = ideaPrompt(business, existingIdeas);
 
     const result = await structuredModel.invoke(prompt);
 

@@ -18,12 +18,13 @@ import { useGetIdeasMutation } from "../../store/idea/ideaApi";
 import { useGetPhotosMutation, useLazyGetDefaultPhotosQuery } from "../../store/gallery/galleryApi";
 import { useLazyGetAiArtifactsQuery, useCreateCreativeManuallyMutation } from "../../store/artifact/artifactApi";
 
+
 import { setProfiles } from "../../store/profile/profileSlice";
 import { setProducts } from "../../store/products/productsSlice";
 import { setAudiences } from "../../store/audience/audienceSlice";
 import { setPrompts } from "../../store/prompts/promptSlice";
 import { setIdeas } from "../../store/idea/ideaSlice";
-import {setPosts, setStories} from "../../store/artifact/artifactSlice";
+import { setPosts, setStories } from "../../store/artifact/artifactSlice";
 
 // Models
 import { ApiResponse } from "../../models/ApiResponse";
