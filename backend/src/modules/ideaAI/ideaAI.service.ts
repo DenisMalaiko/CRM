@@ -29,7 +29,15 @@ export class IdeaAIService {
       }
     });
 
-    const ideas = await this.aiService.generateIdeas(business);
+    const ideasAI = await this.prisma.ideaAI.findMany({
+      where: { businessId: businessId },
+      select: {
+        title: true,
+        description: true,
+      }
+    })
+
+    const ideas = await this.aiService.generateIdeas(business, ideasAI);
 
     return await Promise.allSettled(
       ideas.map((idea) =>

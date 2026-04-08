@@ -1,4 +1,7 @@
-export function ideaPrompt(business) {
+export function ideaPrompt(
+  business,
+  existingIdeas: Array<{ title: string; description: string }>
+) {
   return `
   ${ideaRoleBlock()}
   
@@ -8,6 +11,12 @@ export function ideaPrompt(business) {
   
   Business:
   ${JSON.stringify(business, null, 2)}
+  
+  ---
+  
+  ## EXISTING IDEAS (DO NOT REPEAT OR PARAPHRASE)
+  
+  ${JSON.stringify(existingIdeas, null, 2)}
   
   ---
   
@@ -122,7 +131,13 @@ function ideaRules() {
   return `
     ## IMPORTANT
     
-    - DO NOT repeat ideas
+    - DO NOT repeat existing ideas
+    - DO NOT paraphrase, reword, or slightly modify existing ideas
+    - DO NOT generate ideas with the same core scenario, same hook, or same content angle as existing ideas
+    - Every new idea must be DISTINCT in topic, scenario, emotional hook, and execution format
+    - If an existing idea is about children's success stories, do not generate another success-story variation
+    - If an existing idea is about outdoor training benefits, do not generate another outdoor-training variation
+    - DO NOT repeat ideas inside the same batch
     - DO NOT generate generic ideas
     - DO NOT output anything except JSON
     - Ideas should be usable for Instagram / Facebook content directly
