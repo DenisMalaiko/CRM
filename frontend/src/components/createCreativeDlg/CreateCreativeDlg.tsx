@@ -17,6 +17,7 @@ import { useGetPromptsMutation } from "../../store/prompts/promptApi";
 import { useGetIdeasMutation } from "../../store/idea/ideaApi";
 import { useGetPhotosMutation, useLazyGetDefaultPhotosQuery } from "../../store/gallery/galleryApi";
 import { useLazyGetAiArtifactsQuery, useCreateCreativeManuallyMutation } from "../../store/artifact/artifactApi";
+import { useLazyGetIdeasAIQuery } from "../../store/ai/ideas/ideaAiApi";
 
 
 import { setProfiles } from "../../store/profile/profileSlice";
@@ -25,6 +26,7 @@ import { setAudiences } from "../../store/audience/audienceSlice";
 import { setPrompts } from "../../store/prompts/promptSlice";
 import { setIdeas } from "../../store/idea/ideaSlice";
 import { setPosts, setStories } from "../../store/artifact/artifactSlice";
+import { setIdeasAi } from "../../store/ai/ideas/ideaAiSlice";
 
 // Models
 import { ApiResponse } from "../../models/ApiResponse";
@@ -35,6 +37,7 @@ import { TPrompt } from "../../models/Prompt";
 import { TIdea } from "../../models/Idea";
 import { TGalleryPhoto } from "../../models/Gallery";
 import { TAIArtifact } from "../../models/AIArtifact";
+import { TIdeaAI } from "../../models/IdeaAI";
 
 // Components
 import Select from "react-select";
@@ -72,12 +75,14 @@ function CreateCreativeDlg({ open, onClose, focus }: Props) {
   const [ createCreativeManually ] = useCreateCreativeManuallyMutation();
   const [ getPhotos ] = useGetPhotosMutation();
   const [ getDefaultPhotos ] = useLazyGetDefaultPhotosQuery();
+  const [ getIdeasAI ] = useLazyGetIdeasAIQuery();
 
   const { profiles } = useSelector((state: any) => state.profileModule);
   const { products } = useSelector((state: any) => state.productsModule);
   const { audiences } = useSelector((state: any) => state.audienceModule);
   const { prompts } = useSelector((state: any) => state.promptModule);
   const { ideas } = useSelector((state: any) => state.ideaModule);
+  const { ideasAi } = useSelector((state: any) => state.ideaAiModule);
   const { photos, defaultPhotos } = useSelector((state: any) => state.galleryModule);
 
   const profilesOptions = profiles?.filter((profile: TBusinessProfile) => profile.profileFocus === focus).map((profile: TBusinessProfile) => ({ value: profile.id, label: profile.name })) ?? [];
@@ -85,6 +90,7 @@ function CreateCreativeDlg({ open, onClose, focus }: Props) {
   const audiencesOptions = audiences?.map((audience: TAudience) => ({ value: audience.id, label: audience.name })) ?? [];
   const promptsOptions = prompts?.map((prompt: TPrompt) => ({ value: prompt.id, label: `${prompt.name} | ${prompt.purpose}` })) ?? [];
   const ideasOptions = ideas?.filter((idea: TIdea) => idea.status === IdeaStatus.Used).map((idea: TIdea) => ({ value: idea.id, label: idea.title })) ?? [];
+  const ideasAiOptions = ideasAi?.map((ideaAi: TIdeaAI) => ({ value: ideaAi.id, label: ideaAi.title })) ?? [];
   const mappedPhotos = photos.map((photo: any) => ({ ...photo, isDefault: false }));
   const mappedDefaultPhotos = defaultPhotos.map((photo: any) => ({ ...photo, isDefault: true }));
   const allPhotos = [...mappedDefaultPhotos, ...mappedPhotos];
@@ -102,6 +108,7 @@ function CreateCreativeDlg({ open, onClose, focus }: Props) {
       productsIds: [] as string [],
       audiencesIds: [] as string[],
       ideasIds: [] as string[],
+      ideasAiIds: [] as string[],
       photosIds: [] as string[],
       defaultPhotosIds: [] as string[],
       prompt: "" as string,
@@ -117,6 +124,7 @@ function CreateCreativeDlg({ open, onClose, focus }: Props) {
     productsIds: (value) => isArray(value),
     audiencesIds: (value) => isArray(value),
     ideasIds: (value) => isArray(value),
+    ideasAiIds: (value) => isArray(value),
     prompt: (value) => isString(value),
     photosIds: (value) => isArray(value),
     defaultPhotosIds: (value) => isArray(value),
@@ -132,12 +140,14 @@ function CreateCreativeDlg({ open, onClose, focus }: Props) {
           const audiencesResponse: ApiResponse<TAudience[]> = await getAudiences(businessId).unwrap();
           const promptsResponse: ApiResponse<TPrompt[]> = await getPrompts(businessId).unwrap();
           const ideasResponse: ApiResponse<TIdea[]> = await getIdeas(businessId).unwrap();
+          const ideasAiResponse: ApiResponse<TIdeaAI[]> = await getIdeasAI(businessId).unwrap();
 
           if(response && response?.data) dispatch(setProfiles(response.data));
           if(productsResponse && productsResponse?.data) dispatch(setProducts(productsResponse.data));
           if(audiencesResponse && audiencesResponse?.data) dispatch(setAudiences(audiencesResponse.data));
           if(promptsResponse && promptsResponse?.data) dispatch(setPrompts(promptsResponse.data));
           if(ideasResponse && ideasResponse?.data) dispatch(setIdeas(ideasResponse.data));
+          if(ideasAiResponse && ideasAiResponse?.data) dispatch(setIdeasAi(ideasAiResponse.data));
         }
       } catch (error) {
         showError(error);
@@ -146,6 +156,33 @@ function CreateCreativeDlg({ open, onClose, focus }: Props) {
 
     fetchData();
   }, [dispatch])
+
+  const allIdeasOptions = useMemo(() => {
+    return [
+      ...(ideas ?? [])
+        .filter((idea: TIdea) => idea.status === IdeaStatus.Used)
+        .map((idea: TIdea) => ({
+          label: `${idea.title}`,
+          value: idea.id,
+          type: "manual" as const,
+      })),
+      ...(ideasAi ?? [])
+        .filter((idea: TIdea) => idea.status === IdeaStatus.Used)
+        .map((idea: TIdeaAI) => ({
+        label: `${idea.title}`,
+        value: idea.id,
+        type: "ai" as const,
+      })),
+    ];
+  }, [ideas, ideasAi]);
+
+  const selectedValue = useMemo(() => {
+    const allSelectedIds = [...form.ideasIds, ...form.ideasAiIds];
+
+    return allIdeasOptions.find((option) =>
+      allSelectedIds.includes(option.value)
+    );
+  }, [form.ideasIds, form.ideasAiIds, allIdeasOptions]);
 
   if (!open) return null;
   if (!businessId) return null;
@@ -361,23 +398,49 @@ function CreateCreativeDlg({ open, onClose, focus }: Props) {
                   </div>
 
                   <div className="mb-3">
-                    { !!ideasOptions.length && (
+                    { !!allIdeasOptions.length && (
                       <>
                         <div className="flex items-center gap-2 justify-between">
                           <label className="block text-sm font-medium text-slate-700 text-left mb-1">Ideas</label>
                         </div>
 
                         <Select
-                          options={ideasOptions}
-                          value={ideasOptions.find(
-                            (option: { label: string, value: string }) => form.ideasIds[0] === option.value
+                          options={allIdeasOptions}
+                          value={selectedValue}
+                          onChange={(selected) => {
+                            if (!selected) {
+                              onChange({ name: "ideasIds", value: [] });
+                              onChange({ name: "ideasAiIds", value: [] });
+                              return;
+                            }
+
+                            if (selected.type === "manual") {
+                              onChange({ name: "ideasIds", value: [selected.value] });
+                              onChange({ name: "ideasAiIds", value: [] });
+                            }
+
+                            if (selected.type === "ai") {
+                              onChange({ name: "ideasIds", value: [] });
+                              onChange({ name: "ideasAiIds", value: [selected.value] });
+                            }
+                          }}
+                          formatOptionLabel={(option, { context }) => (
+                            <div className="flex items-center justify-between w-full gap-2">
+                              <div className="flex items-center gap-2">
+                                <span>{option.label}</span>
+                              </div>
+
+                              <span
+                                className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
+                                  option.type === "ai"
+                                    ? "bg-purple-100 text-purple-700"
+                                    : "bg-blue-100 text-blue-700"
+                                }`}
+                              >
+                                {option.type === "ai" ? "AI" : "Competitor"}
+                              </span>
+                            </div>
                           )}
-                          onChange={(selected) =>
-                            onChange({
-                              name: "ideasIds",
-                              value: selected ? [selected.value] : [],
-                            })
-                          }
                           styles={centeredSelectStyles}
                         />
 
