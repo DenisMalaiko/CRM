@@ -26,6 +26,10 @@ export class ProfileBaseDto {
 
   @IsArray()
   @IsOptional()
+  ideasAiIds: string[];
+
+  @IsArray()
+  @IsOptional()
   promptsIds: string[];
 
   @IsArray()

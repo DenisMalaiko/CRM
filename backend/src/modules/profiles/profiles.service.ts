@@ -25,6 +25,7 @@ export class ProfilesService {
         products: { include: { product: true } },
         audiences: { include: { targetAudience: true } },
         ideas: { include: { idea: true } },
+        ideasAI: { include: { ideaAI: true } },
         prompts: { include: { prompt: true } },
         photos: { include: { galleryPhoto: true } },
         defaultPhotos: { include: { defaultPhoto: true } },
@@ -43,6 +44,7 @@ export class ProfilesService {
       audiences: profile.audiences.map(a => a.targetAudience),
       products: profile?.products.map(p => p.product),
       ideas: profile?.ideas.map(p => p.idea),
+      ideasAi: profile?.ideasAI.map(p => p.ideaAI),
       prompts: profile?.prompts.map(p => p.prompt),
       photos: profile?.photos.map(p => p.galleryPhoto),
       defaultPhotos: profile?.defaultPhotos.map(p => p.defaultPhoto),
@@ -54,6 +56,7 @@ export class ProfilesService {
       audiencesIds = [],
       productsIds = [],
       ideasIds = [],
+      ideasAiIds = [],
       promptsIds = [],
       photosIds = [],
       defaultPhotosIds = [],
@@ -81,6 +84,13 @@ export class ProfilesService {
           createMany: {
             data: ideasIds.map(ideaId => ({
               ideaId,
+            })),
+          },
+        },
+        ideasAI: {
+          createMany: {
+            data: ideasAiIds.map(ideaAIId => ({
+              ideaAIId,
             })),
           },
         },
@@ -119,6 +129,7 @@ export class ProfilesService {
         audiencesIds = [],
         productsIds = [],
         ideasIds = [],
+        ideasAiIds = [],
         promptsIds = [],
         photosIds = [],
         defaultPhotosIds = [],
@@ -157,6 +168,16 @@ export class ProfilesService {
               },
             }
             : undefined,
+
+          ideasAI: ideasAiIds
+            ? {
+              deleteMany: {},
+              createMany: {
+                data: ideasAiIds.map(ideaAIId => ({ideaAIId})),
+              },
+            }
+            : undefined,
+
 
           prompts: promptsIds
             ? {
@@ -229,6 +250,7 @@ export class ProfilesService {
             },
           },
         },
+        ideasAI: { include: { ideaAI: true } },
         prompts: { include: { prompt: true } },
         photos: { include: { galleryPhoto: true } },
         defaultPhotos: { include: { defaultPhoto: true } },
@@ -251,6 +273,9 @@ export class ProfilesService {
           ...p.idea,
           competitorText: p.idea.competitorPost?.text ?? null,
         })),
+        ideasAi: profile.ideasAI.map(p => ({
+          ...p.ideaAI,
+        })),
         prompts: profile.prompts.map(p => p.prompt),
         photos: profile?.photos.map(p => p.galleryPhoto),
         defaultPhotos: profile?.defaultPhotos.map(p => p.defaultPhoto),
@@ -262,6 +287,8 @@ export class ProfilesService {
           description: photo.description ?? null,
         };
       });
+
+      console.log("Profile Ideas AI ", mappedProfile.ideasAi)
 
       // Generate Posts
       if(profile.profileFocus === ProfileFocus.GeneratePosts) {

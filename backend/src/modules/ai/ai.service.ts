@@ -193,7 +193,11 @@ export class AiService {
   private buildPromptForPosts(profile, photos) {
     const audienceBlock = this.getAudiences(profile.audiences);
     const productsBlock = this.getProducts(profile.products);
-    const ideasBlock = this.getIdeas(profile.ideas);
+
+    const ideas = profile.ideas?.length > 0 ? profile.ideas : profile.ideasAi;
+    const ideasBlock = this.getIdeas(ideas);
+
+    console.log("IDEAS BLOCK ", ideas);
 
     const textPrompts = this.buildPromptsBlock(profile.prompts.filter(p => p.purpose === 'Text'));
     const imagePrompts = profile.prompts.filter(p => p.purpose === "Image" && p.isActive).map(p => p.text);
@@ -221,7 +225,9 @@ export class AiService {
 
     const audienceBlock = this.getAudiences(profile.audiences);
     const productsBlock = this.getProducts(profile.products);
-    const ideasBlock = this.getIdeas(profile.ideas);
+
+    const ideas = profile.ideas?.length > 0 ? profile.ideas : profile.ideasAi;
+    const ideasBlock = this.getIdeas(ideas);
 
     const prompt = [
       postRoleBlock(),
@@ -240,7 +246,10 @@ export class AiService {
   private buildPromptForStories(profile, photos) {
     const audienceBlock = this.getAudiences(profile.audiences);
     const productsBlock = this.getProducts(profile.products);
-    const ideasBlock = this.getIdeas(profile.ideas);
+
+    const ideas = profile.ideas?.length > 0 ? profile.ideas : profile.ideasAi;
+    const ideasBlock = this.getIdeas(ideas);
+
     const textPrompts = this.buildPromptsBlock(profile.prompts.filter(p => p.purpose === 'Text'));
     const imagePrompts = profile.prompts.filter(p => p.purpose === "Image" && p.isActive).map(p => p.text);
 
@@ -685,7 +694,9 @@ export class AiService {
 
     const audienceBlock = this.getAudiences(profile.audiences);
     const productsBlock = this.getProducts(profile.products);
-    const ideasBlock = this.getIdeas(profile.ideas);
+
+    const ideas = profile.ideas?.length > 0 ? profile.ideas : profile.ideasAi;
+    const ideasBlock = this.getIdeas(ideas);
 
     const prompt = [
       storyRoleBlock(),

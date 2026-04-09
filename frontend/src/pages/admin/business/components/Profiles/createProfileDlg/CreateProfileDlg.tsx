@@ -40,6 +40,7 @@ import {TAudience} from "../../../../../../models/Audience";
 import {TPrompt} from "../../../../../../models/Prompt";
 import {TGalleryPhoto} from "../../../../../../models/Gallery";
 import {TIdea} from "../../../../../../models/Idea";
+import {TIdeaAI} from "../../../../../../models/IdeaAI";
 
 function CreateProfileDlg({ open, onClose, profile }: any) {
   const dispatch = useAppDispatch();
@@ -48,6 +49,7 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
   const { prompts } = useSelector((state: any) => state.promptModule);
   const { photos, defaultPhotos } = useSelector((state: any) => state.galleryModule);
   const { ideas } = useSelector((state: any) => state.ideaModule);
+  const { ideasAi } = useSelector((state: any) => state.ideaAiModule);
 
   const isEdit = !!profile;
   const { businessId } = useParams<{ businessId: string }>();
@@ -74,6 +76,7 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
         productsIds: profile.products.map((x: TProduct) => x.id) ?? [],
         audiencesIds: profile.audiences.map((x: TAudience) => x.id) ?? [],
         ideasIds: profile.ideas.map((x: TIdea) => x.id) ?? [],
+        ideasAiIds: profile.ideasAi.map((x: TIdea) => x.id) ?? [],
         promptsIds: profile.prompts.map((x: TPrompt) => x.id) ?? [],
         photosIds: profile.photos?.map((x: TGalleryPhoto) => x.id) ?? [],
         defaultPhotosIds: profile.defaultPhotos?.map((x: TGalleryPhoto) => x.id) ?? [],
@@ -88,6 +91,7 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
       productsIds: [] as string[],
       audiencesIds: [] as string[],
       ideasIds: [] as string[],
+      ideasAiIds: [] as string[],
       promptsIds: [] as string[],
       photosIds: [] as string[],
       defaultPhotosIds: [] as string[],
@@ -106,12 +110,41 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
     productsIds: (value) => isArray(value),
     audiencesIds: (value) => isArray(value),
     ideasIds: (value) => isArray(value),
+    ideasAiIds: (value) => isArray(value),
     promptsIds: (value) => isArray(value),
     photosIds: (value) => isArray(value),
     defaultPhotosIds: (value) => isArray(value),
     businessId: (value) => isRequired(value),
     isActive: (value) => isBoolean(value),
   });
+
+  const allIdeasOptions = useMemo(() => {
+    return [
+      ...(ideas ?? [])
+        .filter((idea: TIdea) => idea.status === IdeaStatus.Used)
+        .map((idea: TIdea) => ({
+          label: `${idea.title}`,
+          value: idea.id,
+          type: "manual" as const,
+        })),
+      ...(ideasAi ?? [])
+        .filter((idea: TIdeaAI) => idea.status === IdeaStatus.Used)
+        .map((idea: TIdeaAI) => ({
+          label: `${idea.title}`,
+          value: idea.id,
+          type: "ai" as const,
+        })),
+    ];
+  }, [ideas, ideasAi]);
+
+  const selectedValue = useMemo(() => {
+    const allSelectedIds = [...form.ideasIds, ...form.ideasAiIds];
+
+    return allIdeasOptions.find((option) =>
+      allSelectedIds.includes(option.value)
+    );
+  }, [form.ideasIds, form.ideasAiIds, allIdeasOptions]);
+
 
   if (!open) return null;
   if (!businessId) return null;
@@ -246,7 +279,59 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
               </div>
 
               <div className="mb-4">
-                <div className="flex items-center gap-2 justify-between">
+
+                { !!allIdeasOptions.length && (
+                  <>
+                    <div className="flex items-center gap-2 justify-between">
+                      <label className="block text-sm font-medium text-slate-700 text-left mb-1">Ideas</label>
+                    </div>
+
+                    <Select
+                      options={allIdeasOptions}
+                      value={selectedValue}
+                      onChange={(selected) => {
+                        if (!selected) {
+                          onChange({ name: "ideasIds", value: [] });
+                          onChange({ name: "ideasAiIds", value: [] });
+                          return;
+                        }
+
+                        if (selected.type === "manual") {
+                          onChange({ name: "ideasIds", value: [selected.value] });
+                          onChange({ name: "ideasAiIds", value: [] });
+                        }
+
+                        if (selected.type === "ai") {
+                          onChange({ name: "ideasIds", value: [] });
+                          onChange({ name: "ideasAiIds", value: [selected.value] });
+                        }
+                      }}
+                      formatOptionLabel={(option, { context }) => (
+                        <div className="flex items-center justify-between w-full gap-2">
+                          <div className="flex items-center gap-2">
+                            <span>{option.label}</span>
+                          </div>
+
+                          <span
+                            className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
+                              option.type === "ai"
+                                ? "bg-purple-100 text-purple-700"
+                                : "bg-blue-100 text-blue-700"
+                            }`}
+                          >
+                                {option.type === "ai" ? "AI" : "Competitor"}
+                              </span>
+                        </div>
+                      )}
+                      styles={centeredSelectStyles}
+                    />
+
+                    {errors.ideasIds && <p className="text-red-500 text-sm mt-2 text-left">{errors.ideasIds}</p>}
+                  </>
+                )}
+
+
+                {/*<div className="flex items-center gap-2 justify-between">
                   <label className="block text-sm font-medium text-slate-700 text-left mb-1">Idea</label>
                 </div>
 
@@ -262,9 +347,10 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
                     })
                   }
                   styles={centeredSelectStyles}
-                />
+                />*/}
 
                 {errors.ideasIds && <p className="text-red-500 text-sm mt-2 text-left">{errors.ideasIds}</p>}
+                {errors.ideasAiIds && <p className="text-red-500 text-sm mt-2 text-left">{errors.ideasAiIds}</p>}
               </div>
 
               <div className="mb-4">

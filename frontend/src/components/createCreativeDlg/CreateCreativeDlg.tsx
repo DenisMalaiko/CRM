@@ -167,7 +167,7 @@ function CreateCreativeDlg({ open, onClose, focus }: Props) {
           type: "manual" as const,
       })),
       ...(ideasAi ?? [])
-        .filter((idea: TIdea) => idea.status === IdeaStatus.Used)
+        .filter((idea: TIdeaAI) => idea.status === IdeaStatus.Used)
         .map((idea: TIdeaAI) => ({
         label: `${idea.title}`,
         value: idea.id,
@@ -277,7 +277,6 @@ function CreateCreativeDlg({ open, onClose, focus }: Props) {
     e.preventDefault();
 
     if(selected === "manual") {
-      console.log("FORM ", form);
       await _createCreativeByManual();
     }
 
