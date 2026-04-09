@@ -19,6 +19,7 @@ export type TProfile = TProfileBase & {
   products: TProduct[];
   audiences: TAudience[];
   ideas: TIdea[];
+  ideasAi: any;
   prompts: TPrompt[];
   photos: TGalleryPhoto[];
   defaultPhotos: TDefaultGalleryPhoto[];
@@ -29,6 +30,7 @@ export type TProfileCreate = TProfileBase & {
   audiencesIds?: string[];
   productsIds?: string[];
   ideasIds?: string[];
+  ideasAiIds?: string[];
   promptsIds?: string[];
   photosIds?: string[];
   defaultPhotosIds?: string[];
@@ -38,6 +40,7 @@ export type TProfileUpdate = TProfileBase & {
   audiencesIds?: string[];
   productsIds?: string[];
   ideasIds?: string[];
+  ideasAiIds?: string[];
   promptsIds?: string[];
   photosIds?: string[];
   defaultPhotosIds?: string[];

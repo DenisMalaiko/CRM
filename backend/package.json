@@ -38,6 +38,7 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
     "cookie-parser": "^1.4.7",
+    "jsonrepair": "^3.13.3",
     "langchain": "^1.0.6",
     "openai": "^6.17.0",
     "pg": "^8.11.3",

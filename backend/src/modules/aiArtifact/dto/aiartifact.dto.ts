@@ -25,6 +25,10 @@ export class CreateAiArtifactDto {
   @IsOptional()
   ideasIds: string[];
 
+  @IsArray()
+  @IsOptional()
+  ideasAiIds: string[];
+
   @IsString()
   @IsOptional()
   prompt: string;

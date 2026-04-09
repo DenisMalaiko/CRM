@@ -6,6 +6,8 @@ import * as process from "node:process";
 import OpenAI from "openai";
 const Replicate = require("replicate");
 
+import { jsonrepair } from "jsonrepair";
+
 import { Injectable } from '@nestjs/common';
 import { S3Service } from "../../core/s3/s3.service";
 import {
@@ -189,7 +191,7 @@ export class AiReplicateService {
             ${postImageQuality()}
           `,
           resolution: "2K",
-          aspect_ratio: "1:1",
+          aspect_ratio: "2:3",
           safety_filter_level: "block_only_high",
           image_input: photos.map(photo => photo.url),
           allow_fallback_model: false
@@ -504,12 +506,9 @@ export class AiReplicateService {
 
   private safeParseJson(text: string) {
     try {
-      const clean = text
-        .replace(/\/\/.*$/gm, "")
-        .replace(/,\s*]/g, "]")
-        .replace(/,\s*}/g, "}");
+      const repaired = jsonrepair(text);
 
-      return JSON.parse(clean);
+      return JSON.parse(repaired);
     } catch (e) {
       console.error("JSON PARSE ERROR", text);
       throw new Error("Invalid JSON from AI");

@@ -11,6 +11,7 @@ import { useGetAudiencesMutation } from "../../../../../store/audience/audienceA
 import { useGetPlatformsMutation } from "../../../../../store/platform/platformApi";
 import { useGetPromptsMutation } from "../../../../../store/prompts/promptApi";
 import { useGetIdeasMutation } from "../../../../../store/idea/ideaApi";
+import { useLazyGetIdeasAIQuery } from "../../../../../store/ai/ideas/ideaAiApi";
 
 import { setProfiles } from "../../../../../store/profile/profileSlice";
 import { setProducts } from "../../../../../store/products/productsSlice";
@@ -37,6 +38,8 @@ import { TIdea } from "../../../../../models/Idea";
 
 // Enum
 import { BusinessProfileFocus } from "../../../../../enum/BusinessProfileFocus";
+import {setIdeasAi} from "../../../../../store/ai/ideas/ideaAiSlice";
+import {TIdeaAI} from "../../../../../models/IdeaAI";
 
 function Profiles() {
   const dispatch = useAppDispatch();
@@ -50,6 +53,7 @@ function Profiles() {
   const [ generatePosts ] = useGeneratePostsMutation();
   const [ getPrompts ] = useGetPromptsMutation();
   const [ getIdeas ] = useGetIdeasMutation();
+  const [ getIdeasAI ] = useLazyGetIdeasAIQuery();
 
   const { profiles } = useSelector((state: any) => state.profileModule);
   const [ open, setOpen ] = useState(false);
@@ -74,6 +78,7 @@ function Profiles() {
           const platformsResponse: ApiResponse<TPlatform[]> = await getPlatforms(businessId).unwrap();
           const promptsResponse: ApiResponse<any[]> = await getPrompts(businessId).unwrap();
           const ideasResponse: ApiResponse<TIdea[]> = await getIdeas(businessId).unwrap();
+          const ideasAiResponse: ApiResponse<TIdeaAI[]> = await getIdeasAI(businessId).unwrap();
 
           if(response && response?.data) dispatch(setProfiles(response.data));
           if(productsResponse && productsResponse?.data) dispatch(setProducts(productsResponse.data));
@@ -81,6 +86,7 @@ function Profiles() {
           if(platformsResponse && platformsResponse?.data) dispatch(setPlatforms(platformsResponse.data));
           if(promptsResponse && promptsResponse?.data) dispatch(setPrompts(promptsResponse.data));
           if(ideasResponse && ideasResponse?.data) dispatch(setIdeas(ideasResponse.data));
+          if(ideasAiResponse && ideasAiResponse?.data) dispatch(setIdeasAi(ideasAiResponse.data));
         }
       } catch (error) {
         showError(error);

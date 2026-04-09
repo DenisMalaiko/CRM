@@ -86,6 +86,7 @@ export class AiArtifactService {
       audiences,
       products,
       ideas,
+      ideasAi,
       defaultPhotos,
       photos,
     ] = await Promise.all([
@@ -93,6 +94,7 @@ export class AiArtifactService {
       this.prisma.targetAudience.findMany({ where: { id: { in: body.audiencesIds }}}),
       this.prisma.product.findMany({ where: { id: { in: body.productsIds }}}),
       this.prisma.idea.findMany({ where: { id: { in: body.ideasIds }}}),
+      this.prisma.ideaAI.findMany({ where: { id: { in: body.ideasAiIds }}}),
       this.prisma.defaultPhoto.findMany({ where: { id: { in: body.defaultPhotosIds }}}),
       this.prisma.galleryPhoto.findMany({ where: { id: { in: body.photosIds }}})
     ]);
@@ -103,6 +105,7 @@ export class AiArtifactService {
       products,
       prompt: body.prompt,
       ideas,
+      ideasAi
     }
 
     const galleryPhotosUrls = [...defaultPhotos, ...photos].map((photo) => {

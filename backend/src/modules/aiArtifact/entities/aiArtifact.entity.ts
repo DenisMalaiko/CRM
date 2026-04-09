@@ -15,6 +15,7 @@ export type CreateAIArtifact = {
   productsIds?: string[];
   audiencesIds?: string[];
   ideasIds?: string[];
+  ideasAiIds?: string[];
   prompt?: string;
   photosIds?: string[];
   defaultPhotosIds?: string[];
