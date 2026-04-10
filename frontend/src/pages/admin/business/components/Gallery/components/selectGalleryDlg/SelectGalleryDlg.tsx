@@ -97,7 +97,53 @@ function SelectGalleryDlg({ open, onClose, onSelect, selectedIds, focus }: any) 
 
         {/* Content */}
         <div className="flex-1 overflow-auto">
+          <div className="space-y-10 p-6">
+            <section>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">
+                  Images
+                </h3>
+              </div>
 
+              <div className="grid gap-6 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-4">
+                {imagePhotos.map(photo => (
+                  <div
+                    key={photo.id}
+                    className="group rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition cursor-pointer bg-gray-200 p-3 h-60 flex justify-center items-center"
+                  >
+                    <label className="relative cursor-pointer w-full h-full flex justify-center items-center">
+                      <img
+                        src={photo.url}
+                        className="w-auto h-auto max-w-full max-h-full"
+                        alt=""
+                      />
+
+                      <div className="absolute top-3 right-3 duration-300">
+                        <input
+                          type="checkbox"
+                          checked={localSelected.includes(photo.id)}
+                          disabled={
+                            !localSelected.includes(photo.id) &&
+                            localSelected.length >= MAX_SELECTED
+                          }
+                          onChange={() => toggle(photo.id)}
+                          className="h-4 w-4 rounded disabled:opacity-40 disabled:cursor-not-allowed"
+                        />
+                      </div>
+                    </label>
+                  </div>
+                ))}
+              </div>
+            </section>
+          </div>
+        </div>
+
+
+        <div className="border-b px-6 py-4 flex items-center justify-between relative">
+          <h2 className="text-lg font-semibold">Select Design System</h2>
+        </div>
+
+        <div className="flex-1 overflow-auto">
           {focus === BusinessProfileFocus.GeneratePosts && (
             <div className="space-y-10 p-6">
               <section>
@@ -107,16 +153,16 @@ function SelectGalleryDlg({ open, onClose, onSelect, selectedIds, focus }: any) 
                   </h3>
                 </div>
 
-                <div className="grid gap-6 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6">
+                <div className="grid gap-6 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-4">
                   {postPhotos.map(photo => (
                     <div
                       key={photo.id}
-                      className="group rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition cursor-pointer"
+                      className="group rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition cursor-pointer bg-gray-200 p-3 h-60 flex justify-center items-center"
                     >
-                      <label className="relative cursor-pointer">
+                      <label className="relative cursor-pointer w-full h-full flex justify-center items-center">
                         <img
                           src={photo.url}
-                          className="w-full h-40 object-cover"
+                          className="w-auto h-auto max-w-full max-h-full"
                           alt=""
                         />
 
@@ -149,16 +195,16 @@ function SelectGalleryDlg({ open, onClose, onSelect, selectedIds, focus }: any) 
                   </h3>
                 </div>
 
-                <div className="grid gap-6 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6">
+                <div className="grid gap-6 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-4">
                   {storyPhotos.map(photo => (
                     <div
                       key={photo.id}
-                      className="group rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition cursor-pointer"
+                      className="group rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition cursor-pointer bg-gray-200 p-3 h-60 flex justify-center items-center"
                     >
-                      <label className="relative cursor-pointer">
+                      <label className="relative cursor-pointer w-full h-full flex justify-center items-center">
                         <img
                           src={photo.url}
-                          className="w-full h-40 object-cover"
+                          className="w-auto h-auto max-w-full max-h-full"
                           alt=""
                         />
 
@@ -186,60 +232,20 @@ function SelectGalleryDlg({ open, onClose, onSelect, selectedIds, focus }: any) 
             <section>
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">
-                  Images
-                </h3>
-              </div>
-
-              <div className="grid gap-6 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6">
-                {imagePhotos.map(photo => (
-                  <div
-                    key={photo.id}
-                    className="group rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition cursor-pointer"
-                  >
-                    <label className="relative cursor-pointer">
-                      <img
-                        src={photo.url}
-                        className="w-full h-40 object-cover"
-                        alt=""
-                      />
-
-                      <div className="absolute top-3 right-3 duration-300">
-                        <input
-                          type="checkbox"
-                          checked={localSelected.includes(photo.id)}
-                          disabled={
-                            !localSelected.includes(photo.id) &&
-                            localSelected.length >= MAX_SELECTED
-                          }
-                          onChange={() => toggle(photo.id)}
-                          className="h-4 w-4 rounded disabled:opacity-40 disabled:cursor-not-allowed"
-                        />
-                      </div>
-                    </label>
-                  </div>
-                ))}
-              </div>
-            </section>
-          </div>
-
-          <div className="space-y-10 p-6">
-            <section>
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">
                   Decorations
                 </h3>
               </div>
 
-              <div className="grid gap-6 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6">
+              <div className="grid gap-6 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-4">
                 {decorationPhotos.map(photo => (
                   <div
                     key={photo.id}
-                    className="group rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition cursor-pointer"
+                    className="group rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition cursor-pointer bg-gray-200 p-3 h-60 flex justify-center items-center"
                   >
-                    <label className="relative cursor-pointer">
+                    <label className="relative cursor-pointer w-full h-full flex justify-center items-center">
                       <img
                         src={photo.url}
-                        className="w-full h-40 object-cover"
+                        className="w-auto h-auto max-w-full max-h-full"
                         alt=""
                       />
 

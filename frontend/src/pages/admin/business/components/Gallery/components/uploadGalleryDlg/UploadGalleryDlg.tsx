@@ -28,7 +28,7 @@ import { TGalleryPhoto, TGalleryPhotoPreview } from "../../../../../../../models
 import { ApiResponse } from "../../../../../../../models/ApiResponse";
 
 
-function UploadGalleryDlg({ open, onClose }: any) {
+function UploadGalleryDlg({ open, onClose, focus }: any) {
   const dispatch = useAppDispatch();
   const { businessId } = useParams<{ businessId: string }>();
 
@@ -37,7 +37,7 @@ function UploadGalleryDlg({ open, onClose }: any) {
   const [ uploadPhotos, { isLoading } ] = useUploadPhotosMutation();
   const [ getPhotos ] = useGetPhotosMutation();
 
-  const TypesList = Object.values(GalleryType);
+  const TypesList = [GalleryType.Post, GalleryType.Story, GalleryType.Decoration];
 
   useEffect(() => {
     return () => {
@@ -48,7 +48,7 @@ function UploadGalleryDlg({ open, onClose }: any) {
   // Init Form
   const initialForm = useMemo(() => {
     return {
-      type: GalleryType.Image,
+      type: focus === "Gallery" ? GalleryType.Image : GalleryType.Post,
       isActive: true,
       businessId: businessId ?? "",
     }
@@ -158,23 +158,25 @@ function UploadGalleryDlg({ open, onClose }: any) {
         </div>
 
         <form className="space-y-4" onSubmit={upload} action="">
-          <div>
-            <div className="flex items-center gap-2 justify-between">
-              <label className="block text-sm font-medium text-slate-700 text-left">Type</label>
-            </div>
+          { focus === "DesignSystem" && (
+            <div>
+              <div className="flex items-center gap-2 justify-between">
+                <label className="block text-sm font-medium text-slate-700 text-left">Type</label>
+              </div>
 
-            <select
-              name="type"
-              value={form.type}
-              onChange={onChange}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
-            >
-              { TypesList.map((type: string) => (
-                <option key={type} value={type}>{type}</option>
-              )) }
-            </select>
-            {errors.type && <p className="text-red-500 text-sm mt-2 text-left">{errors.type}</p>}
-          </div>
+              <select
+                name="type"
+                value={form.type}
+                onChange={onChange}
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
+              >
+                { TypesList.map((type: string) => (
+                  <option key={type} value={type}>{type}</option>
+                )) }
+              </select>
+              {errors.type && <p className="text-red-500 text-sm mt-2 text-left">{errors.type}</p>}
+            </div>
+          ) }
 
           <div>
             <div className="flex items-center gap-2 justify-between">

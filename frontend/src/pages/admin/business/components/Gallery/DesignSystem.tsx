@@ -5,8 +5,8 @@ import { showError } from "../../../../../utils/showError";
 // Redux
 import { useSelector } from "react-redux";
 import { useAppDispatch } from "../../../../../store/hooks";
-import { useGetPhotosMutation } from "../../../../../store/gallery/galleryApi";
-import { setGalleryPhotos } from "../../../../../store/gallery/gallerySlice";
+import { useGetPhotosMutation, useLazyGetDefaultPhotosQuery } from "../../../../../store/gallery/galleryApi";
+import { setGalleryPhotos, setDefaultGalleryPhotos } from "../../../../../store/gallery/gallerySlice";
 
 // Components
 import UploadGalleryDlg from "./components/uploadGalleryDlg/UploadGalleryDlg"
@@ -14,10 +14,10 @@ import Photos from "./components/photos/Photos"
 
 // Models
 import { ApiResponse } from "../../../../../models/ApiResponse";
-import { TGalleryPhoto} from "../../../../../models/Gallery";
+import { TDefaultGalleryPhoto, TGalleryPhoto } from "../../../../../models/Gallery";
 import { GalleryType } from "../../../../../enum/GalleryType";
 
-function Gallery() {
+function DesignSystem() {
   const dispatch = useAppDispatch();
   const { businessId } = useParams<{ businessId: string }>();
 
@@ -25,11 +25,16 @@ function Gallery() {
   const [ selectedPhoto, setSelectedPhoto ] = useState<File | null>(null);
 
   const [ getPhotos ] = useGetPhotosMutation();
-  const { photos } = useSelector((state: any) => state.galleryModule);
+  const [ getDefaultPhotos ] = useLazyGetDefaultPhotosQuery();
+  const { photos, defaultPhotos } = useSelector((state: any) => state.galleryModule);
 
   const mappedPhotos = photos.map((photo: any) => ({ ...photo, isDefault: false }));
-  const allPhotos = [...mappedPhotos];
-  const imagePhotos = allPhotos.filter((p: TGalleryPhoto) => p.type === GalleryType.Image);
+  const mappedDefaultPhotos = defaultPhotos.map((photo: any) => ({ ...photo, isDefault: true }));
+  const allPhotos = [...mappedDefaultPhotos, ...mappedPhotos];
+
+  const decorationPhotos = allPhotos.filter((p: TGalleryPhoto) => p.type === GalleryType.Decoration);
+  const postPhotos = allPhotos.filter((p: TGalleryPhoto) => p.type === GalleryType.Post);
+  const storyPhotos = allPhotos.filter((p: TGalleryPhoto) => p.type === GalleryType.Story);
 
   // Get Data
   useEffect(() => {
@@ -37,9 +42,13 @@ function Gallery() {
       try {
         if(businessId) {
           const response: ApiResponse<TGalleryPhoto[]> = await getPhotos(businessId).unwrap();
+          const responseDefault: ApiResponse<TDefaultGalleryPhoto[]> = await getDefaultPhotos().unwrap();
+
           if(response && response.data) dispatch(setGalleryPhotos(response.data));
+          if(responseDefault && responseDefault.data) dispatch(setDefaultGalleryPhotos(responseDefault.data));
 
           console.log("BUSINESS PHOTOS: ", response.data);
+          console.log("DEFAULT PHOTOS: ", responseDefault.data);
         }
       } catch (error) {
         showError(error);
@@ -55,7 +64,7 @@ function Gallery() {
     <div className="rounded-2xl bg-white shadow border border-slate-200">
       <section>
         <div className="border-b p-4 flex items-center justify-between">
-          <h2 className="text-lg text-left font-semibold text-slate-800">Gallery</h2>
+          <h2 className="text-lg text-left font-semibold text-slate-800">Design System</h2>
 
           <button
             onClick={() => setOpen(true)}
@@ -71,7 +80,7 @@ function Gallery() {
               setSelectedPhoto(null);
             }}
             photo={selectedPhoto}
-            focus="Gallery"
+            focus="DesignSystem"
           ></UploadGalleryDlg>
         </div>
 
@@ -79,16 +88,41 @@ function Gallery() {
           <section>
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">
-                Images
+                Posts
               </h3>
             </div>
 
-            <Photos photos={imagePhotos}/>
+            <Photos photos={postPhotos}/>
           </section>
         </div>
+
+        <div className="p-5 space-y-10">
+          <section>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">
+                Stories
+              </h3>
+            </div>
+
+            <Photos photos={storyPhotos}/>
+          </section>
+        </div>
+
+        <div className="p-5 space-y-10">
+          <section>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">
+                Decorations
+              </h3>
+            </div>
+
+            <Photos photos={decorationPhotos}/>
+          </section>
+        </div>
+
       </section>
     </div>
   )
 }
 
-export default Gallery;
+export default DesignSystem;

@@ -11,7 +11,8 @@ import {
   Image,
   Swords,
   Lightbulb,
-  TrendingUp
+  TrendingUp,
+  LucideLayoutDashboard
 } from "lucide-react"
 import { Outlet, NavLink, useNavigate } from "react-router-dom";
 
@@ -64,6 +65,11 @@ function Business() {
       id: "gallery",
       title: "Gallery",
       icon: Image,
+    },
+    {
+      id: "designSystem",
+      title: "Design",
+      icon: LucideLayoutDashboard,
     },
   ]
 
