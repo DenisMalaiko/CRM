@@ -129,15 +129,15 @@ function Photos({ photos }: { photos: any[] }) {
   }
 
   return (
-    <div className="grid gap-6 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5">
+    <div className="grid gap-6 grid-cols-2 sm:grid-cols-3 md:grid-cols-2 xl:grid-cols-3">
       {photos.map(photo => (
         <div
           key={photo.id}
-          className="group relative rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition"
+          className="group relative rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition h-80 bg-gray-200 p-5 flex justify-center items-center"
         >
           <img
             src={photo.url}
-            className="w-full h-48 object-cover"
+            className="w-auto h-auto max-w-full max-h-full"
             alt={photo.description}
           />
 

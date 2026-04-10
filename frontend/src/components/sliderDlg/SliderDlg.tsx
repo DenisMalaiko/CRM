@@ -78,7 +78,7 @@ function SliderDlg({ open, onClose, medias }: { open: boolean, onClose: () => vo
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50">
-      <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl p-6 relative max-h-[90vh] overflow-auto">
+      <div className="w-full rounded-2xl p-6 max-h-[90vh] max-w-[90vw] overflow-auto">
 
         {/* Close */}
         <button

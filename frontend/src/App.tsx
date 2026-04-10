@@ -47,6 +47,7 @@ import Settings from "./pages/admin/business/components/old/Settings/Settings";
 import Competitors from "./pages/admin/business/components/Сompetitors/Competitors";
 import Competitor from "./pages/admin/business/components/Сompetitors/:id/Competitor";
 import Gallery from "./pages/admin/business/components/Gallery/Gallery";
+import DesignSystem from "./pages/admin/business/components/Gallery/DesignSystem";
 import Ideas from "./pages/admin/business/components/Ideas/Ideas";
 import Stories from "./pages/admin/business/components/Stories/Stories";
 import Trends from "./pages/admin/business/components/Trends/Trends";
@@ -135,6 +136,7 @@ function App() {
             <Route path="stories" element={<Stories />} />
             <Route path="prompts" element={<Prompts />} />
             <Route path="gallery" element={<Gallery />} />
+            <Route path="designSystem" element={<DesignSystem />} />
 
             {/*Competitors*/}
             <Route path="competitors" element={<Competitors />}></Route>

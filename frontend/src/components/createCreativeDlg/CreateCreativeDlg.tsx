@@ -314,7 +314,7 @@ function CreateCreativeDlg({ open, onClose, focus }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50">
-      <div className="w-full max-w-xl rounded-2xl bg-white shadow-xl p-6 relative max-h-[95vh]">
+      <div className="w-full max-w-6xl rounded-2xl bg-white shadow-xl p-6 relative max-h-[95vh]">
         <div className="flex items-center justify-between mb-6 relative">
           <h2 className="text-lg font-semibold">Create { focus === BusinessProfileFocus.GeneratePosts ? "Post" : "Story" }</h2>
 
@@ -351,10 +351,10 @@ function CreateCreativeDlg({ open, onClose, focus }: Props) {
                         </div>
 
                         <div>
-                          <div className="font-semibold text-gray-800">
+                          <div className="font-semibold text-gray-800 text-left">
                             {option.title}
                           </div>
-                          <div className="text-sm text-gray-500">
+                          <div className="text-sm text-gray-500 text-left">
                             {option.description}
                           </div>
                         </div>
@@ -369,8 +369,8 @@ function CreateCreativeDlg({ open, onClose, focus }: Props) {
           <div>
             {selected === "manual" && (
               <div>
-                <div className="relative z-20">
-                  <div className="mb-3">
+                <div className="relative z-20 flex flex-row gap-4 mb-3">
+                  <div className="w-1/3">
                     { !!productsOptions.length && (
                       <>
                         <div className="flex items-center gap-2 justify-between">
@@ -396,7 +396,7 @@ function CreateCreativeDlg({ open, onClose, focus }: Props) {
                     )}
                   </div>
 
-                  <div className="mb-3">
+                  <div className="w-1/3">
                     { !!allIdeasOptions.length && (
                       <>
                         <div className="flex items-center gap-2 justify-between">
@@ -448,7 +448,7 @@ function CreateCreativeDlg({ open, onClose, focus }: Props) {
                     )}
                   </div>
 
-                  <div className="mb-3">
+                  <div className="w-1/3">
                     { !!audiencesOptions.length && (
                       <>
                         <div className="flex items-center gap-2 justify-between">
@@ -474,7 +474,9 @@ function CreateCreativeDlg({ open, onClose, focus }: Props) {
                       </>
                     )}
                   </div>
+                </div>
 
+                <div className="relative z-15">
                   <div className="mb-3">
                     <>
                       <div className="flex items-center gap-2 justify-between">
@@ -493,6 +495,12 @@ function CreateCreativeDlg({ open, onClose, focus }: Props) {
                         rows={5}
                       />
                     </>
+                  </div>
+                </div>
+
+                <div className="relative z-10 mb-3">
+                  <div className="flex items-center gap-2 justify-between mb-1">
+                    <label className="block text-sm font-medium text-slate-700 text-left">Select Template</label>
                   </div>
                 </div>
 
