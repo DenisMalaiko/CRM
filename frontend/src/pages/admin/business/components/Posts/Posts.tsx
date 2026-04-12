@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import Select from "react-select";
+import { ImagePlay } from "lucide-react";
 
 // Redux
 import { useSelector } from "react-redux";
@@ -19,6 +20,7 @@ import { setProducts } from "../../../../../store/products/productsSlice";
 // Components
 import UpdatePostDlg from "./updatePostDlg/UpdatePostDlg";
 import CreateCreativeDlg from "../../../../../components/createCreativeDlg/CreateCreativeDlg";
+import SliderDlg from "../../../../../components/sliderDlg/SliderDlg";
 import { confirm } from "../../../../../components/confirmDlg/ConfirmDlg";
 
 // Utils
@@ -37,6 +39,7 @@ import { TProduct } from "../../../../../models/Product";
 import { GalleryType } from "../../../../../enum/GalleryType";
 import { BusinessProfileFocus } from "../../../../../enum/BusinessProfileFocus";
 
+
 function Posts() {
   const dispatch = useAppDispatch();
   const { businessId } = useParams<{ businessId: string }>();
@@ -47,6 +50,9 @@ function Posts() {
   const [ getProducts ] = useGetProductsMutation();
 
   const [ open, setOpen ] = useState(false);
+  const [ openSliderDlg, setOpenSliderDlg ] = useState<any>(null);
+  const [ selectedMedia, setSelectedMedia ] = useState<any>(null);
+
   const [ selectedPost, setSelectedPost ] = useState<TAIArtifact | null>(null);
   const [ openCreative, setOpenCreative ] = useState(false);
   const [ selectedIds, setSelectedIds ] = useState<string[]>([]);
@@ -180,6 +186,12 @@ function Posts() {
     }
   }
 
+  // Open Image
+  const openSlider = (media: any) => {
+    setSelectedMedia(media);
+    setOpenSliderDlg(true);
+  }
+
 
   return (
     <div className="rounded-2xl bg-white shadow border border-slate-200">
@@ -288,13 +300,28 @@ function Posts() {
                   {/* Content */}
                   <div className="flex flex-col gap-4 px-6 py-5">
                     {/* Hook */}
-                    {item?.imageUrl && (
-                      <img
-                        src={`${item.imageUrl}`}
-                        alt="AI generated"
-                        className="w-full rounded-xl border border-slate-200"
-                      />
-                    )}
+                    <div className="group relative rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition">
+                      {item?.imageUrl && (
+                        <>
+                          <img
+                            src={`${item.imageUrl}`}
+                            alt="AI generated"
+                            className="w-full rounded-xl border border-slate-200"
+                          />
+
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition duration-300 flex items-center justify-center flex-col">
+                            <div className="flex mb-3">
+                              <button
+                                onClick={() => openSlider([{url: item.imageUrl}])}
+                                className="opacity-0 group-hover:opacity-100 transition duration-300 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg"
+                              >
+                                <ImagePlay size={18} />
+                              </button>
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </div>
 
                     {/* Hook */}
                     <div>
@@ -357,6 +384,14 @@ function Posts() {
           }}
           focus={BusinessProfileFocus.GeneratePosts}
         ></CreateCreativeDlg>
+
+        <SliderDlg
+          open={openSliderDlg}
+          onClose={() => {
+            setOpenSliderDlg(false);
+          }}
+          medias={selectedMedia}
+        />
       </section>
     </div>
   )

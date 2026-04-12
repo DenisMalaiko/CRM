@@ -2,6 +2,9 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 
+// Hooks
+import { useCopyToClipboard } from "../../../../../hooks/useCopyToClipboard";
+
 // Redux
 import { useSelector } from "react-redux";
 import { RootState } from "../../../../../store";
@@ -14,6 +17,7 @@ import { setPrompts } from "../../../../../store/prompts/promptSlice";
 
 // Components
 import CreatePromptDlg from "./createPromptDlg/CreatePromptDlg";
+import TextDlg from "../../../../../components/textDlg/TextDlg";
 import { confirm } from "../../../../../components/confirmDlg/ConfirmDlg";
 
 // Utils
@@ -22,6 +26,7 @@ import { showError } from "../../../../../utils/showError";
 // Models
 import { ApiResponse } from "../../../../../models/ApiResponse";
 import { TPrompt } from "../../../../../models/Prompt";
+import {Copy, Eye} from "lucide-react";
 
 
 function Prompts() {
@@ -34,6 +39,11 @@ function Prompts() {
   const [ open, setOpen ] = useState(false);
   const [ selectedPrompt, setSelectedPrompt ] = useState<TPrompt | null>(null);
   const { prompts } = useSelector((state: RootState) => state.promptModule);
+
+  const [ openTextDlg, setOpenTextDlg ] = useState<any>(null);
+  const [ selectedText, setSelectedText ] = useState<any>(null);
+
+  const { copy, copied } = useCopyToClipboard();
 
   const header = [
     { name: "Name", key: "name" },
@@ -96,6 +106,12 @@ function Prompts() {
     setOpen(true)
   }
 
+  // Open Text
+  const openText = (text: string) => {
+    setSelectedText(text);
+    setOpenTextDlg(true);
+  }
+
   return (
     <div className="rounded-2xl bg-white shadow border border-slate-200">
       <section>
@@ -151,10 +167,38 @@ function Prompts() {
                   </tr>
                 ) : (
                   prompts && prompts?.map((item: TPrompt) => (
-                    <tr key={item.id} className="bg-white hover:bg-slate-50">
+                    <tr
+                      key={item.id}
+                      onClick={(e) => {
+                        openEditPrompt(item)
+                      }}
+                      className="bg-white hover:bg-slate-50 cursor-pointer"
+                    >
                       <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.name}</td>
                       <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.purpose}</td>
-                      <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.text}</td>
+                      <td className="px-4 py-3 font-medium text-slate-900 text-left">
+                        <p className="line-clamp-2">{item.text}</p>
+
+                        <div className="flex items-center gap-2 text-slate-500 mt-3">
+                          <Eye
+                            size={20}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              openText(item.text)
+                            }}
+                            className="cursor-pointer text-blue-600 hover:text-blue-700"
+                          />
+                          <Copy
+                            size={18}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              copy(item.text)
+                            }}
+                            className="cursor-pointer text-blue-600 hover:text-blue-700"
+                          />
+                        </div>
+
+                      </td>
                       <td className="px-4 py-3 font-medium text-slate-900 text-left">
                       <span className={`
                         inline-flex items-center rounded-full px-2.5 py-1
@@ -169,7 +213,13 @@ function Prompts() {
                           <button onClick={() => openEditPrompt(item)} className="h-8 w-8 flex items-center justify-center rounded-lg border  text-slate-600 hover:bg-slate-50">
                             ✎
                           </button>
-                          <button onClick={(e) => openConfirmDlg(e, item)} className="h-8 w-8 flex items-center justify-center rounded-lg border text-rose-600 hover:bg-rose-50">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              openConfirmDlg(e, item)
+                            }}
+                            className="h-8 w-8 flex items-center justify-center rounded-lg border text-rose-600 hover:bg-rose-50"
+                          >
                             🗑
                           </button>
                         </div>
@@ -182,6 +232,15 @@ function Prompts() {
           </div>
         </div>
       </section>
+
+      <TextDlg
+        open={openTextDlg}
+        onClose={() => {
+          setOpenTextDlg(false);
+        }}
+        text={selectedText}
+      />
+
     </div>
   )
 }

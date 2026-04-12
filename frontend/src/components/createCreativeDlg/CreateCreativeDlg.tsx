@@ -314,7 +314,7 @@ function CreateCreativeDlg({ open, onClose, focus }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50">
-      <div className="w-full max-w-6xl rounded-2xl bg-white shadow-xl p-6 relative max-h-[95vh]">
+      <div className="w-full max-w-6xl rounded-2xl bg-white shadow-xl p-6 relative max-h-[90vh] overflow-y-auto overflow-x-hidden">
         <div className="flex items-center justify-between mb-6 relative">
           <h2 className="text-lg font-semibold">Create { focus === BusinessProfileFocus.GeneratePosts ? "Post" : "Story" }</h2>
 
@@ -495,12 +495,6 @@ function CreateCreativeDlg({ open, onClose, focus }: Props) {
                         rows={5}
                       />
                     </>
-                  </div>
-                </div>
-
-                <div className="relative z-10 mb-3">
-                  <div className="flex items-center gap-2 justify-between mb-1">
-                    <label className="block text-sm font-medium text-slate-700 text-left">Select Template</label>
                   </div>
                 </div>
 
