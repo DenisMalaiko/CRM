@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import Select from "react-select";
+import { ImagePlay } from "lucide-react";
 
 // Redux
 import { useSelector } from "react-redux";
@@ -19,6 +20,7 @@ import { setProducts } from "../../../../../store/products/productsSlice";
 // Components
 import UpdateStoryDlg from "./updateStoryDlg/UpdateStoryDlg";
 import CreateCreativeDlg from "../../../../../components/createCreativeDlg/CreateCreativeDlg";
+import SliderDlg from "../../../../../components/sliderDlg/SliderDlg";
 import { confirm } from "../../../../../components/confirmDlg/ConfirmDlg";
 
 // Utils
@@ -47,6 +49,9 @@ function Stories() {
   const [ getProducts ] = useGetProductsMutation();
 
   const [ open, setOpen ] = useState(false);
+  const [ openSliderDlg, setOpenSliderDlg ] = useState<any>(null);
+  const [ selectedMedia, setSelectedMedia ] = useState<any>(null);
+
   const [ selectedStory, setSelectedStory ] = useState<TAIArtifact | null>(null);
   const [ openCreative, setOpenCreative ] = useState(false);
   const [ selectedIds, setSelectedIds ] = useState<string[]>([]);
@@ -180,6 +185,12 @@ function Stories() {
     }
   }
 
+  // Open Image
+  const openSlider = (media: any) => {
+    setSelectedMedia(media);
+    setOpenSliderDlg(true);
+  }
+
   return (
     <div className="rounded-2xl bg-white shadow border border-slate-200">
       <section>
@@ -243,7 +254,7 @@ function Stories() {
               {filteredStories?.map((item: TAIArtifact) => (
                 <div
                   key={item.id}
-                  className="relative flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm hover:shadow-md transition"
+                  className="group relative flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm hover:shadow-md transition"
                 >
                   {/* Image */}
                   {item?.imageUrl && (
@@ -253,6 +264,17 @@ function Stories() {
                         alt="AI story"
                         className="absolute inset-0 h-full w-full object-cover"
                       />
+
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition duration-300 flex items-center justify-center flex-col">
+                        <div className="flex mb-3">
+                          <button
+                            onClick={() => openSlider([{url: item.imageUrl}])}
+                            className="opacity-0 group-hover:opacity-100 transition duration-300 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg"
+                          >
+                            <ImagePlay size={18} />
+                          </button>
+                        </div>
+                      </div>
 
                       <div className="absolute w-full top-0 left-0 p-3 flex items-center gap-2 justify-between">
                         {/* Overlay controls */}
@@ -322,6 +344,14 @@ function Stories() {
           }}
           focus={BusinessProfileFocus.GenerateStories}
         ></CreateCreativeDlg>
+
+        <SliderDlg
+          open={openSliderDlg}
+          onClose={() => {
+            setOpenSliderDlg(false);
+          }}
+          medias={selectedMedia}
+        />
       </section>
     </div>
   )

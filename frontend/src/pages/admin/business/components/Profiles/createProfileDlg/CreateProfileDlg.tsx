@@ -205,7 +205,7 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
   return (
     <>
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50">
-        <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl p-6">
+        <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl p-6 max-h-[90vh] overflow-y-auto overflow-x-hidden">
 
           <div className="flex items-center justify-between mb-4 relative">
             <h2 className="text-lg font-semibold">{ isEdit ? "Edit" : "Create" } Context</h2>

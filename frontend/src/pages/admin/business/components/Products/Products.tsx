@@ -152,7 +152,7 @@ function Products() {
                   </tr>
                 ) : (
                   products && products.map((item: TProduct) => (
-                    <tr key={item.id} className="bg-white hover:bg-slate-50">
+                    <tr key={item.id} onClick={() => openEditProduct(item)} className="bg-white hover:bg-slate-50 cursor-pointer">
                       <td className="px-4 py-3">
                         <div className="h-10 w-10 bg-slate-200 rounded-lg" />
                       </td>
@@ -181,7 +181,13 @@ function Products() {
                           <button onClick={() => openEditProduct(item)} className="h-8 w-8 flex items-center justify-center rounded-lg border  text-slate-600 hover:bg-slate-50">
                             ✎
                           </button>
-                          <button onClick={(e) => openConfirmDlg(e, item)} className="h-8 w-8 flex items-center justify-center rounded-lg border text-rose-600 hover:bg-rose-50">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              openConfirmDlg(e, item)
+                            }}
+                            className="h-8 w-8 flex items-center justify-center rounded-lg border text-rose-600 hover:bg-rose-50"
+                          >
                             🗑
                           </button>
                         </div>

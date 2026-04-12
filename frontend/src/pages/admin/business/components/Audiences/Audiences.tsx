@@ -48,9 +48,9 @@ function Audiences() {
     { name: "Gender", key: "gender" },
     { name: "Geo", key: "geo" },
     { name: "Interests", key: "interests"},
-    { name: "Pains", key: "pains"},
+/*    { name: "Pains", key: "pains"},
     { name: "Desires", key: "desires"},
-    { name: "Income Level", key: "incomeLevel"},
+    { name: "Income Level", key: "incomeLevel"},*/
     { name: "Actions", key: "actions"}
   ];
 
@@ -173,7 +173,13 @@ function Audiences() {
                   </tr>
                 ) : (
                   audiences && audiences.map((item: any) => (
-                    <tr key={item.id} className="bg-white hover:bg-slate-50">
+                    <tr
+                      key={item.id}
+                      onClick={(e) => {
+                        openEditProfile(item)
+                      }}
+                      className="bg-white hover:bg-slate-50 cursor-pointer"
+                    >
                       <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.name}</td>
                       <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.ageRange}</td>
                       <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.gender}</td>
@@ -191,12 +197,18 @@ function Audiences() {
                             <div className="flex items-center gap-2 text-slate-500 mt-3">
                               <Eye
                                 size={20}
-                                onClick={() => openText(item.interests)}
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  openText(item.interests)
+                                }}
                                 className="cursor-pointer text-blue-600 hover:text-blue-700"
                               />
                               <Copy
                                 size={18}
-                                onClick={() => copy(item.interests)}
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  copy(item.interests)
+                                }}
                                 className="cursor-pointer text-blue-600 hover:text-blue-700"
                               />
                             </div>
@@ -204,7 +216,7 @@ function Audiences() {
                         ) : "None"}
                       </td>
 
-                      <td className="px-4 py-3 font-medium text-slate-900 text-left">
+                      {/*<td className="px-4 py-3 font-medium text-slate-900 text-left">
                         { item?.pains && item?.pains.length && item?.pains[0].length > 0 ? (
                           <>
                             <p className="line-clamp-2">
@@ -228,7 +240,6 @@ function Audiences() {
                           </>
                         ) : "None"}
                       </td>
-
                       <td className="px-4 py-3 font-medium text-slate-900 text-left">
                         { item?.desires && item?.desires.length && item?.desires[0].length > 0 ? (
                           <>
@@ -253,13 +264,24 @@ function Audiences() {
                           </>
                         ) : "None"}
                       </td>
-                      <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.incomeLevel}</td>
+                      <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.incomeLevel}</td>*/}
+
                       <td className="px-4 py-3 text-right">
                         <div className="flex items-center gap-2 justify-end">
-                          <button onClick={() => openEditProfile(item)} className="h-8 w-8 flex items-center justify-center rounded-lg border  text-slate-600 hover:bg-slate-50">
+                          <button
+                            onClick={(e) => {
+                              openEditProfile(item)
+                            }}
+                            className="h-8 w-8 flex items-center justify-center rounded-lg border  text-slate-600 hover:bg-slate-50">
                             ✎
                           </button>
-                          <button onClick={(e) => openConfirmDlg(e, item)} className="h-8 w-8 flex items-center justify-center rounded-lg border text-rose-600 hover:bg-rose-50">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              openConfirmDlg(e, item)
+                            }}
+                            className="h-8 w-8 flex items-center justify-center rounded-lg border text-rose-600 hover:bg-rose-50"
+                          >
                             🗑
                           </button>
                         </div>

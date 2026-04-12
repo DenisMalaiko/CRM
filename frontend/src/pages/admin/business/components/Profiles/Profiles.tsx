@@ -207,7 +207,7 @@ function Profiles() {
                     const isThisRowLoading = loadingProfileId === item.id;
 
                     return (
-                      <tr key={item.id} className="bg-white hover:bg-slate-50">
+                      <tr key={item.id} onClick={() => openEditProfile(item)} className="bg-white hover:bg-slate-50 cursor-pointer">
                         <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.name}</td>
                         <td className="px-4 py-3 font-medium text-slate-900 text-left">{ splitCamelCase(item.profileFocus) }</td>
                         <td className="px-4 py-3 font-medium text-slate-900 text-left">
@@ -222,7 +222,10 @@ function Profiles() {
                         <td className="px-4 py-3 text-right">
                           <div className="flex items-center gap-2 justify-end">
                             <button
-                              onClick={() => generateNewPosts(item)}
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                generateNewPosts(item)
+                              }}
                               disabled={isGenerating}
                               className={`
                                 px-4 py-2 rounded-lg shadow text-white
@@ -250,8 +253,12 @@ function Profiles() {
                                     className="h-8 w-8 flex items-center justify-center rounded-lg border  text-slate-600 hover:bg-slate-50">
                               ✎
                             </button>
-                            <button onClick={(e) => openConfirmDlg(e, item)}
-                                    className="h-8 w-8 flex items-center justify-center rounded-lg border text-rose-600 hover:bg-rose-50">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                openConfirmDlg(e, item)
+                              }}
+                              className="h-8 w-8 flex items-center justify-center rounded-lg border text-rose-600 hover:bg-rose-50">
                               🗑
                             </button>
                           </div>
