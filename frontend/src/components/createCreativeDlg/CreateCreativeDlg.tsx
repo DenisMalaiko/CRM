@@ -27,6 +27,7 @@ import { setPrompts } from "../../store/prompts/promptSlice";
 import { setIdeas } from "../../store/idea/ideaSlice";
 import { setPosts, setStories } from "../../store/artifact/artifactSlice";
 import { setIdeasAi } from "../../store/ai/ideas/ideaAiSlice";
+import { setGalleryPhotos, setDefaultGalleryPhotos } from "../../store/gallery/gallerySlice";
 
 // Models
 import { ApiResponse } from "../../models/ApiResponse";
@@ -35,7 +36,7 @@ import { TProduct } from "../../models/Product";
 import { TAudience } from "../../models/Audience";
 import { TPrompt } from "../../models/Prompt";
 import { TIdea } from "../../models/Idea";
-import { TGalleryPhoto } from "../../models/Gallery";
+import {TDefaultGalleryPhoto, TGalleryPhoto} from "../../models/Gallery";
 import { TAIArtifact } from "../../models/AIArtifact";
 import { TIdeaAI } from "../../models/IdeaAI";
 
@@ -100,6 +101,7 @@ function CreateCreativeDlg({ open, onClose, focus }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [openGalleryDlg, setOpenGalleryDlg] = useState(false)
+
 
   // Init Form
   const initialForm = useMemo(() => {
@@ -314,7 +316,7 @@ function CreateCreativeDlg({ open, onClose, focus }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50">
-      <div className="w-full max-w-6xl rounded-2xl bg-white shadow-xl p-6 relative max-h-[90vh] overflow-y-auto overflow-x-hidden">
+      <div className="w-full max-w-3xl rounded-2xl bg-white shadow-xl p-6 relative max-h-[90vh] overflow-y-auto overflow-x-hidden">
         <div className="flex items-center justify-between mb-6 relative">
           <h2 className="text-lg font-semibold">Create { focus === BusinessProfileFocus.GeneratePosts ? "Post" : "Story" }</h2>
 
@@ -370,110 +372,104 @@ function CreateCreativeDlg({ open, onClose, focus }: Props) {
             {selected === "manual" && (
               <div>
                 <div className="relative z-20 flex flex-row gap-4 mb-3">
-                  <div className="w-1/3">
-                    { !!productsOptions.length && (
-                      <>
-                        <div className="flex items-center gap-2 justify-between">
-                          <label className="block text-sm font-medium text-slate-700 text-left mb-1">Products</label>
-                        </div>
+                  { !!productsOptions.length && (
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 justify-between">
+                        <label className="block text-sm font-medium text-slate-700 text-left mb-1">Products</label>
+                      </div>
 
-                        <Select
-                          options={productsOptions}
-                          value={productsOptions.find(
-                            (option: { label: string, value: string }) => form.productsIds[0] === option.value
-                          )}
-                          onChange={(selected) =>
-                            onChange({
-                              name: "productsIds",
-                              value: selected ? [selected.value] : [],
-                            })
+                      <Select
+                        options={productsOptions}
+                        value={productsOptions.find(
+                          (option: { label: string, value: string }) => form.productsIds[0] === option.value
+                        )}
+                        onChange={(selected) =>
+                          onChange({
+                            name: "productsIds",
+                            value: selected ? [selected.value] : [],
+                          })
+                        }
+                        styles={centeredSelectStyles}
+                      />
+
+                      {errors.productsIds && <p className="text-red-500 text-sm mt-2 text-left">{errors.productsIds}</p>}
+                    </div>
+                  )}
+
+                  { !!allIdeasOptions.length && (
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 justify-between">
+                        <label className="block text-sm font-medium text-slate-700 text-left mb-1">Ideas</label>
+                      </div>
+
+                      <Select
+                        options={allIdeasOptions}
+                        value={selectedValue}
+                        onChange={(selected) => {
+                          if (!selected) {
+                            onChange({ name: "ideasIds", value: [] });
+                            onChange({ name: "ideasAiIds", value: [] });
+                            return;
                           }
-                          styles={centeredSelectStyles}
-                        />
 
-                        {errors.productsIds && <p className="text-red-500 text-sm mt-2 text-left">{errors.productsIds}</p>}
-                      </>
-                    )}
-                  </div>
+                          if (selected.type === "manual") {
+                            onChange({ name: "ideasIds", value: [selected.value] });
+                            onChange({ name: "ideasAiIds", value: [] });
+                          }
 
-                  <div className="w-1/3">
-                    { !!allIdeasOptions.length && (
-                      <>
-                        <div className="flex items-center gap-2 justify-between">
-                          <label className="block text-sm font-medium text-slate-700 text-left mb-1">Ideas</label>
-                        </div>
-
-                        <Select
-                          options={allIdeasOptions}
-                          value={selectedValue}
-                          onChange={(selected) => {
-                            if (!selected) {
-                              onChange({ name: "ideasIds", value: [] });
-                              onChange({ name: "ideasAiIds", value: [] });
-                              return;
-                            }
-
-                            if (selected.type === "manual") {
-                              onChange({ name: "ideasIds", value: [selected.value] });
-                              onChange({ name: "ideasAiIds", value: [] });
-                            }
-
-                            if (selected.type === "ai") {
-                              onChange({ name: "ideasIds", value: [] });
-                              onChange({ name: "ideasAiIds", value: [selected.value] });
-                            }
-                          }}
-                          formatOptionLabel={(option, { context }) => (
-                            <div className="flex items-center justify-between w-full gap-2">
-                              <div className="flex items-center gap-2">
-                                <span>{option.label}</span>
-                              </div>
-
-                              <span
-                                className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
-                                  option.type === "ai"
-                                    ? "bg-purple-100 text-purple-700"
-                                    : "bg-blue-100 text-blue-700"
-                                }`}
-                              >
-                                {option.type === "ai" ? "AI" : "Competitor"}
-                              </span>
+                          if (selected.type === "ai") {
+                            onChange({ name: "ideasIds", value: [] });
+                            onChange({ name: "ideasAiIds", value: [selected.value] });
+                          }
+                        }}
+                        formatOptionLabel={(option, { context }) => (
+                          <div className="flex items-center justify-between w-full gap-2">
+                            <div className="flex items-center gap-2">
+                              <span>{option.label}</span>
                             </div>
-                          )}
-                          styles={centeredSelectStyles}
-                        />
 
-                        {errors.ideasIds && <p className="text-red-500 text-sm mt-2 text-left">{errors.ideasIds}</p>}
-                      </>
-                    )}
-                  </div>
+                            <span
+                              className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
+                                option.type === "ai"
+                                  ? "bg-purple-100 text-purple-700"
+                                  : "bg-blue-100 text-blue-700"
+                              }`}
+                            >
+                              {option.type === "ai" ? "AI" : "Competitor"}
+                            </span>
+                          </div>
+                        )}
+                        styles={centeredSelectStyles}
+                      />
 
-                  <div className="w-1/3">
-                    { !!audiencesOptions.length && (
-                      <>
-                        <div className="flex items-center gap-2 justify-between">
-                          <label className="block text-sm font-medium text-slate-700 text-left mb-1">Audiences</label>
-                        </div>
+                      {errors.ideasIds && <p className="text-red-500 text-sm mt-2 text-left">{errors.ideasIds}</p>}
+                    </div>
+                  )}
 
-                        <Select
-                          isMulti
-                          options={audiencesOptions}
-                          value={audiencesOptions.filter((option: any) =>
-                            form.audiencesIds.includes(option.value)
-                          )}
-                          onChange={(selected: any) =>
-                            onChange({
-                              name: "audiencesIds",
-                              value: selected.map((o: any) => o.value),
-                            })
-                          }
-                          styles={centeredSelectStyles}
-                        />
+                  { !!audiencesOptions.length && (
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 justify-between">
+                        <label className="block text-sm font-medium text-slate-700 text-left mb-1">Audiences</label>
+                      </div>
 
-                        {errors.audiencesIds && <p className="text-red-500 text-sm mt-2 text-left">{errors.audiencesIds}</p>}
-                      </>
-                    )}
-                  </div>
+                      <Select
+                        isMulti
+                        options={audiencesOptions}
+                        value={audiencesOptions.filter((option: any) =>
+                          form.audiencesIds.includes(option.value)
+                        )}
+                        onChange={(selected: any) =>
+                          onChange({
+                            name: "audiencesIds",
+                            value: selected.map((o: any) => o.value),
+                          })
+                        }
+                        styles={centeredSelectStyles}
+                      />
+
+                      {errors.audiencesIds && <p className="text-red-500 text-sm mt-2 text-left">{errors.audiencesIds}</p>}
+                    </div>
+                  )}
                 </div>
 
                 <div className="relative z-15">
@@ -498,6 +494,7 @@ function CreateCreativeDlg({ open, onClose, focus }: Props) {
                   </div>
                 </div>
 
+
                 <div className="relative z-10 mb-3">
                   <div className="flex items-center gap-2 justify-between mb-1">
                     <label className="block text-sm font-medium text-slate-700 text-left">Photos (max 3)</label>
@@ -508,8 +505,11 @@ function CreateCreativeDlg({ open, onClose, focus }: Props) {
                       form.photosIds.includes(x.id) ||
                       form.defaultPhotosIds.includes(x.id)
                     ).map((photo: TGalleryPhoto) => (
-                      <div key={photo.id} className="relative w-full aspect-square rounded-xl overflow-hidden border group">
-                        <img src={photo.url} className="w-full h-full object-cover" alt=""/>
+                      <div key={photo.id} className="relative w-full aspect-square rounded-xl overflow-hidden border group bg-gray-200 p-3 flex justify-center items-center">
+                        <img
+                          src={photo.url}
+                          className="w-auto h-auto max-w-full max-h-full"
+                          alt=""/>
 
                         <button
                           onClick={() => deleteImage(photo.id)}
