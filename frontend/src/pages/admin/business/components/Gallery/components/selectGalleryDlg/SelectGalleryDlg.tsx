@@ -38,6 +38,11 @@ function SelectGalleryDlg({ open, onClose, onSelect, selectedIds, focus }: any) 
   const postPhotos: TGalleryPhoto[] = allPhotos.filter((p: TGalleryPhoto) => p.type === GalleryType.Post);
   const storyPhotos: TGalleryPhoto[] = allPhotos.filter((p: TGalleryPhoto) => p.type === GalleryType.Story);
 
+  const hasPostOrStorySelected = localSelected.some(id => {
+    const p = allPhotos.find(p => p.id === id)
+    return p?.type === GalleryType.Post || p?.type === GalleryType.Story
+  })
+
   // Get Data
   useEffect(() => {
     const fetchData = async () => {
@@ -171,8 +176,12 @@ function SelectGalleryDlg({ open, onClose, onSelect, selectedIds, focus }: any) 
                             type="checkbox"
                             checked={localSelected.includes(photo.id)}
                             disabled={
-                              !localSelected.includes(photo.id) &&
-                              localSelected.length >= MAX_SELECTED
+                              (!localSelected.includes(photo.id) && localSelected.length >= MAX_SELECTED) ||
+                              (
+                                hasPostOrStorySelected &&
+                                (photo.type === GalleryType.Post || photo.type === GalleryType.Story) &&
+                                !localSelected.includes(photo.id)
+                              )
                             }
                             onChange={() => toggle(photo.id)}
                             className="h-4 w-4 rounded disabled:opacity-40 disabled:cursor-not-allowed"
@@ -213,8 +222,12 @@ function SelectGalleryDlg({ open, onClose, onSelect, selectedIds, focus }: any) 
                             type="checkbox"
                             checked={localSelected.includes(photo.id)}
                             disabled={
-                              !localSelected.includes(photo.id) &&
-                              localSelected.length >= MAX_SELECTED
+                              (!localSelected.includes(photo.id) && localSelected.length >= MAX_SELECTED) ||
+                              (
+                                hasPostOrStorySelected &&
+                                (photo.type === GalleryType.Post || photo.type === GalleryType.Story) &&
+                                !localSelected.includes(photo.id)
+                              )
                             }
                             onChange={() => toggle(photo.id)}
                             className="h-4 w-4 rounded disabled:opacity-40 disabled:cursor-not-allowed"
