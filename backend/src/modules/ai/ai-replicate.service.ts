@@ -191,7 +191,7 @@ export class AiReplicateService {
             ${postImageQuality()}
           `,
           resolution: "2K",
-          aspect_ratio: "2:3",
+          aspect_ratio: "4:5",
           safety_filter_level: "block_only_high",
           image_input: photos.map(photo => photo.url),
           allow_fallback_model: false
