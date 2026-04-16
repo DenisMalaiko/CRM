@@ -246,6 +246,26 @@ export function postImageOutputBlock() {
     
     Return the result strictly as JSON.
     
+    CRITICAL JSON RULES (MUST FOLLOW)
+
+    - JSON must be strictly valid and parsable by JSON.parse
+    - Objects MUST contain only key-value pairs
+    - NEVER output standalone values inside objects
+    - If you want to add explanation — you MUST put it inside a string field
+    - If no suitable key exists — create one
+    
+    INVALID EXAMPLE (DO NOT DO THIS):
+    {
+      "a": true,
+      "some random text"
+    }
+    
+    VALID EXAMPLE:
+    {
+      "a": true,
+      "note": "some random text"
+    }
+    
     Each analyzed image must reference its IMAGE_ID.
     
     Structure:
