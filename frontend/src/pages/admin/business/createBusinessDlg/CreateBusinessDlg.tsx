@@ -31,6 +31,7 @@ import { BusinessStatus } from "../../../../enum/BusinessStatus";
 
 // Const
 import { Languages } from "../../../../const/Languages";
+import { Industries } from "../../../../const/Industries";
 
 function CreateBusinessDlg({ open, onClose, business }: any) {
   const dispatch = useAppDispatch();
@@ -61,7 +62,7 @@ function CreateBusinessDlg({ open, onClose, business }: any) {
     return {
       name: "",
       website: "",
-      industry: "",
+      industry: Industries[0],
       status: BusinessStatus.Active,
       agencyId: user?.agencyId,
       brand: "",
@@ -215,15 +216,18 @@ function CreateBusinessDlg({ open, onClose, business }: any) {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-slate-700 text-left">Industry</label>
-              <input
-                type="text"
+
+              <select
                 name="industry"
                 value={form.industry}
                 onChange={onChange}
                 className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter industry"
-                autoComplete="off"
-              />
+              >
+                { Industries.map((industry: string) => (
+                  <option key={industry} value={industry}>{industry}</option>
+                )) }
+              </select>
+
               {errors.industry && <p className="text-red-500 text-sm mt-2 text-left">{errors.industry}</p>}
             </div>
 
