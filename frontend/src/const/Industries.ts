@@ -1,4 +1,4 @@
-export const industries = [
+export const Industries = [
   "Apparel & Accessories",
   "Baby, Kids & Maternity",
   "Beauty & Personal Care",
