@@ -8,7 +8,8 @@ function Home() {
       {/* Hero Section */}
       <section className="flex flex-col items-center text-center py-24 px-6 bg-gradient-to-b from-blue-50 to-slate-50">
         <h2 className="text-4xl md:text-5xl font-bold mb-4 text-slate-900 max-w-3xl">
-          Boost Campaign Performance with <span className="text-blue-600">NovaCRM</span>        </h2>
+          Hello World! Привіт Даша! Boost Campaign Performance with <span className="text-blue-600">NovaCRM</span>
+        </h2>
         <p className="text-slate-600 text-lg max-w-2xl mb-8">
           Track leads, analyze customer behavior, automate follow-ups, and optimize marketing campaigns —
           all in one workspace designed for data-driven marketers.
