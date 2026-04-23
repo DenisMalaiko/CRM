@@ -93,6 +93,6 @@ Swagger UI available at `/docs` when running locally.
 - **ALWAYS** autonomously determine which agents from `.claude/agents/` should execute each part of the user's task — do NOT ask the user which agent to use
 
 - **Available agents**:
-  `backend`
+  `backend`, `reviewer`, `tester`
 - For every non-trivial task:
   **analyze → select agents → dispatch in parallel where possible → collect results → verify**
