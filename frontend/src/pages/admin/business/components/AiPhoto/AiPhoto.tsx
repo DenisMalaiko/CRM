@@ -63,6 +63,11 @@ export function AiPhoto() {
     }
   };
 
+  const handleOpenSlider = (photo: TAiPhoto) => {
+    setSelectedMedia([{ url: photo.url }]);
+    setOpenSliderDlg(true);
+  };
+
   const handleDelete = async (e: React.MouseEvent, id: string) => {
     e.preventDefault();
     const ok = await confirm({
@@ -117,10 +122,7 @@ export function AiPhoto() {
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition duration-300 flex items-center justify-center">
                   <div className="flex gap-5">
                     <button
-                      onClick={() => {
-                        setSelectedMedia([{ url: photo.url }]);
-                        setOpenSliderDlg(true);
-                      }}
+                      onClick={() => handleOpenSlider(photo)}
                       className="opacity-0 group-hover:opacity-100 transition duration-300 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg"
                     >
                       <ImagePlay size={18} />
@@ -152,7 +154,7 @@ export function AiPhoto() {
                 }}
                 className="absolute right-0 text-white bg-blue-600 rounded-full p-2 hover:bg-blue-700 cursor-pointer"
               >
-                <X size={20} strokeWidth={2} color="white" />
+                <X size={20} strokeWidth={2} />
               </button>
             </div>
             <textarea
