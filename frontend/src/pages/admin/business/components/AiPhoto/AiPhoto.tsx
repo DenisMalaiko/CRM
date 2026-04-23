@@ -2,10 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { ImagePlay, Trash2, X } from "lucide-react";
 import { toast } from "react-toastify";
-import { useSelector } from "react-redux";
-
-import { useAppDispatch } from "../../../../../store/hooks";
-import { RootState } from "../../../../../store";
+import { useAppDispatch, useAppSelector } from "../../../../../store/hooks";
 import {
   useGeneratePhotoAIMutation,
   useLazyGetPhotosAIQuery,
@@ -25,13 +22,13 @@ export function AiPhoto() {
   const [open, setOpen] = useState(false);
   const [prompt, setPrompt] = useState("");
   const [openSliderDlg, setOpenSliderDlg] = useState(false);
-  const [selectedMedia, setSelectedMedia] = useState<any>(null);
+  const [selectedMedia, setSelectedMedia] = useState<{ url: string }[] | null>(null);
 
   const [generatePhoto, { isLoading: isGenerating }] = useGeneratePhotoAIMutation();
   const [getPhotos] = useLazyGetPhotosAIQuery();
   const [deletePhoto] = useDeletePhotoAIMutation();
 
-  const { photosAi } = useSelector((state: RootState) => state.photoAiModule);
+  const { photosAi } = useAppSelector((state) => state.photoAiModule);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -45,7 +42,7 @@ export function AiPhoto() {
       }
     };
     fetchData();
-  }, [dispatch]);
+  }, [businessId, dispatch]);
 
   if (!businessId) return null;
 
@@ -180,7 +177,7 @@ export function AiPhoto() {
       <SliderDlg
         open={openSliderDlg}
         onClose={() => setOpenSliderDlg(false)}
-        medias={selectedMedia}
+        medias={selectedMedia ?? []}
       />
     </div>
   );
