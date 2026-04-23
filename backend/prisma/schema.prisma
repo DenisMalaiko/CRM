@@ -473,6 +473,7 @@ enum GalleryPhotoType {
   Decoration
   Post
   Story
+  AI
 }
 
 enum IdeaWho {

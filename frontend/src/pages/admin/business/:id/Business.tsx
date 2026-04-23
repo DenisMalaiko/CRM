@@ -11,6 +11,7 @@ import {
   Image,
   Swords,
   Lightbulb,
+  Camera,
   TrendingUp,
   LucideLayoutDashboard
 } from "lucide-react"
@@ -91,6 +92,11 @@ function Business() {
       id: "ideasAI",
       title: "AI Ideas",
       icon: Lightbulb,
+    },
+    {
+      id: "aiPhoto",
+      title: "AI Photo",
+      icon: Camera,
     },
   ]
 

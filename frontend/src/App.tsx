@@ -57,6 +57,7 @@ import Accountant from "./pages/admin/ai/accountant/Accountant";
 import Manager from "./pages/admin/ai/manager/Manager";
 /*import Marketer from "./pages/admin/ai/marketer/Marketer";*/
 import IdeasAI from "./pages/admin/business/components/IdeasAI/IdeasAI";
+import AiPhoto from "./pages/admin/business/components/AiPhoto/AiPhoto";
 
 import { useAppDispatch } from "./store/hooks";
 import { useSignInByTokenMutation } from "./store/auth/authApi";
@@ -145,6 +146,7 @@ function App() {
 
             {/*AI*/}
             <Route path="ideasAI" element={<IdeasAI />}></Route>
+            <Route path="aiPhoto" element={<AiPhoto />}></Route>
 
             {/*Trends*/}
             <Route path="trends" element={<Trends />}></Route>
