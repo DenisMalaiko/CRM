@@ -218,4 +218,25 @@ export class GalleryService {
       });
     });
   }
+
+
+  // AI Gallery Photos
+  async getAiPhotos(businessId): Promise<TGalleryPhoto[]> {
+    const aiPhotos = await this.prisma.galleryPhoto.findMany({
+      where: { businessId: businessId, type: GalleryPhotoType.AI },
+    });
+
+    return aiPhotos.map((photo) => {
+      return {
+        ...photo,
+        url: photo.url ? this.storageUrlService.getPublicUrl(photo.url) : "",
+      }
+    })
+  }
+
+  async generateAiPhoto() {
+    console.log("--------");
+    console.log("SERVICE AI PHOTO");
+    console.log("-------");
+  }
 }

@@ -5,7 +5,9 @@ import {
   TGalleryPhotoUpdate,
   TGalleryPhotoUpdateForm,
   TDefaultGalleryPhoto,
-  TDefaultGalleryPhotoUpdateForm
+  TDefaultGalleryPhotoUpdateForm,
+  TAIGalleryPhoto,
+  TAIGalleryPhotoCreate
 } from "../../models/Gallery";
 
 export const galleryApi = api.injectEndpoints({
@@ -89,6 +91,21 @@ export const galleryApi = api.injectEndpoints({
         method: "DELETE",
       })
     }),
+
+    // AI GalleryPhotos
+    getAiPhotos: builder.query<ApiResponse<TGalleryPhoto[]>, string>({
+      query: (id) => ({
+        url: `/gallery/ai-list/${id}`,
+      })
+    }),
+
+    generateAiPhoto: builder.mutation<ApiResponse<TGalleryPhoto>, { id: string, form: TAIGalleryPhotoCreate }>({
+      query: ({ id, form }) => ({
+        url: `/gallery/ai-list/${id}`,
+        method: "POST",
+        body: form,
+      })
+    })
   }),
   overrideExisting: false,
 });
@@ -103,4 +120,7 @@ export const {
   useUploadDefaultPhotosMutation,
   useUpdateDefaultPhotoMutation,
   useDeleteDefaultPhotoMutation,
+
+  useLazyGetAiPhotosQuery,
+  useGenerateAiPhotoMutation,
 } = galleryApi;
