@@ -60,3 +60,12 @@ export type TDefaultGalleryPhotoUpdateForm = {
 export type TDefaultGalleryPhotoUpdate = TDefaultGalleryPhotoUpdateForm & {
   id: string;
 };
+
+// AI Gallery Photo
+export type TAIGalleryPhoto = TGalleryPhotoBase & {
+  prompt: string;
+}
+
+export type TAIGalleryPhotoCreate = {
+  prompt: string;
+}

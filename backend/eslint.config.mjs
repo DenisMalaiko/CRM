@@ -7,6 +7,7 @@ import tseslint from 'typescript-eslint';
 export default tseslint.config(
   {
     ignores: ['eslint.config.mjs'],
+    printWidth: 120,
   },
   eslint.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,

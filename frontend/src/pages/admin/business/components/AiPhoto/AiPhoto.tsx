@@ -4,16 +4,24 @@ import { ImagePlay, Trash2, X } from "lucide-react";
 import { toast } from "react-toastify";
 import { useAppDispatch, useAppSelector } from "../../../../../store/hooks";
 import {
+  useGenerateAiPhotoMutation,
+  useLazyGetAiPhotosQuery,
+  useDeletePhotoMutation
+} from "../../../../../store/gallery/galleryApi";
+import { setAiPhotosGalleryPhotos } from "../../../../../store/gallery/gallerySlice";
+
+/*import {
   useGeneratePhotoAIMutation,
   useLazyGetPhotosAIQuery,
   useDeletePhotoAIMutation,
 } from "../../../../../store/ai/photo/photoAiApi";
-import { setPhotosAi } from "../../../../../store/ai/photo/photoAiSlice";
+import { setPhotosAi } from "../../../../../store/ai/photo/photoAiSlice";*/
 import { confirm } from "../../../../../components/confirmDlg/ConfirmDlg";
 import SliderDlg from "../../../../../components/sliderDlg/SliderDlg";
 import { ApiResponse } from "../../../../../models/ApiResponse";
 import { TAiPhoto } from "../../../../../models/AiPhoto";
 import { showError } from "../../../../../utils/showError";
+import {TGalleryPhoto} from "../../../../../models/Gallery";
 
 export function AiPhoto() {
   const dispatch = useAppDispatch();
@@ -24,18 +32,19 @@ export function AiPhoto() {
   const [openSliderDlg, setOpenSliderDlg] = useState(false);
   const [selectedMedia, setSelectedMedia] = useState<{ url: string }[] | null>(null);
 
-  const [generatePhoto, { isLoading: isGenerating }] = useGeneratePhotoAIMutation();
-  const [getPhotos] = useLazyGetPhotosAIQuery();
-  const [deletePhoto] = useDeletePhotoAIMutation();
+  const [generatePhoto, { isLoading: isGenerating }] = useGenerateAiPhotoMutation();
+  const [getPhotos] = useLazyGetAiPhotosQuery();
+  const [deletePhoto] = useDeletePhotoMutation();
 
-  const { photosAi } = useAppSelector((state) => state.photoAiModule);
+  const { aiPhotos } = useAppSelector((state) => state.galleryModule);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         if (businessId) {
-          const response: ApiResponse<TAiPhoto[]> = await getPhotos(businessId).unwrap();
-          if (response && response.data) dispatch(setPhotosAi(response.data));
+          console.log("WATCH AI PHOTOS")
+          const response: ApiResponse<TGalleryPhoto[]> = await getPhotos(businessId).unwrap();
+          if (response && response.data) dispatch(setAiPhotosGalleryPhotos(response.data));
         }
       } catch (error) {
         showError(error);
@@ -48,12 +57,16 @@ export function AiPhoto() {
 
   const handleGenerate = async () => {
     try {
-      const response: ApiResponse<TAiPhoto[]> = await generatePhoto({
+      const response: ApiResponse<TGalleryPhoto> = await generatePhoto({
         id: businessId,
-        prompt,
+        form: {
+          prompt: prompt,
+        }
       }).unwrap();
+
+
       if (response && response.data) {
-        dispatch(setPhotosAi(response.data));
+        /*dispatch(setAiPhotosGalleryPhotos(response.data));*/
         toast.success(response.message);
         setOpen(false);
         setPrompt("");
@@ -74,7 +87,7 @@ export function AiPhoto() {
       title: "Delete Photo",
       message: "Are you sure you want to delete this photo?",
     });
-    if (ok) {
+    /*if (ok) {
       try {
         const response: ApiResponse<null> = await deletePhoto(id).unwrap();
         if (response && response.success) {
@@ -85,7 +98,7 @@ export function AiPhoto() {
       } catch (error) {
         showError(error);
       }
-    }
+    }*/
   };
 
   return (
@@ -102,7 +115,7 @@ export function AiPhoto() {
       </div>
 
       {/* Section 2 — Photo Grid */}
-      <div className="p-5">
+      {/*<div className="p-5">
         {!photosAi || photosAi.length === 0 ? (
           <div className="py-4 text-center text-slate-400 text-sm">
             No photos generated yet
@@ -139,9 +152,9 @@ export function AiPhoto() {
             ))}
           </div>
         )}
-      </div>
+      </div>*/}
 
-      {/* Generate Dialog */}
+      {/* Generate Dialog
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50">
           <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl p-6">
@@ -174,7 +187,7 @@ export function AiPhoto() {
             </div>
           </div>
         </div>
-      )}
+      )}*/}
 
       <SliderDlg
         open={openSliderDlg}

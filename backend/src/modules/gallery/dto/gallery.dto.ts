@@ -52,3 +52,8 @@ export class DefaultUpdateGalleryPhotoDto {
   @IsString()
   description?: string;
 }
+
+export class AiGeneratedGalleryPhotoDto extends GalleryPhotoBaseDto {
+  @IsString()
+  prompt: string;
+}
