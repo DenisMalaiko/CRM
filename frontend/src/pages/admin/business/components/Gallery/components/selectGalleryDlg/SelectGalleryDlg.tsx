@@ -1,7 +1,6 @@
-import { createPortal } from "react-dom"
-import React, { useMemo, useState, useEffect } from 'react';
-import {useParams} from "react-router-dom";
-import { X } from "lucide-react";
+import React, { useState, useEffect } from 'react';
+import { useParams } from "react-router-dom";
+import { ChevronRight, ChevronLeft } from "lucide-react";
 
 // Redux
 import { useAppDispatch } from "../../../../../../../store/hooks";
@@ -10,28 +9,35 @@ import { setGalleryPhotos, setDefaultGalleryPhotos } from "../../../../../../../
 
 // Models
 import { ApiResponse } from "../../../../../../../models/ApiResponse";
-import {TDefaultGalleryPhoto, TGalleryPhoto} from "../../../../../../../models/Gallery";
+import { TDefaultGalleryPhoto, TGalleryPhoto } from "../../../../../../../models/Gallery";
 
 // Utils
 import { showError } from "../../../../../../../utils/showError";
-import {useSelector} from "react-redux";
-import {GalleryType} from "../../../../../../../enum/GalleryType";
-import {BusinessProfileFocus} from "../../../../../../../enum/BusinessProfileFocus";
+import { useAppSelector } from "../../../../../../../store/hooks";
+import { GalleryType } from "../../../../../../../enum/GalleryType";
+import { BusinessProfileFocus } from "../../../../../../../enum/BusinessProfileFocus";
 
-function SelectGalleryDlg({ open, onClose, onSelect, selectedIds, focus }: any) {
+type Props = {
+  onSelect: (selectedPhotos: TGalleryPhoto[]) => void;
+  selectedIds: string[];
+  focus: BusinessProfileFocus;
+}
+
+export function SelectGalleryDlg({ onSelect, selectedIds, focus }: Props) {
   const dispatch = useAppDispatch();
   const { businessId } = useParams<{ businessId: string }>();
-  const MAX_SELECTED = 3
+  const MAX_SELECTED = 3;
 
-  const [ localSelected, setLocalSelected ] = useState<string[]>([])
+  const [localSelected, setLocalSelected] = useState<string[]>([]);
+  const [activeCategory, setActiveCategory] = useState<GalleryType | null>(null);
 
-  const [ getPhotos ] = useGetPhotosMutation();
-  const [ getDefaultPhotos ] = useLazyGetDefaultPhotosQuery();
-  const { photos, defaultPhotos } = useSelector((state: any) => state.galleryModule);
+  const [getPhotos] = useGetPhotosMutation();
+  const [getDefaultPhotos] = useLazyGetDefaultPhotosQuery();
+  const { photos, defaultPhotos } = useAppSelector((state) => state.galleryModule);
 
-  const mappedPhotos = photos.map((photo: any) => ({ ...photo, isDefault: false }));
-  const mappedDefaultPhotos = defaultPhotos.map((photo: any) => ({ ...photo, isDefault: true }));
-  const allPhotos = [...mappedDefaultPhotos, ...mappedPhotos];
+  const mappedPhotos = photos.map((photo: TGalleryPhoto) => ({ ...photo, isDefault: false }));
+  const mappedDefaultPhotos = defaultPhotos.map((photo: TDefaultGalleryPhoto) => ({ ...photo, isDefault: true }));
+  const allPhotos = [...mappedDefaultPhotos, ...mappedPhotos] as TGalleryPhoto[];
 
   const decorationPhotos: TGalleryPhoto[] = allPhotos.filter((p: TGalleryPhoto) => p.type === GalleryType.Decoration);
   const imagePhotos: TGalleryPhoto[] = allPhotos.filter((p: TGalleryPhoto) => p.type === GalleryType.Image);
@@ -39,275 +45,146 @@ function SelectGalleryDlg({ open, onClose, onSelect, selectedIds, focus }: any) 
   const storyPhotos: TGalleryPhoto[] = allPhotos.filter((p: TGalleryPhoto) => p.type === GalleryType.Story);
 
   const hasPostOrStorySelected = localSelected.some(id => {
-    const p = allPhotos.find(p => p.id === id)
-    return p?.type === GalleryType.Post || p?.type === GalleryType.Story
-  })
+    const p = allPhotos.find(p => p.id === id);
+    return p?.type === GalleryType.Post || p?.type === GalleryType.Story;
+  });
 
   // Get Data
   useEffect(() => {
     const fetchData = async () => {
       try {
-        if(businessId) {
+        if (businessId) {
           const response: ApiResponse<TGalleryPhoto[]> = await getPhotos(businessId).unwrap();
           const responseDefault: ApiResponse<TDefaultGalleryPhoto[]> = await getDefaultPhotos().unwrap();
 
-          if(response && response.data) dispatch(setGalleryPhotos(response.data));
-          if(responseDefault && responseDefault.data) dispatch(setDefaultGalleryPhotos(responseDefault.data));
+          if (response && response.data) dispatch(setGalleryPhotos(response.data));
+          if (responseDefault && responseDefault.data) dispatch(setDefaultGalleryPhotos(responseDefault.data));
         }
       } catch (error) {
         showError(error);
       }
-    }
+    };
 
     fetchData();
   }, [dispatch]);
 
   useEffect(() => {
-    setLocalSelected(selectedIds)
-  }, [selectedIds])
+    setLocalSelected(selectedIds);
+  }, [selectedIds]);
 
   const toggle = (id: string) => {
     setLocalSelected(prev => {
-      if (prev.includes(id)) {
-        return prev.filter(x => x !== id)
-      }
+      const next = prev.includes(id)
+        ? prev.filter(x => x !== id)
+        : prev.length >= MAX_SELECTED ? prev : [...prev, id];
+      onSelect(allPhotos.filter((p: TGalleryPhoto) => next.includes(p.id)));
+      return next;
+    });
+  };
 
-      if (prev.length >= MAX_SELECTED) {
-        return prev
-      }
+  if (!businessId) return null;
 
-      return [...prev, id]
-    })
-  }
+  const visibleCategories = [
+    { type: GalleryType.Image, label: 'Images', photos: imagePhotos },
+    ...(focus === BusinessProfileFocus.GeneratePosts ? [{ type: GalleryType.Post, label: 'Templates for Posts', photos: postPhotos }] : []),
+    ...(focus === BusinessProfileFocus.GenerateStories ? [{ type: GalleryType.Story, label: 'Templates for Stories', photos: storyPhotos }] : []),
+    { type: GalleryType.Decoration, label: 'Decorations', photos: decorationPhotos },
+  ];
 
-  if (!open) return null
-  if(!businessId) return null;
+  const activeCategoryPhotos = activeCategory ? allPhotos.filter((p: TGalleryPhoto) => p.type === activeCategory) : [];
+  const activeCategoryLabel = visibleCategories.find(c => c.type === activeCategory)?.label ?? '';
 
-  return createPortal(
-    <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/60">
-      <div className="w-full max-w-5xl rounded-2xl bg-white shadow-xl max-h-[90vh] overflow-auto">
-
-        {/* Header */}
-        <div className="border-b px-6 py-4 flex items-center justify-between relative">
-          <h2 className="text-lg font-semibold">Select Gallery Photo</h2>
-
-          {/* Close */}
-          <button
-            onClick={() => onClose()}
-            className="absolute top-3 right-3 text-white text-xl z-10 bg-blue-600 rounded-full p-2 hover:bg-blue-700 cursor-pointer"
-          >
-            <X size={20} strokeWidth={2} color="white"></X>
-          </button>
-        </div>
-
-        {/* Content */}
-        <div className="flex-1 overflow-auto">
-          <div className="space-y-10 p-6">
-            <section>
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">
-                  Images
-                </h3>
-              </div>
-
-              <div className="grid gap-6 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-4">
-                {imagePhotos.map(photo => (
-                  <div
-                    key={photo.id}
-                    className="group rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition cursor-pointer bg-gray-200 p-3 h-60 flex justify-center items-center"
-                  >
-                    <label className="relative cursor-pointer w-full h-full flex justify-center items-center">
-                      <img
-                        src={photo.url}
-                        className="w-auto h-auto max-w-full max-h-full"
-                        alt=""
-                      />
-
-                      <div className="absolute top-3 right-3 duration-300">
-                        <input
-                          type="checkbox"
-                          checked={localSelected.includes(photo.id)}
-                          disabled={
-                            !localSelected.includes(photo.id) &&
-                            localSelected.length >= MAX_SELECTED
-                          }
-                          onChange={() => toggle(photo.id)}
-                          className="h-4 w-4 rounded disabled:opacity-40 disabled:cursor-not-allowed"
-                        />
-                      </div>
-                    </label>
-                  </div>
-                ))}
-              </div>
-            </section>
-          </div>
-        </div>
-
-
-        <div className="border-b px-6 py-4 flex items-center justify-between relative">
-          <h2 className="text-lg font-semibold">Select Design System</h2>
-        </div>
-
-        <div className="flex-1 overflow-auto">
-          {focus === BusinessProfileFocus.GeneratePosts && (
-            <div className="space-y-10 p-6">
-              <section>
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">
-                    Templates For Posts
-                  </h3>
-                </div>
-
-                <div className="grid gap-6 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-4">
-                  {postPhotos.map(photo => (
-                    <div
-                      key={photo.id}
-                      className="group rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition cursor-pointer bg-gray-200 p-3 h-60 flex justify-center items-center"
-                    >
-                      <label className="relative cursor-pointer w-full h-full flex justify-center items-center">
-                        <img
-                          src={photo.url}
-                          className="w-auto h-auto max-w-full max-h-full"
-                          alt=""
-                        />
-
-                        <div className="absolute top-3 right-3 duration-300">
-                          <input
-                            type="checkbox"
-                            checked={localSelected.includes(photo.id)}
-                            disabled={
-                              (!localSelected.includes(photo.id) && localSelected.length >= MAX_SELECTED) ||
-                              (
-                                hasPostOrStorySelected &&
-                                (photo.type === GalleryType.Post || photo.type === GalleryType.Story) &&
-                                !localSelected.includes(photo.id)
-                              )
-                            }
-                            onChange={() => toggle(photo.id)}
-                            className="h-4 w-4 rounded disabled:opacity-40 disabled:cursor-not-allowed"
-                          />
-                        </div>
-                      </label>
-                    </div>
-                  ))}
-                </div>
-              </section>
-            </div>
-          )}
-
-          {focus === BusinessProfileFocus.GenerateStories && (
-            <div className="space-y-10 p-6">
-              <section>
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">
-                    Templates For Stories
-                  </h3>
-                </div>
-
-                <div className="grid gap-6 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-4">
-                  {storyPhotos.map(photo => (
-                    <div
-                      key={photo.id}
-                      className="group rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition cursor-pointer bg-gray-200 p-3 h-60 flex justify-center items-center"
-                    >
-                      <label className="relative cursor-pointer w-full h-full flex justify-center items-center">
-                        <img
-                          src={photo.url}
-                          className="w-auto h-auto max-w-full max-h-full"
-                          alt=""
-                        />
-
-                        <div className="absolute top-3 right-3 duration-300">
-                          <input
-                            type="checkbox"
-                            checked={localSelected.includes(photo.id)}
-                            disabled={
-                              (!localSelected.includes(photo.id) && localSelected.length >= MAX_SELECTED) ||
-                              (
-                                hasPostOrStorySelected &&
-                                (photo.type === GalleryType.Post || photo.type === GalleryType.Story) &&
-                                !localSelected.includes(photo.id)
-                              )
-                            }
-                            onChange={() => toggle(photo.id)}
-                            className="h-4 w-4 rounded disabled:opacity-40 disabled:cursor-not-allowed"
-                          />
-                        </div>
-                      </label>
-                    </div>
-                  ))}
-                </div>
-              </section>
-            </div>
-          )}
-
-          <div className="space-y-10 p-6">
-            <section>
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">
-                  Decorations
-                </h3>
-              </div>
-
-              <div className="grid gap-6 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-4">
-                {decorationPhotos.map(photo => (
-                  <div
-                    key={photo.id}
-                    className="group rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition cursor-pointer bg-gray-200 p-3 h-60 flex justify-center items-center"
-                  >
-                    <label className="relative cursor-pointer w-full h-full flex justify-center items-center">
-                      <img
-                        src={photo.url}
-                        className="w-auto h-auto max-w-full max-h-full"
-                        alt=""
-                      />
-
-                      <div className="absolute top-3 right-3 duration-300">
-                        <input
-                          type="checkbox"
-                          checked={localSelected.includes(photo.id)}
-                          disabled={
-                            !localSelected.includes(photo.id) &&
-                            localSelected.length >= MAX_SELECTED
-                          }
-                          onChange={() => toggle(photo.id)}
-                          className="h-4 w-4 rounded disabled:opacity-40 disabled:cursor-not-allowed"
-                        />
-                      </div>
-                    </label>
-                  </div>
-                ))}
-              </div>
-            </section>
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="border-t px-6 py-4 flex justify-end gap-3">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 rounded-lg border"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            className="px-4 py-2 rounded-lg bg-blue-600 text-white disabled:opacity-50"
-            disabled={localSelected.length === 0}
-            onClick={() =>
-              onSelect(
-                allPhotos.filter((p: TGalleryPhoto) => localSelected.includes(p.id))
-              )
-            }
-          >
-            Select ({localSelected.length}/{MAX_SELECTED})
-          </button>
-        </div>
-
+  return (
+    <div>
+      <div className="flex items-center gap-2 justify-between">
+        <label className="block text-sm font-medium text-slate-700 text-left mb-3">
+          Attach Photos
+          {localSelected.length === MAX_SELECTED && <span className="ml-1 text-red-500">(max 3 photos)</span>}
+        </label>
       </div>
-    </div>,
-    document.body
-  )
+
+      {activeCategory === null ? (
+        <div className="flex gap-3">
+          {visibleCategories.map(cat => (
+            <div
+              key={cat.type}
+              onClick={() => setActiveCategory(cat.type)}
+              className="cursor-pointer relative rounded-xl overflow-hidden transition"
+            >
+              {cat.photos.slice(-1).map(photo => (
+                <div key={photo.id} className="relative h-48 w-40 bg-gray-200">
+                  <img
+                    src={photo.url}
+                    alt=""
+                    className="h-full w-full object-cover"
+                  />
+                  <div className="absolute bottom-0 left-0 right-0 h-1/5 bg-gradient-to-t from-black/70 to-transparent rounded-b-xl" />
+                  <h3 className="absolute bottom-2 left-0 right-0 text-center text-xs font-semibold text-white uppercase tracking-wide px-2">
+                    {cat.label}
+                  </h3>
+                </div>
+              ))}
+
+              {cat.photos.length === 0 && (
+                <div className="h-48 w-36 bg-gray-200 rounded-xl flex flex-col items-center justify-end pb-2">
+                  <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                    {cat.label}
+                  </h3>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div>
+          <div className="flex items-center gap-3 mb-4">
+            <button
+              onClick={() => setActiveCategory(null)}
+              className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700 cursor-pointer"
+            >
+              <ChevronLeft size={16} />
+              Back
+            </button>
+            <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">
+              {activeCategoryLabel}
+            </h3>
+          </div>
+
+          <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory">
+            {activeCategoryPhotos.map(photo => (
+              <div
+                key={photo.id}
+                className="group rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition cursor-pointer bg-gray-200 h-48 w-40 flex-shrink-0 flex justify-center items-center snap-start"
+              >
+                <label className="relative cursor-pointer w-full h-full flex justify-center items-center">
+                  <img
+                    src={photo.url}
+                    className="w-full h-full max-w-full max-h-full"
+                    alt=""
+                  />
+                  <div className="absolute top-3 right-3 duration-300">
+                    <input
+                      type="checkbox"
+                      checked={localSelected.includes(photo.id)}
+                      disabled={
+                        (!localSelected.includes(photo.id) && localSelected.length >= MAX_SELECTED) ||
+                        (
+                          hasPostOrStorySelected &&
+                          (photo.type === GalleryType.Post || photo.type === GalleryType.Story) &&
+                          !localSelected.includes(photo.id)
+                        )
+                      }
+                      onChange={() => toggle(photo.id)}
+                      className="h-4 w-4 rounded disabled:opacity-40 disabled:cursor-not-allowed"
+                    />
+                  </div>
+                </label>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
-export default SelectGalleryDlg

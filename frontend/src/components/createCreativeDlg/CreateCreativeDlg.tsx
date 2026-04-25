@@ -42,8 +42,7 @@ import { TIdeaAI } from "../../models/IdeaAI";
 
 // Components
 import Select from "react-select";
-import SelectGalleryDlg
-  from "../../pages/admin/business/components/Gallery/components/selectGalleryDlg/SelectGalleryDlg";
+import { SelectGalleryDlg } from "../../pages/admin/business/components/Gallery/components/selectGalleryDlg/SelectGalleryDlg";
 
 // Utils
 import { showError } from "../../utils/showError";
@@ -100,7 +99,6 @@ function CreateCreativeDlg({ open, onClose, focus }: Props) {
   const [selectedContextId, setSelectedContextId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [openGalleryDlg, setOpenGalleryDlg] = useState(false)
 
 
   // Init Form
@@ -371,9 +369,9 @@ function CreateCreativeDlg({ open, onClose, focus }: Props) {
           <div>
             {selected === "manual" && (
               <div>
-                <div className="relative z-20 flex flex-row gap-4 mb-3">
+                <div className="relative z-20 gap-4 mb-3">
                   { !!productsOptions.length && (
-                    <div className="flex-1 min-w-0">
+                    <div className="mb-3">
                       <div className="flex items-center gap-2 justify-between">
                         <label className="block text-sm font-medium text-slate-700 text-left mb-1">Products</label>
                       </div>
@@ -397,7 +395,7 @@ function CreateCreativeDlg({ open, onClose, focus }: Props) {
                   )}
 
                   { !!allIdeasOptions.length && (
-                    <div className="flex-1 min-w-0">
+                    <div className="mb-3">
                       <div className="flex items-center gap-2 justify-between">
                         <label className="block text-sm font-medium text-slate-700 text-left mb-1">Ideas</label>
                       </div>
@@ -447,7 +445,7 @@ function CreateCreativeDlg({ open, onClose, focus }: Props) {
                   )}
 
                   { !!audiencesOptions.length && (
-                    <div className="flex-1 min-w-0">
+                    <div className="mb-3">
                       <div className="flex items-center gap-2 justify-between">
                         <label className="block text-sm font-medium text-slate-700 text-left mb-1">Audiences</label>
                       </div>
@@ -479,52 +477,39 @@ function CreateCreativeDlg({ open, onClose, focus }: Props) {
                         <label className="block text-sm font-medium text-slate-700 text-left mb-1">Prompt</label>
                       </div>
 
-                      <textarea
-                        value={form.prompt}
-                        onChange={(e) =>
-                          onChange({
-                            name: "prompt",
-                            value: e.target.value,
-                          })
-                        }
-                        className="w-full mt-1 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
-                        rows={5}
-                      />
+                      <div className="w-full mt-1 rounded-lg border border-slate-300 px-3 py-2 text-sm focus-within:ring-2 outline-none">
+                        {allPhotos.filter((x: TGalleryPhoto) =>
+                          form.photosIds.includes(x.id) ||
+                          form.defaultPhotosIds.includes(x.id)
+                        ).length > 0 && (
+                          <div className="grid grid-cols-8 gap-2 mb-5">
+                            {allPhotos.filter((x: TGalleryPhoto) =>
+                              form.photosIds.includes(x.id) ||
+                              form.defaultPhotosIds.includes(x.id)
+                            ).map((photo: TGalleryPhoto) => (
+                              <div key={photo.id} className="relative w-full aspect-square rounded-lg overflow-hidden border group bg-gray-200">
+                                <img src={photo.url} className="w-full h-full object-cover" alt="" />
+                                <button
+                                  onClick={() => deleteImage(photo.id)}
+                                  className="absolute top-1 right-1 z-10 bg-blue-600 rounded-full p-1 hover:bg-blue-700 cursor-pointer"
+                                >
+                                  <X size={12} strokeWidth={2} color="white" />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        <textarea
+                          value={form.prompt}
+                          onChange={(e) => onChange({ name: "prompt", value: e.target.value })}
+                          className="w-full resize-none outline-none text-sm bg-transparent"
+                          rows={3}
+                          placeholder="Enter prompt..."
+                        />
+                      </div>
                     </>
                   </div>
-                </div>
-
-
-                <div className="relative z-10 mb-3">
-                  <div className="flex items-center gap-2 justify-between mb-1">
-                    <label className="block text-sm font-medium text-slate-700 text-left">Photos (max 3)</label>
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-3">
-                    {allPhotos.filter((x: TGalleryPhoto) =>
-                      form.photosIds.includes(x.id) ||
-                      form.defaultPhotosIds.includes(x.id)
-                    ).map((photo: TGalleryPhoto) => (
-                      <div key={photo.id} className="relative w-full aspect-square rounded-xl overflow-hidden border group bg-gray-200 p-3 flex justify-center items-center">
-                        <img
-                          src={photo.url}
-                          className="w-auto h-auto max-w-full max-h-full"
-                          alt=""/>
-
-                        <button
-                          onClick={() => deleteImage(photo.id)}
-                          className="absolute top-2 right-2 text-white text-xl z-10 bg-blue-600 rounded-full p-1 hover:bg-blue-700 cursor-pointer"
-                        >
-                          <X size={15} strokeWidth={2} color="white"></X>
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div
-                    onClick={() => setOpenGalleryDlg(true)}
-                    className="px-4 mt-3 py-2 rounded-lg bg-blue-600 text-white flex items-center gap-2 justify-center cursor-pointer hover:bg-blue-700 w-max"
-                  > Select Photos </div>
                 </div>
               </div>
             )}
@@ -550,6 +535,19 @@ function CreateCreativeDlg({ open, onClose, focus }: Props) {
               </>
             )}
           </div>
+
+
+          {selected === "manual" && (
+            <SelectGalleryDlg
+              focus={focus as BusinessProfileFocus}
+              selectedIds={[...form.photosIds, ...form.defaultPhotosIds]}
+              onSelect={(selectedPhotos: TGalleryPhoto[]) => {
+                const businessIds = selectedPhotos.filter(p => !p.isDefault).map(p => p.id);
+                const defaultIds = selectedPhotos.filter(p => p.isDefault).map(p => p.id);
+                setForm(prev => ({ ...prev, photosIds: businessIds, defaultPhotosIds: defaultIds }));
+              }}
+            />
+          )}
 
           <div className="flex justify-end gap-3 pt-4">
             <button
@@ -582,34 +580,6 @@ function CreateCreativeDlg({ open, onClose, focus }: Props) {
         </form>
       </div>
 
-      <SelectGalleryDlg
-        open={openGalleryDlg}
-        focus={focus}
-        selectedIds={[...form.photosIds, ...form.defaultPhotosIds]}
-        onClose={() => setOpenGalleryDlg(false)}
-        onSelect={(selectedPhotos: TGalleryPhoto[]) => {
-
-          const businessIds = selectedPhotos
-            .filter(p => !p.isDefault)
-            .map(p => p.id);
-
-          const defaultIds = selectedPhotos
-            .filter(p => p.isDefault)
-            .map(p => p.id);
-
-          setForm(prev => ({
-            ...prev,
-            photosIds: Array.from(
-              new Set([...prev.photosIds, ...businessIds])
-            ),
-            defaultPhotosIds: Array.from(
-              new Set([...prev.defaultPhotosIds, ...defaultIds])
-            )
-          }));
-
-          setOpenGalleryDlg(false);
-        }}
-      />
     </div>
   )
 }
