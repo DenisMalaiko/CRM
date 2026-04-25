@@ -111,5 +111,3 @@ export function CreateAiPhotoDlg({ open, onClose, onSuccess }: Props) {
     </div>
   );
 }
-
-export default CreateAiPhotoDlg;
