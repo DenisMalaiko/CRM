@@ -10,6 +10,9 @@ import {
 } from "../../../../../store/gallery/galleryApi";
 import { setAiPhotosGalleryPhotos } from "../../../../../store/gallery/gallerySlice";
 
+// Components
+import CreateAiPhotoDlg from "./components/CreateAiPhotoDlg";
+
 /*import {
   useGeneratePhotoAIMutation,
   useLazyGetPhotosAIQuery,
@@ -61,6 +64,8 @@ export function AiPhoto() {
         id: businessId,
         form: {
           prompt: prompt,
+          photosIds: [],
+          defaultPhotosIds: [],
         }
       }).unwrap();
 
