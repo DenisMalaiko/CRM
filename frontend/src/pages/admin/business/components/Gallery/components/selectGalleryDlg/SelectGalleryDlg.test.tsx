@@ -67,7 +67,7 @@ const allPhotos = [imagePhoto, decorationPhoto, postPhoto, storyPhoto];
 
 type RenderOptions = {
   selectedIds?: string[];
-  focus?: BusinessProfileFocus;
+  focus?: BusinessProfileFocus | null;
 };
 
 function renderComponent({
@@ -250,6 +250,40 @@ describe('SelectGalleryDlg', () => {
       renderComponent({ focus: BusinessProfileFocus.GenerateStories });
 
       expect(screen.queryByText('Templates for Posts')).not.toBeInTheDocument();
+    });
+  });
+
+  // ── 8. focus === null (Images and Decorations only) ────────────────────────
+
+  describe('focus = null', () => {
+    test('shows Images and Decorations categories', () => {
+      mockGalleryState = {
+        photos: [
+          makePhoto('img-1', GalleryType.Image),
+          makePhoto('dec-1', GalleryType.Decoration),
+        ],
+        defaultPhotos: [],
+      };
+
+      renderComponent({ focus: null as any });
+
+      expect(screen.getByText('Images')).toBeInTheDocument();
+      expect(screen.getByText('Decorations')).toBeInTheDocument();
+    });
+
+    test('does not show Post or Story templates when focus is null', () => {
+      mockGalleryState = {
+        photos: [
+          makePhoto('post-1', GalleryType.Post),
+          makePhoto('story-1', GalleryType.Story),
+        ],
+        defaultPhotos: [],
+      };
+
+      renderComponent({ focus: null as any });
+
+      expect(screen.queryByText('Templates for Posts')).not.toBeInTheDocument();
+      expect(screen.queryByText('Templates for Stories')).not.toBeInTheDocument();
     });
   });
 });

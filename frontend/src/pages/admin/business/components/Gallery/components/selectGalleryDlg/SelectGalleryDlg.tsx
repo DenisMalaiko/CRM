@@ -20,7 +20,7 @@ import { BusinessProfileFocus } from "../../../../../../../enum/BusinessProfileF
 type Props = {
   onSelect: (selectedPhotos: TGalleryPhoto[]) => void;
   selectedIds: string[];
-  focus: BusinessProfileFocus;
+  focus: BusinessProfileFocus | null;
 }
 
 export function SelectGalleryDlg({ onSelect, selectedIds, focus }: Props) {
