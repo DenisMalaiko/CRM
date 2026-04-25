@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from "react-router-dom";
-import { ChevronRight, ChevronLeft } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 
 // Redux
-import { useAppDispatch } from "../../../../../../../store/hooks";
+import { useAppDispatch, useAppSelector } from "../../../../../../../store/hooks";
 import { useGetPhotosMutation, useLazyGetDefaultPhotosQuery } from "../../../../../../../store/gallery/galleryApi";
 import { setGalleryPhotos, setDefaultGalleryPhotos } from "../../../../../../../store/gallery/gallerySlice";
 
@@ -13,7 +13,6 @@ import { TDefaultGalleryPhoto, TGalleryPhoto } from "../../../../../../../models
 
 // Utils
 import { showError } from "../../../../../../../utils/showError";
-import { useAppSelector } from "../../../../../../../store/hooks";
 import { GalleryType } from "../../../../../../../enum/GalleryType";
 import { BusinessProfileFocus } from "../../../../../../../enum/BusinessProfileFocus";
 
