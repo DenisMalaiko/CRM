@@ -19,7 +19,7 @@ import {
 import {setProfiles} from "../../../../../../store/profile/profileSlice";
 
 // Components
-import SelectGalleryDlg from "../../Gallery/components/selectGalleryDlg/SelectGalleryDlg";
+import { SelectGalleryDlg } from "../../Gallery/components/selectGalleryDlg/SelectGalleryDlg";
 
 // Utils
 import { showError} from "../../../../../../utils/showError";
@@ -56,8 +56,6 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
   const [ createProfile, { isLoading: isLoadingCreating }] = useCreateProfileMutation();
   const [ updateProfile, { isLoading: isLoadingUpdating } ] = useUpdateProfileMutation();
   const [ getProfiles ] = useGetProfilesMutation();
-
-  const [openGalleryDlg, setOpenGalleryDlg] = useState(false)
 
   const mappedDefaultPhotos = defaultPhotos.map((photo: any) => ({ ...photo, isDefault: true }));
   const allPhotos = [...mappedDefaultPhotos, ...photos];
@@ -205,7 +203,7 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
   return (
     <>
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50">
-        <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl p-6 max-h-[90vh] overflow-y-auto overflow-x-hidden">
+        <div className="w-full max-w-3xl rounded-2xl bg-white shadow-xl p-6 max-h-[90vh] overflow-y-auto overflow-x-hidden">
 
           <div className="flex items-center justify-between mb-4 relative">
             <h2 className="text-lg font-semibold">{ isEdit ? "Edit" : "Create" } Context</h2>
@@ -405,7 +403,7 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
                 <label className="block text-sm font-medium text-slate-700 text-left">Photos (max 3)</label>
               </div>
 
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-8 gap-3 mb-4">
                 {allPhotos.filter((x: TGalleryPhoto) =>
                   form.photosIds.includes(x.id) ||
                   form.defaultPhotosIds.includes(x.id)
@@ -423,12 +421,16 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
                 ))}
               </div>
 
-              <div
-                onClick={() => setOpenGalleryDlg(true)}
-                className="px-4 mt-3 py-2 rounded-lg bg-blue-600 text-white flex items-center gap-2 justify-center cursor-pointer hover:bg-blue-700 w-max"
-              >
-                Select Photos
-              </div>
+
+              <SelectGalleryDlg
+                focus={form.profileFocus}
+                selectedIds={[...form.photosIds, ...form.defaultPhotosIds]}
+                onSelect={(selectedPhotos: TGalleryPhoto[]) => {
+                  const businessIds = selectedPhotos.filter(p => !p.isDefault).map(p => p.id);
+                  const defaultIds = selectedPhotos.filter(p => p.isDefault).map(p => p.id);
+                  setForm(prev => ({ ...prev, photosIds: businessIds, defaultPhotosIds: defaultIds }));
+                }}
+              />
             </div>
 
             <label className="flex items-start gap-3 cursor-pointer select-none">
@@ -473,35 +475,6 @@ function CreateProfileDlg({ open, onClose, profile }: any) {
           </form>
         </div>
       </div>
-
-      <SelectGalleryDlg
-        open={openGalleryDlg}
-        focus={form.profileFocus}
-        selectedIds={[...form.photosIds, ...form.defaultPhotosIds]}
-        onClose={() => setOpenGalleryDlg(false)}
-        onSelect={(selectedPhotos: TGalleryPhoto[]) => {
-
-          const businessIds = selectedPhotos
-            .filter(p => !p.isDefault)
-            .map(p => p.id);
-
-          const defaultIds = selectedPhotos
-            .filter(p => p.isDefault)
-            .map(p => p.id);
-
-          setForm(prev => ({
-            ...prev,
-            photosIds: Array.from(
-              new Set([...prev.photosIds, ...businessIds])
-            ),
-            defaultPhotosIds: Array.from(
-              new Set([...prev.defaultPhotosIds, ...defaultIds])
-            )
-          }));
-
-          setOpenGalleryDlg(false);
-        }}
-      />
     </>
   )
 }
