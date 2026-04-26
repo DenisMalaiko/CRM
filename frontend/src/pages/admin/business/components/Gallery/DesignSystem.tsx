@@ -28,7 +28,7 @@ function DesignSystem() {
   const [ getDefaultPhotos ] = useLazyGetDefaultPhotosQuery();
   const { photos, defaultPhotos } = useSelector((state: any) => state.galleryModule);
 
-  const mappedPhotos = photos.map((photo: any) => ({ ...photo, isDefault: false }));
+  const mappedPhotos = photos.map((photo: any) => ({ ...photo, isDefault: false })).sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) ;
   const mappedDefaultPhotos = defaultPhotos.map((photo: any) => ({ ...photo, isDefault: true }));
   const allPhotos = [...mappedDefaultPhotos, ...mappedPhotos];
 

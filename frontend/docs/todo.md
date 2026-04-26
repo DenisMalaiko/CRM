@@ -1,5 +1,23 @@
 # Task Log
 
+## CreateAiPhotoDlg + AiPhoto cleanup — 2026-04-25
+
+### Plan
+- [x] Оновити TAIGalleryPhotoCreate (photosIds, defaultPhotosIds)
+- [x] SelectGalleryDlg: focus nullable (BusinessProfileFocus | null)
+- [x] Реалізувати CreateAiPhotoDlg (prompt + photo selection + generate)
+- [x] Очистити AiPhoto.tsx: видалити закоментований код, відновити grid, підключити діалог
+- [x] Quality gate: reviewer + tester
+
+### Review
+- [x] reviewer → PASS
+- [x] tester → 32 тести pass
+- [x] No regressions found
+- Summary: CreateAiPhotoDlg реалізовано як popup з textarea та SelectGalleryDlg(focus=null); AiPhoto очищено від закоментованого коду, grid відновлено, delete логіка відновлена.
+
+---
+
+
 ## SelectGalleryDlg — inline block з навігацією — 2026-04-25
 
 ### Plan

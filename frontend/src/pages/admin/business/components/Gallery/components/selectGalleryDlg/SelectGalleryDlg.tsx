@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from "react-router-dom";
-import { ChevronRight, ChevronLeft } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 
 // Redux
-import { useAppDispatch } from "../../../../../../../store/hooks";
+import { useAppDispatch, useAppSelector } from "../../../../../../../store/hooks";
 import { useGetPhotosMutation, useLazyGetDefaultPhotosQuery } from "../../../../../../../store/gallery/galleryApi";
 import { setGalleryPhotos, setDefaultGalleryPhotos } from "../../../../../../../store/gallery/gallerySlice";
 
@@ -13,14 +13,13 @@ import { TDefaultGalleryPhoto, TGalleryPhoto } from "../../../../../../../models
 
 // Utils
 import { showError } from "../../../../../../../utils/showError";
-import { useAppSelector } from "../../../../../../../store/hooks";
 import { GalleryType } from "../../../../../../../enum/GalleryType";
 import { BusinessProfileFocus } from "../../../../../../../enum/BusinessProfileFocus";
 
 type Props = {
   onSelect: (selectedPhotos: TGalleryPhoto[]) => void;
   selectedIds: string[];
-  focus: BusinessProfileFocus;
+  focus: BusinessProfileFocus | null;
 }
 
 export function SelectGalleryDlg({ onSelect, selectedIds, focus }: Props) {
@@ -82,6 +81,7 @@ export function SelectGalleryDlg({ onSelect, selectedIds, focus }: Props) {
     });
   };
 
+
   if (!businessId) return null;
 
   const visibleCategories = [
@@ -91,7 +91,12 @@ export function SelectGalleryDlg({ onSelect, selectedIds, focus }: Props) {
     { type: GalleryType.Decoration, label: 'Decorations', photos: decorationPhotos },
   ];
 
-  const activeCategoryPhotos = activeCategory ? allPhotos.filter((p: TGalleryPhoto) => p.type === activeCategory) : [];
+  const activeCategoryPhotos = activeCategory ?
+    allPhotos.filter((p: TGalleryPhoto) => p.type === activeCategory)
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    : [];
+  console.log("PHOTOS ", activeCategoryPhotos);
+
   const activeCategoryLabel = visibleCategories.find(c => c.type === activeCategory)?.label ?? '';
 
   return (

@@ -1,38 +1,34 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { ImagePlay, Trash2, X } from "lucide-react";
+import { ImagePlay, Trash2 } from "lucide-react";
 import { toast } from "react-toastify";
 import { useAppDispatch, useAppSelector } from "../../../../../store/hooks";
 import {
-  useGenerateAiPhotoMutation,
   useLazyGetAiPhotosQuery,
-  useDeletePhotoMutation
+  useDeletePhotoMutation,
 } from "../../../../../store/gallery/galleryApi";
 import { setAiPhotosGalleryPhotos } from "../../../../../store/gallery/gallerySlice";
 
-/*import {
-  useGeneratePhotoAIMutation,
-  useLazyGetPhotosAIQuery,
-  useDeletePhotoAIMutation,
-} from "../../../../../store/ai/photo/photoAiApi";
-import { setPhotosAi } from "../../../../../store/ai/photo/photoAiSlice";*/
+// Components
+import { CreateAiPhotoDlg } from "./components/CreateAiPhotoDlg";
 import { confirm } from "../../../../../components/confirmDlg/ConfirmDlg";
 import SliderDlg from "../../../../../components/sliderDlg/SliderDlg";
+
+// Models
 import { ApiResponse } from "../../../../../models/ApiResponse";
-import { TAiPhoto } from "../../../../../models/AiPhoto";
+import { TGalleryPhoto } from "../../../../../models/Gallery";
+
+// Utils
 import { showError } from "../../../../../utils/showError";
-import {TGalleryPhoto} from "../../../../../models/Gallery";
 
 export function AiPhoto() {
   const dispatch = useAppDispatch();
   const { businessId } = useParams<{ businessId: string }>();
 
   const [open, setOpen] = useState(false);
-  const [prompt, setPrompt] = useState("");
   const [openSliderDlg, setOpenSliderDlg] = useState(false);
   const [selectedMedia, setSelectedMedia] = useState<{ url: string }[] | null>(null);
 
-  const [generatePhoto, { isLoading: isGenerating }] = useGenerateAiPhotoMutation();
   const [getPhotos] = useLazyGetAiPhotosQuery();
   const [deletePhoto] = useDeletePhotoMutation();
 
@@ -42,7 +38,6 @@ export function AiPhoto() {
     const fetchData = async () => {
       try {
         if (businessId) {
-          console.log("WATCH AI PHOTOS")
           const response: ApiResponse<TGalleryPhoto[]> = await getPhotos(businessId).unwrap();
           if (response && response.data) dispatch(setAiPhotosGalleryPhotos(response.data));
         }
@@ -55,28 +50,17 @@ export function AiPhoto() {
 
   if (!businessId) return null;
 
-  const handleGenerate = async () => {
+  const handleSuccess = async () => {
+    if (!businessId) return;
     try {
-      const response: ApiResponse<TGalleryPhoto> = await generatePhoto({
-        id: businessId,
-        form: {
-          prompt: prompt,
-        }
-      }).unwrap();
-
-
-      if (response && response.data) {
-        /*dispatch(setAiPhotosGalleryPhotos(response.data));*/
-        toast.success(response.message);
-        setOpen(false);
-        setPrompt("");
-      }
+      const response: ApiResponse<TGalleryPhoto[]> = await getPhotos(businessId).unwrap();
+      if (response && response.data) dispatch(setAiPhotosGalleryPhotos(response.data));
     } catch (error) {
       showError(error);
     }
   };
 
-  const handleOpenSlider = (photo: TAiPhoto) => {
+  const handleOpenSlider = (photo: TGalleryPhoto) => {
     setSelectedMedia([{ url: photo.url }]);
     setOpenSliderDlg(true);
   };
@@ -87,23 +71,22 @@ export function AiPhoto() {
       title: "Delete Photo",
       message: "Are you sure you want to delete this photo?",
     });
-    /*if (ok) {
+    if (ok) {
       try {
         const response: ApiResponse<null> = await deletePhoto(id).unwrap();
         if (response && response.success) {
-          const refreshed: ApiResponse<TAiPhoto[]> = await getPhotos(businessId).unwrap();
-          if (refreshed && refreshed.data) dispatch(setPhotosAi(refreshed.data));
+          const refreshed: ApiResponse<TGalleryPhoto[]> = await getPhotos(businessId).unwrap();
+          if (refreshed && refreshed.data) dispatch(setAiPhotosGalleryPhotos(refreshed.data));
           toast.success(response.message);
         }
       } catch (error) {
         showError(error);
       }
-    }*/
+    }
   };
 
   return (
     <div className="rounded-2xl bg-white shadow border border-slate-200">
-      {/* Section 1 — Header */}
       <div className="border-b p-4 flex items-center justify-between">
         <h2 className="text-lg text-left font-semibold text-slate-800">AI Photo</h2>
         <button
@@ -114,15 +97,14 @@ export function AiPhoto() {
         </button>
       </div>
 
-      {/* Section 2 — Photo Grid */}
-      {/*<div className="p-5">
-        {!photosAi || photosAi.length === 0 ? (
+      <div className="p-5">
+        {aiPhotos.length === 0 ? (
           <div className="py-4 text-center text-slate-400 text-sm">
             No photos generated yet
           </div>
         ) : (
           <div className="grid gap-6 grid-cols-2 sm:grid-cols-3 md:grid-cols-2 xl:grid-cols-3">
-            {photosAi.map((photo) => (
+            {aiPhotos.map((photo) => (
               <div
                 key={photo.id}
                 className="group relative rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition h-80 bg-gray-200 p-5 flex justify-center items-center"
@@ -130,7 +112,7 @@ export function AiPhoto() {
                 <img
                   src={photo.url}
                   className="w-auto h-auto max-w-full max-h-full"
-                  alt={photo.prompt}
+                  alt={photo.description}
                 />
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition duration-300 flex items-center justify-center">
                   <div className="flex gap-5">
@@ -152,42 +134,13 @@ export function AiPhoto() {
             ))}
           </div>
         )}
-      </div>*/}
+      </div>
 
-      {/* Generate Dialog
-      {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50">
-          <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl p-6">
-            <div className="flex items-center justify-between mb-4 relative">
-              <h2 className="text-lg font-semibold">Generate AI Photo</h2>
-              <button
-                onClick={() => {
-                  setOpen(false);
-                  setPrompt("");
-                }}
-                className="absolute right-0 text-white bg-blue-600 rounded-full p-2 hover:bg-blue-700 cursor-pointer"
-              >
-                <X size={20} strokeWidth={2} />
-              </button>
-            </div>
-            <textarea
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              placeholder="Describe the photo you want to generate..."
-              className="w-full border border-slate-300 rounded-lg p-3 text-sm resize-none h-32 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <div className="flex justify-end mt-4">
-              <button
-                onClick={handleGenerate}
-                disabled={!prompt.trim() || isGenerating}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isGenerating ? "Generating..." : "Generate"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}*/}
+      <CreateAiPhotoDlg
+        open={open}
+        onClose={() => setOpen(false)}
+        onSuccess={handleSuccess}
+      />
 
       <SliderDlg
         open={openSliderDlg}

@@ -95,10 +95,6 @@ export class GalleryController {
   @Get('/ai-list/:id')
   @ResponseMessage('Ai photos have been got!')
   async getAiGalleryPhotos(@Param() { id }: GalleryPhotoIdParamDto) {
-    console.log("--------");1
-    console.log("CONTROLLER AI PHOTOS LIST", id);
-    console.log("-------");
-
     return await this.galleryService.getAiPhotos(id);
   }
 
@@ -108,10 +104,6 @@ export class GalleryController {
     @Param() { id }: GalleryPhotoIdParamDto,
     @Body() body: AiGeneratedGalleryPhotoDto,
   ) {
-    console.log("--------");1
-    console.log("CONTROLLER AI PHOTO", id, body);
-    console.log("-------");
-
-    return await this.galleryService.generateAiPhoto()
+    return await this.galleryService.generateAiPhoto(id, body)
   }
 }
