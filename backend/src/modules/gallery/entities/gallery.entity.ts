@@ -42,3 +42,14 @@ export type TDefaultGalleryPhotoUpdate = {
   isActive: boolean;
   description?: string | null;
 }
+
+// AI Gallery Photo
+export type TAIGalleryPhoto = TGalleryPhotoBase & {
+  prompt: string;
+}
+
+export type TAIGalleryPhotoCreate = TGalleryPhotoBase & {
+  prompt: string;
+  photosIds: string[];
+  defaultPhotosIds: string[];
+}

@@ -64,6 +64,12 @@ import {
   storyImageQuality
 } from "./prompts/story/image";
 
+type Photo = {
+  url: string,
+  type: GalleryPhotoType,
+  description: string | null,
+};
+
 @Injectable()
 export class AiReplicateService {
   private readonly replicate;
@@ -81,11 +87,11 @@ export class AiReplicateService {
     });
   }
 
-  async generateImageOpenAI(prompt: any, businessId: string, photos: { url: string, type: GalleryPhotoType }[]): Promise<any> {
-    const decorations = photos.filter(p => p.type === GalleryPhotoType.Decoration);
-    const posts = photos.filter(p => p.type === GalleryPhotoType.Post);
-    const businessPhotos = photos.filter(p => p.type === GalleryPhotoType.Image);
-    const hasReferenceImages = decorations.length || posts.length || businessPhotos.length;
+  async generatePostImage(prompt: any, businessId: string, photos: Photo[]): Promise<any> {
+    const decorations: Photo[] = photos.filter(p => p.type === GalleryPhotoType.Decoration);
+    const posts: Photo[] = photos.filter(p => p.type === GalleryPhotoType.Post);
+    const businessPhotos: Photo[] = photos.filter(p => p.type === GalleryPhotoType.Image);
+    const hasReferenceImages: number = decorations.length || posts.length || businessPhotos.length;
 
     let designSystem: any;
     let textRule = ``;
@@ -116,10 +122,6 @@ export class AiReplicateService {
       referenceRule = postImageNoReferenceImages();
     }
 
-    console.log("-----------")
-    console.log("ACTOR ", process.env.REPLICATE_API_ACTOR)
-    console.log("-----------")
-
     const stream = await this.replicate.run(
       process.env.REPLICATE_API_ACTOR,
       {
@@ -127,65 +129,65 @@ export class AiReplicateService {
           prompt: `
             ${postImageProfessionalContext()}
             
-            --------------------------------------------------
+            ---
             
             POST IDEA
             ${prompt.scene}
             
-            --------------------------------------------------
+            ---
             
             USER INSTRUCTION
             ${prompt.userPrompt}
             
-            --------------------------------------------------
+            ---
             
            
             TEMPLATE REPLICATION MODE
             ${postImageTemplateReplicationMode(referenceRule)}
             
-            --------------------------------------------------
+            ---
             
             REFERENCE DESIGN SYSTEM
             ${postImageReferenceDesignSystem(designSystem)}
             
-            --------------------------------------------------
+            ---
             
             TEXT RULE
             ${textRule}
             
             ${isTextEnabled ? postImageTextRenderingPrompt(prompt) : postImageSuppressionPrompt()}
             
-            --------------------------------------------------
+            ---
             
             CRITICAL RENDERING RULE
             ${postImageCriticalRenderingRule()}
             
-            --------------------------------------------------
+            ---
             
             TEXT GENERATION
             ${postImageTextGeneration()}
             
-            --------------------------------------------------
+            ---
             
             TEXT SUPPRESSION RULE
             ${postImageTextSuppressionRule()}
             
-            --------------------------------------------------
+            ---
             
             COMPOSITION
             ${postImageComposition()}
             
-            --------------------------------------------------
+            ---
             
             LIGHTING
             ${postImageLighting()}
             
-            --------------------------------------------------
+            ---
             
             CAMERA
             ${postImageCamera()}
             
-            --------------------------------------------------
+            ---
             
             QUALITY
             ${postImageQuality()}
@@ -210,11 +212,11 @@ export class AiReplicateService {
     return await this.savePhoto(businessId, buffer);
   }
 
-  async generateStoryImageOpenAI(prompt: any, businessId: string, photos: { url: string, type: GalleryPhotoType }[]) {
-    const decorations = photos.filter(p => p.type === GalleryPhotoType.Decoration);
-    const stories = photos.filter(p => p.type === GalleryPhotoType.Story);
-    const businessPhotos = photos.filter(p => p.type === GalleryPhotoType.Image);
-    const hasReferenceImages = decorations.length || stories.length || businessPhotos.length;
+  async generateStoryImage(prompt: any, businessId: string, photos: Photo[]) {
+    const decorations: Photo[] = photos.filter(p => p.type === GalleryPhotoType.Decoration);
+    const stories: Photo[] = photos.filter(p => p.type === GalleryPhotoType.Story);
+    const businessPhotos: Photo[] = photos.filter(p => p.type === GalleryPhotoType.Image);
+    const hasReferenceImages: number = decorations.length || stories.length || businessPhotos.length;
 
     let designSystem: any;
     let textRule = ``;
@@ -246,11 +248,6 @@ export class AiReplicateService {
       referenceRule = storyImageNoReferenceImages();
     }
 
-    console.log("-----------")
-    console.log("ACTOR ", process.env.REPLICATE_API_ACTOR)
-    console.log("-----------")
-
-    /*process.env.REPLICATE_API_ACTOR,*/
     const stream = await this.replicate.run(
       process.env.REPLICATE_API_ACTOR,
       {
@@ -258,64 +255,64 @@ export class AiReplicateService {
           prompt: `
             ${storyImageProfessionalContext()}
             
-            --------------------------------------------------
+            ---
             
             STORY IDEA
             ${prompt.scene}
             
-            --------------------------------------------------
+            ---
             
             USER INSTRUCTION
             ${prompt.userPrompt}
             
-            --------------------------------------------------
+            ---
             
             TEMPLATE REPLICATION MODE
             ${storyImageTemplateReplicationMode(referenceRule)}
             
-            --------------------------------------------------
+            ---
             
             REFERENCE DESIGN SYSTEM
             ${storyImageReferenceDesignSystem(designSystem)}
             
-            --------------------------------------------------
+            ---
             
             TEXT RULE
             ${textRule}
             
             ${isTextEnabled ? storyImageTextRenderingPrompt(prompt) : storyImageSuppressionPrompt()}
             
-            --------------------------------------------------
+            ---
             
             CRITICAL RENDERING RULE
             ${storyImageCriticalRenderingRule()}
             
-            --------------------------------------------------
+            ---
             
             TEXT GENERATION
             ${storyImageTextGeneration()}
             
-            --------------------------------------------------
+            ---
             
             TEXT SUPPRESSION RULE
             ${storyImageTextSuppressionRule()}
             
-            --------------------------------------------------
+            ---
             
             COMPOSITION
             ${storyImageComposition()}
             
-            --------------------------------------------------
+            ---
             
             LIGHTING
             ${storyImageLighting()}
             
-            --------------------------------------------------
+            ----
             
             CAMERA
             ${storyImageCamera()}
             
-            --------------------------------------------------
+            ---
             
             QUALITY
             ${storyImageQuality()}
@@ -340,6 +337,31 @@ export class AiReplicateService {
     return await this.savePhoto(businessId, buffer);
   }
 
+  async generateAiPhoto(prompt: string, businessId: string, photos: Photo[]): Promise<string> {
+    const stream = await this.replicate.run(
+      process.env.REPLICATE_API_ACTOR,
+      {
+        input: {
+          prompt: prompt,
+          resolution: "2K",
+          aspect_ratio: "1:1",
+          safety_filter_level: "block_only_high",
+          image_input: photos.map(photo => photo.url),
+          allow_fallback_model: false
+        }
+      }
+    )
+
+    const chunks: Buffer[] = [];
+
+    for await (const chunk of stream) {
+      chunks.push(Buffer.from(chunk));
+    }
+
+    const buffer = Buffer.concat(chunks);
+
+    return await this.savePhoto(businessId, buffer);
+  }
 
   // Utils
   private getFileName(url: string) {

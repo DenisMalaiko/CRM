@@ -2,6 +2,7 @@ import {Injectable, InternalServerErrorException, NotFoundException} from '@nest
 import { GalleryPhotoType } from "@prisma/client";
 import { PrismaService } from "../../core/prisma/prisma.service";
 import { S3Service } from "../../core/s3/s3.service";
+import { AiService } from "../ai/ai.service";
 import {
   UploadedImage,
   TGalleryPhoto,
@@ -10,8 +11,9 @@ import {
 
   TDefaultGalleryPhotoBase,
   TDefaultGalleryPhoto,
-  TDefaultGalleryPhotoUpdate
-} from "./entities/gallery.entity";
+  TDefaultGalleryPhotoUpdate,
+  TAIGalleryPhotoCreate,
+} from './entities/gallery.entity';
 import { StorageUrlService } from "../../core/storage/storage-url.service";
 
 
@@ -20,7 +22,8 @@ export class GalleryService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly s3Service: S3Service,
-    private readonly storageUrlService: StorageUrlService
+    private readonly storageUrlService: StorageUrlService,
+    private readonly aiService: AiService,
   ) {}
 
   async getPhotos(businessId: string): Promise<TGalleryPhoto[]> {
@@ -234,9 +237,35 @@ export class GalleryService {
     })
   }
 
-  async generateAiPhoto() {
-    console.log("--------");
-    console.log("SERVICE AI PHOTO");
-    console.log("-------");
+  async generateAiPhoto(id: string, body: TAIGalleryPhotoCreate) {
+
+    const [photos, defaultPhotos] = await Promise.all([
+      this.prisma.galleryPhoto.findMany({
+        where: { businessId: id, id: { in: body.photosIds } },
+        select: { type: true, url: true, description: true }, // вибираємо тільки потрібні поля
+      }),
+      this.prisma.defaultPhoto.findMany({
+        where: { id: { in: body.defaultPhotosIds } },
+        select: { type: true, url: true, description: true },
+      }),
+    ]);
+
+    const galleryPhotosUrls = [...photos, ...defaultPhotos].map((photo) => ({
+      type: photo.type,
+      url: photo.url ? this.storageUrlService.getPublicUrl(photo.url) : "",
+      description: photo.description ?? null,
+    }));
+
+    const generatedPhoto = await this.aiService.generateAiPhoto(id, body.prompt, galleryPhotosUrls);
+
+    return this.prisma.galleryPhoto.create({
+      data: {
+        businessId: id,
+        type: body.type,
+        isActive: body.isActive,
+        url: generatedPhoto,
+        description: "",
+      },
+    });
   }
 }

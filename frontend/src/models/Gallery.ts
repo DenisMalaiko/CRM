@@ -66,6 +66,8 @@ export type TAIGalleryPhoto = TGalleryPhotoBase & {
   prompt: string;
 }
 
-export type TAIGalleryPhotoCreate = {
+export type TAIGalleryPhotoCreate = TGalleryPhotoBase & {
   prompt: string;
+  photosIds: string[];
+  defaultPhotosIds: string[];
 }

@@ -3,4 +3,5 @@ export enum GalleryType {
   Image = "Image",
   Post = "Post",
   Story = "Story",
+  AI = "AI"
 }

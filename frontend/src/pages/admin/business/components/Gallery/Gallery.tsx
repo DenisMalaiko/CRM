@@ -29,7 +29,10 @@ function Gallery() {
 
   const mappedPhotos = photos.map((photo: any) => ({ ...photo, isDefault: false }));
   const allPhotos = [...mappedPhotos];
-  const imagePhotos = allPhotos.filter((p: TGalleryPhoto) => p.type === GalleryType.Image);
+  const imagePhotos = allPhotos
+    .filter((p: TGalleryPhoto) => p.type === GalleryType.Image)
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+  ;
 
   // Get Data
   useEffect(() => {

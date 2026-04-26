@@ -81,6 +81,7 @@ export function SelectGalleryDlg({ onSelect, selectedIds, focus }: Props) {
     });
   };
 
+
   if (!businessId) return null;
 
   const visibleCategories = [
@@ -90,7 +91,12 @@ export function SelectGalleryDlg({ onSelect, selectedIds, focus }: Props) {
     { type: GalleryType.Decoration, label: 'Decorations', photos: decorationPhotos },
   ];
 
-  const activeCategoryPhotos = activeCategory ? allPhotos.filter((p: TGalleryPhoto) => p.type === activeCategory) : [];
+  const activeCategoryPhotos = activeCategory ?
+    allPhotos.filter((p: TGalleryPhoto) => p.type === activeCategory)
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    : [];
+  console.log("PHOTOS ", activeCategoryPhotos);
+
   const activeCategoryLabel = visibleCategories.find(c => c.type === activeCategory)?.label ?? '';
 
   return (
