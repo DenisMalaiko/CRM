@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { ImagePlay, Trash2 } from "lucide-react";
+import { ImagePlay, Trash2, WandSparkles } from "lucide-react";
 import { toast } from "react-toastify";
 import { useAppDispatch, useAppSelector } from "../../../../../store/hooks";
 import {
@@ -13,6 +13,7 @@ import { setAiPhotosGalleryPhotos } from "../../../../../store/gallery/gallerySl
 import { CreateAiPhotoDlg } from "./components/CreateAiPhotoDlg";
 import { confirm } from "../../../../../components/confirmDlg/ConfirmDlg";
 import SliderDlg from "../../../../../components/sliderDlg/SliderDlg";
+import EditPhotoDlg from "../../../../../components/editPhotoDlg/EditPhotoDlg";
 
 // Models
 import { ApiResponse } from "../../../../../models/ApiResponse";
@@ -28,6 +29,7 @@ export function AiPhoto() {
   const [open, setOpen] = useState(false);
   const [openSliderDlg, setOpenSliderDlg] = useState(false);
   const [selectedMedia, setSelectedMedia] = useState<{ url: string }[] | null>(null);
+  const [openEditPhotoDlg, setOpenEditPhotoDlg] = useState(false);
 
   const [getPhotos] = useLazyGetAiPhotosQuery();
   const [deletePhoto] = useDeletePhotoMutation();
@@ -117,11 +119,19 @@ export function AiPhoto() {
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition duration-300 flex items-center justify-center">
                   <div className="flex gap-5">
                     <button
+                      onClick={() => setOpenEditPhotoDlg(true)}
+                      className="opacity-0 group-hover:opacity-100 transition duration-300 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg"
+                    >
+                      <WandSparkles size={18} />
+                    </button>
+
+                    <button
                       onClick={() => handleOpenSlider(photo)}
                       className="opacity-0 group-hover:opacity-100 transition duration-300 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg"
                     >
                       <ImagePlay size={18} />
                     </button>
+
                     <button
                       onClick={(e) => handleDelete(e, photo.id)}
                       className="opacity-0 group-hover:opacity-100 transition duration-300 bg-red-500 hover:bg-red-600 text-white p-3 rounded-full shadow-lg"
@@ -147,6 +157,11 @@ export function AiPhoto() {
         onClose={() => setOpenSliderDlg(false)}
         medias={selectedMedia ?? []}
       />
+
+      <EditPhotoDlg
+        open={openEditPhotoDlg}
+        onClose={() => setOpenEditPhotoDlg(false)}
+      ></EditPhotoDlg>
     </div>
   );
 }
