@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import Select from "react-select";
-import { ImagePlay } from "lucide-react";
+import {ImagePlay, WandSparkles} from "lucide-react";
 
 // Redux
 import { useSelector } from "react-redux";
@@ -21,6 +21,7 @@ import { setProducts } from "../../../../../store/products/productsSlice";
 import UpdatePostDlg from "./updatePostDlg/UpdatePostDlg";
 import CreateCreativeDlg from "../../../../../components/createCreativeDlg/CreateCreativeDlg";
 import SliderDlg from "../../../../../components/sliderDlg/SliderDlg";
+import EditPhotoDlg from "../../../../../components/editPhotoDlg/EditPhotoDlg";
 import { confirm } from "../../../../../components/confirmDlg/ConfirmDlg";
 
 // Utils
@@ -52,6 +53,7 @@ function Posts() {
   const [ open, setOpen ] = useState(false);
   const [ openSliderDlg, setOpenSliderDlg ] = useState<any>(null);
   const [ selectedMedia, setSelectedMedia ] = useState<any>(null);
+  const [ openEditPhotoDlg, setOpenEditPhotoDlg ] = useState(false);
 
   const [ selectedPost, setSelectedPost ] = useState<TAIArtifact | null>(null);
   const [ openCreative, setOpenCreative ] = useState(false);
@@ -261,7 +263,6 @@ function Posts() {
                   {/* Header */}
                   <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
                     <div className="flex items-center gap-3">
-
                       <input
                         type="checkbox"
                         checked={selectedIds.includes(item.id)}
@@ -270,22 +271,13 @@ function Posts() {
                       />
 
                       <span className={`
-                      inline-flex items-center rounded-full px-2.5 py-1
-                      text-xs font-medium
-                      ${getStatusClass(item.status)}
-                    `}>
-                       {item?.status}
-                    </span>
+                        inline-flex items-center rounded-full px-2.5 py-1
+                        text-xs font-medium
+                        ${getStatusClass(item.status)}
+                      `}>
+                         {item?.status}
+                      </span>
                     </div>
-
-                    {/*<button
-                    onClick={() => onEdit(item.id)}
-                    className="rounded-lg px-3 py-1.5 text-sm font-medium
-                     text-slate-600 hover:bg-slate-100 hover:text-slate-900
-                     transition"
-                  >
-                    ✏️ Edit
-                  </button>*/}
 
                     <div className="flex items-center gap-3">
                       <button onClick={() => openEditPost(item)} className="h-8 w-8 flex items-center justify-center rounded-lg border  text-slate-600 hover:bg-slate-50">
@@ -310,7 +302,14 @@ function Posts() {
                           />
 
                           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition duration-300 flex items-center justify-center flex-col">
-                            <div className="flex mb-3">
+                            <div className="flex gap-5">
+                              <button
+                                onClick={() => setOpenEditPhotoDlg(true)}
+                                className="opacity-0 group-hover:opacity-100 transition duration-300 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg"
+                              >
+                                <WandSparkles size={18} />
+                              </button>
+
                               <button
                                 onClick={() => openSlider([{url: item.imageUrl}])}
                                 className="opacity-0 group-hover:opacity-100 transition duration-300 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg"
@@ -376,7 +375,6 @@ function Posts() {
           creative={selectedPost}
         ></UpdatePostDlg>
 
-
         <CreateCreativeDlg
           open={openCreative}
           onClose={() => {
@@ -392,6 +390,11 @@ function Posts() {
           }}
           medias={selectedMedia}
         />
+
+        <EditPhotoDlg
+          open={openEditPhotoDlg}
+          onClose={() => setOpenEditPhotoDlg(false)}
+        ></EditPhotoDlg>
       </section>
     </div>
   )

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import Select from "react-select";
-import { ImagePlay } from "lucide-react";
+import {ImagePlay, WandSparkles} from "lucide-react";
 
 // Redux
 import { useSelector } from "react-redux";
@@ -21,6 +21,7 @@ import { setProducts } from "../../../../../store/products/productsSlice";
 import UpdateStoryDlg from "./updateStoryDlg/UpdateStoryDlg";
 import CreateCreativeDlg from "../../../../../components/createCreativeDlg/CreateCreativeDlg";
 import SliderDlg from "../../../../../components/sliderDlg/SliderDlg";
+import EditPhotoDlg from "../../../../../components/editPhotoDlg/EditPhotoDlg";
 import { confirm } from "../../../../../components/confirmDlg/ConfirmDlg";
 
 // Utils
@@ -37,6 +38,7 @@ import { TProduct } from "../../../../../models/Product";
 // Enum
 import { GalleryType } from "../../../../../enum/GalleryType";
 import { BusinessProfileFocus } from "../../../../../enum/BusinessProfileFocus";
+import {getStatusClass} from "../../../../../utils/getStatusClass";
 
 
 function Stories() {
@@ -51,6 +53,7 @@ function Stories() {
   const [ open, setOpen ] = useState(false);
   const [ openSliderDlg, setOpenSliderDlg ] = useState<any>(null);
   const [ selectedMedia, setSelectedMedia ] = useState<any>(null);
+  const [ openEditPhotoDlg, setOpenEditPhotoDlg ] = useState(false);
 
   const [ selectedStory, setSelectedStory ] = useState<TAIArtifact | null>(null);
   const [ openCreative, setOpenCreative ] = useState(false);
@@ -256,72 +259,96 @@ function Stories() {
                   key={item.id}
                   className="group relative flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm hover:shadow-md transition"
                 >
-                  {/* Image */}
-                  {item?.imageUrl && (
-                    <div className="relative w-full aspect-[9/16] bg-slate-100">
-                      <img
-                        src={item.imageUrl}
-                        alt="AI story"
-                        className="absolute inset-0 h-full w-full object-cover"
+
+                  <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.includes(item.id)}
+                        onChange={() =>
+                          setSelectedIds(
+                            selectedIds.includes(item.id)
+                              ? selectedIds.filter(id => id !== item.id)
+                              : [...selectedIds, item.id]
+                          )
+                        }
+                        className="h-4 w-4 rounded border-slate-300 text-indigo-600 cursor-pointer"
                       />
 
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition duration-300 flex items-center justify-center flex-col">
-                        <div className="flex mb-3">
-                          <button
-                            onClick={() => openSlider([{url: item.imageUrl}])}
-                            className="opacity-0 group-hover:opacity-100 transition duration-300 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg"
-                          >
-                            <ImagePlay size={18} />
-                          </button>
+                      <span className={`
+                        inline-flex items-center rounded-full px-2.5 py-1
+                        text-xs font-medium
+                        ${getStatusClass(item.status)}
+                      `}>
+                         {item?.status}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => openEditStory(item)}
+                        className="h-8 w-8 flex items-center justify-center rounded-lg border  text-slate-600 hover:bg-slate-50"
+                      >
+                        ✎
+                      </button>
+
+                      <button
+                        onClick={(e) => openConfirmDlg(e, item)}
+                        className="h-8 w-8 flex items-center justify-center rounded-lg border  text-slate-600 hover:bg-slate-50"
+                      >
+                        🗑
+                      </button>
+                    </div>
+                  </div>
+
+
+                  {/* Image */}
+                  {item?.imageUrl && (
+                    <div className="flex flex-col gap-4 px-3 py-3">
+                      <div className="relative w-full aspect-[9/16] bg-slate-100">
+                        <img
+                          src={item.imageUrl}
+                          alt="AI story"
+                          className="inset-0 h-full w-full rounded-xl object-cover"
+                        />
+
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition duration-300 flex items-center justify-center flex-col">
+                          <div className="flex gap-5">
+                            <button
+                              onClick={() => setOpenEditPhotoDlg(true)}
+                              className="opacity-0 group-hover:opacity-100 transition duration-300 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg"
+                            >
+                              <WandSparkles size={18} />
+                            </button>
+
+                            <button
+                              onClick={() => openSlider([{url: item.imageUrl}])}
+                              className="opacity-0 group-hover:opacity-100 transition duration-300 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg"
+                            >
+                              <ImagePlay size={18} />
+                            </button>
+                          </div>
                         </div>
-                      </div>
-
-                      <div className="absolute w-full top-0 left-0 p-3 flex items-center gap-2 justify-between">
-                        {/* Overlay controls */}
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="checkbox"
-                            checked={selectedIds.includes(item.id)}
-                            onChange={() =>
-                              setSelectedIds(
-                                selectedIds.includes(item.id)
-                                  ? selectedIds.filter(id => id !== item.id)
-                                  : [...selectedIds, item.id]
-                              )
-                            }
-                            className="h-4 w-4 rounded border-slate-300 text-indigo-600 cursor-pointer"
-                          />
-                        </div>
-
-                        <div className="flex items-center gap-3">
-                          <button
-                            onClick={() => openEditStory(item)}
-                            className="flex h-8 w-8 items-center justify-center rounded-lg bg-black/60 text-white hover:bg-black/80"
-                          >
-                            ✎
-                          </button>
-
-                          <button
-                            onClick={(e) => openConfirmDlg(e, item)}
-                            className="flex h-8 w-8 items-center justify-center rounded-lg bg-black/60 text-white hover:bg-black/80"
-                          >
-                            🗑
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Bottom gradient info */}
-                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 text-white">
-                        <p className="text-sm font-semibold">
-                          {item.outputJson?.headline || "Story"}
-                        </p>
-
-                        <p className="text-xs opacity-80">
-                          {toDate(item.createdAt)}
-                        </p>
                       </div>
                     </div>
                   )}
+
+                  {/* Footer */}
+                  <div className="mt-auto border-t border-slate-100 bg-slate-50 px-3 py-3">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-slate-400 text-left">
+                        Headline
+                      </p>
+
+                      <p className="font-semibold text-slate-900 text-left">
+                        {item.outputJson?.headline || "Story"}
+                      </p>
+
+                      <p className="text-xs font-semibold uppercase tracking-wide text-slate-400 text-left">
+                        {toDate(item.createdAt)}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
@@ -352,6 +379,11 @@ function Stories() {
           }}
           medias={selectedMedia}
         />
+
+        <EditPhotoDlg
+          open={openEditPhotoDlg}
+          onClose={() => setOpenEditPhotoDlg(false)}
+        ></EditPhotoDlg>
       </section>
     </div>
   )
