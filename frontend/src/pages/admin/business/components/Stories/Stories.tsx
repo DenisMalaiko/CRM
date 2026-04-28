@@ -305,7 +305,7 @@ function Stories() {
                   {/* Image */}
                   {item?.imageUrl && (
                     <div className="flex flex-col gap-4 px-3 py-3">
-                      <div className="relative w-full aspect-[9/16] bg-slate-100">
+                      <div className="relative w-full aspect-[9/16] bg-slate-100 rounded-xl overflow-hidden">
                         <img
                           src={item.imageUrl}
                           alt="AI story"
