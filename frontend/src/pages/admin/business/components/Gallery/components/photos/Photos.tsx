@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Trash2, ImagePlay, PenBox } from "lucide-react";
+import {Trash2, ImagePlay, PenBox, WandSparkles} from "lucide-react";
 import { toast } from "react-toastify";
 
 // Redux
@@ -11,6 +11,7 @@ import { setGalleryPhotos } from "../../../../../../../store/gallery/gallerySlic
 import SliderDlg from "../../../../../../../components/sliderDlg/SliderDlg";
 import PhotoEditDlg from "../photoEditDlg/PhotoEditDlg";
 import { confirm } from "../../../../../../../components/confirmDlg/ConfirmDlg";
+import EditPhotoDlg from "../../../../../../../components/editPhotoDlg/EditPhotoDlg";
 
 // Models
 import { ApiResponse } from "../../../../../../../models/ApiResponse";
@@ -29,6 +30,7 @@ function Photos({ photos }: { photos: any[] }) {
 
   const [ openSliderDlg, setOpenSliderDlg ] = useState<any>(null);
   const [ selectedMedia, setSelectedMedia ] = useState<any>(null);
+  const [openEditPhotoDlg, setOpenEditPhotoDlg] = useState(false);
 
   const [ openPhotoEditDlg, setOpenPhotoEditDlg ] = useState(false);
   const [ selectedPhoto, setSelectedPhoto ]  = useState({
@@ -133,64 +135,73 @@ function Photos({ photos }: { photos: any[] }) {
       {photos.map(photo => (
         <div
           key={photo.id}
-          className="group relative rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition h-80 bg-gray-200 p-5 flex justify-center items-center"
+          className="flex h-full flex-col rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md overflow-hidden"
         >
-          <img
-            src={photo.url}
-            className="w-auto h-auto max-w-full max-h-full"
-            alt={photo.description}
-          />
-
-          {/* Badges */}
-          <div className="absolute top-2 left-2 flex gap-2">
-            {!photo.isActive && !photo.isDefault && (
-              <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-md">
-                Inactive
-              </span>
-            )}
-
-            {photo.isDefault && (
-              <span className="bg-blue-600 text-white text-xs px-2 py-1 rounded-md">
-                Default
-              </span>
-            )}
+          <div className="flex items-center justify-end border-b border-slate-100 px-6 py-4">
+            <div className="flex items-center gap-3">
+              <button onClick={() => openPhotoEdit(photo)} className="h-8 w-8 flex items-center justify-center rounded-lg border  text-slate-600 hover:bg-slate-50">
+                ✎
+              </button>
+              <button onClick={(e) => openConfirmDlg(e, photo.id)} className="h-8 w-8 flex items-center justify-center rounded-lg border text-rose-600 hover:bg-rose-50">
+                🗑
+              </button>
+            </div>
           </div>
 
-          {/* Overlay */}
-          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition duration-300 flex items-center justify-center flex-col">
-            <div className="flex mb-3">
-              {!photo.isDefault && (
-                <button
-                  onClick={() => openPhotoEdit(photo)}
-                  className="opacity-0 group-hover:opacity-100 transition duration-300 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg mr-5"
-                >
-                  <PenBox size={18} />
-                </button>
+          <div className="group relative overflow-hidden shadow-sm hover:shadow-lg transition h-80 bg-gray-200 p-5 flex justify-center items-center">
+            {/* Badges */}
+            <div className="absolute top-2 left-2 flex gap-2">
+              {!photo.isActive && !photo.isDefault && (
+                <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-md">
+                Inactive
+              </span>
               )}
 
-              <button
-                onClick={() => openSlider([{url: photo.url}])}
-                className="opacity-0 group-hover:opacity-100 transition duration-300 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg"
-              >
-                <ImagePlay size={18} />
-              </button>
-
-              {!photo.isDefault && (
-                <button
-                  onClick={(e) => openConfirmDlg(e, photo.id)}
-                  className="opacity-0 group-hover:opacity-100 transition duration-300 bg-red-500 hover:bg-red-600 text-white p-3 rounded-full shadow-lg ml-5"
-                >
-                  <Trash2 size={18} />
-                </button>
+              {photo.isDefault && (
+                <span className="bg-blue-600 text-white text-xs px-2 py-1 rounded-md">
+                Default
+              </span>
               )}
             </div>
 
+            <img
+              src={photo.url}
+              className="w-auto h-auto max-w-full max-h-full"
+              alt={photo.description}
+            />
 
-            {photo.description && (
-              <p className="opacity-0 group-hover:opacity-100 transition duration-300 text-white text-sm mb-4 max-w-[80%] line-clamp-2">
-                {photo.description}
-              </p>
-            )}
+            {/* Overlay */}
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition duration-300 flex items-center justify-center flex-col">
+              <div className="flex gap-5">
+                <button
+                  onClick={() => setOpenEditPhotoDlg(true)}
+                  className="opacity-0 group-hover:opacity-100 transition duration-300 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg"
+                >
+                  <WandSparkles size={18} />
+                </button>
+
+                <button
+                  onClick={() => openSlider([{url: photo.url}])}
+                  className="opacity-0 group-hover:opacity-100 transition duration-300 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg"
+                >
+                  <ImagePlay size={18} />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Hook */}
+          <div>
+            <div className="px-6 py-4 flex flex-col justify-center items-start">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-400 text-left">
+                  Description
+                </p>
+                <p className="mt-1 text-slate-700 leading-relaxed text-left whitespace-pre-wrap">
+                  {photo.description && photo.description || "—"}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       ))}
@@ -213,6 +224,11 @@ function Photos({ photos }: { photos: any[] }) {
           savePhoto(value)
         }}
       />
+
+      <EditPhotoDlg
+        open={openEditPhotoDlg}
+        onClose={() => setOpenEditPhotoDlg(false)}
+      ></EditPhotoDlg>
     </div>
   )
 }
