@@ -44,6 +44,15 @@ export class GalleryController {
     return await this.galleryService.uploadPhotos(dto, files);
   }
 
+  @Post('/:id/regenerate')
+  @ResponseMessage('Photo has been regenerated!')
+  async regenerateGalleryPhoto(
+    @Param() { id }: GalleryPhotoIdParamDto,
+    @Body() body: { prompt: string },
+  ) {
+    return await this.galleryService.regeneratePhoto(id, body);
+  }
+
   @Patch('/:id')
   @ResponseMessage('Photo has been updated!')
   async updateGalleryPhoto(

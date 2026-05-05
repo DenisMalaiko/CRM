@@ -212,15 +212,40 @@ model CompetitorAds {
 }
 
 model GalleryPhoto {
-  id         String                 @id @default(uuid())
-  businessId String
-  type       GalleryPhotoType
-  isActive   Boolean
-  url        String
+  id          String                 @id @default(uuid())
+
+  businessId  String
+  type        GalleryPhotoType
+  isActive    Boolean
+  url         String
   description String?
-  createdAt  DateTime               @default(now())
-  profiles   BusinessProfilePhoto[]
-  business   Business               @relation(fields: [businessId], references: [id])
+
+  createdAt   DateTime               @default(now())
+  updatedAt   DateTime               @default(now()) @updatedAt
+
+  business    Business               @relation(fields: [businessId], references: [id])
+  profiles    BusinessProfilePhoto[]
+  history     GalleryPhotoHistory[]
+
+  @@index([businessId])
+}
+
+model GalleryPhotoHistory {
+  id              String           @id @default(uuid())
+  photoId         String
+
+  businessId      String
+  type            GalleryPhotoType
+  isActive        Boolean
+  url             String
+  description     String?
+
+  changeType      GalleryPhotoChangeType
+  changedAt       DateTime         @default(now())
+
+  photo           GalleryPhoto     @relation(fields: [photoId], references: [id], onDelete: Cascade)
+
+  @@index([photoId, changedAt])
 }
 
 model DefaultPhoto {
@@ -474,6 +499,12 @@ enum GalleryPhotoType {
   Post
   Story
   AI
+}
+
+enum GalleryPhotoChangeType {
+  Create
+  Update
+  Delete
 }
 
 enum IdeaWho {

@@ -29,7 +29,7 @@ export function AiPhoto() {
   const [open, setOpen] = useState(false);
   const [openSliderDlg, setOpenSliderDlg] = useState(false);
   const [selectedMedia, setSelectedMedia] = useState<{ url: string }[] | null>(null);
-  const [openEditPhotoDlg, setOpenEditPhotoDlg] = useState(false);
+  const [openEditPhotoDlg, setOpenEditPhotoDlg] = useState<string | null>(null);
 
   const [getPhotos] = useLazyGetAiPhotosQuery();
   const [deletePhoto] = useDeletePhotoMutation();
@@ -119,7 +119,7 @@ export function AiPhoto() {
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition duration-300 flex items-center justify-center">
                   <div className="flex gap-5">
                     <button
-                      onClick={() => setOpenEditPhotoDlg(true)}
+                      onClick={() => setOpenEditPhotoDlg(photo.id)}
                       className="opacity-0 group-hover:opacity-100 transition duration-300 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg"
                     >
                       <WandSparkles size={18} />
@@ -159,8 +159,10 @@ export function AiPhoto() {
       />
 
       <EditPhotoDlg
-        open={openEditPhotoDlg}
-        onClose={() => setOpenEditPhotoDlg(false)}
+        open={!!openEditPhotoDlg}
+        onClose={() => setOpenEditPhotoDlg(null)}
+        photoId={openEditPhotoDlg ?? ''}
+        onSuccess={handleSuccess}
       ></EditPhotoDlg>
     </div>
   );

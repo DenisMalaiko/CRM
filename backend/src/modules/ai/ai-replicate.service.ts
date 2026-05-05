@@ -338,6 +338,14 @@ export class AiReplicateService {
   }
 
   async generateAiPhoto(prompt: string, businessId: string, photos: Photo[]): Promise<string> {
+
+    console.log("--------------");
+    console.log("GENERATED PHOTOS");
+    console.log("BUSINESS ID ", businessId);
+    console.log("PROMPT ", prompt);
+    console.log("PHOTOS ", photos.map(photo => photo.url));
+
+
     const stream = await this.replicate.run(
       process.env.REPLICATE_API_ACTOR,
       {

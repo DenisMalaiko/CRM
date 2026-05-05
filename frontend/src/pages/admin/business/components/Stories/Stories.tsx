@@ -53,7 +53,7 @@ function Stories() {
   const [ open, setOpen ] = useState(false);
   const [ openSliderDlg, setOpenSliderDlg ] = useState<any>(null);
   const [ selectedMedia, setSelectedMedia ] = useState<any>(null);
-  const [ openEditPhotoDlg, setOpenEditPhotoDlg ] = useState(false);
+  const [ openEditPhotoDlg, setOpenEditPhotoDlg ] = useState<string | null>(null);
 
   const [ selectedStory, setSelectedStory ] = useState<TAIArtifact | null>(null);
   const [ openCreative, setOpenCreative ] = useState(false);
@@ -194,6 +194,19 @@ function Stories() {
     setOpenSliderDlg(true);
   }
 
+  const handleSuccess = async () => {
+    if (!businessId) return;
+    try {
+      const response: ApiResponse<TAIArtifact[]> = await getAiArtifacts({
+        businessId,
+        type: GalleryType.Story
+      }).unwrap();
+      if(response && response?.data) dispatch(setStories(response.data));
+    } catch (error: any) {
+      showError(error);
+    }
+  }
+
   return (
     <div className="rounded-2xl bg-white shadow border border-slate-200">
       <section>
@@ -315,7 +328,7 @@ function Stories() {
                         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition duration-300 flex items-center justify-center flex-col">
                           <div className="flex gap-5">
                             <button
-                              onClick={() => setOpenEditPhotoDlg(true)}
+                              onClick={() => setOpenEditPhotoDlg(item.id)}
                               className="opacity-0 group-hover:opacity-100 transition duration-300 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg"
                             >
                               <WandSparkles size={18} />
@@ -381,8 +394,10 @@ function Stories() {
         />
 
         <EditPhotoDlg
-          open={openEditPhotoDlg}
-          onClose={() => setOpenEditPhotoDlg(false)}
+          open={!!openEditPhotoDlg}
+          onClose={() => setOpenEditPhotoDlg(null)}
+          photoId={openEditPhotoDlg ?? ''}
+          onSuccess={handleSuccess}
         ></EditPhotoDlg>
       </section>
     </div>

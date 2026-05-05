@@ -1,24 +1,50 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { X } from "lucide-react";
+
+// Hooks
+import { showError} from "../../utils/showError";
+
+// Redux
+import { useRegeneratePhotoMutation } from "../../store/gallery/galleryApi";
+import {toast} from "react-toastify";
+import {ApiResponse} from "../../models/ApiResponse";
+import {TGalleryPhoto} from "../../models/Gallery";
 
 type Props = {
   open: boolean;
+  photoId: string;
   onClose: () => void;
+  onSuccess: () => void;
 }
 
-function EditPhotoDlg({open, onClose}: Props) {
-  const [isLoading, setIsLoading] = useState(false);
+function EditPhotoDlg({ open, onClose, onSuccess, photoId }: Props) {
+  const [ regeneratePhoto, { isLoading } ] = useRegeneratePhotoMutation();
+
+  // Init Form
+  const [form, setForm] = useState({
+    prompt: ""
+  });
 
   if (!open) return null;
 
-  const editPhoto = (e: React.FormEvent<HTMLFormElement>) => {
-    console.log("EDIT PHOTO")
+  const editPhoto = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setIsLoading(true);
 
-    const formData = new FormData(e.currentTarget);
-    const data = Object.fromEntries(formData.entries());
-    console.log("DATA: ", data)
+    try {
+      console.log("------------")
+      console.log("FORM DATA ", form);
+      console.log("PHOTO ID", photoId);
+
+      const response: ApiResponse<TGalleryPhoto> = await regeneratePhoto({ id: photoId, form }).unwrap();
+      if(response && response?.data) {
+        toast.success(response.message);
+        setForm({ prompt: "" });
+        onSuccess();
+        onClose();
+      }
+    } catch (error) {
+      showError(error)
+    }
   }
 
   return (
@@ -43,9 +69,11 @@ function EditPhotoDlg({open, onClose}: Props) {
             </div>
 
             <textarea
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
               rows={3}
+              value={form.prompt}
+              onChange={(e) => setForm(prev => ({ ...prev, prompt: e.target.value }))}
               placeholder="Enter prompt..."
+              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
@@ -54,19 +82,29 @@ function EditPhotoDlg({open, onClose}: Props) {
               type="button"
               onClick={() => onClose()}
               disabled={isLoading}
-              className="
-                px-4 py-2 rounded-lg border  text-slate-600
-                border-slate-300 hover:bg-slate-50
-                disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-slate-white
-              "
+              className="px-4 py-2 rounded-lg border  text-slate-600 border-slate-300 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-slate-white"
             >
               Cancel
             </button>
 
             <button
+              type="button"
+              className="px-4 py-2 rounded-lg bg-blue-600 text-white flex items-center gap-2 justify-center"
+            >
+              Revert to original
+            </button>
+
+            <button
+              type="button"
+              className="px-4 py-2 rounded-lg bg-blue-600 text-white flex items-center gap-2 justify-center"
+            >
+              Previous version
+            </button>
+
+            <button
               type="submit"
               disabled={isLoading}
-              className="px-4 py-2 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700"
+              className="px-4 py-2 rounded-lg bg-blue-600 text-white flex items-center gap-2 justify-center"
             >
               { isLoading ? (
                 <>
