@@ -9,6 +9,7 @@ import {
   TAIGalleryPhoto,
   TAIGalleryPhotoCreate
 } from "../../models/Gallery";
+import {BaseQueryArg} from "@reduxjs/toolkit/query";
 
 export const galleryApi = api.injectEndpoints({
   endpoints: (builder) => ({
@@ -35,6 +36,14 @@ export const galleryApi = api.injectEndpoints({
       query: (id: string) => ({
         url: `/gallery/${id}`,
         method: "GET",
+      })
+    }),
+
+    regeneratePhoto: builder.mutation<ApiResponse<TGalleryPhoto>, { id: string, form: { prompt: string } }>({
+      query: ({ id, form }) => ({
+        url: `/gallery/${id}/regenerate`,
+        method: "POST",
+        body: form,
       })
     }),
 
@@ -115,6 +124,7 @@ export const {
   useUploadPhotosMutation,
   useUpdatePhotoMutation,
   useDeletePhotoMutation,
+  useRegeneratePhotoMutation,
 
   useLazyGetDefaultPhotosQuery,
   useUploadDefaultPhotosMutation,
