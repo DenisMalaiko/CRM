@@ -53,6 +53,20 @@ export class GalleryController {
     return await this.galleryService.regeneratePhoto(id, body);
   }
 
+  @Post(':id/revert-original')
+  @ResponseMessage('Photo has been revert to original!')
+  async revertOriginal(@Param() { id }: GalleryPhotoIdParamDto) {
+    return await this.galleryService.revertOriginal(id);
+  }
+
+
+  @Post(':id/revert-previous')
+  @ResponseMessage('Photo has been revert to previous!')
+  async revertPrevious(@Param() { id }: GalleryPhotoIdParamDto) {
+    return await this.galleryService.revertPrevious(id);
+  }
+
+
   @Patch('/:id')
   @ResponseMessage('Photo has been updated!')
   async updateGalleryPhoto(
@@ -108,7 +122,7 @@ export class GalleryController {
   }
 
   @Post('/ai-list/:id')
-  @ResponseMessage('Ai photo has been generated!')
+  @ResponseMessage('Photo has been generated!')
   async generateAiGalleryPhoto(
     @Param() { id }: GalleryPhotoIdParamDto,
     @Body() body: AiGeneratedGalleryPhotoDto,

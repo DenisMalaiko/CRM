@@ -22,6 +22,9 @@ import { TGalleryPhoto } from "../../../../../models/Gallery";
 // Utils
 import { showError } from "../../../../../utils/showError";
 
+// Enum
+import { ContentType } from "../../../../../enum/ContentType";
+
 export function AiPhoto() {
   const dispatch = useAppDispatch();
   const { businessId } = useParams<{ businessId: string }>();
@@ -160,6 +163,7 @@ export function AiPhoto() {
 
       <EditPhotoDlg
         open={!!openEditPhotoDlg}
+        type={ContentType.GalleryPhoto}
         onClose={() => setOpenEditPhotoDlg(null)}
         photoId={openEditPhotoDlg ?? ''}
         onSuccess={handleSuccess}

@@ -28,6 +28,7 @@ import { confirm } from "../../../../../components/confirmDlg/ConfirmDlg";
 import { showError } from "../../../../../utils/showError";
 import { toDate } from "../../../../../utils/toDate";
 import { centeredSelectStyles } from "../../../../../utils/reactSelectStyles";
+import { getStatusClass } from "../../../../../utils/getStatusClass";
 
 // Models
 import { ApiResponse } from "../../../../../models/ApiResponse";
@@ -38,7 +39,7 @@ import { TProduct } from "../../../../../models/Product";
 // Enum
 import { GalleryType } from "../../../../../enum/GalleryType";
 import { BusinessProfileFocus } from "../../../../../enum/BusinessProfileFocus";
-import {getStatusClass} from "../../../../../utils/getStatusClass";
+import { ContentType } from "../../../../../enum/ContentType";
 
 
 function Stories() {
@@ -395,6 +396,7 @@ function Stories() {
 
         <EditPhotoDlg
           open={!!openEditPhotoDlg}
+          type={ContentType.AiArtifact}
           onClose={() => setOpenEditPhotoDlg(null)}
           photoId={openEditPhotoDlg ?? ''}
           onSuccess={handleSuccess}

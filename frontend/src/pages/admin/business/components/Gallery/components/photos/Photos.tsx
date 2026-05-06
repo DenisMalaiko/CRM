@@ -19,6 +19,7 @@ import { TGalleryPhoto, TGalleryPhotoUpdate } from "../../../../../../../models/
 
 // Enum
 import { GalleryType } from "../../../../../../../enum/GalleryType";
+import { ContentType } from "../../../../../../../enum/ContentType";
 
 // Utils
 import { showError } from "../../../../../../../utils/showError";
@@ -237,6 +238,7 @@ function Photos({ photos }: { photos: any[] }) {
 
       <EditPhotoDlg
         open={!!openEditPhotoDlg}
+        type={ContentType.GalleryPhoto}
         onClose={() => setOpenEditPhotoDlg(null)}
         photoId={openEditPhotoDlg ?? ''}
         onSuccess={handleSuccess}

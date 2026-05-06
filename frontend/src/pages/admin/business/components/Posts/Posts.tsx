@@ -39,6 +39,7 @@ import { TProduct } from "../../../../../models/Product";
 // Enum
 import { GalleryType } from "../../../../../enum/GalleryType";
 import { BusinessProfileFocus } from "../../../../../enum/BusinessProfileFocus";
+import { ContentType } from "../../../../../enum/ContentType";
 
 function Posts() {
   const dispatch = useAppDispatch();
@@ -404,6 +405,7 @@ function Posts() {
 
         <EditPhotoDlg
           open={!!openEditPhotoDlg}
+          type={ContentType.AiArtifact}
           onClose={() => setOpenEditPhotoDlg(null)}
           photoId={openEditPhotoDlg ?? ''}
           onSuccess={handleSuccess}
