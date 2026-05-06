@@ -47,6 +47,20 @@ export const galleryApi = api.injectEndpoints({
       })
     }),
 
+    revertOriginal: builder.mutation<ApiResponse<TGalleryPhoto>, string>({
+      query: (id) => ({
+        url: `/gallery/${id}/revert-original`,
+        method: "POST",
+      })
+    }),
+
+    revertPrevious: builder.mutation<ApiResponse<TGalleryPhoto>, string>({
+      query: (id) => ({
+        url: `/gallery/${id}/revert-previous`,
+        method: "POST",
+      })
+    }),
+
     uploadPhotos: builder.mutation<ApiResponse<{ count: number } | []>, FormData>({
       query: (form: FormData) => ({
         url: `/gallery`,
@@ -114,7 +128,7 @@ export const galleryApi = api.injectEndpoints({
         method: "POST",
         body: form,
       })
-    })
+    }),
   }),
   overrideExisting: false,
 });
@@ -124,7 +138,10 @@ export const {
   useUploadPhotosMutation,
   useUpdatePhotoMutation,
   useDeletePhotoMutation,
+
   useRegeneratePhotoMutation,
+  useRevertOriginalMutation,
+  useRevertPreviousMutation,
 
   useLazyGetDefaultPhotosQuery,
   useUploadDefaultPhotosMutation,

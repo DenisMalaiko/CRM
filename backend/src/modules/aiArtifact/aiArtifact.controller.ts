@@ -33,4 +33,26 @@ export class AiArtifactController {
   createAiArtifact(@Param() { id }: AiArtifactIdParamDto, @Body() body: CreateAiArtifactDto) {
     return this.aiArtifactService.createArtifact(id, body);
   }
+
+  @Post('/:id/regenerate')
+  @ResponseMessage('Creative has been regenerated!')
+  async regenerateAiArtifact(
+    @Param() { id }: AiArtifactIdParamDto,
+    @Body() body: { prompt: string },
+  ) {
+    return this.aiArtifactService.regenerateAiArtifact(id, body.prompt);
+  }
+
+  @Post(':id/revert-original')
+  @ResponseMessage('Creative has been revert to original!')
+  async revertOriginal(@Param() { id }: AiArtifactIdParamDto) {
+    return this.aiArtifactService.revertAiArtifactOriginal(id)
+  }
+
+  @Post(':id/revert-previous')
+  @ResponseMessage('Creative has been revert to previous!')
+  async revertPrevious(@Param() { id }: AiArtifactIdParamDto) {
+    return this.aiArtifactService.revertAiArtifactPrevious(id)
+  }
+
 }

@@ -1,9 +1,13 @@
-import { Injectable, InternalServerErrorException, NotFoundException} from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotFoundException, BadRequestException} from '@nestjs/common';
 import { PrismaService } from 'src/core/prisma/prisma.service';
 import { S3Service } from 'src/core/s3/s3.service';
 import { StorageUrlService } from "../../core/storage/storage-url.service";
 import { AIArtifactBase, CreateAIArtifact } from "./entities/aiArtifact.entity";
-import {AIArtifactStatus, AIArtifactType} from "@prisma/client";
+import {
+  AIArtifactStatus,
+  AIArtifactType,
+  AIArtifactImageChangeType
+} from "@prisma/client";
 import { AiService } from "../ai/ai.service";
 import {AiPost} from "../ai/entities/aiPost.entity";
 
@@ -59,27 +63,6 @@ export class AiArtifactService {
     }
   }
 
-  async deleteAiArtifact(id: string) {
-    const aIArtifact = await this.prisma.aIArtifact.findUnique({
-      where: { id },
-      select: { id: true, imageUrl: true },
-    });
-
-    if (!aIArtifact) {
-      throw new Error('AI artifact not found');
-    }
-
-    if (aIArtifact.imageUrl) {
-      await this.s3Service.delete(aIArtifact.imageUrl);
-    }
-
-    return await this.prisma.$transaction(async (tx) => {
-      await tx.aIArtifact.delete({
-        where: { id },
-      });
-    });
-  }
-
   async createArtifact(businessId: string, body: CreateAIArtifact) {
     const [
       business,
@@ -108,15 +91,77 @@ export class AiArtifactService {
       ideasAi
     }
 
-    const galleryPhotosUrls = [...defaultPhotos, ...photos].map((photo) => {
-      return {
-        type: photo.type,
-        url: photo.url ? this.storageUrlService.getPublicUrl(photo.url) : "",
-        description: photo.description ?? null,
-      };
+    const galleryPhotosUrls = [...defaultPhotos, ...photos].map((photo) => ({
+      type: photo.type,
+      url: photo.url ? this.storageUrlService.getPublicUrl(photo.url) : '',
+      description: photo.description ?? null,
+    }));
+
+    let generatedContent: AiPost[];
+    if (body.type === AIArtifactType.Post) {
+      generatedContent = await this.aiService.generatePostsBasedOnManuallySettings(
+        settings,
+        galleryPhotosUrls,
+      );
+    } else if (body.type === AIArtifactType.Story) {
+      generatedContent = await this.aiService.generateStoriesBasedOnManuallySettings(
+        settings,
+        galleryPhotosUrls,
+      );
+    } else {
+      throw new BadRequestException(`Unsupported artifact type: ${body.type}`);
+    }
+
+    const createdArtifacts = await this.prisma.$transaction(async (tx) => {
+      const created: AIArtifactBase[] = [];
+
+      for (const item of generatedContent) {
+        const artifact = await tx.aIArtifact.create({
+          data: {
+            businessId,
+            businessProfileId: null,
+            type: body.type,
+            outputJson: item,
+            status: AIArtifactStatus.Draft,
+            imageUrl: item.imageUrl,
+            imagePrompt: this.serializeImagePrompt(item.image_prompt),
+            products: {
+              create: products.map((p) => ({
+                productId: p.id,
+              })),
+            },
+          },
+          include: {
+            products: {
+              include: {
+                product: true,
+              },
+            },
+          },
+        });
+
+
+        if (artifact.imageUrl) {
+          await tx.aIArtifactImageHistory.create({
+            data: {
+              artifactId: artifact.id,
+              businessId: artifact.businessId,
+              imageUrl: artifact.imageUrl,
+              imagePrompt: artifact.imagePrompt,
+              changeType: AIArtifactImageChangeType.Create,
+            },
+          });
+        }
+
+        created.push(artifact);
+      }
+
+      return created;
     });
 
-    if(body.type === AIArtifactType.Post) {
+    return createdArtifacts;
+
+/*    if(body.type === AIArtifactType.Post) {
       const posts: AiPost[] = await this.aiService.generatePostsBasedOnManuallySettings(settings, galleryPhotosUrls)
       const createdArtifacts: AIArtifactBase[] = [];
 
@@ -184,7 +229,88 @@ export class AiArtifactService {
       }
 
       return createdArtifacts;
+    }*/
+  }
+
+  async deleteAiArtifact(id: string) {
+    const aiArtifact = await this.prisma.aIArtifact.findUnique({
+      where: { id },
+      select: { id: true, imageUrl: true },
+    });
+
+    if (!aiArtifact) {
+      throw new NotFoundException(`AI artifact with id ${id} not found`);
     }
+
+    const historyEntries = await this.prisma.aIArtifactImageHistory.findMany({
+      where: { artifactId: id },
+      select: { imageUrl: true },
+    });
+
+    const urlsToDelete = Array.from(
+      new Set(
+        [aiArtifact.imageUrl, ...historyEntries.map((h) => h.imageUrl)]
+          .filter((url): url is string => Boolean(url)),
+      ),
+    );
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.aIArtifactImageHistory.deleteMany({
+        where: { artifactId: id },
+      });
+
+      await tx.aIArtifact.delete({
+        where: { id },
+      });
+    });
+
+    const results = await Promise.allSettled(
+      urlsToDelete.map((url) => this.s3Service.delete(url)),
+    );
+
+    results.forEach((result, index) => {
+      if (result.status === 'rejected') {
+        console.error(
+          `Failed to delete S3 object during artifact deletion: ${urlsToDelete[index]}`,
+          result.reason,
+        );
+      }
+    });
+
+    return { success: true };
+  }
+
+  async regenerateAiArtifact(id, body) {
+    console.log("REGENERATE AI ARTIFACT ", id, body);
+
+    const artifact = await this.prisma.aIArtifact.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        businessId: true,
+        imageUrl: true,
+        imagePrompt: true,
+      },
+    });
+
+    if (!artifact) {
+      throw new NotFoundException(`AI artifact with id ${id} not found`);
+    }
+
+    const referenceImages = artifact.imageUrl ? [{
+      url: this.storageUrlService.getPublicUrl(artifact.imageUrl),
+      description: null,
+    }] : [];
+
+
+  }
+
+  async revertAiArtifactOriginal(id: string) {
+    console.log("REVERT AI ARTIFACT ORIGINAL ", id);
+  }
+
+  async revertAiArtifactPrevious(id: string) {
+    console.log("REVERT AI ARTIFACT PREVIOUS ", id);
   }
 
   private serializeImagePrompt(imagePrompt: {

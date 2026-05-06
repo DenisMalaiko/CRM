@@ -1,4 +1,4 @@
-import {Injectable, InternalServerErrorException, NotFoundException} from '@nestjs/common';
+import {Injectable, InternalServerErrorException, NotFoundException, BadRequestException } from '@nestjs/common';
 import { GalleryPhotoType, GalleryPhotoChangeType } from "@prisma/client";
 import { PrismaService } from "../../core/prisma/prisma.service";
 import { S3Service } from "../../core/s3/s3.service";
@@ -224,6 +224,169 @@ export class GalleryService {
     return updatedPhoto;
   }
 
+  async revertOriginal(id: string) {
+    const photo = await this.prisma.galleryPhoto.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        url: true,
+        businessId: true,
+        type: true,
+        isActive: true,
+        description: true,
+      },
+    });
+
+    if (!photo) {
+      throw new NotFoundException(`Gallery photo with id ${id} not found`);
+    }
+
+    const originalEntry = await this.prisma.galleryPhotoHistory.findFirst({
+      where: {
+        photoId: id,
+        changeType: GalleryPhotoChangeType.Create,
+      },
+      orderBy: { changedAt: 'asc' },
+    });
+
+    if (!originalEntry) {
+      throw new BadRequestException(`Original entry for gallery photo with id ${id} not found`);
+    }
+
+    if (photo.url === originalEntry.url) {
+      throw new BadRequestException('Photo is already at the original version');
+    }
+
+    const intermediateEntries = await this.prisma.galleryPhotoHistory.findMany({
+      where: {
+        photoId: id,
+        id: { not: originalEntry.id },
+      },
+      select: { url: true },
+    });
+
+    const urlsToDelete = Array.from(
+      new Set(
+        intermediateEntries
+          .map((e) => e.url)
+          .filter((url) => url && url !== originalEntry.url),
+      ),
+    );
+
+    const reverted = await this.prisma.$transaction(async (tx) => {
+      await tx.galleryPhotoHistory.deleteMany({
+        where: {
+          photoId: id,
+          id: { not: originalEntry.id },
+        },
+      });
+
+      const updated = await tx.galleryPhoto.update({
+        where: { id },
+        data: {
+          url: originalEntry.url,
+          type: originalEntry.type,
+          description: originalEntry.description,
+          isActive: originalEntry.isActive,
+        },
+      });
+
+      return updated;
+    });
+
+    const results = await Promise.allSettled(
+      urlsToDelete.map((url) => this.s3Service.delete(url)),
+    );
+
+    results.forEach((result, index) => {
+      if (result.status === 'rejected') {
+        console.error(
+          `Failed to delete S3 object during revert: ${urlsToDelete[index]}`,
+          result.reason,
+        );
+      }
+    });
+
+    return reverted;
+  }
+
+  async revertPrevious(id: string) {
+    const photo = await this.prisma.galleryPhoto.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        url: true,
+        businessId: true,
+        type: true,
+        isActive: true,
+        description: true,
+      },
+    });
+
+    if (!photo) {
+      throw new NotFoundException(`Gallery photo with id ${id} not found`);
+    }
+
+    const lastTwoEntries = await this.prisma.galleryPhotoHistory.findMany({
+      where: { photoId: id },
+      orderBy: { changedAt: 'desc' },
+      take: 2,
+    });
+
+    if (lastTwoEntries.length < 2) {
+      throw new BadRequestException(
+        'Cannot revert: no previous version available',
+      );
+    }
+
+    const [currentEntry, previousEntry] = lastTwoEntries;
+
+    if (photo.url === previousEntry.url) {
+      throw new BadRequestException('Photo is already at the previous version');
+    }
+
+    const otherEntriesWithSameUrl = await this.prisma.galleryPhotoHistory.count({
+      where: {
+        photoId: id,
+        url: photo.url,
+        id: { not: currentEntry.id },
+      },
+    });
+
+    const shouldDeleteFromS3 = otherEntriesWithSameUrl === 0;
+    const urlToDelete = photo.url;
+
+    const reverted = await this.prisma.$transaction(async (tx) => {
+      await tx.galleryPhotoHistory.delete({
+        where: { id: currentEntry.id },
+      });
+
+      const updated = await tx.galleryPhoto.update({
+        where: { id },
+        data: {
+          url: previousEntry.url,
+          type: previousEntry.type,
+          description: previousEntry.description,
+          isActive: previousEntry.isActive,
+        },
+      });
+
+      return updated;
+    });
+
+    if (shouldDeleteFromS3 && urlToDelete && urlToDelete !== previousEntry.url) {
+      try {
+        await this.s3Service.delete(urlToDelete);
+      } catch (error) {
+        console.error(
+          `Failed to delete S3 object during revert: ${urlToDelete}`,
+          error,
+        );
+      }
+    }
+
+    return reverted;
+  }
 
 
   // Default Gallery Photos

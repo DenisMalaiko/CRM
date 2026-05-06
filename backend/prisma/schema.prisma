@@ -133,6 +133,7 @@ model Platform {
 
 model AIArtifact {
   id                String              @id @default(uuid())
+
   type              AIArtifactType
   businessProfileId String?
   trendId           String?
@@ -140,14 +141,33 @@ model AIArtifact {
   score             Float?
   status            AIArtifactStatus
   createdAt         DateTime            @default(now())
+  updatedAt         DateTime              @default(now()) @updatedAt
   businessId        String
   imagePrompt       String?
   imageUrl          String?
+
   businessProfile   BusinessProfile?     @relation(fields: [businessProfileId], references: [id], onDelete: Cascade)
   trend             Trend?              @relation(fields: [trendId], references: [id])
   products          AIArtifactProduct[]
+  imageHistory      AIArtifactImageHistory[]
 
   @@index([businessId])
+}
+
+model AIArtifactImageHistory {
+  id          String                       @id @default(uuid())
+  artifactId  String
+
+  businessId  String
+  imageUrl    String
+  imagePrompt String?
+
+  changeType  AIArtifactImageChangeType
+  changedAt   DateTime                     @default(now())
+
+  artifact    AIArtifact                   @relation(fields: [artifactId], references: [id], onDelete: Cascade)
+
+  @@index([artifactId, changedAt])
 }
 
 model Competitor {
@@ -504,7 +524,11 @@ enum GalleryPhotoType {
 enum GalleryPhotoChangeType {
   Create
   Update
-  Delete
+}
+
+enum AIArtifactImageChangeType {
+  Create
+  Update
 }
 
 enum IdeaWho {

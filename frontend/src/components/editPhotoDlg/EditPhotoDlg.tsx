@@ -1,24 +1,50 @@
-import React, { useState, useMemo } from 'react';
-import { X } from "lucide-react";
+import React, {useState} from 'react';
+import {X} from "lucide-react";
+import {toast} from "react-toastify";
 
 // Hooks
-import { showError} from "../../utils/showError";
+import {showError} from "../../utils/showError";
 
 // Redux
-import { useRegeneratePhotoMutation } from "../../store/gallery/galleryApi";
-import {toast} from "react-toastify";
-import {ApiResponse} from "../../models/ApiResponse";
-import {TGalleryPhoto} from "../../models/Gallery";
+import {
+  useRegeneratePhotoMutation,
+  useRevertOriginalMutation,
+  useRevertPreviousMutation
+} from "../../store/gallery/galleryApi";
+
+import {
+  useRegenerateCreativeMutation,
+  useRevertCreativeOriginalMutation,
+  useRevertCreativePreviousMutation,
+} from "../../store/artifact/artifactApi";
+
+
+// Models
+import { ApiResponse } from "../../models/ApiResponse";
+import { TGalleryPhoto } from "../../models/Gallery";
+import { TAIArtifact } from "../../models/AIArtifact";
+
+// Enum
+import { ContentType } from "../../enum/ContentType";
+
 
 type Props = {
   open: boolean;
+  type: ContentType
   photoId: string;
   onClose: () => void;
   onSuccess: () => void;
 }
 
-function EditPhotoDlg({ open, onClose, onSuccess, photoId }: Props) {
+function EditPhotoDlg({ open, type, onClose, onSuccess, photoId }: Props) {
   const [ regeneratePhoto, { isLoading } ] = useRegeneratePhotoMutation();
+  const [ revertOriginal, { isLoading: isReturningOriginalLoading } ] = useRevertOriginalMutation();
+  const [ revertPrevious, { isLoading: isReturningPreviousLoading } ] = useRevertPreviousMutation();
+
+  const [ regenerateCreative, { isLoading: isRegeneratingCreativeLoading } ] = useRegenerateCreativeMutation();
+  const [ revertCreativeOriginal, { isLoading: isRevertingCreativeOriginalLoading } ] = useRevertCreativeOriginalMutation();
+  const [ revertCreativePrevious, { isLoading: isRevertingCreativePreviousLoading } ] = useRevertCreativePreviousMutation();
+
 
   // Init Form
   const [form, setForm] = useState({
@@ -31,14 +57,63 @@ function EditPhotoDlg({ open, onClose, onSuccess, photoId }: Props) {
     e.preventDefault();
 
     try {
-      console.log("------------")
-      console.log("FORM DATA ", form);
-      console.log("PHOTO ID", photoId);
+      let response: ApiResponse<TGalleryPhoto | TAIArtifact> | undefined;
 
-      const response: ApiResponse<TGalleryPhoto> = await regeneratePhoto({ id: photoId, form }).unwrap();
+      if(type === ContentType.GalleryPhoto) {
+        response = await regeneratePhoto({ id: photoId, form }).unwrap();
+      }
+
+      if(type === ContentType.AiArtifact) {
+        response = await regenerateCreative({ id: photoId, form }).unwrap();
+      }
+
       if(response && response?.data) {
         toast.success(response.message);
         setForm({ prompt: "" });
+        onSuccess();
+        onClose();
+      }
+    } catch (error) {
+      showError(error)
+    }
+  }
+
+  const revertToOriginal = async () => {
+    try {
+      let response: ApiResponse<TGalleryPhoto | TAIArtifact> | undefined;
+
+      if(type === ContentType.GalleryPhoto) {
+        response = await revertOriginal(photoId).unwrap();
+      }
+
+      if(type === ContentType.AiArtifact) {
+        response = await revertCreativeOriginal(photoId).unwrap();
+      }
+
+      if(response && response?.data) {
+        toast.success(response.message);
+        onSuccess();
+        onClose();
+      }
+    } catch (error) {
+      showError(error)
+    }
+  }
+
+  const revertToPrevious = async () => {
+    try {
+      let response: ApiResponse<TGalleryPhoto | TAIArtifact> | undefined;
+
+      if(type === ContentType.GalleryPhoto) {
+        response = await revertPrevious(photoId).unwrap();
+      }
+
+      if(type === ContentType.AiArtifact) {
+        response = await revertCreativePrevious(photoId).unwrap();
+      }
+
+      if(response && response?.data) {
+        toast.success(response.message);
         onSuccess();
         onClose();
       }
@@ -81,7 +156,7 @@ function EditPhotoDlg({ open, onClose, onSuccess, photoId }: Props) {
             <button
               type="button"
               onClick={() => onClose()}
-              disabled={isLoading}
+              disabled={isLoading || isReturningOriginalLoading || isReturningPreviousLoading}
               className="px-4 py-2 rounded-lg border  text-slate-600 border-slate-300 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-slate-white"
             >
               Cancel
@@ -89,21 +164,37 @@ function EditPhotoDlg({ open, onClose, onSuccess, photoId }: Props) {
 
             <button
               type="button"
+              onClick={() => revertToOriginal()}
+              disabled={isLoading || isReturningOriginalLoading || isReturningPreviousLoading}
               className="px-4 py-2 rounded-lg bg-blue-600 text-white flex items-center gap-2 justify-center"
             >
-              Revert to original
+              { isReturningOriginalLoading ? (
+                <>
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"/>
+                  Reverting...
+                </>
+                ) : ("Revert to original")
+              }
             </button>
 
             <button
               type="button"
+              onClick={() => revertToPrevious()}
+              disabled={isLoading || isReturningOriginalLoading || isReturningPreviousLoading}
               className="px-4 py-2 rounded-lg bg-blue-600 text-white flex items-center gap-2 justify-center"
             >
-              Previous version
+              { isReturningOriginalLoading ? (
+                <>
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"/>
+                  Reverting...
+                </>
+                ) : ("Revert to previous")
+              }
             </button>
 
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={isLoading || isReturningOriginalLoading || isReturningPreviousLoading}
               className="px-4 py-2 rounded-lg bg-blue-600 text-white flex items-center gap-2 justify-center"
             >
               { isLoading ? (

@@ -2,6 +2,8 @@ import { api } from "../api/api";
 import { ApiResponse } from "../../models/ApiResponse";
 import { TAIArtifact } from "../../models/AIArtifact";
 import { GalleryType } from "../../enum/GalleryType";
+import {TGalleryPhoto} from "../../models/Gallery";
+
 
 export const artifactApi = api.injectEndpoints({
   endpoints: (builder) => ({
@@ -52,7 +54,29 @@ export const artifactApi = api.injectEndpoints({
         method: "POST",
         body: form,
       })
-    })
+    }),
+
+    regenerateCreative: builder.mutation<ApiResponse<TAIArtifact>, { id: string, form: { prompt: string } }>({
+      query: ({ id, form }) => ({
+        url: `/ai-artifact/${id}/regenerate`,
+        method: "POST",
+        body: form,
+      })
+    }),
+
+    revertCreativeOriginal: builder.mutation<ApiResponse<TAIArtifact>, string>({
+      query: (id) => ({
+        url: `/ai-artifact/${id}/revert-original`,
+        method: "POST",
+      })
+    }),
+
+    revertCreativePrevious: builder.mutation<ApiResponse<TAIArtifact>, string>({
+      query: (id) => ({
+        url: `/ai-artifact/${id}/revert-previous`,
+        method: "POST",
+      })
+    }),
   }),
   overrideExisting: false,
 })
@@ -63,4 +87,8 @@ export const {
   useDeleteCreativeMutation,
   useLazyGetAiArtifactsQuery,
   useCreateCreativeManuallyMutation,
+
+  useRegenerateCreativeMutation,
+  useRevertCreativeOriginalMutation,
+  useRevertCreativePreviousMutation,
 } = artifactApi;
