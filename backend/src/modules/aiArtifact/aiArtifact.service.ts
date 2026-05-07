@@ -281,8 +281,59 @@ export class AiArtifactService {
   }
 
   async regenerateAiArtifact(id, body) {
-    console.log("REGENERATE AI ARTIFACT ", id, body);
+    const artifact = await this.prisma.aIArtifact.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        businessId: true,
+        imageUrl: true,
+        imagePrompt: true,
+        type: true
+      },
+    });
 
+    if (!artifact) {
+      throw new NotFoundException(`AI artifact with id ${id} not found`);
+    }
+
+    const referenceImages = artifact.imageUrl ? [{
+      url: this.storageUrlService.getPublicUrl(artifact.imageUrl),
+      type: artifact.type,
+      description: null,
+    }] : [];
+
+    const generatedImageUrl = await this.aiService.generateAiPhoto(
+      artifact.businessId,
+      body,
+      referenceImages,
+    );
+
+    const updated = await this.prisma.$transaction(async (tx) => {
+      const updatedArtifact = await tx.aIArtifact.update({
+        where: { id },
+        data: {
+          imageUrl: generatedImageUrl,
+          imagePrompt: body,
+        },
+      });
+
+      await tx.aIArtifactImageHistory.create({
+        data: {
+          artifactId: updatedArtifact.id,
+          businessId: updatedArtifact.businessId,
+          imageUrl: generatedImageUrl,
+          imagePrompt: body,
+          changeType: AIArtifactImageChangeType.Update,
+        },
+      });
+
+      return updatedArtifact;
+    });
+
+    return updated;
+  }
+
+  async revertAiArtifactOriginal(id: string) {
     const artifact = await this.prisma.aIArtifact.findUnique({
       where: { id },
       select: {
@@ -297,20 +348,151 @@ export class AiArtifactService {
       throw new NotFoundException(`AI artifact with id ${id} not found`);
     }
 
-    const referenceImages = artifact.imageUrl ? [{
-      url: this.storageUrlService.getPublicUrl(artifact.imageUrl),
-      description: null,
-    }] : [];
+    const originalEntry = await this.prisma.aIArtifactImageHistory.findFirst({
+      where: {
+        artifactId: id,
+        changeType: AIArtifactImageChangeType.Create,
+      },
+      orderBy: { changedAt: 'asc' },
+    });
 
+    if (!originalEntry) {
+      throw new BadRequestException(
+        `Original image entry for AI artifact with id ${id} not found`,
+      );
+    }
 
-  }
+    if (artifact.imageUrl === originalEntry.imageUrl) {
+      throw new BadRequestException('Image is already at the original version');
+    }
 
-  async revertAiArtifactOriginal(id: string) {
-    console.log("REVERT AI ARTIFACT ORIGINAL ", id);
+    const intermediateEntries = await this.prisma.aIArtifactImageHistory.findMany({
+      where: {
+        artifactId: id,
+        id: { not: originalEntry.id },
+      },
+      select: { imageUrl: true },
+    });
+
+    const urlsToDelete = Array.from(
+      new Set(
+        intermediateEntries
+          .map((e) => e.imageUrl)
+          .filter((url): url is string => Boolean(url) && url !== originalEntry.imageUrl),
+      ),
+    );
+
+    const reverted = await this.prisma.$transaction(async (tx) => {
+      await tx.aIArtifactImageHistory.deleteMany({
+        where: {
+          artifactId: id,
+          id: { not: originalEntry.id },
+        },
+      });
+
+      const updated = await tx.aIArtifact.update({
+        where: { id },
+        data: {
+          imageUrl: originalEntry.imageUrl,
+          imagePrompt: originalEntry.imagePrompt,
+        },
+      });
+
+      return updated;
+    });
+
+    const results = await Promise.allSettled(
+      urlsToDelete.map((url) => this.s3Service.delete(url)),
+    );
+
+    results.forEach((result, index) => {
+      if (result.status === 'rejected') {
+        console.error(
+          `Failed to delete S3 object during revert: ${urlsToDelete[index]}`,
+          result.reason,
+        );
+      }
+    });
+
+    return reverted;
   }
 
   async revertAiArtifactPrevious(id: string) {
-    console.log("REVERT AI ARTIFACT PREVIOUS ", id);
+    const artifact = await this.prisma.aIArtifact.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        businessId: true,
+        imageUrl: true,
+        imagePrompt: true,
+      },
+    });
+
+    if (!artifact) {
+      throw new NotFoundException(`AI artifact with id ${id} not found`);
+    }
+
+    const lastTwoEntries = await this.prisma.aIArtifactImageHistory.findMany({
+      where: { artifactId: id },
+      orderBy: { changedAt: 'desc' },
+      take: 2,
+    });
+
+    if (lastTwoEntries.length < 2) {
+      throw new BadRequestException(
+        'Cannot revert: no previous version available',
+      );
+    }
+
+    const [currentEntry, previousEntry] = lastTwoEntries;
+
+    if (artifact.imageUrl === previousEntry.imageUrl) {
+      throw new BadRequestException('Image is already at the previous version');
+    }
+
+    const otherEntriesWithSameUrl = await this.prisma.aIArtifactImageHistory.count({
+      where: {
+        artifactId: id,
+        imageUrl: artifact.imageUrl ?? '',
+        id: { not: currentEntry.id },
+      },
+    });
+
+    const shouldDeleteFromS3 = otherEntriesWithSameUrl === 0;
+    const urlToDelete = artifact.imageUrl;
+
+    const reverted = await this.prisma.$transaction(async (tx) => {
+      await tx.aIArtifactImageHistory.delete({
+        where: { id: currentEntry.id },
+      });
+
+      const updated = await tx.aIArtifact.update({
+        where: { id },
+        data: {
+          imageUrl: previousEntry.imageUrl,
+          imagePrompt: previousEntry.imagePrompt,
+        },
+      });
+
+      return updated;
+    });
+
+    if (
+      shouldDeleteFromS3 &&
+      urlToDelete &&
+      urlToDelete !== previousEntry.imageUrl
+    ) {
+      try {
+        await this.s3Service.delete(urlToDelete);
+      } catch (error) {
+        console.error(
+          `Failed to delete S3 object during revert: ${urlToDelete}`,
+          error,
+        );
+      }
+    }
+
+    return reverted;
   }
 
   private serializeImagePrompt(imagePrompt: {

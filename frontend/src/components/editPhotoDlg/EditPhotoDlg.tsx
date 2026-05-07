@@ -45,6 +45,7 @@ function EditPhotoDlg({ open, type, onClose, onSuccess, photoId }: Props) {
   const [ revertCreativeOriginal, { isLoading: isRevertingCreativeOriginalLoading } ] = useRevertCreativeOriginalMutation();
   const [ revertCreativePrevious, { isLoading: isRevertingCreativePreviousLoading } ] = useRevertCreativePreviousMutation();
 
+  const isAnyLoading = isLoading || isReturningOriginalLoading || isReturningPreviousLoading || isRegeneratingCreativeLoading || isRevertingCreativeOriginalLoading || isRevertingCreativePreviousLoading;
 
   // Init Form
   const [form, setForm] = useState({
@@ -156,7 +157,7 @@ function EditPhotoDlg({ open, type, onClose, onSuccess, photoId }: Props) {
             <button
               type="button"
               onClick={() => onClose()}
-              disabled={isLoading || isReturningOriginalLoading || isReturningPreviousLoading}
+              disabled={isAnyLoading}
               className="px-4 py-2 rounded-lg border  text-slate-600 border-slate-300 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-slate-white"
             >
               Cancel
@@ -165,10 +166,10 @@ function EditPhotoDlg({ open, type, onClose, onSuccess, photoId }: Props) {
             <button
               type="button"
               onClick={() => revertToOriginal()}
-              disabled={isLoading || isReturningOriginalLoading || isReturningPreviousLoading}
-              className="px-4 py-2 rounded-lg bg-blue-600 text-white flex items-center gap-2 justify-center"
+              disabled={isAnyLoading}
+              className="px-4 py-2 rounded-lg bg-blue-600 text-white flex items-center gap-2 justify-center disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              { isReturningOriginalLoading ? (
+              { (isReturningOriginalLoading || isRevertingCreativeOriginalLoading) ? (
                 <>
                   <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"/>
                   Reverting...
@@ -180,10 +181,10 @@ function EditPhotoDlg({ open, type, onClose, onSuccess, photoId }: Props) {
             <button
               type="button"
               onClick={() => revertToPrevious()}
-              disabled={isLoading || isReturningOriginalLoading || isReturningPreviousLoading}
-              className="px-4 py-2 rounded-lg bg-blue-600 text-white flex items-center gap-2 justify-center"
+              disabled={isAnyLoading}
+              className="px-4 py-2 rounded-lg bg-blue-600 text-white flex items-center gap-2 justify-center disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              { isReturningOriginalLoading ? (
+              { (isReturningPreviousLoading || isRevertingCreativePreviousLoading) ? (
                 <>
                   <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"/>
                   Reverting...
@@ -194,15 +195,15 @@ function EditPhotoDlg({ open, type, onClose, onSuccess, photoId }: Props) {
 
             <button
               type="submit"
-              disabled={isLoading || isReturningOriginalLoading || isReturningPreviousLoading}
-              className="px-4 py-2 rounded-lg bg-blue-600 text-white flex items-center gap-2 justify-center"
+              disabled={isAnyLoading}
+              className="px-4 py-2 rounded-lg bg-blue-600 text-white flex items-center gap-2 justify-center disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              { isLoading ? (
+              { (isLoading || isRegeneratingCreativeLoading ) ? (
                 <>
                   <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"/>
-                  Creating...
+                  Editing...
                 </>
-              ) : ("Create")
+              ) : ("Edit")
               }
             </button>
           </div>
