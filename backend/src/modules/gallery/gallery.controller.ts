@@ -50,7 +50,6 @@ export class GalleryController {
     @Param() { id }: GalleryPhotoIdParamDto,
     @Body() body: { prompt: string },
   ) {
-    console.log("REGENERATE PHOTO: ", body.prompt);
     return await this.galleryService.regeneratePhoto(id, body);
   }
 
