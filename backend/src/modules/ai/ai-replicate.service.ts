@@ -1,5 +1,5 @@
 import { randomUUID } from "crypto";
-import { GalleryPhotoType } from "@prisma/client";
+import { AIArtifactType, GalleryPhotoType } from '@prisma/client';
 import { inspect } from "util";
 import * as process from "node:process";
 
@@ -66,7 +66,7 @@ import {
 
 type Photo = {
   url: string,
-  type: GalleryPhotoType,
+  type: GalleryPhotoType | AIArtifactType,
   description: string | null,
 };
 
@@ -339,12 +339,19 @@ export class AiReplicateService {
 
   async generateAiPhoto(prompt: string, businessId: string, photos: Photo[]): Promise<string> {
 
-    console.log("--------------");
-    console.log("GENERATED PHOTOS");
-    console.log("BUSINESS ID ", businessId);
-    console.log("PROMPT ", prompt);
-    console.log("PHOTOS ", photos.map(photo => photo.url));
+    const type = photos[0].type;
+    let aspectRatio;
 
+    switch(type) {
+      case AIArtifactType.Post:
+        aspectRatio = "4:5";
+        break;
+      case AIArtifactType.Story:
+        aspectRatio = "9:16";
+        break;
+      default:
+        aspectRatio = "1:1";
+    }
 
     const stream = await this.replicate.run(
       process.env.REPLICATE_API_ACTOR,
@@ -352,7 +359,7 @@ export class AiReplicateService {
         input: {
           prompt: prompt,
           resolution: "2K",
-          aspect_ratio: "1:1",
+          aspect_ratio: aspectRatio,
           safety_filter_level: "block_only_high",
           image_input: photos.map(photo => photo.url),
           allow_fallback_model: false

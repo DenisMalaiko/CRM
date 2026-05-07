@@ -3,7 +3,7 @@ import {ChatOpenAI} from "@langchain/openai";
 import {TProfile} from "../profiles/entities/profile.entity";
 import {AiPost} from "./entities/aiPost.entity";
 import {AiReplicateService} from "./ai-replicate.service";
-import {GalleryPhotoType} from "@prisma/client";
+import {GalleryPhotoType, AIArtifactType} from "@prisma/client";
 import {IdeasBatchSchema} from "../idea/schema/idea.schema";
 import {IdeaAISchema} from "../ideaAI/schema/ideaAI.schema";
 import * as process from "node:process";
@@ -34,7 +34,7 @@ import {
 
 type Photo = {
   url: string,
-  type: GalleryPhotoType,
+  type: GalleryPhotoType | AIArtifactType,
   description: string | null,
 };
 
