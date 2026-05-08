@@ -26,6 +26,7 @@ import { FacebookModule } from "./modules/facebook/facebook.module";
 import { GalleryModule } from "./modules/gallery/gallery.module";
 import { IdeaModule } from "./modules/idea/idea.module";
 import { IdeaAIModule } from "./modules/ideaAI/ideaAI.module";
+import { TrendsModule } from "./modules/trends/trends.module";
 
 @Module({
   imports: [
@@ -68,7 +69,8 @@ import { IdeaAIModule } from "./modules/ideaAI/ideaAI.module";
     FacebookModule,
     GalleryModule,
     IdeaModule,
-    IdeaAIModule
+    IdeaAIModule,
+    TrendsModule,
   ],
   controllers: [AppController],
   providers: [
