@@ -3,7 +3,7 @@ interface Geo {
   value: string;
 }
 
-export const GeoList = [
+export const GeoList: Geo[] = [
   { label: "Kyiv", value: "Kyiv" },
   { label: "Vinnytsia", value: "Vinnytsia" },
   { label: "Lutsk", value: "Lutsk" },

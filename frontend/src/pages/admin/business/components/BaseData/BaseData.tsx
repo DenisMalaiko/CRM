@@ -22,6 +22,7 @@ import { getStatusClass } from "../../../../../utils/getStatusClass";
 
 // Const
 import { Languages } from "../../../../../const/Languages";
+import { Countries } from "../../../../../const/Countries";
 
 function BaseData() {
   const dispatch = useAppDispatch();
@@ -104,6 +105,10 @@ function BaseData() {
                   <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${getStatusClass(business.status)}`}>
                      {business?.status}
                   </span>
+                </div>
+                <div className="flex justify-between border-b pb-2">
+                  <span className="font-medium">Country</span>
+                  <span className="text-slate-500">{Countries.find(x => x.value === business?.country)?.label}</span>
                 </div>
                 <div className="flex justify-between border-b pb-2">
                   <span className="font-medium">Language</span>
