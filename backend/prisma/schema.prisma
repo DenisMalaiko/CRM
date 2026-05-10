@@ -43,6 +43,7 @@ model Business {
   industry         String?
   status           BusinessStatus
   language         String            @default("en")
+  country          String            @default("UA")
   advantages       String[]          @default([""])
   brand            String            @default("")
   goals            String[]          @default([""])

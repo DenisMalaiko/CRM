@@ -8,6 +8,7 @@ export type TBusinessBase = {
   industry?: string | null;
   status: BusinessStatus;
   language: string;
+  country: string;
   brand: string;
   advantages: string[];
   goals: string[];

@@ -32,6 +32,7 @@ import { BusinessStatus } from "../../../../enum/BusinessStatus";
 // Const
 import { Languages } from "../../../../const/Languages";
 import { Industries } from "../../../../const/Industries";
+import { Countries } from "../../../../const/Countries";
 
 function CreateBusinessDlg({ open, onClose, business }: any) {
   const dispatch = useAppDispatch();
@@ -56,6 +57,7 @@ function CreateBusinessDlg({ open, onClose, business }: any) {
         advantages: business.advantages ?? [""],
         goals: business.goals ?? [""],
         language: business.language ?? Languages[0].value,
+        country: business.country ?? Countries[65].value,
       };
     }
 
@@ -68,7 +70,8 @@ function CreateBusinessDlg({ open, onClose, business }: any) {
       brand: "",
       advantages: [""],
       goals: [""],
-      language: Languages[0].value
+      language: Languages[0].value,
+      country: Countries[65].value,
     };
   }, [isEdit, business, user?.agencyId]);
 
@@ -86,6 +89,7 @@ function CreateBusinessDlg({ open, onClose, business }: any) {
     advantages: (value) => isRequired(value),
     goals: (value) => isRequired(value),
     language: (value) => isRequired(value),
+    country: (value) => isRequired(value),
   })
 
   if (!open) return null;
@@ -246,25 +250,38 @@ function CreateBusinessDlg({ open, onClose, business }: any) {
             </div>
           </div>
 
-          <div>
-            <div className="flex items-center gap-2 justify-between mb-1">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
               <label className="block text-sm font-medium text-slate-700 text-left">Language</label>
+              <Select
+                options={Languages}
+                value={Languages.filter((option) =>
+                  form.language.includes(option.value)
+                )}
+                onChange={(selected: any) =>
+                  onChange({
+                    name: "language",
+                    value: selected ? selected?.value : "",
+                  })
+                }
+                styles={centeredSelectStyles}
+                placeholder="Select Language"
+              />
             </div>
 
-            <Select
-              options={Languages}
-              value={Languages.filter((option) =>
-                form.language.includes(option.value)
-              )}
-              onChange={(selected: any) =>
-                onChange({
-                  name: "language",
-                  value: selected ? selected?.value : "",
-                })
-              }
-              styles={centeredSelectStyles}
-              placeholder="Select Language"
-            ></Select>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 text-left">Country</label>
+              <Select
+                options={Countries}
+                value={Countries.find((option) => option.value === form.country) ?? null}
+                onChange={(selected: any) =>
+                  onChange({ name: "country", value: selected ? selected.value : "" })
+                }
+                styles={centeredSelectStyles}
+                placeholder="Select Country"
+              />
+              {errors.country && <p className="text-red-500 text-sm mt-2 text-left">{errors.country}</p>}
+            </div>
           </div>
 
           <div className="grid">

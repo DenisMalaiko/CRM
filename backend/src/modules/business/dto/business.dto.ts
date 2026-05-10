@@ -21,6 +21,9 @@ export class BusinessBaseDto {
   language: string;
 
   @IsString()
+  country: string;
+
+  @IsString()
   brand: string;
 
   @IsArray()
