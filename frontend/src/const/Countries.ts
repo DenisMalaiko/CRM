@@ -1,7 +1,7 @@
-interface Country {
+type Country = {
   label: string;
   value: string;
-}
+};
 
 export const Countries: Country[] = [
   { label: "Argentina", value: "AR" },

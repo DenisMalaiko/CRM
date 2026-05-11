@@ -437,8 +437,8 @@ Expected: all 7 tests pass.
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/pages/admin/business/components/AiPhoto/components/CreateAiPhotoDlg.tsx \
-        src/pages/admin/business/components/AiPhoto/components/CreateAiPhotoDlg.test.tsx
+git add src/pages/admin/business/components/AiPhotos/components/CreateAiPhotoDlg.tsx \
+        src/pages/admin/business/components/AiPhotos/components/CreateAiPhotoDlg.test.tsx
 git commit -m "feat: implement CreateAiPhotoDlg with prompt textarea and photo selection"
 ```
 
@@ -627,6 +627,6 @@ Expected: all tests pass.
 - [ ] **Step 4: Commit**
 
 ```bash
-git add src/pages/admin/business/components/AiPhoto/AiPhoto.tsx
+git add src/pages/admin/business/components/AiPhotos/AiPhotos.tsx
 git commit -m "feat: restore AiPhoto grid, fix delete, connect CreateAiPhotoDlg"
 ```

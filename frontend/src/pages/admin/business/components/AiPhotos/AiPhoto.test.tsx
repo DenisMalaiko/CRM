@@ -91,7 +91,7 @@ function renderComponent() {
   return render(<AiPhoto />);
 }
 
-describe("AiPhoto component", () => {
+describe("AiPhotos component", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockAiPhotos = [];

@@ -17,6 +17,19 @@ import {
 export class TrendsController {
   constructor(private readonly trendsService: TrendsService) {}
 
+
+  @Get('/:id')
+  @ResponseMessage('Trend fetched!')
+  getTrendsByBusinessId(@Param() { id }: TrendIdParamDto) {
+    console.log("CONTROLLER GET TRENDS BY BUSINESS ID ", id);
+    return this.trendsService.getTrendsByBusinessId(id);
+  }
+
+
+
+
+
+
   @Post('/match/:profileId')
   @ResponseMessage('Profile trends matched!')
   matchProfileTrends(@Param() { profileId }: ProfileIdParamDto) {
@@ -44,9 +57,9 @@ export class TrendsController {
     return this.trendsService.getTrends(query);
   }
 
-  @Get('/:id')
+  @Get('/list/:id')
   @ResponseMessage('Trend fetched!')
-  getTrend(@Param() { id }: TrendIdParamDto) {
+  getTrendById(@Param() { id }: TrendIdParamDto) {
     return this.trendsService.getTrend(id);
   }
 
