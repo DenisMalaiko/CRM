@@ -7,6 +7,15 @@ import { TrendFilterDto } from './dto/trend.dto';
 export class TrendsService {
   constructor(private readonly prisma: PrismaService) {}
 
+
+  async getTrendsByBusinessId(id: string): Promise<TTrend[]> {
+    console.log("SERVICE GET TRENDS BY BUSINESS ID ", id);
+    return [];
+  }
+
+
+
+
   async createTrend(data: TTrendCreate): Promise<TTrend> {
     return this.prisma.trend.create({ data: data as any }) as Promise<TTrend>;
   }

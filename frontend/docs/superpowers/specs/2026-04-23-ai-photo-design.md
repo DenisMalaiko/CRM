@@ -35,7 +35,7 @@ const tabsAI = [
 
 ### Section 1 — Header
 - Page title: "AI Photo"
-- Button "Generate" → opens a Dialog (reuse existing dialog pattern from Gallery/IdeasAI)
+- Button "Generate" → opens a Dialog (reuse existing dialog pattern from Gallery/AiIdeas)
 - **Dialog contents:**
   - Textarea field labeled "Prompt"
   - Button "Generate" → calls `POST /aiPhoto/:businessId` with `{ prompt: string }`

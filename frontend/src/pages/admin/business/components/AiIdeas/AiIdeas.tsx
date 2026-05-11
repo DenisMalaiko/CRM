@@ -34,7 +34,7 @@ import TextDlg from "../../../../../components/textDlg/TextDlg";
 import {TIdeaAI} from "../../../../../models/IdeaAI";
 
 
-function IdeasAI() {
+function AiIdeas() {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { businessId } = useParams<{ businessId: string }>();
@@ -354,4 +354,4 @@ function IdeasAI() {
   )
 }
 
-export default IdeasAI;
+export default AiIdeas;

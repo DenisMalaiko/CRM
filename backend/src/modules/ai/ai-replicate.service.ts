@@ -339,7 +339,7 @@ export class AiReplicateService {
 
   async generateAiPhoto(prompt: string, businessId: string, photos: Photo[]): Promise<string> {
 
-    const type = photos[0].type;
+    const type = photos ? photos[0]?.type : null;
     let aspectRatio;
 
     switch(type) {

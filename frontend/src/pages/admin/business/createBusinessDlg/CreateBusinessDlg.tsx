@@ -34,7 +34,13 @@ import { Languages } from "../../../../const/Languages";
 import { Industries } from "../../../../const/Industries";
 import { Countries } from "../../../../const/Countries";
 
-function CreateBusinessDlg({ open, onClose, business }: any) {
+type Props = {
+  open: boolean;
+  onClose: () => void;
+  business?: TBusiness | any;
+};
+
+export function CreateBusinessDlg({ open, onClose, business }: Props) {
   const dispatch = useAppDispatch();
   const [ getBusinesses ] = useGetBusinessesMutation();
   const [ createBusiness, { isLoading: isLoadingCreating } ] = useCreateBusinessMutation();
@@ -155,7 +161,7 @@ function CreateBusinessDlg({ open, onClose, business }: any) {
   const deleteItem = (field: StringArrayField, index: number) => {
     setForm((prev) => ({
       ...prev,
-      [field]: prev[field].filter((_: any, i: any) => i !== index),
+      [field]: prev[field].filter((_: string, i: number) => i !== index),
     }));
   };
 
@@ -166,7 +172,7 @@ function CreateBusinessDlg({ open, onClose, business }: any) {
   ) => {
     setForm((prev) => ({
       ...prev,
-      [field]: prev[field].map((item: any, i: any) =>
+      [field]: prev[field].map((item: string, i: number) =>
         i === index ? value : item
       ),
     }));
@@ -255,9 +261,7 @@ function CreateBusinessDlg({ open, onClose, business }: any) {
               <label className="block text-sm font-medium text-slate-700 text-left">Language</label>
               <Select
                 options={Languages}
-                value={Languages.filter((option) =>
-                  form.language.includes(option.value)
-                )}
+                value={Languages.find((option) => option.value === form.language) ?? null}
                 onChange={(selected: any) =>
                   onChange({
                     name: "language",
