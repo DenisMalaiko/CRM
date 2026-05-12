@@ -8,11 +8,16 @@ export class ApifyService {
 
   async runActor<T>(actor: string, input: any): Promise<T[]> {
     const runUrl = `${this.apifyApiURL}/acts/${actor}/runs?token=${this.apifyApiKey}`;
+    console.log("111");
+    console.log(runUrl);
+
     const runRes = await fetch(runUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(input),
     });
+
+    console.log("222");
 
     const runData = await runRes.json();
 
@@ -22,10 +27,14 @@ export class ApifyService {
       )
     }
 
+    console.log("333");
+
     const runId = runData.data.id;
     const run = await this.waitForRun(runId);
     const datasetRes = await fetch(`${this.apifyApiURL}/datasets/${run.defaultDatasetId}/items?token=${this.apifyApiKey}`);
     const items = await datasetRes.json();
+
+    console.log("444");
 
     if (items[0].error) {
       if(items[0].errorCode === "PAGE_PRIVATE") {
@@ -38,6 +47,8 @@ export class ApifyService {
 
       throw new BadRequestException('No data found for this page');
     }
+
+    console.log("555");
 
     return items;
   }

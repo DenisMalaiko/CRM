@@ -1,10 +1,11 @@
 import { Module } from '@nestjs/common';
+import { AuthModule } from "../auth/auth.module";
+import { TiktokModule } from '../tiktok/tiktok.module';
 import { TrendsController } from './trends.controller';
 import { TrendsService } from './trends.service';
-import { AuthModule } from "../auth/auth.module";
 
 @Module({
-  imports: [AuthModule],
+  imports: [AuthModule, TiktokModule],
   controllers: [TrendsController],
   providers: [TrendsService],
 })

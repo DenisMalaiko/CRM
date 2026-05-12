@@ -1,18 +1,44 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../core/prisma/prisma.service';
+import { TiktokService } from '../tiktok/tiktok.service';
 import { TTrend, TTrendCreate, TTrendMatch, TTrendUpdate } from './entities/trend.entity';
 import { TrendFilterDto } from './dto/trend.dto';
 
 @Injectable()
 export class TrendsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly tiktokService: TiktokService,
+  ) {}
 
 
-  async getTrendsByBusinessId(id: string): Promise<TTrend[]> {
+  async getTrendsByBusinessId(id: string): Promise<TTrend[] | null> {
     console.log("SERVICE GET TRENDS BY BUSINESS ID ", id);
-    return [];
-  }
+    const business = await this.prisma.business.findUnique({
+      where: { id: id },
+      select: {
+        id: true,
+        name: true,
+        industry: true,
+        language: true,
+        country: true,
+      },
+    });
 
+    if (!business) return null;
+
+    console.log("BUSINESS ", business);
+
+    const hashtags = await this.tiktokService.fetchHashtags(
+      id,
+      business.country,
+      business.industry,
+    );
+
+    console.log("HASHTAGS ", hashtags);
+
+    return hashtags;
+  }
 
 
 

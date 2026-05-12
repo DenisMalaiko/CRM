@@ -151,6 +151,7 @@ model AIArtifact {
   trend             Trend?              @relation(fields: [trendId], references: [id])
   products          AIArtifactProduct[]
   imageHistory      AIArtifactImageHistory[]
+  tags              AIArtifactTag[]
 
   @@index([businessId])
 }
@@ -343,8 +344,28 @@ model Tag {
   type            TagType
   value           String
   normalizedValue String
-  businessId      String
+  source          TagSource
+  metrics         Json?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @default(now()) @updatedAt
+
   profiles        BusinessProfileTag[]
+  artifacts       AIArtifactTag[]
+
+  @@unique([type, normalizedValue])
+  @@index([type])
+  @@index([normalizedValue])
+}
+
+model AIArtifactTag {
+  aiArtifactId String
+  tagId        String
+
+  aiArtifact AIArtifact @relation(fields: [aiArtifactId], references: [id], onDelete: Cascade)
+  tag        Tag        @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([aiArtifactId, tagId])
+  @@index([tagId])
 }
 
 model AIArtifactProduct {
@@ -439,10 +460,14 @@ model BusinessProfileTag {
   businessProfileId String
   tagId             String
   weight            Float
+  addedBy           TagSource
+  addedAt           DateTime @default(now())
+
   businessProfile   BusinessProfile @relation(fields: [businessProfileId], references: [id], onDelete: Cascade)
   tag               Tag             @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
   @@id([businessProfileId, tagId])
+  @@index([tagId])
 }
 
 model BusinessTrendMatch {
@@ -495,6 +520,14 @@ enum TagType {
   Hashtag
   Pain
   Format
+}
+
+enum TagSource {
+  User
+  API
+  Competitor
+  Trend
+  AI
 }
 
 enum AIArtifactType {
