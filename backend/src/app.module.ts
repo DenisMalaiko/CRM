@@ -23,6 +23,7 @@ import { PromptModule } from './modules/prompt/prompt.module';
 import { CompetitorModule } from "./modules/competitor/competitor.module";
 import { ApifyModule } from "./modules/apify/apify.module";
 import { FacebookModule } from "./modules/facebook/facebook.module";
+import { TiktokModule } from './modules/tiktok/tiktok.module';
 import { GalleryModule } from "./modules/gallery/gallery.module";
 import { IdeaModule } from "./modules/idea/idea.module";
 import { IdeaAIModule } from "./modules/ideaAI/ideaAI.module";
@@ -67,6 +68,7 @@ import { TrendsModule } from "./modules/trends/trends.module";
     CompetitorModule,
     ApifyModule,
     FacebookModule,
+    TiktokModule,
     GalleryModule,
     IdeaModule,
     IdeaAIModule,
