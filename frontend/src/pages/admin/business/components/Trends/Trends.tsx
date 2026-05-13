@@ -59,9 +59,16 @@ function Trends() {
 
           <button
             onClick={() => getTrends()}
+            disabled={isLoading}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700"
           >
-            Get Trends
+            { isLoading ? (
+              <>
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"/>
+                Getting Trends...
+              </>
+            ) : ("Get Trends")
+            }
           </button>
         </div>
       </section>

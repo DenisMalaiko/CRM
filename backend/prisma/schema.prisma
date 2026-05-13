@@ -345,6 +345,8 @@ model Tag {
   value           String
   normalizedValue String
   source          TagSource
+  countries       String[]  @default([])
+  industries      String[]  @default([])
   metrics         Json?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @default(now()) @updatedAt

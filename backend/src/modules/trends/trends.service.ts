@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { Tag, TagSource, TagType } from '@prisma/client';
 import { PrismaService } from '../../core/prisma/prisma.service';
 import { TiktokService } from '../tiktok/tiktok.service';
 import { TTrend, TTrendCreate, TTrendMatch, TTrendUpdate } from './entities/trend.entity';
@@ -11,11 +12,29 @@ export class TrendsService {
     private readonly tiktokService: TiktokService,
   ) {}
 
+  async getTrendVideos(businessId: string): Promise<any[]> {
+    /*const tags = await this.getHashtagsByBusinessId(businessId);
+    if (!tags || tags.length === 0) return [];
+    const hashtagValues = tags.map((tag) => tag.value);*/
 
-  async getTrendsByBusinessId(id: string): Promise<TTrend[] | null> {
-    console.log("SERVICE GET TRENDS BY BUSINESS ID ", id);
+    const hashtagValues = [
+      'мійвсесвіт💕', 'доня',
+      'садочок',      'доця',
+      'мамськібудні', 'синочок',
+      'мамаблог',     'донька',
+      'дітицещастя',  'малюк'
+    ]
+    console.log("HASHTAG VALUES", hashtagValues);
+
+    const videos = this.getVideosByHashtags(businessId, hashtagValues);
+    console.log("VIDEOS", videos);
+
+    return videos;
+  }
+
+  async getHashtagsByBusinessId(id: string): Promise<Tag[] | null> {
     const business = await this.prisma.business.findUnique({
-      where: { id: id },
+      where: { id },
       select: {
         id: true,
         name: true,
@@ -27,20 +46,61 @@ export class TrendsService {
 
     if (!business) return null;
 
-    console.log("BUSINESS ", business);
-
     const hashtags = await this.tiktokService.fetchHashtags(
       id,
       business.country,
       business.industry,
     );
 
-    console.log("HASHTAGS ", hashtags);
+    return Promise.all(hashtags.map((h: any) => this._upsertHashtag(h)));
+  }
 
-    return hashtags;
+  async getVideosByHashtags(businessId: string, hashtags: string[]): Promise<any[]> {
+    const business = await this.prisma.business.findUnique({
+      where: { id: businessId },
+      select: { country: true },
+    });
+
+    if (!business) return [];
+
+    return this.tiktokService.fetchVideosByHashtags(hashtags, business.country);
   }
 
 
+
+  private async _upsertHashtag(h: { name: string; countryCode: string; industry: string; rank: number; url: string }): Promise<Tag> {
+    const normalizedValue = h.name.toLowerCase();
+
+    const tag = await this.prisma.tag.upsert({
+      where: { type_normalizedValue: { type: TagType.Hashtag, normalizedValue } },
+      create: {
+        type: TagType.Hashtag,
+        value: h.name,
+        normalizedValue,
+        source: TagSource.Trend,
+        countries: h.countryCode ? [h.countryCode] : [],
+        industries: h.industry ? [h.industry] : [],
+        metrics: { rank: h.rank, url: h.url },
+      },
+      update: {
+        metrics: { rank: h.rank, url: h.url },
+      },
+    });
+
+    const needsUpdate =
+      (h.countryCode && !tag.countries.includes(h.countryCode)) ||
+      (h.industry && !tag.industries.includes(h.industry));
+
+    if (!needsUpdate) return tag;
+
+    return this.prisma.tag.update({
+      where: { id: tag.id },
+      data: {
+        countries: { set: Array.from(new Set([...tag.countries, h.countryCode].filter(Boolean))) },
+        industries: { set: Array.from(new Set([...tag.industries, h.industry].filter(Boolean))) },
+      },
+    });
+  }
 
   async createTrend(data: TTrendCreate): Promise<TTrend> {
     return this.prisma.trend.create({ data: data as any }) as Promise<TTrend>;

@@ -22,7 +22,7 @@ export class TrendsController {
   @ResponseMessage('Trend fetched!')
   getTrendsByBusinessId(@Param() { id }: TrendIdParamDto) {
     console.log("CONTROLLER GET TRENDS BY BUSINESS ID ", id);
-    return this.trendsService.getTrendsByBusinessId(id);
+    return this.trendsService.getTrendVideos(id);
   }
 
 
