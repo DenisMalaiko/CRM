@@ -18,15 +18,20 @@ export class TrendsService {
     const hashtagValues = tags.map((tag) => tag.value);*/
 
     const hashtagValues = [
-      'мійвсесвіт💕', 'доня',
-      'садочок',      'доця',
-      'мамськібудні', 'синочок',
-      'мамаблог',     'донька',
-      'дітицещастя',  'малюк'
-    ]
+      'мійвсесвіт💕', 'доня'
+    ];
+
+    if (hashtagValues.length === 0) return [];
+
     console.log("HASHTAG VALUES", hashtagValues);
 
-    const videos = this.getVideosByHashtags(businessId, hashtagValues);
+    const videos: any[] = await this.getVideosByHashtags(businessId, hashtagValues);
+
+    if (videos.length === 0) return [];
+
+    await this.saveTiktokVideos(videos, businessId);
+
+    console.log("-----------------------");
     console.log("VIDEOS", videos);
 
     return videos;
@@ -64,6 +69,20 @@ export class TrendsService {
     if (!business) return [];
 
     return this.tiktokService.fetchVideosByHashtags(hashtags, business.country);
+  }
+
+  private async saveTiktokVideos(videos: any[], businessId: string) {
+    const data = videos.map(v => ({
+      ...v,
+      businessId,
+    }));
+
+    const result = await this.prisma.tiktokVideo.createMany({
+      data,
+      skipDuplicates: true,
+    });
+
+    return result;
   }
 
 

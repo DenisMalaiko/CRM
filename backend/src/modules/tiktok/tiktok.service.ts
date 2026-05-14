@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ApifyService  } from '../apify/apify.service';
 
 type TikTokAdsSettings = {
@@ -45,6 +45,8 @@ type TikTokScraperSettings = {
 
 @Injectable()
 export class TiktokService {
+  private readonly logger = new Logger(TiktokService.name);
+
   constructor(private readonly apify: ApifyService) {}
 
   async fetchHashtags(id: string, country, industry ) {
@@ -81,23 +83,17 @@ export class TiktokService {
   }
 
   async fetchVideosByHashtags(hashtags: string[], country: string) {
-
-    console.log("--------------------");
-    console.log("FETCH VIDEOS BY HASHTAGS");
-    console.log("HASH TAGS ", hashtags);
-    console.log("COUNTRY ", country);
-
     const settings: TikTokScraperSettings = {
       commentsPerPost: 0,
       excludePinnedPosts: false,
-      hashtags: hashtags,
+      hashtags,
       maxFollowersPerProfile: 0,
       maxFollowingPerProfile: 0,
-      maxProfilesPerQuery: 3,
+      maxProfilesPerQuery: 1,
       maxRepliesPerComment: 0,
       profileSorting: 'latest',
       proxyCountryCode: country,
-      resultsPerPage: 3,
+      resultsPerPage: 1,
       scrapeRelatedVideos: false,
       searchQueries: hashtags,
       searchSection: '/video',
@@ -108,39 +104,82 @@ export class TiktokService {
       shouldDownloadVideos: true,
       videoSearchDateFilter: 'PAST_24_HOURS',
       videoSearchSorting: 'LATEST',
-    }
+    };
 
-    const items: any = await this.apify.runActor(
+    const items = await this.apify.runActor<any>(
       'clockworks~tiktok-scraper',
-      settings
+      settings,
     );
 
-    console.log("RESULT ITEMS ", items);
+    this.logger.log(`TikTok scraper returned ${items.length} items`);
 
     return items
-      .filter((i: any) => !i.error)
-      .map((i: any) => this._videosMapper(i));
+      .filter(i => !i?.error && i?.id)
+      .map(i => this.mapVideo(i));
   }
 
-  private _videosMapper(item: any) {
+  private mapVideo(item: any) {
+    const hashtags: string[] = Array.isArray(item?.hashtags)
+      ? item.hashtags
+        .map((h: any) => h?.name)
+        .filter((n: unknown): n is string => typeof n === 'string' && n.length > 0)
+        .map((n: string) => n.toLowerCase().trim())
+      : [];
+
     return {
-      id: item?.id,
-      text: item?.text,
-      url: item?.webVideoUrl,
-      coverUrl: item?.videoMeta?.coverUrl,
-      author: {
-        name: item?.authorMeta?.name,
-        nickname: item?.authorMeta?.nickName,
-        avatarUrl: item?.authorMeta?.avatar,
-      },
-      stats: {
-        plays: item?.playCount,
-        likes: item?.diggCount,
-        comments: item?.commentCount,
-        shares: item?.shareCount,
-      },
-      createdAt: item?.createTimeISO ?? null,
+      externalId: String(item.id),
+      platform: 'Tiktok' as const,
+
+      text: item?.text ?? null,
+      textLanguage: item?.textLanguage ?? null,
+      url: item?.webVideoUrl ?? '',
+      coverUrl: item?.videoMeta?.coverUrl ?? null,
+
+      authorExternalId: item?.authorMeta?.id ?? null,
+      authorName: item?.authorMeta?.name ?? null,
+      authorNickname: item?.authorMeta?.nickName ?? null,
+      authorAvatarUrl: item?.authorMeta?.avatar ?? null,
+      authorVerified: Boolean(item?.authorMeta?.verified),
+      authorFollowers: this.toIntOrNull(item?.authorMeta?.fans),
+
+      musicName: item?.musicMeta?.musicName ?? null,
+      musicAuthor: item?.musicMeta?.musicAuthor ?? null,
+      musicOriginal: Boolean(item?.musicMeta?.musicOriginal),
+
+      durationSec: this.toIntOrNull(item?.videoMeta?.duration),
+
+      playCount: this.toInt(item?.playCount),
+      likeCount: this.toInt(item?.diggCount),
+      commentCount: this.toInt(item?.commentCount),
+      shareCount: this.toInt(item?.shareCount),
+      collectCount: this.toInt(item?.collectCount),
+
+      hashtags,
+
+      isAd: Boolean(item?.isAd),
+      isSponsored: Boolean(item?.isSponsored),
+      isSlideshow: Boolean(item?.isSlideshow),
+
+      searchQuery: item?.input ?? null,  // actor сам кладе сюди хештег, по якому знайшов
+
+      raw: item,
+
+      publishedAt: item?.createTimeISO
+        ? new Date(item.createTimeISO)
+        : item?.createTime
+          ? new Date(item.createTime * 1000)
+          : new Date(),
     };
+  }
+
+  private toInt(v: unknown): number {
+    const n = Number(v);
+    return Number.isFinite(n) ? Math.trunc(n) : 0;
+  }
+
+  private toIntOrNull(v: unknown): number | null {
+    const n = Number(v);
+    return Number.isFinite(n) ? Math.trunc(n) : null;
   }
 
   private _hashtagsMapper(item: any, industry?: string) {

@@ -156,6 +156,56 @@ model AIArtifact {
   @@index([businessId])
 }
 
+model TiktokVideo {
+  id                String       @id @default(uuid())
+  externalId        String       // TikTok video id
+  platform          PlatformList @default(Tiktok)
+
+  text              String?
+  textLanguage      String?
+  url               String       // webVideoUrl
+  coverUrl          String?
+
+  authorExternalId  String?
+  authorName        String?
+  authorNickname    String?
+  authorAvatarUrl   String?
+  authorVerified    Boolean      @default(false)
+  authorFollowers   Int?
+
+  musicName         String?
+  musicAuthor       String?
+  musicOriginal     Boolean      @default(false)
+
+  durationSec       Int?
+
+  playCount         Int          @default(0)
+  likeCount         Int          @default(0)
+  commentCount      Int          @default(0)
+  shareCount        Int          @default(0)
+  collectCount      Int          @default(0)
+
+  hashtags          String[]     @default([])     // нормалізовані: ["доця","мама"]
+
+  isAd              Boolean      @default(false)
+  isSponsored       Boolean      @default(false)
+  isSlideshow       Boolean      @default(false)
+
+  searchQuery       String?      // "доця" — за яким хештегом знайшли
+
+  raw               Json?        // повний об'єкт як прилетів (для майбутніх полів)
+
+  publishedAt       DateTime
+  fetchedAt         DateTime     @default(now())
+
+  businessId        String?      // якщо скрапилось у контексті конкретного бізнесу
+
+  @@unique([externalId, platform])
+  @@index([businessId])
+  @@index([searchQuery])
+  @@index([publishedAt])
+}
+
 model AIArtifactImageHistory {
   id          String                       @id @default(uuid())
   artifactId  String
