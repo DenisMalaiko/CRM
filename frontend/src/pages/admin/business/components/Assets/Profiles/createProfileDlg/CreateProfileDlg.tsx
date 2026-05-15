@@ -1,0 +1,482 @@
+import React, {useMemo, useState} from "react";
+import {useParams} from "react-router-dom";
+import {toast} from "react-toastify";
+import Select from "react-select";
+import {X} from "lucide-react";
+
+// Hooks
+import {useForm} from "../../../../../../../hooks/useForm";
+import {useValidation} from "../../../../../../../hooks/useValidation";
+
+// Redux
+import {useSelector} from "react-redux";
+import {useAppDispatch} from "../../../../../../../store/hooks";
+import {
+  useCreateProfileMutation,
+  useGetProfilesMutation,
+  useUpdateProfileMutation
+} from "../../../../../../../store/profile/profileApi";
+import {setProfiles} from "../../../../../../../store/profile/profileSlice";
+
+// Components
+import { SelectGalleryDlg } from "../../Gallery/components/selectGalleryDlg/SelectGalleryDlg";
+
+// Utils
+import { showError} from "../../../../../../../utils/showError";
+import { isArray, isBoolean, isRequired, isRequiredArray, minLength } from "../../../../../../../utils/validations";
+import { ChangeArg, isNativeEvent } from "../../../../../../../utils/isNativeEvent";
+import { centeredSelectStyles } from "../../../../../../../utils/reactSelectStyles";
+import { splitCamelCase } from "../../../../../../../utils/splitCamelCase";
+
+// Enum
+import {BusinessProfileFocus} from "../../../../../../../enum/BusinessProfileFocus";
+import {IdeaStatus} from "../../../../../../../enum/IdeaStatus";
+
+// Models
+import {ApiResponse} from "../../../../../../../models/ApiResponse";
+import {TBusinessProfile} from "../../../../../../../models/BusinessProfile";
+import {TProduct} from "../../../../../../../models/Product";
+import {TAudience} from "../../../../../../../models/Audience";
+import {TPrompt} from "../../../../../../../models/Prompt";
+import {TGalleryPhoto} from "../../../../../../../models/Gallery";
+import {TIdea} from "../../../../../../../models/Idea";
+import {TIdeaAI} from "../../../../../../../models/IdeaAI";
+
+function CreateProfileDlg({ open, onClose, profile }: any) {
+  const dispatch = useAppDispatch();
+  const { products } = useSelector((state: any) => state.productsModule);
+  const { audiences } = useSelector((state: any) => state.audienceModule);
+  const { prompts } = useSelector((state: any) => state.promptModule);
+  const { photos, defaultPhotos } = useSelector((state: any) => state.galleryModule);
+  const { ideas } = useSelector((state: any) => state.ideaModule);
+  const { ideasAi } = useSelector((state: any) => state.ideaAiModule);
+
+  const isEdit = !!profile;
+  const { businessId } = useParams<{ businessId: string }>();
+  const [ createProfile, { isLoading: isLoadingCreating }] = useCreateProfileMutation();
+  const [ updateProfile, { isLoading: isLoadingUpdating } ] = useUpdateProfileMutation();
+  const [ getProfiles ] = useGetProfilesMutation();
+
+  const mappedDefaultPhotos = defaultPhotos.map((photo: any) => ({ ...photo, isDefault: true }));
+  const allPhotos = [...mappedDefaultPhotos, ...photos];
+  const productsOptions = products?.map((product: any) => ({ value: product.id, label: product.name })) ?? [];
+  const audiencesOptions = audiences?.map((audience: any) => ({ value: audience.id, label: audience.name })) ?? [];
+  const promptsOptions = prompts?.map((prompt: TPrompt) => ({ value: prompt.id, label: `${prompt.name} | ${prompt.purpose}` })) ?? [];
+  const ideasOptions = ideas?.filter((idea: TIdea) => idea.status === IdeaStatus.Used).map((idea: TIdea) => ({ value: idea.id, label: idea.title })) ?? [];
+  const profileFocusOptions = Object.values(BusinessProfileFocus);
+
+  // Init Form
+  const initialForm = useMemo(() => {
+    if (isEdit && profile) {
+      return {
+        name: profile.name,
+        profileFocus: profile.profileFocus,
+        productsIds: profile.products.map((x: TProduct) => x.id) ?? [],
+        audiencesIds: profile.audiences.map((x: TAudience) => x.id) ?? [],
+        ideasIds: profile.ideas.map((x: TIdea) => x.id) ?? [],
+        ideasAiIds: profile.ideasAi.map((x: TIdea) => x.id) ?? [],
+        promptsIds: profile.prompts.map((x: TPrompt) => x.id) ?? [],
+        photosIds: profile.photos?.map((x: TGalleryPhoto) => x.id) ?? [],
+        defaultPhotosIds: profile.defaultPhotos?.map((x: TGalleryPhoto) => x.id) ?? [],
+        isActive: profile.isActive,
+        businessId: profile.businessId ?? "",
+      }
+    }
+
+    return {
+      name: "",
+      profileFocus: BusinessProfileFocus.GeneratePosts,
+      productsIds: [] as string[],
+      audiencesIds: [] as string[],
+      ideasIds: [] as string[],
+      ideasAiIds: [] as string[],
+      promptsIds: [] as string[],
+      photosIds: [] as string[],
+      defaultPhotosIds: [] as string[],
+      isActive: true,
+      businessId: businessId ?? "",
+    }
+  }, [isEdit, profile, businessId]);
+
+  // Form Hook
+  const { form, handleChange, resetForm, setForm } = useForm(initialForm);
+
+  // Validation Hook
+  const { errors, validateField, validateAll } = useValidation({
+    name: (value) => minLength(value, 3),
+    profileFocus: (value) => isRequired(value),
+    productsIds: (value) => isArray(value),
+    audiencesIds: (value) => isArray(value),
+    ideasIds: (value) => isArray(value),
+    ideasAiIds: (value) => isArray(value),
+    promptsIds: (value) => isArray(value),
+    photosIds: (value) => isArray(value),
+    defaultPhotosIds: (value) => isArray(value),
+    businessId: (value) => isRequired(value),
+    isActive: (value) => isBoolean(value),
+  });
+
+  const allIdeasOptions = useMemo(() => {
+    return [
+      ...(ideas ?? [])
+        .filter((idea: TIdea) => idea.status === IdeaStatus.Used)
+        .map((idea: TIdea) => ({
+          label: `${idea.title}`,
+          value: idea.id,
+          type: "manual" as const,
+        })),
+      ...(ideasAi ?? [])
+        .filter((idea: TIdeaAI) => idea.status === IdeaStatus.Used)
+        .map((idea: TIdeaAI) => ({
+          label: `${idea.title}`,
+          value: idea.id,
+          type: "ai" as const,
+        })),
+    ];
+  }, [ideas, ideasAi]);
+
+  const selectedValue = useMemo(() => {
+    const allSelectedIds = [...form.ideasIds, ...form.ideasAiIds];
+
+    return allIdeasOptions.find((option) =>
+      allSelectedIds.includes(option.value)
+    );
+  }, [form.ideasIds, form.ideasAiIds, allIdeasOptions]);
+
+
+  if (!open) return null;
+  if (!businessId) return null;
+
+  // Create Profile
+  const create = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    if (!validateAll(form)) return;
+
+    try {
+      if (isEdit) {
+        const response = await updateProfile({ id: profile!.id, form }).unwrap();
+        if(response && response?.data) toast.success(response.message);
+      } else {
+        const response = await createProfile(form).unwrap();
+        if(response && response?.data) toast.success(response.message);
+      }
+
+      const response: ApiResponse<TBusinessProfile[]> = await getProfiles(businessId).unwrap();
+      if(response && response?.data) {
+        dispatch(setProfiles(response.data));
+        resetForm();
+        onClose();
+      }
+    } catch (error) {
+      showError(error);
+    }
+  }
+
+  // Handle Change
+  const onChange = (arg: ChangeArg) => {
+    let name: string;
+    let value: any;
+
+    if (isNativeEvent(arg)) {
+      const t = arg.target as HTMLInputElement;
+      name = t.name;
+      value = t.type === "checkbox" ? t.checked : t.value;
+    } else {
+      name = arg.name;
+      value = arg.value;
+    }
+
+    handleChange(arg);
+    validateField(name as keyof typeof form, value, form);
+  };
+
+  // Delete Image
+  const deleteImage = async (imageId?: string) => {
+    setForm(prev => ({
+      ...prev,
+      photosIds: prev.photosIds.filter((id: string) => id !== imageId),
+      defaultPhotosIds: prev.defaultPhotosIds.filter((id: string) => id !== imageId)
+    }))
+  }
+
+  return (
+    <>
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50">
+        <div className="w-full max-w-3xl rounded-2xl bg-white shadow-xl p-6 max-h-[90vh] overflow-y-auto overflow-x-hidden">
+
+          <div className="flex items-center justify-between mb-4 relative">
+            <h2 className="text-lg font-semibold">{ isEdit ? "Edit" : "Create" } Context</h2>
+
+            <button
+              onClick={onClose}
+              className="absolute top-0 right-0 text-white text-xl z-10 bg-blue-600 rounded-full p-2 hover:bg-blue-700 cursor-pointer"
+            >
+              <X size={20} strokeWidth={2} color="white"></X>
+            </button>
+          </div>
+
+          <form className="space-y-4" onSubmit={create} action="">
+            <div className="relative z-20">
+              <div className="mb-4">
+                <div className="flex items-center gap-2 justify-between">
+                  <label className="block text-sm font-medium text-slate-700 text-left">Name</label>
+                </div>
+
+                <input
+                  type="text"
+                  name="name"
+                  value={form.name}
+                  onChange={onChange}
+                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter name"
+                  autoComplete="off"
+                />
+                {errors.name && <p className="text-red-500 text-sm mt-2 text-left">{errors.name}</p>}
+              </div>
+
+              <div className="mb-4">
+                <div className="flex items-center gap-2 justify-between">
+                  <label className="block text-sm font-medium text-slate-700 text-left">Profile Focus</label>
+                </div>
+
+                <select
+                  name="profileFocus"
+                  value={form.profileFocus}
+                  onChange={onChange}
+                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
+                >
+                  { profileFocusOptions.map((option: string) => (
+                    <option key={option} value={option}>{splitCamelCase(option)}</option>
+                  )) }
+                </select>
+
+                {errors.profileFocus && <p className="text-red-500 text-sm mt-2 text-left">{errors.profileFocus}</p>}
+              </div>
+
+              <div className="mb-4">
+                <div className="flex items-center gap-2 justify-between">
+                  <label className="block text-sm font-medium text-slate-700 text-left mb-1">Product</label>
+                </div>
+
+                <Select
+                  options={productsOptions}
+                  value={productsOptions.find(
+                    (option: { label: string, value: string }) => form.productsIds[0] === option.value
+                  )}
+                  onChange={(selected) =>
+                    onChange({
+                      name: "productsIds",
+                      value: selected ? [selected.value] : [],
+                    })
+                  }
+                  styles={centeredSelectStyles}
+                />
+
+                {errors.productsIds && <p className="text-red-500 text-sm mt-2 text-left">{errors.productsIds}</p>}
+              </div>
+
+              <div className="mb-4">
+
+                { !!allIdeasOptions.length && (
+                  <>
+                    <div className="flex items-center gap-2 justify-between">
+                      <label className="block text-sm font-medium text-slate-700 text-left mb-1">Ideas</label>
+                    </div>
+
+                    <Select
+                      options={allIdeasOptions}
+                      value={selectedValue}
+                      onChange={(selected) => {
+                        if (!selected) {
+                          onChange({ name: "ideasIds", value: [] });
+                          onChange({ name: "ideasAiIds", value: [] });
+                          return;
+                        }
+
+                        if (selected.type === "manual") {
+                          onChange({ name: "ideasIds", value: [selected.value] });
+                          onChange({ name: "ideasAiIds", value: [] });
+                        }
+
+                        if (selected.type === "ai") {
+                          onChange({ name: "ideasIds", value: [] });
+                          onChange({ name: "ideasAiIds", value: [selected.value] });
+                        }
+                      }}
+                      formatOptionLabel={(option, { context }) => (
+                        <div className="flex items-center justify-between w-full gap-2">
+                          <div className="flex items-center gap-2">
+                            <span>{option.label}</span>
+                          </div>
+
+                          <span
+                            className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
+                              option.type === "ai"
+                                ? "bg-purple-100 text-purple-700"
+                                : "bg-blue-100 text-blue-700"
+                            }`}
+                          >
+                                {option.type === "ai" ? "AI" : "Competitor"}
+                              </span>
+                        </div>
+                      )}
+                      styles={centeredSelectStyles}
+                    />
+
+                    {errors.ideasIds && <p className="text-red-500 text-sm mt-2 text-left">{errors.ideasIds}</p>}
+                  </>
+                )}
+
+
+                {/*<div className="flex items-center gap-2 justify-between">
+                  <label className="block text-sm font-medium text-slate-700 text-left mb-1">Idea</label>
+                </div>
+
+                <Select
+                  options={ideasOptions}
+                  value={ideasOptions.find(
+                    (option: { label: string, value: string }) => form.ideasIds[0] === option.value
+                  )}
+                  onChange={(selected) =>
+                    onChange({
+                      name: "ideasIds",
+                      value: selected ? [selected.value] : [],
+                    })
+                  }
+                  styles={centeredSelectStyles}
+                />*/}
+
+                {errors.ideasIds && <p className="text-red-500 text-sm mt-2 text-left">{errors.ideasIds}</p>}
+                {errors.ideasAiIds && <p className="text-red-500 text-sm mt-2 text-left">{errors.ideasAiIds}</p>}
+              </div>
+
+              <div className="mb-4">
+                <div className="flex items-center gap-2 justify-between">
+                  <label className="block text-sm font-medium text-slate-700 text-left mb-1">Audiences</label>
+                </div>
+
+                <Select
+                  isMulti
+                  options={audiencesOptions}
+                  value={audiencesOptions.filter((option: any) =>
+                    form.audiencesIds.includes(option.value)
+                  )}
+                  onChange={(selected) =>
+                    onChange({
+                      name: "audiencesIds",
+                      value: selected.map((o) => o.value),
+                    })
+                  }
+                  styles={centeredSelectStyles}
+                />
+
+                {errors.audiencesIds && <p className="text-red-500 text-sm mt-2 text-left">{errors.audiencesIds}</p>}
+              </div>
+
+              <div className="mb-4">
+                <div className="flex items-center gap-2 justify-between">
+                  <label className="block text-sm font-medium text-slate-700 text-left mb-1">Prompts</label>
+                </div>
+
+                <Select
+                  isMulti
+                  options={promptsOptions}
+                  value={promptsOptions.filter((option: any) =>
+                    form.promptsIds.includes(option.value)
+                  )}
+                  onChange={(selected) =>
+                    onChange({
+                      name: "promptsIds",
+                      value: selected.map((o) => o.value),
+                    })
+                  }
+                  styles={centeredSelectStyles}
+                />
+
+                {errors.promptsIds && <p className="text-red-500 text-sm mt-2 text-left">{errors.promptsIds}</p>}
+              </div>
+            </div>
+
+            <div className="relative z-10">
+              <div className="flex items-center gap-2 justify-between mb-1">
+                <label className="block text-sm font-medium text-slate-700 text-left">Photos (max 3)</label>
+              </div>
+
+              <div className="grid grid-cols-8 gap-3 mb-4">
+                {allPhotos.filter((x: TGalleryPhoto) =>
+                  form.photosIds.includes(x.id) ||
+                  form.defaultPhotosIds.includes(x.id)
+                ).map((photo: TGalleryPhoto) => (
+                  <div key={photo.id} className="relative w-full aspect-square rounded-xl overflow-hidden border group">
+                    <img src={photo.url} className="w-full h-full object-cover" alt=""/>
+
+                    <button
+                      onClick={() => deleteImage(photo.id)}
+                      className="absolute top-2 right-2 text-white text-xl z-10 bg-blue-600 rounded-full p-1 hover:bg-blue-700 cursor-pointer"
+                    >
+                      <X size={15} strokeWidth={2} color="white"></X>
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+
+              <SelectGalleryDlg
+                focus={form.profileFocus}
+                selectedIds={[...form.photosIds, ...form.defaultPhotosIds]}
+                onSelect={(selectedPhotos: TGalleryPhoto[]) => {
+                  const businessIds = selectedPhotos.filter(p => !p.isDefault).map(p => p.id);
+                  const defaultIds = selectedPhotos.filter(p => p.isDefault).map(p => p.id);
+                  setForm(prev => ({ ...prev, photosIds: businessIds, defaultPhotosIds: defaultIds }));
+                }}
+              />
+            </div>
+
+            <label className="flex items-start gap-3 cursor-pointer select-none">
+              <input
+                name="isActive"
+                type="checkbox"
+                checked={form.isActive}
+                onChange={onChange}
+                className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              />
+
+              <span className="block text-sm font-medium text-slate-700 text-left">Active Profile</span>
+            </label>
+
+            <div className="flex justify-end gap-3 pt-4">
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={isLoadingCreating || isLoadingUpdating}
+                className="
+                  px-4 py-2 rounded-lg border  text-slate-600
+                  border-slate-300 hover:bg-slate-50
+                  disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-slate-white
+                "
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isLoadingCreating || isLoadingUpdating}
+                className="px-4 py-2 rounded-lg bg-blue-600 text-white flex items-center gap-2 justify-center"
+              >
+                { isLoadingCreating || isLoadingUpdating ? (
+                  <>
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"/>
+                    Saving...
+                  </>
+                  ) : ("Save")
+                }
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </>
+  )
+}
+
+export default CreateProfileDlg;

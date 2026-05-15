@@ -42,7 +42,7 @@ import { TIdeaAI } from "../../models/IdeaAI";
 
 // Components
 import Select from "react-select";
-import { SelectGalleryDlg } from "../../pages/admin/business/components/Gallery/components/selectGalleryDlg/SelectGalleryDlg";
+import { SelectGalleryDlg } from "../../pages/admin/business/components/Assets/Gallery/components/selectGalleryDlg/SelectGalleryDlg";
 
 // Utils
 import { showError } from "../../utils/showError";
