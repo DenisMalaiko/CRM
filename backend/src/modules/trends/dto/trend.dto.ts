@@ -12,7 +12,7 @@ import {
 
 export class TrendIdParamDto {
   @IsUUID()
-  id: string;
+  businessId: string;
 }
 
 export class ProfileIdParamDto {

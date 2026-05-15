@@ -36,28 +36,23 @@ import Dashboard from './pages/admin/dashboard/Dashboard';
 // Businesses
 import Businesses from "./pages/admin/business/Businesses";
 import Business from "./pages/admin/business/:id/Business";
-import BaseData from "./pages/admin/business/components/BaseData/BaseData";
-import Products from "./pages/admin/business/components/Products/Products"
-import Platforms from "./pages/admin/business/components/old/Platforms/Platforms"
-import Profiles from "./pages/admin/business/components/Profiles/Profiles";
-import Audiences from "./pages/admin/business/components/Audiences/Audiences";
-import Posts from "./pages/admin/business/components/Posts/Posts";
-import Prompts from "./pages/admin/business/components/Prompts/Prompts";
-import Settings from "./pages/admin/business/components/old/Settings/Settings";
-import Competitors from "./pages/admin/business/components/Сompetitors/Competitors";
-import Competitor from "./pages/admin/business/components/Сompetitors/:id/Competitor";
-import Gallery from "./pages/admin/business/components/Gallery/Gallery";
-import DesignSystem from "./pages/admin/business/components/Gallery/DesignSystem";
-import Ideas from "./pages/admin/business/components/Ideas/Ideas";
-import Stories from "./pages/admin/business/components/Stories/Stories";
-import Trends from "./pages/admin/business/components/Trends/Trends";
+import BaseData from "./pages/admin/business/components/Info/BaseData/BaseData";
+import Products from "./pages/admin/business/components/Info/Products/Products"
+import Profiles from "./pages/admin/business/components/Assets/Profiles/Profiles";
+import Audiences from "./pages/admin/business/components/Info/Audiences/Audiences";
+import Posts from "./pages/admin/business/components/Content/Posts/Posts";
+import Prompts from "./pages/admin/business/components/Assets/Prompts/Prompts";
+import Competitors from "./pages/admin/business/components/Competitors/List/Competitors";
+import Competitor from "./pages/admin/business/components/Competitors/List/:id/Competitor";
+import Gallery from "./pages/admin/business/components/Assets/Gallery/Gallery";
+import DesignSystem from "./pages/admin/business/components/Assets/Gallery/DesignSystem";
+import Ideas from "./pages/admin/business/components/Competitors/Ideas/Ideas";
+import Stories from "./pages/admin/business/components/Content/Stories/Stories";
+import Tiktok from "./pages/admin/business/components/Trends/Tiktok/Tiktok";
 
 // AI
-import Accountant from "./pages/admin/ai/accountant/Accountant";
-import Manager from "./pages/admin/ai/manager/Manager";
-/*import Marketer from "./pages/admin/ai/marketer/Marketer";*/
-import AiIdeas from "./pages/admin/business/components/AiIdeas/AiIdeas";
-import AiPhoto from "./pages/admin/business/components/AiPhotos/AiPhoto";
+import AiIdeas from "./pages/admin/business/components/AI/AiIdeas/AiIdeas";
+import AiPhoto from "./pages/admin/business/components/AI/AiPhotos/AiPhoto";
 
 import { useAppDispatch } from "./store/hooks";
 import { useSignInByTokenMutation } from "./store/auth/authApi";
@@ -148,15 +143,9 @@ function App() {
             <Route path="ideasAI" element={<AiIdeas />}></Route>
             <Route path="aiPhoto" element={<AiPhoto />}></Route>
 
-            {/*Trends*/}
-            <Route path="trends" element={<Trends />}></Route>
+            {/*Tiktok*/}
+            <Route path="trends" element={<Tiktok />}></Route>
 
-            {/*Settings*/}
-            <Route path="settings" element={<Settings />} />
-
-
-            {/*Inactive*/}
-            <Route path="platforms" element={<Platforms />} />
           </Route>
         </Route>
 

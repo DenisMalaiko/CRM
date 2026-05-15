@@ -1,5 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ApifyService  } from '../apify/apify.service';
+import { PrismaService } from '../../core/prisma/prisma.service';
+import { ApifyService } from '../apify/apify.service';
+import { type TiktokVideo, Tag, TagSource, TagType } from '@prisma/client';
 
 type TikTokAdsSettings = {
   adsApprovedForBusinessUse: boolean;
@@ -39,17 +41,70 @@ type TikTokScraperSettings = {
   shouldDownloadMusicCovers: boolean;
   shouldDownloadSlideshowImages: boolean;
   shouldDownloadVideos: boolean;
-  videoSearchDateFilter: 'ALL_TIME' | 'PAST_24_HOURS' | 'THIS_WEEK' | 'THIS_MONTH' | 'LAST_3_MONTHS' | 'LAST_6_MONTHS';
+  videoSearchDateFilter:
+    | 'ALL_TIME'
+    | 'PAST_24_HOURS'
+    | 'THIS_WEEK'
+    | 'THIS_MONTH'
+    | 'LAST_3_MONTHS'
+    | 'LAST_6_MONTHS';
   videoSearchSorting: 'RELEVANCE' | 'LATEST' | 'MOST_LIKED';
+};
+
+type TikTokHashtag = {
+  name: string;
+  countryCode: string;
+  industry: string;
+  rank: number;
+  url: string;
 };
 
 @Injectable()
 export class TiktokService {
   private readonly logger = new Logger(TiktokService.name);
 
-  constructor(private readonly apify: ApifyService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly apify: ApifyService,
+  ) {}
 
-  async fetchHashtags(id: string, country, industry ) {
+  // FETCH TIK TOK VIDEOS
+  async fetchTikTokVideosByBusinessId(
+    businessId: string,
+  ): Promise<TiktokVideo[] | null> {
+    const business = await this.prisma.business.findUnique({
+      where: { id: businessId },
+      select: {
+        id: true,
+        name: true,
+        industry: true,
+        language: true,
+        country: true,
+      },
+    });
+
+    if (!business) return null;
+
+    const tags: Tag[] | null = await this.fetchTikTokHashtags(business);
+    if (!tags || tags.length === 0) return [];
+
+    const hashtagValues = tags.map((tag) => tag.value);
+    if (hashtagValues.length === 0) return [];
+
+    const videos = await this.fetchTikTokVideos(business, hashtagValues);
+    if (videos.length === 0) return [];
+
+    return this._upsertVideos(videos, businessId);
+  }
+
+
+  // FETCH HASHTAGS
+  private async fetchTikTokHashtags({ country, industry, }): Promise<Tag[] | null> {
+    const hashtags = await this._fetchHashtags(country, industry);
+    return Promise.all(hashtags.map((h: any) => this._upsertHashtag(h)));
+  }
+
+  private async _fetchHashtags(country: string, industry: string) {
     const settings: TikTokAdsSettings = {
       adsApprovedForBusinessUse: false,
       adsCountryCode: country,
@@ -74,15 +129,75 @@ export class TiktokService {
 
     const items: any = await this.apify.runActor(
       'clockworks~tiktok-trends-scraper',
-      settings
+      settings,
     );
+
+    this.logger.log(`TikTok scraper returned ${items.length} hashtags`);
 
     return items
       .filter((i: any) => !i.error)
       .map((i: any) => this._hashtagsMapper(i, industry));
   }
 
-  async fetchVideosByHashtags(hashtags: string[], country: string) {
+  private _hashtagsMapper(item: any, industry?: string) {
+    return {
+      name: item?.name,
+      type: item?.type,
+      url: item?.url,
+      rank: item?.rank,
+      countryCode: item?.countryCode,
+      industry: industry ?? '',
+    };
+  }
+
+  private async _upsertHashtag(h: TikTokHashtag): Promise<Tag> {
+    const normalizedValue = h.name.toLowerCase();
+
+    const tag: Tag = await this.prisma.tag.upsert({
+      where: {
+        type_normalizedValue: { type: TagType.Hashtag, normalizedValue },
+      },
+      create: {
+        type: TagType.Hashtag,
+        value: h.name,
+        normalizedValue,
+        source: TagSource.Trend,
+        countries: h.countryCode ? [h.countryCode] : [],
+        industries: h.industry ? [h.industry] : [],
+        metrics: { rank: h.rank, url: h.url },
+      },
+      update: {
+        metrics: { rank: h.rank, url: h.url },
+      },
+    });
+
+    const needsUpdate =
+      (h.countryCode && !tag.countries.includes(h.countryCode)) ||
+      (h.industry && !tag.industries.includes(h.industry));
+
+    if (!needsUpdate) return tag;
+
+    return this.prisma.tag.update({
+      where: { id: tag.id },
+      data: {
+        countries: {
+          set: Array.from(
+            new Set([...tag.countries, h.countryCode].filter(Boolean)),
+          ),
+        },
+        industries: {
+          set: Array.from(
+            new Set([...tag.industries, h.industry].filter(Boolean)),
+          ),
+        },
+      },
+    });
+  }
+
+
+
+  // FETCH VIDEOS
+  private async fetchTikTokVideos({ country }, hashtags: string[]): Promise<any[]> {
     const settings: TikTokScraperSettings = {
       commentsPerPost: 0,
       excludePinnedPosts: false,
@@ -111,19 +226,21 @@ export class TiktokService {
       settings,
     );
 
-    this.logger.log(`TikTok scraper returned ${items.length} items`);
+    this.logger.log(`TikTok scraper returned ${items.length} videos`);
 
     return items
-      .filter(i => !i?.error && i?.id)
-      .map(i => this.mapVideo(i));
+      .filter((i) => !i?.error && i?.id)
+      .map((i) => this._videosMapper(i));
   }
 
-  private mapVideo(item: any) {
+  private _videosMapper(item: any) {
     const hashtags: string[] = Array.isArray(item?.hashtags)
       ? item.hashtags
-        .map((h: any) => h?.name)
-        .filter((n: unknown): n is string => typeof n === 'string' && n.length > 0)
-        .map((n: string) => n.toLowerCase().trim())
+          .map((h: any) => h?.name)
+          .filter(
+            (n: unknown): n is string => typeof n === 'string' && n.length > 0,
+          )
+          .map((n: string) => n.toLowerCase().trim())
       : [];
 
     return {
@@ -160,7 +277,7 @@ export class TiktokService {
       isSponsored: Boolean(item?.isSponsored),
       isSlideshow: Boolean(item?.isSlideshow),
 
-      searchQuery: item?.input ?? null,  // actor сам кладе сюди хештег, по якому знайшов
+      searchQuery: item?.input ?? null, // actor сам кладе сюди хештег, по якому знайшов
 
       raw: item,
 
@@ -172,6 +289,36 @@ export class TiktokService {
     };
   }
 
+  private async _upsertVideos(videos: ReturnType<typeof this._videosMapper>[], businessId: string): Promise<TiktokVideo[]> {
+    return Promise.all(
+      videos.map((v) =>
+        this.prisma.tiktokVideo.upsert({
+          where: {
+            externalId_platform: {
+              externalId: v.externalId,
+              platform: v.platform,
+            },
+          },
+          create: {
+            ...v,
+            businessId,
+          },
+          update: {
+            playCount:    v.playCount,
+            likeCount:    v.likeCount,
+            commentCount: v.commentCount,
+            shareCount:   v.shareCount,
+            collectCount: v.collectCount,
+            raw:          v.raw,
+            fetchedAt:    new Date(),
+          },
+        }),
+      ),
+    );
+  }
+
+
+  // UTILS
   private toInt(v: unknown): number {
     const n = Number(v);
     return Number.isFinite(n) ? Math.trunc(n) : 0;
@@ -180,16 +327,5 @@ export class TiktokService {
   private toIntOrNull(v: unknown): number | null {
     const n = Number(v);
     return Number.isFinite(n) ? Math.trunc(n) : null;
-  }
-
-  private _hashtagsMapper(item: any, industry?: string) {
-    return {
-      name: item?.name,
-      type: item?.type,
-      url: item?.url,
-      rank: item?.rank,
-      countryCode: item?.countryCode,
-      industry: industry ?? '',
-    };
   }
 }

@@ -4,7 +4,7 @@ import {TPrompt} from "../../models/Prompt";
 
 export const trendsApi = api.injectEndpoints({
   endpoints: (builder) => ({
-    getTrendsByBusinessId: builder.query<ApiResponse<any>, string>({
+    getTikTokVideosByBusinessId: builder.query<ApiResponse<any>, string>({
       queryFn: async (businessId, api, _extraOptions, baseQuery) => {
         if (!businessId) {
           return {
@@ -13,7 +13,7 @@ export const trendsApi = api.injectEndpoints({
         }
 
         const result = await baseQuery({
-          url: `/trends/${businessId}`,
+          url: `/trends/tiktok/${businessId}`,
           method: 'GET',
         });
 
@@ -27,5 +27,5 @@ export const trendsApi = api.injectEndpoints({
 })
 
 export const {
-  useLazyGetTrendsByBusinessIdQuery
+  useLazyGetTikTokVideosByBusinessIdQuery
 } = trendsApi;

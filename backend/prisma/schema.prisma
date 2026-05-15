@@ -58,24 +58,24 @@ model Business {
 }
 
 model BusinessProfile {
-  id           String                          @id @default(uuid())
-  businessId   String
-  name         String
-  isActive     Boolean                         @default(true)
-  createdAt    DateTime                        @default(now())
-  profileFocus ProfileFocus
-  aiArtifacts  AIArtifact[]
-  business     Business                        @relation(fields: [businessId], references: [id])
-  photos       BusinessProfilePhoto[]
+  id            String                          @id @default(uuid())
+  businessId    String
+  name          String
+  isActive      Boolean                         @default(true)
+  createdAt     DateTime                        @default(now())
+  profileFocus  ProfileFocus
+  aiArtifacts   AIArtifact[]
+  business      Business                        @relation(fields: [businessId], references: [id])
+  photos        BusinessProfilePhoto[]
   defaultPhotos BusinessProfileDefaultPhoto[]
-  platforms    BusinessProfilePlatform[]
-  products     BusinessProfileProduct[]
-  prompts      BusinessProfilePrompt[]
-  tags         BusinessProfileTag[]
-  audiences    BusinessProfileTargetAudience[]
-  ideas        BusinessProfileIdea[]
-  ideasAI      BusinessProfileIdeaAI[]
-  trendMatches BusinessTrendMatch[]
+  platforms     BusinessProfilePlatform[]
+  products      BusinessProfileProduct[]
+  prompts       BusinessProfilePrompt[]
+  tags          BusinessProfileTag[]
+  audiences     BusinessProfileTargetAudience[]
+  ideas         BusinessProfileIdea[]
+  ideasAI       BusinessProfileIdeaAI[]
+  trendMatches  BusinessTrendMatch[]
 }
 
 model Prompt {
@@ -133,7 +133,7 @@ model Platform {
 }
 
 model AIArtifact {
-  id                String              @id @default(uuid())
+  id String @id @default(uuid())
 
   type              AIArtifactType
   businessProfileId String?
@@ -141,64 +141,64 @@ model AIArtifact {
   outputJson        Json
   score             Float?
   status            AIArtifactStatus
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime              @default(now()) @updatedAt
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @default(now()) @updatedAt
   businessId        String
   imagePrompt       String?
   imageUrl          String?
 
-  businessProfile   BusinessProfile?     @relation(fields: [businessProfileId], references: [id], onDelete: Cascade)
-  trend             Trend?              @relation(fields: [trendId], references: [id])
-  products          AIArtifactProduct[]
-  imageHistory      AIArtifactImageHistory[]
-  tags              AIArtifactTag[]
+  businessProfile BusinessProfile?         @relation(fields: [businessProfileId], references: [id], onDelete: Cascade)
+  trend           Trend?                   @relation(fields: [trendId], references: [id])
+  products        AIArtifactProduct[]
+  imageHistory    AIArtifactImageHistory[]
+  tags            AIArtifactTag[]
 
   @@index([businessId])
 }
 
 model TiktokVideo {
-  id                String       @id @default(uuid())
-  externalId        String       // TikTok video id
-  platform          PlatformList @default(Tiktok)
+  id         String       @id @default(uuid())
+  externalId String // TikTok video id
+  platform   PlatformList @default(Tiktok)
 
-  text              String?
-  textLanguage      String?
-  url               String       // webVideoUrl
-  coverUrl          String?
+  text         String?
+  textLanguage String?
+  url          String // webVideoUrl
+  coverUrl     String?
 
-  authorExternalId  String?
-  authorName        String?
-  authorNickname    String?
-  authorAvatarUrl   String?
-  authorVerified    Boolean      @default(false)
-  authorFollowers   Int?
+  authorExternalId String?
+  authorName       String?
+  authorNickname   String?
+  authorAvatarUrl  String?
+  authorVerified   Boolean @default(false)
+  authorFollowers  Int?
 
-  musicName         String?
-  musicAuthor       String?
-  musicOriginal     Boolean      @default(false)
+  musicName     String?
+  musicAuthor   String?
+  musicOriginal Boolean @default(false)
 
-  durationSec       Int?
+  durationSec Int?
 
-  playCount         Int          @default(0)
-  likeCount         Int          @default(0)
-  commentCount      Int          @default(0)
-  shareCount        Int          @default(0)
-  collectCount      Int          @default(0)
+  playCount    Int @default(0)
+  likeCount    Int @default(0)
+  commentCount Int @default(0)
+  shareCount   Int @default(0)
+  collectCount Int @default(0)
 
-  hashtags          String[]     @default([])     // нормалізовані: ["доця","мама"]
+  hashtags String[] @default([]) // нормалізовані: ["доця","мама"]
 
-  isAd              Boolean      @default(false)
-  isSponsored       Boolean      @default(false)
-  isSlideshow       Boolean      @default(false)
+  isAd        Boolean @default(false)
+  isSponsored Boolean @default(false)
+  isSlideshow Boolean @default(false)
 
-  searchQuery       String?      // "доця" — за яким хештегом знайшли
+  searchQuery String? // "доця" — за яким хештегом знайшли
 
-  raw               Json?        // повний об'єкт як прилетів (для майбутніх полів)
+  raw Json? // повний об'єкт як прилетів (для майбутніх полів)
 
-  publishedAt       DateTime
-  fetchedAt         DateTime     @default(now())
+  publishedAt DateTime
+  fetchedAt   DateTime @default(now())
 
-  businessId        String?      // якщо скрапилось у контексті конкретного бізнесу
+  businessId String? // якщо скрапилось у контексті конкретного бізнесу
 
   @@unique([externalId, platform])
   @@index([businessId])
@@ -207,17 +207,17 @@ model TiktokVideo {
 }
 
 model AIArtifactImageHistory {
-  id          String                       @id @default(uuid())
-  artifactId  String
+  id         String @id @default(uuid())
+  artifactId String
 
   businessId  String
   imageUrl    String
   imagePrompt String?
 
-  changeType  AIArtifactImageChangeType
-  changedAt   DateTime                     @default(now())
+  changeType AIArtifactImageChangeType
+  changedAt  DateTime                  @default(now())
 
-  artifact    AIArtifact                   @relation(fields: [artifactId], references: [id], onDelete: Cascade)
+  artifact AIArtifact @relation(fields: [artifactId], references: [id], onDelete: Cascade)
 
   @@index([artifactId, changedAt])
 }
@@ -284,7 +284,7 @@ model CompetitorAds {
 }
 
 model GalleryPhoto {
-  id          String                 @id @default(uuid())
+  id String @id @default(uuid())
 
   businessId  String
   type        GalleryPhotoType
@@ -292,83 +292,83 @@ model GalleryPhoto {
   url         String
   description String?
 
-  createdAt   DateTime               @default(now())
-  updatedAt   DateTime               @default(now()) @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 
-  business    Business               @relation(fields: [businessId], references: [id])
-  profiles    BusinessProfilePhoto[]
-  history     GalleryPhotoHistory[]
+  business Business               @relation(fields: [businessId], references: [id])
+  profiles BusinessProfilePhoto[]
+  history  GalleryPhotoHistory[]
 
   @@index([businessId])
 }
 
 model GalleryPhotoHistory {
-  id              String           @id @default(uuid())
-  photoId         String
+  id      String @id @default(uuid())
+  photoId String
 
-  businessId      String
-  type            GalleryPhotoType
-  isActive        Boolean
-  url             String
-  description     String?
+  businessId  String
+  type        GalleryPhotoType
+  isActive    Boolean
+  url         String
+  description String?
 
-  changeType      GalleryPhotoChangeType
-  changedAt       DateTime         @default(now())
+  changeType GalleryPhotoChangeType
+  changedAt  DateTime               @default(now())
 
-  photo           GalleryPhoto     @relation(fields: [photoId], references: [id], onDelete: Cascade)
+  photo GalleryPhoto @relation(fields: [photoId], references: [id], onDelete: Cascade)
 
   @@index([photoId, changedAt])
 }
 
 model DefaultPhoto {
-  id          String @id @default(uuid())
+  id          String                        @id @default(uuid())
   type        GalleryPhotoType
-  isActive    Boolean @default(true)
+  isActive    Boolean                       @default(true)
   url         String
   description String?
-  createdAt   DateTime @default(now())
+  createdAt   DateTime                      @default(now())
   profiles    BusinessProfileDefaultPhoto[]
 }
 
 model Idea {
-  id            String    @id @default(uuid())
-  businessId    String
-  competitorId      String
-  competitorPostId  String
-  title         String
-  description   String
-  url           String
-  who           IdeaWho
-  what          IdeaWhat
-  why           IdeaWhy
-  how           IdeaHow
-  feeling       IdeaFeeling
-  score         Int
-  createdAt     DateTime   @default(now())
-  status        IdeaStatus @default(New)
+  id               String      @id @default(uuid())
+  businessId       String
+  competitorId     String
+  competitorPostId String
+  title            String
+  description      String
+  url              String
+  who              IdeaWho
+  what             IdeaWhat
+  why              IdeaWhy
+  how              IdeaHow
+  feeling          IdeaFeeling
+  score            Int
+  createdAt        DateTime    @default(now())
+  status           IdeaStatus  @default(New)
 
-  profiles      BusinessProfileIdea[]
-  business      Business   @relation(fields: [businessId], references: [id])
-  competitorPost CompetitorPost  @relation(fields: [competitorPostId], references: [id], onDelete: Cascade)
+  profiles       BusinessProfileIdea[]
+  business       Business              @relation(fields: [businessId], references: [id])
+  competitorPost CompetitorPost        @relation(fields: [competitorPostId], references: [id], onDelete: Cascade)
 
   @@unique([businessId, competitorPostId, competitorId])
 }
 
 model IdeaAI {
-  id        String  @id @default(uuid())
-  businessId    String
-  title         String
-  description   String
-  who           IdeaWho
-  what          IdeaWhat
-  why           IdeaWhy
-  how           IdeaHow
-  feeling       IdeaFeeling
-  createdAt     DateTime   @default(now())
-  status        IdeaStatus @default(New)
+  id          String      @id @default(uuid())
+  businessId  String
+  title       String
+  description String
+  who         IdeaWho
+  what        IdeaWhat
+  why         IdeaWhy
+  how         IdeaHow
+  feeling     IdeaFeeling
+  createdAt   DateTime    @default(now())
+  status      IdeaStatus  @default(New)
 
-  profiles      BusinessProfileIdeaAI[]
-  business      Business   @relation(fields: [businessId], references: [id])
+  profiles BusinessProfileIdeaAI[]
+  business Business                @relation(fields: [businessId], references: [id])
 }
 
 model Trend {
@@ -390,7 +390,7 @@ model Trend {
 }
 
 model Tag {
-  id              String               @id @default(uuid())
+  id              String    @id @default(uuid())
   type            TagType
   value           String
   normalizedValue String
@@ -398,11 +398,11 @@ model Tag {
   countries       String[]  @default([])
   industries      String[]  @default([])
   metrics         Json?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @default(now()) @updatedAt
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @default(now()) @updatedAt
 
-  profiles        BusinessProfileTag[]
-  artifacts       AIArtifactTag[]
+  profiles  BusinessProfileTag[]
+  artifacts AIArtifactTag[]
 
   @@unique([type, normalizedValue])
   @@index([type])
@@ -460,7 +460,7 @@ model BusinessProfileIdeaAI {
   businessProfileId String
   ideaAIId          String
   businessProfile   BusinessProfile @relation(fields: [businessProfileId], references: [id], onDelete: Cascade)
-  ideaAI            IdeaAI            @relation(fields: [ideaAIId], references: [id], onDelete: Cascade)
+  ideaAI            IdeaAI          @relation(fields: [ideaAIId], references: [id], onDelete: Cascade)
 
   @@id([businessProfileId, ideaAIId])
 }
@@ -478,8 +478,8 @@ model BusinessProfilePhoto {
   businessProfileId String
   galleryPhotoId    String
 
-  businessProfile   BusinessProfile @relation(fields: [businessProfileId], references: [id], onDelete: Cascade)
-  galleryPhoto      GalleryPhoto    @relation(fields: [galleryPhotoId], references: [id], onDelete: Cascade)
+  businessProfile BusinessProfile @relation(fields: [businessProfileId], references: [id], onDelete: Cascade)
+  galleryPhoto    GalleryPhoto    @relation(fields: [galleryPhotoId], references: [id], onDelete: Cascade)
 
   @@id([businessProfileId, galleryPhotoId])
   @@index([galleryPhotoId])
@@ -489,8 +489,8 @@ model BusinessProfileDefaultPhoto {
   businessProfileId String
   defaultPhotoId    String
 
-  businessProfile   BusinessProfile @relation(fields: [businessProfileId], references: [id], onDelete: Cascade)
-  defaultPhoto      DefaultPhoto    @relation(fields: [defaultPhotoId], references: [id], onDelete: Cascade)
+  businessProfile BusinessProfile @relation(fields: [businessProfileId], references: [id], onDelete: Cascade)
+  defaultPhoto    DefaultPhoto    @relation(fields: [defaultPhotoId], references: [id], onDelete: Cascade)
 
   @@id([businessProfileId, defaultPhotoId])
   @@index([defaultPhotoId])
@@ -513,10 +513,10 @@ model BusinessProfileTag {
   tagId             String
   weight            Float
   addedBy           TagSource
-  addedAt           DateTime @default(now())
+  addedAt           DateTime  @default(now())
 
-  businessProfile   BusinessProfile @relation(fields: [businessProfileId], references: [id], onDelete: Cascade)
-  tag               Tag             @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  businessProfile BusinessProfile @relation(fields: [businessProfileId], references: [id], onDelete: Cascade)
+  tag             Tag             @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
   @@id([businessProfileId, tagId])
   @@index([tagId])
@@ -618,72 +618,72 @@ enum AIArtifactImageChangeType {
 }
 
 enum IdeaWho {
-    Person
-    Team
-    Company
-    Customer
-    CoachExpert
-    Community
-    Event
-    Product
+  Person
+  Team
+  Company
+  Customer
+  CoachExpert
+  Community
+  Event
+  Product
 }
 
 enum IdeaWhat {
-    Achievement
-    Announcement
-    Story
-    BehindTheScenes
-    Educational
-    Promotional
-    Community
-    Update
-    Testimonial
-    Entertainment
+  Achievement
+  Announcement
+  Story
+  BehindTheScenes
+  Educational
+  Promotional
+  Community
+  Update
+  Testimonial
+  Entertainment
 }
 
 enum IdeaWhy {
-    BuildBrand
-    Inform
-    Engage
-    Attract
-    Retain
-    Prove
-    Inspire
-    Educate
-    Sell
+  BuildBrand
+  Inform
+  Engage
+  Attract
+  Retain
+  Prove
+  Inspire
+  Educate
+  Sell
 }
 
 enum IdeaHow {
-    Storytelling
-    ShortBlocks
-    NewsFormat
-    ListFormat
-    MinimalText
-    LongForm
+  Storytelling
+  ShortBlocks
+  NewsFormat
+  ListFormat
+  MinimalText
+  LongForm
 }
 
 enum IdeaFeeling {
-    Pride
-    Trust
-    Excitement
-    Inspiration
-    Joy
-    Belonging
-    Motivation
-    Curiosity
-    Anticipation
-    Authority
-    Empathy
+  Pride
+  Trust
+  Excitement
+  Inspiration
+  Joy
+  Belonging
+  Motivation
+  Curiosity
+  Anticipation
+  Authority
+  Empathy
 }
 
 enum IdeaStatus {
-    New
-    Planned
-    Used
-    Archived
+  New
+  Planned
+  Used
+  Archived
 }
 
 enum ProfileFocus {
-    GeneratePosts
-    GenerateStories
+  GeneratePosts
+  GenerateStories
 }

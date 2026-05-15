@@ -103,7 +103,7 @@ function Business() {
   const tabsTrends = [
     {
       id: "trends",
-      title: "Trends",
+      title: "Tiktok",
       icon: TrendingUp,
     },
   ]
