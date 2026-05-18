@@ -388,4 +388,27 @@ export class AiService {
       .map((p, i) => `Prompt ${i + 1}: - ${p.text}`)
       .join('\n');
   }
+
+  async generateVideoPrompt(
+    description: string,
+    business: { name: string; [key: string]: any },
+  ): Promise<string> {
+    const prompt = `You are a professional video prompt engineer for the Higgsfield AI video generation API.
+
+Business context:
+- Name: ${business.name}
+
+User's short description:
+"${description}"
+
+Transform this into a detailed, cinematic video generation prompt for Higgsfield.
+Describe: visual composition, camera movement, lighting, color palette, mood, and pacing.
+Keep it brand-appropriate and suitable for social media.
+
+Return ONLY the prompt text, no JSON, no explanation.`;
+
+    const response = await this.model.invoke(prompt);
+    const content = response.content;
+    return typeof content === 'string' ? content.trim() : String(content).trim();
+  }
 }

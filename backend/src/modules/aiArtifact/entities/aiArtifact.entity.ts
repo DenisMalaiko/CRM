@@ -8,6 +8,7 @@ export type AIArtifactBase = {
   outputJson: any,
   status: AIArtifactStatus;
   products: TProduct[] | any;
+  media?: { id: string; url: string | null; type: string; order: number; jobId: string | null }[];
 }
 
 export type CreateAIArtifact = {

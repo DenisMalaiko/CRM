@@ -152,8 +152,22 @@ model AIArtifact {
   products        AIArtifactProduct[]
   imageHistory    AIArtifactImageHistory[]
   tags            AIArtifactTag[]
+  media           AIArtifactMedia[]
 
   @@index([businessId])
+}
+
+model AIArtifactMedia {
+  id         String    @id @default(uuid())
+  artifactId String
+  businessId String
+  type       MediaType
+  url        String?
+  jobId      String?
+  sourceUrl  String?
+  order      Int       @default(0)
+  createdAt  DateTime  @default(now())
+  artifact   AIArtifact @relation(fields: [artifactId], references: [id], onDelete: Cascade)
 }
 
 model TiktokVideo {
@@ -615,6 +629,11 @@ enum GalleryPhotoChangeType {
 enum AIArtifactImageChangeType {
   Create
   Update
+}
+
+enum MediaType {
+  Image
+  Video
 }
 
 enum IdeaWho {

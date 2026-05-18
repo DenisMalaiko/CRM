@@ -6,6 +6,6 @@ import { AiReplicateService } from "./ai-replicate.service";
 @Module({
   imports: [ S3Module],
   providers: [ AiService, AiReplicateService ],
-  exports: [ AiService ],
+  exports: [ AiService, AiReplicateService ],
 })
 export class AiModule {}
