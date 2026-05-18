@@ -1,5 +1,12 @@
 import {Controller, UseGuards, Get, Param, Delete, Body, Patch, Query, Post} from '@nestjs/common';
-import { AiArtifactIdParamDto, UpdateAiArtifactDto, CreateAiArtifactDto } from "./dto/aiartifact.dto";
+import {
+  AiArtifactIdParamDto,
+  AiArtifactBusinessParamDto,
+  UpdateAiArtifactDto,
+  CreateAiArtifactDto,
+  GenerateImageDto,
+  GenerateVideoDto,
+} from "./dto/aiartifact.dto";
 import { JwtAuthGuard } from "../../core/guards/jwt-auth.guard";
 import { AiArtifactService } from "./aiArtifact.service";
 import { ResponseMessage } from "../../core/decorators/response-message.decorator";
@@ -53,6 +60,35 @@ export class AiArtifactController {
   @ResponseMessage('Creative has been revert to previous!')
   async revertPrevious(@Param() { id }: AiArtifactIdParamDto) {
     return this.aiArtifactService.revertAiArtifactPrevious(id)
+  }
+
+  @Get('/:businessId/artifact/:artifactId')
+  @ResponseMessage('Artifact retrieved!')
+  async getArtifact(@Param() { businessId, artifactId }: AiArtifactBusinessParamDto) {
+    return this.aiArtifactService.getAiArtifact(artifactId, businessId);
+  }
+
+  @Post('/:businessId/artifact/:artifactId/generate-image')
+  @ResponseMessage('Image generation started!')
+  async generateImage(
+    @Param() { businessId, artifactId }: AiArtifactBusinessParamDto,
+    @Body() body: GenerateImageDto,
+  ) {
+    return this.aiArtifactService.startGenerateImage(artifactId, businessId, body.prompt);
+  }
+
+  @Post('/:businessId/artifact/:artifactId/generate-video')
+  @ResponseMessage('Video generation started!')
+  async generateVideo(
+    @Param() { businessId, artifactId }: AiArtifactBusinessParamDto,
+    @Body() body: GenerateVideoDto,
+  ) {
+    return this.aiArtifactService.startGenerateVideo({
+      artifactId,
+      businessId,
+      description: body.description,
+      sourceUrl: body.sourceUrl,
+    });
   }
 
 }

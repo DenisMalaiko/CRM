@@ -572,6 +572,41 @@ export class AiReplicateService {
     );
   }
 
+  async startAiPhotoJobAsync(prompt: string, businessId: string): Promise<string> {
+    const prediction = await this.replicate.predictions.create({
+      model: process.env.REPLICATE_API_ACTOR,
+      input: {
+        prompt,
+        resolution: '2K',
+        aspect_ratio: '4:5',
+        safety_filter_level: 'block_only_high',
+        allow_fallback_model: false,
+      },
+    });
+    return prediction.id;
+  }
+
+  async pollAndSaveImage(jobId: string, businessId: string): Promise<string | null> {
+    const prediction = await this.replicate.predictions.get(jobId);
+
+    if (prediction.status === 'succeeded') {
+      const outputUrl = Array.isArray(prediction.output)
+        ? prediction.output[0]
+        : prediction.output;
+      const response = await fetch(outputUrl);
+      const buffer = Buffer.from(await response.arrayBuffer());
+      return await this.savePhoto(businessId, buffer);
+    }
+
+    if (prediction.status === 'failed' || prediction.status === 'canceled') {
+      throw new Error(
+        `Replicate prediction ${jobId} ended with status: ${prediction.status}`,
+      );
+    }
+
+    return null;
+  }
+
   async savePhoto(businessId: string, buffer) {
     const fileName = `${randomUUID()}.png`;
 
@@ -582,10 +617,6 @@ export class AiReplicateService {
       buffer,
       "image/png"
     );
-
-    console.log("----------")
-    console.log("Photo URL ", `https://crm-marketing-ai-bucket.s3.eu-north-1.amazonaws.com/${key}`);
-    console.log("----------")
 
     return key;
   }
