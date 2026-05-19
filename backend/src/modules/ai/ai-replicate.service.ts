@@ -64,7 +64,7 @@ import {
   storyImageQuality
 } from "./prompts/story/image";
 
-type Photo = {
+export type Photo = {
   url: string,
   type: GalleryPhotoType | AIArtifactType,
   description: string | null,
@@ -87,7 +87,7 @@ export class AiReplicateService {
     });
   }
 
-  async generatePostImage(prompt: any, businessId: string, photos: Photo[]): Promise<any> {
+  async buildPostImagePrompt(prompt: any, photos: Photo[]): Promise<{ prompt: string; imageUrls: string[] }> {
     const decorations: Photo[] = photos.filter(p => p.type === GalleryPhotoType.Decoration);
     const posts: Photo[] = photos.filter(p => p.type === GalleryPhotoType.Post);
     const businessPhotos: Photo[] = photos.filter(p => p.type === GalleryPhotoType.Image);
@@ -122,80 +122,88 @@ export class AiReplicateService {
       referenceRule = postImageNoReferenceImages();
     }
 
+    const builtPrompt = `
+      ${postImageProfessionalContext()}
+
+      ---
+
+      POST IDEA
+      ${prompt.scene}
+
+      ---
+
+      USER INSTRUCTION
+      ${prompt.userPrompt}
+
+      ---
+
+
+      TEMPLATE REPLICATION MODE
+      ${postImageTemplateReplicationMode(referenceRule)}
+
+      ---
+
+      REFERENCE DESIGN SYSTEM
+      ${postImageReferenceDesignSystem(designSystem)}
+
+      ---
+
+      TEXT RULE
+      ${textRule}
+
+      ${isTextEnabled ? postImageTextRenderingPrompt(prompt) : postImageSuppressionPrompt()}
+
+      ---
+
+      CRITICAL RENDERING RULE
+      ${postImageCriticalRenderingRule()}
+
+      ---
+
+      TEXT GENERATION
+      ${postImageTextGeneration()}
+
+      ---
+
+      TEXT SUPPRESSION RULE
+      ${postImageTextSuppressionRule()}
+
+      ---
+
+      COMPOSITION
+      ${postImageComposition()}
+
+      ---
+
+      LIGHTING
+      ${postImageLighting()}
+
+      ---
+
+      CAMERA
+      ${postImageCamera()}
+
+      ---
+
+      QUALITY
+      ${postImageQuality()}
+    `;
+
+    return { prompt: builtPrompt, imageUrls: photos.map(photo => photo.url) };
+  }
+
+  async generatePostImage(prompt: any, businessId: string, photos: Photo[]): Promise<any> {
+    const { prompt: builtPrompt, imageUrls } = await this.buildPostImagePrompt(prompt, photos);
+
     const stream = await this.replicate.run(
       process.env.REPLICATE_API_ACTOR,
       {
         input: {
-          prompt: `
-            ${postImageProfessionalContext()}
-            
-            ---
-            
-            POST IDEA
-            ${prompt.scene}
-            
-            ---
-            
-            USER INSTRUCTION
-            ${prompt.userPrompt}
-            
-            ---
-            
-           
-            TEMPLATE REPLICATION MODE
-            ${postImageTemplateReplicationMode(referenceRule)}
-            
-            ---
-            
-            REFERENCE DESIGN SYSTEM
-            ${postImageReferenceDesignSystem(designSystem)}
-            
-            ---
-            
-            TEXT RULE
-            ${textRule}
-            
-            ${isTextEnabled ? postImageTextRenderingPrompt(prompt) : postImageSuppressionPrompt()}
-            
-            ---
-            
-            CRITICAL RENDERING RULE
-            ${postImageCriticalRenderingRule()}
-            
-            ---
-            
-            TEXT GENERATION
-            ${postImageTextGeneration()}
-            
-            ---
-            
-            TEXT SUPPRESSION RULE
-            ${postImageTextSuppressionRule()}
-            
-            ---
-            
-            COMPOSITION
-            ${postImageComposition()}
-            
-            ---
-            
-            LIGHTING
-            ${postImageLighting()}
-            
-            ---
-            
-            CAMERA
-            ${postImageCamera()}
-            
-            ---
-            
-            QUALITY
-            ${postImageQuality()}
-          `,
+          prompt: builtPrompt,
           resolution: "2K",
           aspect_ratio: "4:5",
           safety_filter_level: "block_only_high",
-          image_input: photos.map(photo => photo.url),
+          image_input: imageUrls,
           allow_fallback_model: false
         },
       }
@@ -212,7 +220,7 @@ export class AiReplicateService {
     return await this.savePhoto(businessId, buffer);
   }
 
-  async generateStoryImage(prompt: any, businessId: string, photos: Photo[]) {
+  async buildStoryImagePrompt(prompt: any, photos: Photo[]): Promise<{ prompt: string; imageUrls: string[] }> {
     const decorations: Photo[] = photos.filter(p => p.type === GalleryPhotoType.Decoration);
     const stories: Photo[] = photos.filter(p => p.type === GalleryPhotoType.Story);
     const businessPhotos: Photo[] = photos.filter(p => p.type === GalleryPhotoType.Image);
@@ -222,7 +230,6 @@ export class AiReplicateService {
     let textRule = ``;
     let referenceRule = ``;
     let isTextEnabled = false;
-
 
     if(hasReferenceImages) {
       const content: any = this.generateStoryContentForAnalytics(decorations, stories, businessPhotos);
@@ -248,79 +255,87 @@ export class AiReplicateService {
       referenceRule = storyImageNoReferenceImages();
     }
 
+    const builtPrompt = `
+      ${storyImageProfessionalContext()}
+
+      ---
+
+      STORY IDEA
+      ${prompt.scene}
+
+      ---
+
+      USER INSTRUCTION
+      ${prompt.userPrompt}
+
+      ---
+
+      TEMPLATE REPLICATION MODE
+      ${storyImageTemplateReplicationMode(referenceRule)}
+
+      ---
+
+      REFERENCE DESIGN SYSTEM
+      ${storyImageReferenceDesignSystem(designSystem)}
+
+      ---
+
+      TEXT RULE
+      ${textRule}
+
+      ${isTextEnabled ? storyImageTextRenderingPrompt(prompt) : storyImageSuppressionPrompt()}
+
+      ---
+
+      CRITICAL RENDERING RULE
+      ${storyImageCriticalRenderingRule()}
+
+      ---
+
+      TEXT GENERATION
+      ${storyImageTextGeneration()}
+
+      ---
+
+      TEXT SUPPRESSION RULE
+      ${storyImageTextSuppressionRule()}
+
+      ---
+
+      COMPOSITION
+      ${storyImageComposition()}
+
+      ---
+
+      LIGHTING
+      ${storyImageLighting()}
+
+      ----
+
+      CAMERA
+      ${storyImageCamera()}
+
+      ---
+
+      QUALITY
+      ${storyImageQuality()}
+    `;
+
+    return { prompt: builtPrompt, imageUrls: photos.map(photo => photo.url) };
+  }
+
+  async generateStoryImage(prompt: any, businessId: string, photos: Photo[]) {
+    const { prompt: builtPrompt, imageUrls } = await this.buildStoryImagePrompt(prompt, photos);
+
     const stream = await this.replicate.run(
       process.env.REPLICATE_API_ACTOR,
       {
         input: {
-          prompt: `
-            ${storyImageProfessionalContext()}
-            
-            ---
-            
-            STORY IDEA
-            ${prompt.scene}
-            
-            ---
-            
-            USER INSTRUCTION
-            ${prompt.userPrompt}
-            
-            ---
-            
-            TEMPLATE REPLICATION MODE
-            ${storyImageTemplateReplicationMode(referenceRule)}
-            
-            ---
-            
-            REFERENCE DESIGN SYSTEM
-            ${storyImageReferenceDesignSystem(designSystem)}
-            
-            ---
-            
-            TEXT RULE
-            ${textRule}
-            
-            ${isTextEnabled ? storyImageTextRenderingPrompt(prompt) : storyImageSuppressionPrompt()}
-            
-            ---
-            
-            CRITICAL RENDERING RULE
-            ${storyImageCriticalRenderingRule()}
-            
-            ---
-            
-            TEXT GENERATION
-            ${storyImageTextGeneration()}
-            
-            ---
-            
-            TEXT SUPPRESSION RULE
-            ${storyImageTextSuppressionRule()}
-            
-            ---
-            
-            COMPOSITION
-            ${storyImageComposition()}
-            
-            ---
-            
-            LIGHTING
-            ${storyImageLighting()}
-            
-            ----
-            
-            CAMERA
-            ${storyImageCamera()}
-            
-            ---
-            
-            QUALITY
-            ${storyImageQuality()}
-          `,
+          prompt: builtPrompt,
           resolution: "2K",
           aspect_ratio: "9:16",
           safety_filter_level: "block_only_high",
-          image_input: photos.map(photo => photo.url),
+          image_input: imageUrls,
           allow_fallback_model: false
         }
       }
@@ -572,16 +587,26 @@ export class AiReplicateService {
     );
   }
 
-  async startAiPhotoJobAsync(prompt: string, businessId: string): Promise<string> {
+  async startAiPhotoJobAsync(
+    prompt: string,
+    businessId: string,
+    options?: { aspectRatio?: string; imageUrls?: string[] },
+  ): Promise<string> {
+    const input: any = {
+      prompt,
+      resolution: '2K',
+      aspect_ratio: options?.aspectRatio ?? '4:5',
+      safety_filter_level: 'block_only_high',
+      allow_fallback_model: false,
+    };
+
+    if (options?.imageUrls?.length) {
+      input.image_input = options.imageUrls;
+    }
+
     const prediction = await this.replicate.predictions.create({
       model: process.env.REPLICATE_API_ACTOR,
-      input: {
-        prompt,
-        resolution: '2K',
-        aspect_ratio: '4:5',
-        safety_filter_level: 'block_only_high',
-        allow_fallback_model: false,
-      },
+      input,
     });
     return prediction.id;
   }

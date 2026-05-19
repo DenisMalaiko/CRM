@@ -11,7 +11,7 @@ import {
 } from "@prisma/client";
 import { AiService } from "../ai/ai.service";
 import {AiPost} from "../ai/entities/aiPost.entity";
-import { AiReplicateService } from "../ai/ai-replicate.service";
+import { AiReplicateService, Photo } from "../ai/ai-replicate.service";
 import { HiggsfieldsService } from "../videoAI/higgsfields.service";
 
 @Injectable()
@@ -75,7 +75,7 @@ export class AiArtifactService {
     }
   }
 
-  async createArtifact(businessId: string, body: CreateAIArtifact) {
+  async createArtifact(businessId: string, body: { form: CreateAIArtifact, mediaType: MediaType }) {
     const [
       business,
       audiences,
@@ -86,19 +86,19 @@ export class AiArtifactService {
       photos,
     ] = await Promise.all([
       this.prisma.business.findUnique({ where: { id: businessId }}),
-      this.prisma.targetAudience.findMany({ where: { id: { in: body.audiencesIds }}}),
-      this.prisma.product.findMany({ where: { id: { in: body.productsIds }}}),
-      this.prisma.idea.findMany({ where: { id: { in: body.ideasIds }}}),
-      this.prisma.ideaAI.findMany({ where: { id: { in: body.ideasAiIds }}}),
-      this.prisma.defaultPhoto.findMany({ where: { id: { in: body.defaultPhotosIds }}}),
-      this.prisma.galleryPhoto.findMany({ where: { id: { in: body.photosIds }}})
+      this.prisma.targetAudience.findMany({ where: { id: { in: body.form.audiencesIds }}}),
+      this.prisma.product.findMany({ where: { id: { in: body.form.productsIds }}}),
+      this.prisma.idea.findMany({ where: { id: { in: body.form.ideasIds }}}),
+      this.prisma.ideaAI.findMany({ where: { id: { in: body.form.ideasAiIds }}}),
+      this.prisma.defaultPhoto.findMany({ where: { id: { in: body.form.defaultPhotosIds }}}),
+      this.prisma.galleryPhoto.findMany({ where: { id: { in: body.form.photosIds }}})
     ]);
 
     const settings = {
       business,
       audiences,
       products,
-      prompt: body.prompt,
+      prompt: body.form.prompt,
       ideas,
       ideasAi
     }
@@ -110,29 +110,29 @@ export class AiArtifactService {
     }));
 
     let generatedContent: AiPost[];
-    if (body.type === AIArtifactType.Post) {
+    if (body.form.type === AIArtifactType.Post) {
       generatedContent = await this.aiService.generatePostsBasedOnManuallySettings(
         settings,
         galleryPhotosUrls,
       );
-    } else if (body.type === AIArtifactType.Story) {
+    } else if (body.form.type === AIArtifactType.Story) {
       generatedContent = await this.aiService.generateStoriesBasedOnManuallySettings(
         settings,
         galleryPhotosUrls,
       );
     } else {
-      throw new BadRequestException(`Unsupported artifact type: ${body.type}`);
+      throw new BadRequestException(`Unsupported artifact type: ${body.form.type}`);
     }
 
     const createdArtifacts = await this.prisma.$transaction(async (tx) => {
-      const created: AIArtifactBase[] = [];
+      const created: any[] = [];
 
       for (const item of generatedContent) {
         const artifact = await tx.aIArtifact.create({
           data: {
             businessId,
             businessProfileId: null,
-            type: body.type,
+            type: body.form.type,
             outputJson: item,
             status: AIArtifactStatus.Draft,
             imageUrl: item.imageUrl,
@@ -171,7 +171,26 @@ export class AiArtifactService {
       return created;
     });
 
-    return createdArtifacts;
+    const artifactsWithMedia = await Promise.all(
+      createdArtifacts.map((artifact, index) => {
+        const imagePrompt = generatedContent[index]?.image_prompt;
+        if (!imagePrompt) return Promise.resolve(artifact);
+
+        if (body.mediaType === MediaType.Image) {
+          return this.startGenerateImage(artifact.id, businessId, imagePrompt, galleryPhotosUrls);
+        }
+        if (body.mediaType === MediaType.Video) {
+          return this.startGenerateVideo({
+            artifactId: artifact.id,
+            businessId,
+            description: artifact.imagePrompt,
+          });
+        }
+        return Promise.resolve(artifact);
+      })
+    );
+
+    return artifactsWithMedia;
   }
 
   async deleteAiArtifact(id: string) {
@@ -437,14 +456,17 @@ export class AiArtifactService {
     return reverted;
   }
 
-  async startGenerateImage(artifactId: string, businessId: string, prompt: string) {
+  async startGenerateImage(artifactId: string, businessId: string, imagePrompt: any, photos: Photo[]) {
     const artifact = await this.prisma.aIArtifact.findUnique({ where: { id: artifactId } });
     if (!artifact || artifact.businessId !== businessId) throw new NotFoundException(`Artifact ${artifactId} not found`);
 
-    const jobId = await this.aiReplicateService.startAiPhotoJobAsync(prompt, businessId);
+    const isStory = artifact.type === AIArtifactType.Story;
+    const s3Key = isStory
+      ? await this.aiReplicateService.generateStoryImage(imagePrompt, businessId, photos)
+      : await this.aiReplicateService.generatePostImage(imagePrompt, businessId, photos);
 
     await this.prisma.aIArtifactMedia.create({
-      data: { artifactId, businessId, type: MediaType.Image, jobId },
+      data: { artifactId, businessId, type: MediaType.Image, url: s3Key },
     });
 
     return await this.prisma.aIArtifact.findUnique({
@@ -453,12 +475,7 @@ export class AiArtifactService {
     });
   }
 
-  async startGenerateVideo(params: {
-    artifactId: string;
-    businessId: string;
-    description: string;
-    sourceUrl?: string;
-  }) {
+  async startGenerateVideo(params: { artifactId: string; businessId: string; description: string; sourceUrl?: string; }) {
     const { artifactId, businessId, description, sourceUrl } = params;
 
     const artifact = await this.prisma.aIArtifact.findUnique({ where: { id: artifactId } });

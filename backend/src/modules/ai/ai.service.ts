@@ -1,4 +1,4 @@
-import {Injectable} from '@nestjs/common';
+import {Injectable, Logger} from '@nestjs/common';
 import {ChatOpenAI} from "@langchain/openai";
 import {TProfile} from "../profiles/entities/profile.entity";
 import {AiPost} from "./entities/aiPost.entity";
@@ -6,6 +6,8 @@ import {AiReplicateService} from "./ai-replicate.service";
 import {GalleryPhotoType, AIArtifactType} from "@prisma/client";
 import {IdeasBatchSchema} from "../idea/schema/idea.schema";
 import {IdeaAISchema} from "../ideaAI/schema/ideaAI.schema";
+import {PostsResponseSchema, StoriesResponseSchema, NormalizedPromptSchema} from "./schema/ai-content.schema";
+import {jsonrepair} from "jsonrepair";
 import * as process from "node:process";
 import {ideaPrompt} from "./prompts/idea/idea";
 
@@ -41,6 +43,7 @@ type Photo = {
 @Injectable()
 export class AiService {
   private model: ChatOpenAI;
+  private readonly logger = new Logger(AiService.name);
 
   constructor(
     private readonly aiReplicate: AiReplicateService,
@@ -52,11 +55,21 @@ export class AiService {
     });
   }
 
+  private safeParseJson(text: string): any {
+    try {
+      return JSON.parse(jsonrepair(text));
+    } catch (e) {
+      this.logger.error('Failed to parse AI JSON response', text);
+      throw new Error('AI returned malformed JSON');
+    }
+  }
+
   async generatePostsBasedOnBusinessProfile(profile: TProfile, photos: Photo[]): Promise<AiPost[]> {
     const prompt = this.buildPromptForPosts(profile, photos);
     const response = await this.model.invoke(prompt);
     const rawText = this.extractTextContent(response.content);
-    const posts: AiPost[] = JSON.parse(rawText)?.posts ?? [];
+    const parsed = PostsResponseSchema.parse(this.safeParseJson(rawText));
+    const posts: AiPost[] = parsed.posts;
 
     for (const post of posts) {
       if (post.image_prompt) {
@@ -72,7 +85,8 @@ export class AiService {
     const prompt = this.buildPromptForStories(profile, photos);
     const response = await this.model.invoke(prompt);
     const rawText = this.extractTextContent(response.content);
-    const stories: any[] = JSON.parse(rawText)?.stories ?? [];
+    const parsed = StoriesResponseSchema.parse(this.safeParseJson(rawText));
+    const stories: any[] = parsed.stories;
 
     for (const story of stories) {
       if (story.image_prompt) {
@@ -88,31 +102,18 @@ export class AiService {
     const prompt = await this.buildPromptForPostsManually(settings, photos);
     const response = await this.model.invoke(prompt);
     const rawText = this.extractTextContent(response.content);
-    const posts: AiPost[] = JSON.parse(rawText)?.posts ?? [];
+    const parsed = PostsResponseSchema.parse(this.safeParseJson(rawText));
 
-    for (const post of posts) {
-      if (post.image_prompt) {
-        console.log("MANUAL POST ", post);
-        post.imageUrl = await this.aiReplicate.generatePostImage(post.image_prompt, settings.business.id, photos);
-      }
-    }
-
-    return posts;
+    return parsed.posts;
   }
 
   async generateStoriesBasedOnManuallySettings(settings, photos: Photo[]): Promise<AiPost[]> {
     const prompt = await this.buildPromptForStoriesManually(settings, photos);
     const response = await this.model.invoke(prompt);
     const rawText = this.extractTextContent(response.content);
-    const stories: AiPost[] = JSON.parse(rawText)?.stories ?? [];
+    const parsed = StoriesResponseSchema.parse(this.safeParseJson(rawText));
 
-    for (const story of stories) {
-      if (story.image_prompt) {
-        story.imageUrl = await this.aiReplicate.generateStoryImage(story.image_prompt, settings.business.id, photos);
-      }
-    }
-
-    return stories;
+    return parsed.stories;
   }
 
   async generateAiPhoto(businessId: string, prompt: string, photos: Photo[]): Promise<string> {
@@ -218,8 +219,9 @@ export class AiService {
     const customPrompt = normalizeUserPromptBlock(profile.prompt);
     const customPromptResponse = await this.model.invoke(customPrompt);
     const customPromptRawText = this.extractTextContent(customPromptResponse.content);
-    const textPrompts = JSON.parse(customPromptRawText)?.text ?? [];
-    const imagePrompts = JSON.parse(customPromptRawText)?.image ?? [];
+    const parsedPrompts = NormalizedPromptSchema.parse(this.safeParseJson(customPromptRawText));
+    const textPrompts = parsedPrompts.text;
+    const imagePrompts = parsedPrompts.image;
 
     const audienceBlock = this.getAudiences(profile.audiences);
     const productsBlock = this.getProducts(profile.products);
@@ -270,8 +272,9 @@ export class AiService {
     const customPrompt = normalizeUserPromptBlock(profile.prompt);
     const customPromptResponse = await this.model.invoke(customPrompt);
     const customPromptRawText = this.extractTextContent(customPromptResponse.content);
-    const textPrompts = JSON.parse(customPromptRawText)?.text ?? [];
-    const imagePrompts = JSON.parse(customPromptRawText)?.image ?? [];
+    const parsedPrompts = NormalizedPromptSchema.parse(this.safeParseJson(customPromptRawText));
+    const textPrompts = parsedPrompts.text;
+    const imagePrompts = parsedPrompts.image;
 
     const audienceBlock = this.getAudiences(profile.audiences);
     const productsBlock = this.getProducts(profile.products);

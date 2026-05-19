@@ -3,7 +3,7 @@ import {
   AiArtifactIdParamDto,
   AiArtifactBusinessParamDto,
   UpdateAiArtifactDto,
-  CreateAiArtifactDto,
+  CreateArtifactWithMediaDto,
   GenerateImageDto,
   GenerateVideoDto,
 } from "./dto/aiartifact.dto";
@@ -37,7 +37,7 @@ export class AiArtifactController {
 
   @Post("/:id")
   @ResponseMessage('Creative has been created!')
-  createAiArtifact(@Param() { id }: AiArtifactIdParamDto, @Body() body: CreateAiArtifactDto) {
+  createAiArtifact(@Param() { id }: AiArtifactIdParamDto, @Body() body: CreateArtifactWithMediaDto) {
     return this.aiArtifactService.createArtifact(id, body);
   }
 
@@ -67,28 +67,4 @@ export class AiArtifactController {
   async getArtifact(@Param() { businessId, artifactId }: AiArtifactBusinessParamDto) {
     return this.aiArtifactService.getAiArtifact(artifactId, businessId);
   }
-
-  @Post('/:businessId/artifact/:artifactId/generate-image')
-  @ResponseMessage('Image generation started!')
-  async generateImage(
-    @Param() { businessId, artifactId }: AiArtifactBusinessParamDto,
-    @Body() body: GenerateImageDto,
-  ) {
-    return this.aiArtifactService.startGenerateImage(artifactId, businessId, body.prompt);
-  }
-
-  @Post('/:businessId/artifact/:artifactId/generate-video')
-  @ResponseMessage('Video generation started!')
-  async generateVideo(
-    @Param() { businessId, artifactId }: AiArtifactBusinessParamDto,
-    @Body() body: GenerateVideoDto,
-  ) {
-    return this.aiArtifactService.startGenerateVideo({
-      artifactId,
-      businessId,
-      description: body.description,
-      sourceUrl: body.sourceUrl,
-    });
-  }
-
 }
