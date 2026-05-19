@@ -1,5 +1,6 @@
-import {IsArray, IsEnum, IsNotEmpty, IsOptional, IsUUID, IsString} from "class-validator";
-import {AIArtifactStatus, AIArtifactType} from "@prisma/client";
+import {IsArray, IsEnum, IsNotEmpty, IsOptional, IsUUID, IsString, ValidateNested} from "class-validator";
+import {AIArtifactStatus, AIArtifactType, MediaType} from "@prisma/client";
+import { Type } from "class-transformer";
 
 export class AiArtifactBaseDto {
   @IsOptional()
@@ -55,6 +56,15 @@ export class AiArtifactBusinessParamDto {
 
   @IsUUID()
   artifactId: string;
+}
+
+export class CreateArtifactWithMediaDto {
+  @ValidateNested()
+  @Type(() => CreateAiArtifactDto)
+  form: CreateAiArtifactDto;
+
+  @IsEnum(MediaType)
+  mediaType: MediaType;
 }
 
 export class GenerateImageDto {

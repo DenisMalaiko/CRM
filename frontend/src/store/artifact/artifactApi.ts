@@ -48,11 +48,11 @@ export const artifactApi = api.injectEndpoints({
       })
     }),
 
-    createCreativeManually: builder.mutation<ApiResponse<TAIArtifact>, { id: string, form: any }>({
-      query: ({ id, form }) => ({
+    createCreativeManually: builder.mutation<ApiResponse<TAIArtifact>, { id: string, form: any, mediaType: string }>({
+      query: ({ id, form, mediaType }) => ({
         url: `/ai-artifact/${id}`,
         method: "POST",
-        body: form,
+        body: { form, mediaType },
       })
     }),
 

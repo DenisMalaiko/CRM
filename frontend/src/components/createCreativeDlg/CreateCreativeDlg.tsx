@@ -54,6 +54,7 @@ import {isArray, isRequired, isString} from "../../utils/validations";
 import { BusinessProfileFocus } from "../../enum/BusinessProfileFocus";
 import { IdeaStatus } from "../../enum/IdeaStatus";
 import { GalleryType } from "../../enum/GalleryType";
+import { MediaType } from "../../enum/MediaType";
 
 type Props = {
   open: boolean;
@@ -97,6 +98,7 @@ function CreateCreativeDlg({ open, onClose, focus }: Props) {
 
   const [selected, setSelected] = useState("manual");
   const [selectedContextId, setSelectedContextId] = useState<string | null>(null);
+  const [mediaType, setMediaType] = useState<MediaType>(MediaType.Image);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -243,7 +245,7 @@ function CreateCreativeDlg({ open, onClose, focus }: Props) {
   const _createCreativeByManual = async () => {
     try {
       setIsLoading(true);
-      const response: ApiResponse<TAIArtifact> = await createCreativeManually({ id: businessId, form }).unwrap();
+      const response: ApiResponse<TAIArtifact> = await createCreativeManually({ id: businessId, form, mediaType }).unwrap();
 
       if(response && response?.data) {
 
@@ -510,6 +512,25 @@ function CreateCreativeDlg({ open, onClose, focus }: Props) {
                       </div>
                     </>
                   </div>
+                </div>
+
+                {/* Media Type */}
+                <div className="flex gap-3 mb-3">
+                  {[MediaType.Image, MediaType.Video].map((type) => (
+                    <label key={type} className="cursor-pointer flex-1">
+                      <input
+                        type="radio"
+                        name="mediaType"
+                        value={type}
+                        checked={mediaType === type}
+                        onChange={() => setMediaType(type)}
+                        className="hidden peer"
+                      />
+                      <div className="p-3 border rounded-xl text-center text-sm font-medium transition-all border-gray-300 hover:border-gray-400 peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:shadow-md text-gray-700 peer-checked:text-blue-600">
+                        {type}
+                      </div>
+                    </label>
+                  ))}
                 </div>
               </div>
             )}

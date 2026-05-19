@@ -103,7 +103,10 @@ function Posts() {
           const profilesResponse: ApiResponse<TBusinessProfile[]> = await getProfiles(businessId).unwrap();
           const productsResponse: ApiResponse<TProduct[]> = await getProducts(businessId).unwrap();
 
-          if(response && response?.data) dispatch(setPosts(response.data));
+          if(response && response?.data) {
+            dispatch(setPosts(response.data));
+            console.log("POSTS ", response.data.filter(x => x.id === 'b7e2e6ad-998d-4aea-9f0f-b208645d549b'))
+          }
           if(profilesResponse && profilesResponse?.data) dispatch(setProfiles(profilesResponse.data));
           if(productsResponse && productsResponse?.data) dispatch(setProducts(productsResponse.data));
         }
@@ -305,32 +308,34 @@ function Posts() {
                   <div className="flex flex-col gap-4 px-6 py-5">
                     {/* Hook */}
                     <div className="group relative rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition">
-                      {item?.imageUrl && (
-                        <>
-                          <img
-                            src={`${item.imageUrl}`}
-                            alt="AI generated"
-                            className="w-full rounded-xl border border-slate-200"
-                          />
+                      {(item?.media && item?.media.length) && (
+                        item?.media.map((media) => (
+                          <>
+                            <img
+                              src={`${media.url}`}
+                              alt="AI generated"
+                              className="w-full rounded-xl border border-slate-200"
+                            />
 
-                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition duration-300 flex items-center justify-center flex-col">
-                            <div className="flex gap-5">
-                              <button
-                                onClick={() => setOpenEditPhotoDlg(item.id)}
-                                className="opacity-0 group-hover:opacity-100 transition duration-300 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg"
-                              >
-                                <WandSparkles size={18} />
-                              </button>
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition duration-300 flex items-center justify-center flex-col">
+                              <div className="flex gap-5">
+                                <button
+                                  onClick={() => setOpenEditPhotoDlg(media.id)}
+                                  className="opacity-0 group-hover:opacity-100 transition duration-300 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg"
+                                >
+                                  <WandSparkles size={18} />
+                                </button>
 
-                              <button
-                                onClick={() => openSlider([{url: item.imageUrl}])}
-                                className="opacity-0 group-hover:opacity-100 transition duration-300 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg"
-                              >
-                                <ImagePlay size={18} />
-                              </button>
+                                <button
+                                  onClick={() => openSlider([{url: media.url}])}
+                                  className="opacity-0 group-hover:opacity-100 transition duration-300 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg"
+                                >
+                                  <ImagePlay size={18} />
+                                </button>
+                              </div>
                             </div>
-                          </div>
-                        </>
+                          </>
+                        ))
                       )}
                     </div>
 
