@@ -48,6 +48,14 @@ export const artifactApi = api.injectEndpoints({
       })
     }),
 
+    deleteCreativeBatch: builder.mutation<ApiResponse<TAIArtifact[]>, string[]>({
+      query: (ids: string[]) => ({
+        url: `/ai-artifact/batch`,
+        method: "DELETE",
+        body: { ids }
+      })
+    }),
+
     createCreativeManually: builder.mutation<ApiResponse<TAIArtifact>, { id: string, form: any, mediaType: string }>({
       query: ({ id, form, mediaType }) => ({
         url: `/ai-artifact/${id}`,
@@ -56,25 +64,27 @@ export const artifactApi = api.injectEndpoints({
       })
     }),
 
-    regenerateCreative: builder.mutation<ApiResponse<TAIArtifact>, { id: string, form: { prompt: string } }>({
-      query: ({ id, form }) => ({
+    regenerateCreative: builder.mutation<ApiResponse<TAIArtifact>, { id: string, mediaId: string, form: { prompt: string } }>({
+      query: ({ id, mediaId, form }) => ({
         url: `/ai-artifact/${id}/regenerate`,
         method: "POST",
-        body: form,
+        body: { ...form, mediaId },
       })
     }),
 
-    revertCreativeOriginal: builder.mutation<ApiResponse<TAIArtifact>, string>({
-      query: (id) => ({
+    revertCreativeOriginal: builder.mutation<ApiResponse<TAIArtifact>, { id: string, mediaId: string }>({
+      query: ({ id, mediaId }) => ({
         url: `/ai-artifact/${id}/revert-original`,
         method: "POST",
+        body: { mediaId },
       })
     }),
 
-    revertCreativePrevious: builder.mutation<ApiResponse<TAIArtifact>, string>({
-      query: (id) => ({
+    revertCreativePrevious: builder.mutation<ApiResponse<TAIArtifact>, { id: string, mediaId: string }>({
+      query: ({ id, mediaId }) => ({
         url: `/ai-artifact/${id}/revert-previous`,
         method: "POST",
+        body: { mediaId },
       })
     }),
   }),
@@ -85,6 +95,7 @@ export const {
   useGetCreativesMutation,
   useUpdateCreativeMutation,
   useDeleteCreativeMutation,
+  useDeleteCreativeBatchMutation,
   useLazyGetAiArtifactsQuery,
   useCreateCreativeManuallyMutation,
 

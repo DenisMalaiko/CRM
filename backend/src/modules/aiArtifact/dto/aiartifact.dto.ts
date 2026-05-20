@@ -1,4 +1,4 @@
-import {IsArray, IsEnum, IsNotEmpty, IsOptional, IsUUID, IsString, ValidateNested} from "class-validator";
+import {IsArray, IsEnum, IsNotEmpty, IsOptional, IsUUID, IsString, ValidateNested, ArrayMinSize} from "class-validator";
 import {AIArtifactStatus, AIArtifactType, MediaType} from "@prisma/client";
 import { Type } from "class-transformer";
 
@@ -81,4 +81,25 @@ export class GenerateVideoDto {
   @IsOptional()
   @IsString()
   sourceUrl?: string;
+}
+
+export class BatchDeleteAiArtifactDto {
+  @IsArray()
+  @ArrayMinSize(1)
+  @IsUUID(undefined, { each: true })
+  ids: string[];
+}
+
+export class RegenerateArtifactDto {
+  @IsUUID()
+  mediaId: string;
+
+  @IsString()
+  @IsNotEmpty()
+  prompt: string;
+}
+
+export class RevertArtifactDto {
+  @IsUUID()
+  mediaId: string;
 }

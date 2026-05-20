@@ -6,6 +6,9 @@ import {
   CreateArtifactWithMediaDto,
   GenerateImageDto,
   GenerateVideoDto,
+  BatchDeleteAiArtifactDto,
+  RegenerateArtifactDto,
+  RevertArtifactDto,
 } from "./dto/aiartifact.dto";
 import { JwtAuthGuard } from "../../core/guards/jwt-auth.guard";
 import { AiArtifactService } from "./aiArtifact.service";
@@ -29,6 +32,12 @@ export class AiArtifactController {
     return this.aiArtifactService.updateAiArtifact(id, body);
   }
 
+  @Delete('/batch')
+  @ResponseMessage('Creatives have been deleted!')
+  deleteAiArtifactsBatch(@Body() { ids }: BatchDeleteAiArtifactDto) {
+    return this.aiArtifactService.deleteAiArtifactsBatch(ids);
+  }
+
   @Delete("/:id")
   @ResponseMessage('Creative has been deleted!')
   deleteAiArtifact(@Param() { id }: AiArtifactIdParamDto) {
@@ -45,21 +54,21 @@ export class AiArtifactController {
   @ResponseMessage('Creative has been regenerated!')
   async regenerateAiArtifact(
     @Param() { id }: AiArtifactIdParamDto,
-    @Body() body: { prompt: string },
+    @Body() { mediaId, prompt }: RegenerateArtifactDto,
   ) {
-    return this.aiArtifactService.regenerateAiArtifact(id, body.prompt);
+    return this.aiArtifactService.regenerateAiArtifact(id, mediaId, prompt);
   }
 
   @Post(':id/revert-original')
   @ResponseMessage('Creative has been revert to original!')
-  async revertOriginal(@Param() { id }: AiArtifactIdParamDto) {
-    return this.aiArtifactService.revertAiArtifactOriginal(id)
+  async revertOriginal(@Param() { id }: AiArtifactIdParamDto, @Body() { mediaId }: RevertArtifactDto) {
+    return this.aiArtifactService.revertAiArtifactOriginal(id, mediaId);
   }
 
   @Post(':id/revert-previous')
   @ResponseMessage('Creative has been revert to previous!')
-  async revertPrevious(@Param() { id }: AiArtifactIdParamDto) {
-    return this.aiArtifactService.revertAiArtifactPrevious(id)
+  async revertPrevious(@Param() { id }: AiArtifactIdParamDto, @Body() { mediaId }: RevertArtifactDto) {
+    return this.aiArtifactService.revertAiArtifactPrevious(id, mediaId);
   }
 
   @Get('/:businessId/artifact/:artifactId')
