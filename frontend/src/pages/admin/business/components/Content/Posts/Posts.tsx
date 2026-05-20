@@ -9,6 +9,7 @@ import { useSelector } from "react-redux";
 import { useAppDispatch } from "../../../../../../store/hooks";
 import {
   useDeleteCreativeMutation,
+  useDeleteCreativeBatchMutation,
   useLazyGetAiArtifactsQuery
 } from "../../../../../../store/artifact/artifactApi";
 import { useGetProfilesMutation } from "../../../../../../store/profile/profileApi";
@@ -47,13 +48,14 @@ function Posts() {
 
   const [ getAiArtifacts ] = useLazyGetAiArtifactsQuery();
   const [ deleteCreative ] = useDeleteCreativeMutation();
+  const [ deleteCreativeBatch ] = useDeleteCreativeBatchMutation();
   const [ getProfiles ] = useGetProfilesMutation();
   const [ getProducts ] = useGetProductsMutation();
 
   const [ open, setOpen ] = useState(false);
   const [ openSliderDlg, setOpenSliderDlg ] = useState<any>(null);
   const [ selectedMedia, setSelectedMedia ] = useState<any>(null);
-  const [ openEditPhotoDlg, setOpenEditPhotoDlg ] = useState<string | null>(null);
+  const [ openEditPhotoDlg, setOpenEditPhotoDlg ] = useState<{ photoId: string; mediaId: string } | null>(null);
 
   const [ selectedPost, setSelectedPost ] = useState<TAIArtifact | null>(null);
   const [ openCreative, setOpenCreative ] = useState(false);
@@ -169,11 +171,8 @@ function Posts() {
     if(ok) {
       try {
         if (selectedIds?.length > 0) {
-          await Promise.all(
-            selectedIds.map(async (id) => {
-              await deleteCreative(id);
-            })
-          )
+          await deleteCreativeBatch(selectedIds);
+
           const response: ApiResponse<TAIArtifact[]> = await getAiArtifacts({
             businessId,
             type: GalleryType.Post
@@ -320,7 +319,7 @@ function Posts() {
                             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition duration-300 flex items-center justify-center flex-col">
                               <div className="flex gap-5">
                                 <button
-                                  onClick={() => setOpenEditPhotoDlg(media.id)}
+                                  onClick={() => setOpenEditPhotoDlg({ photoId: item.id, mediaId: media.id })}
                                   className="opacity-0 group-hover:opacity-100 transition duration-300 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg"
                                 >
                                   <WandSparkles size={18} />
@@ -412,7 +411,8 @@ function Posts() {
           open={!!openEditPhotoDlg}
           type={ContentType.AiArtifact}
           onClose={() => setOpenEditPhotoDlg(null)}
-          photoId={openEditPhotoDlg ?? ''}
+          photoId={openEditPhotoDlg?.photoId ?? ''}
+          mediaId={openEditPhotoDlg?.mediaId}
           onSuccess={handleSuccess}
         ></EditPhotoDlg>
       </section>

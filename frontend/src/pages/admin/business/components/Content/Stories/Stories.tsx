@@ -9,6 +9,7 @@ import { useSelector } from "react-redux";
 import { useAppDispatch } from "../../../../../../store/hooks";
 import {
   useDeleteCreativeMutation,
+  useDeleteCreativeBatchMutation,
   useLazyGetAiArtifactsQuery
 } from "../../../../../../store/artifact/artifactApi";
 import { useGetProfilesMutation } from "../../../../../../store/profile/profileApi";
@@ -48,13 +49,14 @@ function Stories() {
 
   const [ getAiArtifacts ] = useLazyGetAiArtifactsQuery();
   const [ deleteCreative ] = useDeleteCreativeMutation();
+  const [ deleteCreativeBatch ] = useDeleteCreativeBatchMutation();
   const [ getProfiles ] = useGetProfilesMutation();
   const [ getProducts ] = useGetProductsMutation();
 
   const [ open, setOpen ] = useState(false);
   const [ openSliderDlg, setOpenSliderDlg ] = useState<any>(null);
   const [ selectedMedia, setSelectedMedia ] = useState<any>(null);
-  const [ openEditPhotoDlg, setOpenEditPhotoDlg ] = useState<string | null>(null);
+  const [ openEditPhotoDlg, setOpenEditPhotoDlg ] = useState<{ photoId: string; mediaId: string } | null>(null);
 
   const [ selectedStory, setSelectedStory ] = useState<TAIArtifact | null>(null);
   const [ openCreative, setOpenCreative ] = useState(false);
@@ -103,7 +105,10 @@ function Stories() {
           const profilesResponse: ApiResponse<TBusinessProfile[]> = await getProfiles(businessId).unwrap();
           const productsResponse: ApiResponse<TProduct[]> = await getProducts(businessId).unwrap();
 
-          if(response && response?.data) dispatch(setStories(response.data));
+          if(response && response?.data) {
+            console.log("STORIES: ", response.data)
+            dispatch(setStories(response.data));
+          }
           if(profilesResponse && profilesResponse?.data) dispatch(setProfiles(profilesResponse.data));
           if(productsResponse && productsResponse?.data) dispatch(setProducts(productsResponse.data));
         }
@@ -167,11 +172,8 @@ function Stories() {
     if(ok) {
       try {
         if (selectedIds?.length > 0) {
-          await Promise.all(
-            selectedIds.map(async (id) => {
-              await deleteCreative(id);
-            })
-          )
+          await deleteCreativeBatch(selectedIds);
+
           const response: ApiResponse<TAIArtifact[]> = await getAiArtifacts({
             businessId,
             type: GalleryType.Story
@@ -317,32 +319,36 @@ function Stories() {
 
 
                   {/* Image */}
-                  {item?.imageUrl && (
+                  {(item?.media && item?.media.length) && (
                     <div className="flex flex-col gap-4 px-3 py-3">
                       <div className="relative w-full aspect-[9/16] bg-slate-100 rounded-xl overflow-hidden">
-                        <img
-                          src={item.imageUrl}
-                          alt="AI story"
-                          className="inset-0 h-full w-full rounded-xl object-cover"
-                        />
+                        {item?.media.map((media) => (
+                          <>
+                            <img
+                              src={media.url}
+                              alt="AI story"
+                              className="inset-0 h-full w-full rounded-xl object-cover"
+                            />
 
-                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition duration-300 flex items-center justify-center flex-col">
-                          <div className="flex gap-5">
-                            <button
-                              onClick={() => setOpenEditPhotoDlg(item.id)}
-                              className="opacity-0 group-hover:opacity-100 transition duration-300 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg"
-                            >
-                              <WandSparkles size={18} />
-                            </button>
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition duration-300 flex items-center justify-center flex-col">
+                              <div className="flex gap-5">
+                                <button
+                                  onClick={() => setOpenEditPhotoDlg({ photoId: item.id, mediaId: media.id })}
+                                  className="opacity-0 group-hover:opacity-100 transition duration-300 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg"
+                                >
+                                  <WandSparkles size={18} />
+                                </button>
 
-                            <button
-                              onClick={() => openSlider([{url: item.imageUrl}])}
-                              className="opacity-0 group-hover:opacity-100 transition duration-300 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg"
-                            >
-                              <ImagePlay size={18} />
-                            </button>
-                          </div>
-                        </div>
+                                <button
+                                  onClick={() => openSlider([{url: media.url}])}
+                                  className="opacity-0 group-hover:opacity-100 transition duration-300 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg"
+                                >
+                                  <ImagePlay size={18} />
+                                </button>
+                              </div>
+                            </div>
+                          </>
+                        ))}
                       </div>
                     </div>
                   )}
@@ -398,7 +404,8 @@ function Stories() {
           open={!!openEditPhotoDlg}
           type={ContentType.AiArtifact}
           onClose={() => setOpenEditPhotoDlg(null)}
-          photoId={openEditPhotoDlg ?? ''}
+          photoId={openEditPhotoDlg?.photoId ?? ''}
+          mediaId={openEditPhotoDlg?.mediaId}
           onSuccess={handleSuccess}
         ></EditPhotoDlg>
       </section>

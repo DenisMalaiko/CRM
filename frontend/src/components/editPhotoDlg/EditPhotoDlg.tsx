@@ -32,11 +32,12 @@ type Props = {
   open: boolean;
   type: ContentType
   photoId: string;
+  mediaId?: string;
   onClose: () => void;
   onSuccess: () => void;
 }
 
-function EditPhotoDlg({ open, type, onClose, onSuccess, photoId }: Props) {
+function EditPhotoDlg({ open, type, onClose, onSuccess, photoId, mediaId }: Props) {
   const [ regeneratePhoto, { isLoading } ] = useRegeneratePhotoMutation();
   const [ revertOriginal, { isLoading: isReturningOriginalLoading } ] = useRevertOriginalMutation();
   const [ revertPrevious, { isLoading: isReturningPreviousLoading } ] = useRevertPreviousMutation();
@@ -65,7 +66,7 @@ function EditPhotoDlg({ open, type, onClose, onSuccess, photoId }: Props) {
       }
 
       if(type === ContentType.AiArtifact) {
-        response = await regenerateCreative({ id: photoId, form }).unwrap();
+        response = await regenerateCreative({ id: photoId, mediaId: mediaId ?? '', form }).unwrap();
       }
 
       if(response && response?.data) {
@@ -88,7 +89,7 @@ function EditPhotoDlg({ open, type, onClose, onSuccess, photoId }: Props) {
       }
 
       if(type === ContentType.AiArtifact) {
-        response = await revertCreativeOriginal(photoId).unwrap();
+        response = await revertCreativeOriginal({ id: photoId, mediaId: mediaId ?? '' }).unwrap();
       }
 
       if(response && response?.data) {
@@ -110,7 +111,7 @@ function EditPhotoDlg({ open, type, onClose, onSuccess, photoId }: Props) {
       }
 
       if(type === ContentType.AiArtifact) {
-        response = await revertCreativePrevious(photoId).unwrap();
+        response = await revertCreativePrevious({ id: photoId, mediaId: mediaId ?? '' }).unwrap();
       }
 
       if(response && response?.data) {

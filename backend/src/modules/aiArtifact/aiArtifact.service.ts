@@ -241,125 +241,150 @@ export class AiArtifactService {
     return { success: true };
   }
 
-  async regenerateAiArtifact(id, body) {
-    const artifact = await this.prisma.aIArtifact.findUnique({
-      where: { id },
-      select: {
-        id: true,
-        businessId: true,
-        imageUrl: true,
-        imagePrompt: true,
-        type: true
-      },
+  async deleteAiArtifactsBatch(ids: string[]): Promise<{ success: boolean }> {
+    const artifacts = await this.prisma.aIArtifact.findMany({
+      where: { id: { in: ids } },
+      select: { id: true, imageUrl: true },
     });
 
-    if (!artifact) {
-      throw new NotFoundException(`AI artifact with id ${id} not found`);
+    if (artifacts.length === 0) {
+      throw new NotFoundException('No artifacts found for the provided IDs');
     }
 
-    const referenceImages = artifact.imageUrl ? [{
-      url: this.storageUrlService.getPublicUrl(artifact.imageUrl),
+    const foundIds = artifacts.map((a) => a.id);
+
+    const [historyEntries, mediaEntries] = await Promise.all([
+      this.prisma.aIArtifactImageHistory.findMany({
+        where: { artifactId: { in: foundIds } },
+        select: { imageUrl: true },
+      }),
+      this.prisma.aIArtifactMedia.findMany({
+        where: { artifactId: { in: foundIds } },
+        select: { url: true },
+      }),
+    ]);
+
+    const urlsToDelete = Array.from(
+      new Set(
+        [
+          ...artifacts.map((a) => a.imageUrl),
+          ...historyEntries.map((h) => h.imageUrl),
+          ...mediaEntries.map((m) => m.url),
+        ].filter((url): url is string => Boolean(url)),
+      ),
+    );
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.aIArtifact.deleteMany({ where: { id: { in: foundIds } } });
+    });
+
+    const results = await Promise.allSettled(
+      urlsToDelete.map((url) => this.s3Service.delete(url)),
+    );
+
+    results.forEach((result, index) => {
+      if (result.status === 'rejected') {
+        this.logger.error(
+          `Failed to delete S3 object during batch artifact deletion: ${urlsToDelete[index]}`,
+          result.reason,
+        );
+      }
+    });
+
+    return { success: true };
+  }
+
+  async regenerateAiArtifact(artifactId: string, mediaId: string, prompt: string) {
+    const media = await this.prisma.aIArtifactMedia.findUnique({ where: { id: mediaId } });
+    if (!media || media.artifactId !== artifactId) {
+      throw new NotFoundException(`Media with id ${mediaId} not found for artifact ${artifactId}`);
+    }
+
+    const artifact = await this.prisma.aIArtifact.findUnique({
+      where: { id: artifactId },
+      select: { id: true, businessId: true, type: true },
+    });
+    if (!artifact) {
+      throw new NotFoundException(`AI artifact with id ${artifactId} not found`);
+    }
+
+    const referenceImages = media.url ? [{
+      url: this.storageUrlService.getPublicUrl(media.url),
       type: artifact.type,
       description: null,
     }] : [];
 
     const generatedImageUrl = await this.aiService.generateAiPhoto(
       artifact.businessId,
-      body,
+      prompt,
       referenceImages,
     );
 
-    const updated = await this.prisma.$transaction(async (tx) => {
-      const updatedArtifact = await tx.aIArtifact.update({
-        where: { id },
-        data: {
-          imageUrl: generatedImageUrl,
-          imagePrompt: body,
-        },
+    await this.prisma.$transaction(async (tx) => {
+      await tx.aIArtifactMedia.update({
+        where: { id: mediaId },
+        data: { url: generatedImageUrl },
       });
 
       await tx.aIArtifactImageHistory.create({
         data: {
-          artifactId: updatedArtifact.id,
-          businessId: updatedArtifact.businessId,
+          artifactId,
+          businessId: artifact.businessId,
           imageUrl: generatedImageUrl,
-          imagePrompt: body,
+          imagePrompt: prompt,
           changeType: AIArtifactImageChangeType.Update,
         },
       });
-
-      return updatedArtifact;
     });
 
-    return updated;
+    return this.prisma.aIArtifact.findUnique({
+      where: { id: artifactId },
+      include: { media: { orderBy: { order: 'asc' } } },
+    });
   }
 
-  async revertAiArtifactOriginal(id: string) {
-    const artifact = await this.prisma.aIArtifact.findUnique({
-      where: { id },
-      select: {
-        id: true,
-        businessId: true,
-        imageUrl: true,
-        imagePrompt: true,
-      },
-    });
-
-    if (!artifact) {
-      throw new NotFoundException(`AI artifact with id ${id} not found`);
+  async revertAiArtifactOriginal(artifactId: string, mediaId: string) {
+    const media = await this.prisma.aIArtifactMedia.findUnique({ where: { id: mediaId } });
+    if (!media || media.artifactId !== artifactId) {
+      throw new NotFoundException(`Media with id ${mediaId} not found for artifact ${artifactId}`);
     }
 
     const originalEntry = await this.prisma.aIArtifactImageHistory.findFirst({
-      where: {
-        artifactId: id,
-        changeType: AIArtifactImageChangeType.Create,
-      },
+      where: { artifactId, changeType: AIArtifactImageChangeType.Create },
       orderBy: { changedAt: 'asc' },
     });
 
     if (!originalEntry) {
       throw new BadRequestException(
-        `Original image entry for AI artifact with id ${id} not found`,
+        `Original image entry for AI artifact with id ${artifactId} not found`,
       );
     }
 
-    if (artifact.imageUrl === originalEntry.imageUrl) {
+    if (media.url === originalEntry.imageUrl) {
       throw new BadRequestException('Image is already at the original version');
     }
 
     const intermediateEntries = await this.prisma.aIArtifactImageHistory.findMany({
-      where: {
-        artifactId: id,
-        id: { not: originalEntry.id },
-      },
+      where: { artifactId, id: { not: originalEntry.id } },
       select: { imageUrl: true },
     });
 
     const urlsToDelete = Array.from(
       new Set(
-        intermediateEntries
-          .map((e) => e.imageUrl)
+        [media.url, ...intermediateEntries.map((e) => e.imageUrl)]
           .filter((url): url is string => Boolean(url) && url !== originalEntry.imageUrl),
       ),
     );
 
-    const reverted = await this.prisma.$transaction(async (tx) => {
+    await this.prisma.$transaction(async (tx) => {
       await tx.aIArtifactImageHistory.deleteMany({
-        where: {
-          artifactId: id,
-          id: { not: originalEntry.id },
-        },
+        where: { artifactId, id: { not: originalEntry.id } },
       });
 
-      const updated = await tx.aIArtifact.update({
-        where: { id },
-        data: {
-          imageUrl: originalEntry.imageUrl,
-          imagePrompt: originalEntry.imagePrompt,
-        },
+      await tx.aIArtifactMedia.update({
+        where: { id: mediaId },
+        data: { url: originalEntry.imageUrl },
       });
-
-      return updated;
     });
 
     const results = await Promise.allSettled(
@@ -375,74 +400,55 @@ export class AiArtifactService {
       }
     });
 
-    return reverted;
+    return this.prisma.aIArtifact.findUnique({
+      where: { id: artifactId },
+      include: { media: { orderBy: { order: 'asc' } } },
+    });
   }
 
-  async revertAiArtifactPrevious(id: string) {
-    const artifact = await this.prisma.aIArtifact.findUnique({
-      where: { id },
-      select: {
-        id: true,
-        businessId: true,
-        imageUrl: true,
-        imagePrompt: true,
-      },
-    });
-
-    if (!artifact) {
-      throw new NotFoundException(`AI artifact with id ${id} not found`);
+  async revertAiArtifactPrevious(artifactId: string, mediaId: string) {
+    const media = await this.prisma.aIArtifactMedia.findUnique({ where: { id: mediaId } });
+    if (!media || media.artifactId !== artifactId) {
+      throw new NotFoundException(`Media with id ${mediaId} not found for artifact ${artifactId}`);
     }
 
     const lastTwoEntries = await this.prisma.aIArtifactImageHistory.findMany({
-      where: { artifactId: id },
+      where: { artifactId },
       orderBy: { changedAt: 'desc' },
       take: 2,
     });
 
     if (lastTwoEntries.length < 2) {
-      throw new BadRequestException(
-        'Cannot revert: no previous version available',
-      );
+      throw new BadRequestException('Cannot revert: no previous version available');
     }
 
     const [currentEntry, previousEntry] = lastTwoEntries;
 
-    if (artifact.imageUrl === previousEntry.imageUrl) {
+    if (media.url === previousEntry.imageUrl) {
       throw new BadRequestException('Image is already at the previous version');
     }
 
     const otherEntriesWithSameUrl = await this.prisma.aIArtifactImageHistory.count({
       where: {
-        artifactId: id,
-        imageUrl: artifact.imageUrl ?? '',
+        artifactId,
+        imageUrl: media.url ?? '',
         id: { not: currentEntry.id },
       },
     });
 
     const shouldDeleteFromS3 = otherEntriesWithSameUrl === 0;
-    const urlToDelete = artifact.imageUrl;
+    const urlToDelete = media.url;
 
-    const reverted = await this.prisma.$transaction(async (tx) => {
-      await tx.aIArtifactImageHistory.delete({
-        where: { id: currentEntry.id },
+    await this.prisma.$transaction(async (tx) => {
+      await tx.aIArtifactImageHistory.delete({ where: { id: currentEntry.id } });
+
+      await tx.aIArtifactMedia.update({
+        where: { id: mediaId },
+        data: { url: previousEntry.imageUrl },
       });
-
-      const updated = await tx.aIArtifact.update({
-        where: { id },
-        data: {
-          imageUrl: previousEntry.imageUrl,
-          imagePrompt: previousEntry.imagePrompt,
-        },
-      });
-
-      return updated;
     });
 
-    if (
-      shouldDeleteFromS3 &&
-      urlToDelete &&
-      urlToDelete !== previousEntry.imageUrl
-    ) {
+    if (shouldDeleteFromS3 && urlToDelete && urlToDelete !== previousEntry.imageUrl) {
       try {
         await this.s3Service.delete(urlToDelete);
       } catch (error) {
@@ -453,7 +459,10 @@ export class AiArtifactService {
       }
     }
 
-    return reverted;
+    return this.prisma.aIArtifact.findUnique({
+      where: { id: artifactId },
+      include: { media: { orderBy: { order: 'asc' } } },
+    });
   }
 
   async startGenerateImage(artifactId: string, businessId: string, imagePrompt: any, photos: Photo[]) {
@@ -465,8 +474,20 @@ export class AiArtifactService {
       ? await this.aiReplicateService.generateStoryImage(imagePrompt, businessId, photos)
       : await this.aiReplicateService.generatePostImage(imagePrompt, businessId, photos);
 
-    await this.prisma.aIArtifactMedia.create({
-      data: { artifactId, businessId, type: MediaType.Image, url: s3Key },
+    await this.prisma.$transaction(async (tx) => {
+      await tx.aIArtifactMedia.create({
+        data: { artifactId, businessId, type: MediaType.Image, url: s3Key },
+      });
+
+      await tx.aIArtifactImageHistory.create({
+        data: {
+          artifactId,
+          businessId,
+          imageUrl: s3Key,
+          imagePrompt: this.serializeImagePrompt(imagePrompt),
+          changeType: AIArtifactImageChangeType.Create,
+        },
+      });
     });
 
     return await this.prisma.aIArtifact.findUnique({
