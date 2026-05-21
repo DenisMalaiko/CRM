@@ -107,7 +107,7 @@ function Posts() {
 
           if(response && response?.data) {
             dispatch(setPosts(response.data));
-            console.log("POSTS ", response.data.filter(x => x.id === 'b7e2e6ad-998d-4aea-9f0f-b208645d549b'))
+            console.log("POSTS ", response.data)
           }
           if(profilesResponse && profilesResponse?.data) dispatch(setProfiles(profilesResponse.data));
           if(productsResponse && productsResponse?.data) dispatch(setProducts(productsResponse.data));

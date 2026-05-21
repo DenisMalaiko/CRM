@@ -510,14 +510,24 @@ export class AiArtifactService {
 
     const enhancedPrompt = await this.aiService.generateVideoPrompt(description, business);
 
-    const requestId = await this.higgsfieldsService.createVideoJob({
-      prompt: enhancedPrompt,
-      sourceUrl,
+    const media = await this.prisma.aIArtifactMedia.create({
+      data: { artifactId, businessId, type: MediaType.Video, sourceUrl },
     });
 
-    await this.prisma.aIArtifactMedia.create({
-      data: { artifactId, businessId, type: MediaType.Video, jobId: requestId, sourceUrl },
-    });
+    try {
+      const s3Key = await this.higgsfieldsService.generateAndSaveVideo({
+        prompt: enhancedPrompt,
+        businessId,
+        sourceUrl,
+      });
+      await this.prisma.aIArtifactMedia.update({
+        where: { id: media.id },
+        data: { url: s3Key },
+      });
+    } catch (err) {
+      await this.prisma.aIArtifactMedia.delete({ where: { id: media.id } });
+      throw err;
+    }
 
     return await this.prisma.aIArtifact.findUnique({
       where: { id: artifactId },
@@ -551,25 +561,11 @@ export class AiArtifactService {
             mediaItem.jobId = null;
           }
         } else if (mediaItem.type === MediaType.Video) {
-          const status = await this.higgsfieldsService.getJobStatus(jobId);
-          if (status.status === 'completed' && status.videoUrl) {
-            const s3Key = await this.higgsfieldsService.downloadAndSaveVideo(
-              status.videoUrl,
-              businessId,
-            );
-            await this.prisma.aIArtifactMedia.update({
-              where: { id: mediaItem.id },
-              data: { url: s3Key, jobId: null },
-            });
-            mediaItem.url = s3Key;
-            mediaItem.jobId = null;
-          } else if (status.status === 'nsfw' || status.status === 'failed') {
-            await this.prisma.aIArtifactMedia.update({
-              where: { id: mediaItem.id },
-              data: { jobId: null },
-            });
-            mediaItem.jobId = null;
-          }
+          await this.prisma.aIArtifactMedia.update({
+            where: { id: mediaItem.id },
+            data: { jobId: null },
+          });
+          mediaItem.jobId = null;
         }
       } catch {
         await this.prisma.aIArtifactMedia.update({
