@@ -1,6 +1,16 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { HiggsfieldsService } from './higgsfields.service';
+import { ConfigService } from '@nestjs/config';
+import { InternalServerErrorException } from '@nestjs/common';
 import { S3Service } from '../../core/s3/s3.service';
+
+const mockExecFileAsync = jest.fn();
+jest.mock('child_process', () => ({ execFile: jest.fn() }));
+jest.mock('util', () => ({
+  ...jest.requireActual('util'),
+  promisify: () => mockExecFileAsync,
+}));
+
+import { HiggsfieldsService } from './higgsfields.service';
 
 const mockFetch = jest.fn();
 global.fetch = mockFetch;
@@ -9,6 +19,7 @@ describe('HiggsfieldsService (unit)', () => {
   let module: TestingModule;
   let service: HiggsfieldsService;
   let mockS3Service: jest.Mocked<Pick<S3Service, 'upload' | 'delete'>>;
+  let mockConfigService: { get: jest.Mock };
 
   beforeAll(async () => {
     mockS3Service = {
@@ -16,10 +27,15 @@ describe('HiggsfieldsService (unit)', () => {
       delete: jest.fn().mockResolvedValue(undefined),
     };
 
+    mockConfigService = {
+      get: jest.fn().mockReturnValue(undefined),
+    };
+
     module = await Test.createTestingModule({
       providers: [
         HiggsfieldsService,
         { provide: S3Service, useValue: mockS3Service },
+        { provide: ConfigService, useValue: mockConfigService },
       ],
     }).compile();
 
@@ -34,138 +50,100 @@ describe('HiggsfieldsService (unit)', () => {
     jest.clearAllMocks();
   });
 
-  describe('createVideoJob', () => {
-    it('returns request_id on success without sourceUrl', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: jest.fn().mockResolvedValue({ request_id: 'abc-123' }),
-      });
+  describe('generateVideo', () => {
+    it('returns result_url on successful generation', async () => {
+      const cliOutput = JSON.stringify([
+        { id: 'job-001', status: 'completed', result_url: 'https://cdn.example.com/video.mp4' },
+      ]);
+      mockExecFileAsync.mockResolvedValueOnce({ stdout: cliOutput });
 
-      const result = await service.createVideoJob({ prompt: 'A scenic mountain view' });
+      const result = await service.generateVideo({ prompt: 'sunset ocean' });
 
-      expect(result).toBe('abc-123');
-      expect(mockFetch).toHaveBeenCalledTimes(1);
-      const [url, options] = mockFetch.mock.calls[0];
-      expect(options.method).toBe('POST');
-      const body = JSON.parse(options.body);
-      expect(body.prompt).toBe('A scenic mountain view');
-      expect(body.source_url).toBeUndefined();
+      expect(result).toBe('https://cdn.example.com/video.mp4');
+      expect(mockExecFileAsync).toHaveBeenCalledWith(
+        'higgsfield',
+        expect.arrayContaining(['generate', 'create', '--prompt', 'sunset ocean', '--wait', '--json']),
+        expect.objectContaining({ timeout: 600000 }),
+      );
     });
 
-    it('returns request_id on success with sourceUrl', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: jest.fn().mockResolvedValue({ request_id: 'xyz-456' }),
-      });
+    it('uses custom model from config', async () => {
+      mockConfigService.get.mockReturnValueOnce('kling3_0');
+      const cliOutput = JSON.stringify([
+        { id: 'job-002', status: 'completed', result_url: 'https://cdn.example.com/v2.mp4' },
+      ]);
+      mockExecFileAsync.mockResolvedValueOnce({ stdout: cliOutput });
 
-      const result = await service.createVideoJob({
-        prompt: 'Product showcase',
+      await service.generateVideo({ prompt: 'test' });
+
+      expect(mockExecFileAsync).toHaveBeenCalledWith(
+        'higgsfield',
+        expect.arrayContaining(['kling3_0']),
+        expect.any(Object),
+      );
+    });
+
+    it('passes start-image when sourceUrl is provided', async () => {
+      const cliOutput = JSON.stringify([
+        { id: 'job-003', status: 'completed', result_url: 'https://cdn.example.com/v3.mp4' },
+      ]);
+      mockExecFileAsync.mockResolvedValueOnce({ stdout: cliOutput });
+
+      await service.generateVideo({
+        prompt: 'test',
         sourceUrl: 'https://example.com/image.jpg',
       });
 
-      expect(result).toBe('xyz-456');
-      const body = JSON.parse(mockFetch.mock.calls[0][1].body);
-      expect(body.source_url).toBe('https://example.com/image.jpg');
+      expect(mockExecFileAsync).toHaveBeenCalledWith(
+        'higgsfield',
+        expect.arrayContaining(['--start-image', 'https://example.com/image.jpg']),
+        expect.any(Object),
+      );
     });
 
-    it('throws an error when API responds with non-ok status', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: false,
-        status: 422,
-        text: jest.fn().mockResolvedValue('Unprocessable Entity'),
-      });
+    it('throws InternalServerErrorException when CLI returns failed status', async () => {
+      const cliOutput = JSON.stringify([
+        { id: 'job-004', status: 'failed', result_url: null },
+      ]);
+      mockExecFileAsync.mockResolvedValueOnce({ stdout: cliOutput });
 
       await expect(
-        service.createVideoJob({ prompt: 'bad request' }),
-      ).rejects.toThrow('Higgsfield API error 422: Unprocessable Entity');
+        service.generateVideo({ prompt: 'bad prompt' }),
+      ).rejects.toThrow(InternalServerErrorException);
     });
 
-    it('throws an error when API responds with 500', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: false,
-        status: 500,
-        text: jest.fn().mockResolvedValue('Internal Server Error'),
-      });
+    it('throws InternalServerErrorException when CLI errors', async () => {
+      mockExecFileAsync.mockRejectedValueOnce(new Error('CLI not found'));
 
       await expect(
-        service.createVideoJob({ prompt: 'test' }),
-      ).rejects.toThrow('Higgsfield API error 500');
+        service.generateVideo({ prompt: 'test' }),
+      ).rejects.toThrow(InternalServerErrorException);
     });
   });
 
-  describe('getJobStatus', () => {
-    it('returns queued status without videoUrl when job is queued', async () => {
+  describe('generateAndSaveVideo', () => {
+    it('generates video and saves to S3', async () => {
+      const cliOutput = JSON.stringify([
+        { id: 'job-005', status: 'completed', result_url: 'https://cdn.example.com/video.mp4' },
+      ]);
+      mockExecFileAsync.mockResolvedValueOnce({ stdout: cliOutput });
+
+      const fakeBuffer = Buffer.from('fake-video-data');
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: jest.fn().mockResolvedValue({ status: 'queued' }),
+        arrayBuffer: jest.fn().mockResolvedValue(fakeBuffer.buffer),
       });
 
-      const result = await service.getJobStatus('req-001');
-
-      expect(result.status).toBe('queued');
-      expect(result.videoUrl).toBeUndefined();
-    });
-
-    it('returns in_progress status without videoUrl', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: jest.fn().mockResolvedValue({ status: 'in_progress' }),
+      const s3Key = await service.generateAndSaveVideo({
+        prompt: 'product showcase',
+        businessId: 'biz-001',
       });
 
-      const result = await service.getJobStatus('req-002');
-
-      expect(result.status).toBe('in_progress');
-      expect(result.videoUrl).toBeUndefined();
-    });
-
-    it('returns completed status with videoUrl', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: jest.fn().mockResolvedValue({
-          status: 'completed',
-          video: { url: 'https://cdn.higgsfield.ai/video.mp4' },
-        }),
-      });
-
-      const result = await service.getJobStatus('req-003');
-
-      expect(result.status).toBe('completed');
-      expect(result.videoUrl).toBe('https://cdn.higgsfield.ai/video.mp4');
-    });
-
-    it('returns nsfw status without videoUrl', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: jest.fn().mockResolvedValue({ status: 'nsfw' }),
-      });
-
-      const result = await service.getJobStatus('req-004');
-
-      expect(result.status).toBe('nsfw');
-      expect(result.videoUrl).toBeUndefined();
-    });
-
-    it('returns failed status without videoUrl', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: jest.fn().mockResolvedValue({ status: 'failed' }),
-      });
-
-      const result = await service.getJobStatus('req-005');
-
-      expect(result.status).toBe('failed');
-      expect(result.videoUrl).toBeUndefined();
-    });
-
-    it('throws an error when status API responds with non-ok status', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: false,
-        status: 404,
-        text: jest.fn().mockResolvedValue('Not Found'),
-      });
-
-      await expect(service.getJobStatus('nonexistent-id')).rejects.toThrow(
-        'Higgsfield status error 404: Not Found',
+      expect(s3Key).toMatch(/^ai-videos\/biz-001\/.+\.mp4$/);
+      expect(mockS3Service.upload).toHaveBeenCalledWith(
+        s3Key,
+        expect.any(Buffer),
+        'video/mp4',
       );
     });
   });

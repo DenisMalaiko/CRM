@@ -27,6 +27,7 @@ services:
       - ./backend/src:/app/src
       - ./backend/package.json:/app/package.json
       - ./backend/nest-cli.json:/app/nest-cli.json
+      - ~/.config/higgsfield:/root/.config/higgsfield:ro
     env_file:
       - ./backend/.env.docker
     depends_on:

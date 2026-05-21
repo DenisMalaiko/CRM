@@ -24,7 +24,7 @@ describe('AiArtifactService (integration)', () => {
   let mockHiggsfieldsService: jest.Mocked<
     Pick<
       HiggsfieldsService,
-      'createVideoJob' | 'getJobStatus' | 'downloadAndSaveVideo'
+      'generateAndSaveVideo' | 'downloadAndSaveVideo'
     >
   >;
   let mockS3Service: jest.Mocked<Pick<S3Service, 'upload' | 'delete'>>;
@@ -54,10 +54,9 @@ describe('AiArtifactService (integration)', () => {
     };
 
     mockHiggsfieldsService = {
-      createVideoJob: jest.fn().mockResolvedValue('higgsfield-req-001'),
-      getJobStatus: jest
+      generateAndSaveVideo: jest
         .fn()
-        .mockResolvedValue({ status: 'in_progress', videoUrl: undefined }),
+        .mockResolvedValue('ai-videos/biz/saved-video.mp4'),
       downloadAndSaveVideo: jest
         .fn()
         .mockResolvedValue('ai-videos/biz/saved-video.mp4'),
@@ -141,12 +140,7 @@ describe('AiArtifactService (integration)', () => {
     mockAiReplicateService.buildStoryImagePrompt.mockResolvedValue({ prompt: 'built-story-prompt', imageUrls: [] });
     mockAiReplicateService.generatePostImage.mockResolvedValue('ai-images/biz/generated-post.png');
     mockAiReplicateService.generateStoryImage.mockResolvedValue('ai-images/biz/generated-story.png');
-    mockHiggsfieldsService.createVideoJob.mockResolvedValue('higgsfield-req-001');
-    mockHiggsfieldsService.getJobStatus.mockResolvedValue({
-      status: 'in_progress',
-      videoUrl: undefined,
-    });
-    mockHiggsfieldsService.downloadAndSaveVideo.mockResolvedValue(
+    mockHiggsfieldsService.generateAndSaveVideo.mockResolvedValue(
       'ai-videos/biz/saved-video.mp4',
     );
     mockStorageUrlService.getPublicUrl.mockImplementation(
@@ -405,8 +399,8 @@ describe('AiArtifactService (integration)', () => {
   // startGenerateVideo
   // ─────────────────────────────────────────────
   describe('startGenerateVideo', () => {
-    it('calls generateVideoPrompt then createVideoJob and creates a Video media record', async () => {
-      mockHiggsfieldsService.createVideoJob.mockResolvedValue('hf-req-video-001');
+    it('calls generateVideoPrompt then generateAndSaveVideo and saves video URL', async () => {
+      mockHiggsfieldsService.generateAndSaveVideo.mockResolvedValue('ai-videos/biz/saved.mp4');
 
       await service.startGenerateVideo({
         artifactId,
@@ -418,8 +412,9 @@ describe('AiArtifactService (integration)', () => {
         'product launch',
         expect.objectContaining({ name: 'Test Business' }),
       );
-      expect(mockHiggsfieldsService.createVideoJob).toHaveBeenCalledWith({
+      expect(mockHiggsfieldsService.generateAndSaveVideo).toHaveBeenCalledWith({
         prompt: 'Cinematic product showcase with soft lighting',
+        businessId,
         sourceUrl: undefined,
       });
 
@@ -427,11 +422,10 @@ describe('AiArtifactService (integration)', () => {
         where: { artifactId, type: MediaType.Video },
       });
       expect(media).not.toBeNull();
-      expect(media!.jobId).toBe('hf-req-video-001');
-      expect(media!.url).toBeNull();
+      expect(media!.url).toBe('ai-videos/biz/saved.mp4');
     });
 
-    it('passes sourceUrl to createVideoJob when provided', async () => {
+    it('passes sourceUrl to generateAndSaveVideo when provided', async () => {
       await service.startGenerateVideo({
         artifactId,
         businessId,
@@ -439,7 +433,7 @@ describe('AiArtifactService (integration)', () => {
         sourceUrl: 'https://example.com/source.jpg',
       });
 
-      expect(mockHiggsfieldsService.createVideoJob).toHaveBeenCalledWith(
+      expect(mockHiggsfieldsService.generateAndSaveVideo).toHaveBeenCalledWith(
         expect.objectContaining({ sourceUrl: 'https://example.com/source.jpg' }),
       );
 
@@ -567,99 +561,16 @@ describe('AiArtifactService (integration)', () => {
         },
       });
 
-      mockHiggsfieldsService.getJobStatus.mockResolvedValue({
-        status: 'completed',
-        videoUrl: 'https://cdn.higgsfield.ai/done.mp4',
-      });
-      mockHiggsfieldsService.downloadAndSaveVideo.mockResolvedValue(
-        'ai-videos/biz/done.mp4',
-      );
-
       const result = await service.getAiArtifact(artifactId, businessId);
 
       const videoMedia = result.media.find((m) => m.type === MediaType.Video);
       expect(videoMedia).toBeDefined();
-      expect(videoMedia!.url).toBe('https://cdn.example.com/ai-videos/biz/done.mp4');
       expect(videoMedia!.jobId).toBeNull();
-
-      expect(mockHiggsfieldsService.downloadAndSaveVideo).toHaveBeenCalledWith(
-        'https://cdn.higgsfield.ai/done.mp4',
-        businessId,
-      );
 
       const dbRecord = await prisma.aIArtifactMedia.findFirst({
         where: { artifactId, type: MediaType.Video },
       });
-      expect(dbRecord!.url).toBe('ai-videos/biz/done.mp4');
       expect(dbRecord!.jobId).toBeNull();
-    });
-
-    it('polling — video failed: clears jobId without throwing', async () => {
-      await prisma.aIArtifactMedia.create({
-        data: {
-          artifactId,
-          businessId,
-          type: MediaType.Video,
-          jobId: 'hf-req-failed',
-        },
-      });
-
-      mockHiggsfieldsService.getJobStatus.mockResolvedValue({
-        status: 'failed',
-        videoUrl: undefined,
-      });
-
-      const result = await service.getAiArtifact(artifactId, businessId);
-
-      const videoMedia = result.media.find((m) => m.type === MediaType.Video);
-      expect(videoMedia).toBeDefined();
-      expect(videoMedia!.jobId).toBeNull();
-      expect(videoMedia!.url).toBeNull();
-
-      expect(mockHiggsfieldsService.downloadAndSaveVideo).not.toHaveBeenCalled();
-    });
-
-    it('polling — video nsfw: clears jobId without throwing', async () => {
-      await prisma.aIArtifactMedia.create({
-        data: {
-          artifactId,
-          businessId,
-          type: MediaType.Video,
-          jobId: 'hf-req-nsfw',
-        },
-      });
-
-      mockHiggsfieldsService.getJobStatus.mockResolvedValue({
-        status: 'nsfw',
-        videoUrl: undefined,
-      });
-
-      const result = await service.getAiArtifact(artifactId, businessId);
-
-      const videoMedia = result.media.find((m) => m.type === MediaType.Video);
-      expect(videoMedia!.jobId).toBeNull();
-      expect(mockHiggsfieldsService.downloadAndSaveVideo).not.toHaveBeenCalled();
-    });
-
-    it('polling — when getJobStatus throws: clears jobId and does not propagate error', async () => {
-      await prisma.aIArtifactMedia.create({
-        data: {
-          artifactId,
-          businessId,
-          type: MediaType.Video,
-          jobId: 'hf-req-error',
-        },
-      });
-
-      mockHiggsfieldsService.getJobStatus.mockRejectedValue(
-        new Error('Higgsfield status error 503: Service Unavailable'),
-      );
-
-      // Should not throw — errors are caught per media item
-      const result = await service.getAiArtifact(artifactId, businessId);
-
-      const videoMedia = result.media.find((m) => m.type === MediaType.Video);
-      expect(videoMedia!.jobId).toBeNull();
     });
 
     it('returns artifact with imageUrl resolved through storageUrlService', async () => {

@@ -6,6 +6,7 @@ WORKDIR /app
 COPY package*.json ./
 
 RUN npm install
+RUN npm install -g @higgsfield/cli
 
 # Copy all files including prisma and src
 COPY . .
