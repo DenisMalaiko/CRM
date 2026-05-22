@@ -135,7 +135,6 @@ export class AiArtifactService {
             type: body.form.type,
             outputJson: item,
             status: AIArtifactStatus.Draft,
-            imageUrl: item.imageUrl,
             imagePrompt: this.serializeImagePrompt(item.image_prompt),
             products: {
               create: products.map((p) => ({
@@ -183,7 +182,8 @@ export class AiArtifactService {
           return this.startGenerateVideo({
             artifactId: artifact.id,
             businessId,
-            description: artifact.imagePrompt,
+            description: body?.form?.prompt ?? '',
+            galleryPhotosUrls
           });
         }
         return Promise.resolve(artifact);
@@ -496,8 +496,13 @@ export class AiArtifactService {
     });
   }
 
-  async startGenerateVideo(params: { artifactId: string; businessId: string; description: string; sourceUrl?: string; }) {
-    const { artifactId, businessId, description, sourceUrl } = params;
+  async startGenerateVideo(params: { artifactId: string; businessId: string; description: string; galleryPhotosUrls: any; }) {
+    const { artifactId, businessId, description, galleryPhotosUrls } = params;
+
+    console.log("-------------");
+    console.log("DESCRIPTION ", description);
+    console.log("-------------");
+    console.log("GALLERY PHOTOS ", galleryPhotosUrls);
 
     const artifact = await this.prisma.aIArtifact.findUnique({ where: { id: artifactId } });
     if (!artifact || artifact.businessId !== businessId) throw new NotFoundException(`Artifact ${artifactId} not found`);
@@ -508,17 +513,24 @@ export class AiArtifactService {
     });
     if (!business) throw new NotFoundException(`Business ${businessId} not found`);
 
-    const enhancedPrompt = await this.aiService.generateVideoPrompt(description, business);
+    //const enhancedPrompt = await this.aiService.generateVideoPrompt(description, business);
+    const sourceUrl = galleryPhotosUrls[0].url;
 
     const media = await this.prisma.aIArtifactMedia.create({
       data: { artifactId, businessId, type: MediaType.Video, sourceUrl },
     });
 
+    console.log("-------------");
+    console.log("PROMPT ", description);
+    console.log("-------------");
+    console.log("SOURCE URL ", sourceUrl);
+    console.log("-------------");
+
     try {
       const s3Key = await this.higgsfieldsService.generateAndSaveVideo({
-        prompt: enhancedPrompt,
+        prompt: description,
         businessId,
-        sourceUrl,
+        sourceUrl
       });
       await this.prisma.aIArtifactMedia.update({
         where: { id: media.id },

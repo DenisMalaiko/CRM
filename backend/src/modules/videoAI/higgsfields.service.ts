@@ -2,10 +2,18 @@ import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common
 import { ConfigService } from '@nestjs/config';
 import { S3Service } from '../../core/s3/s3.service';
 import { randomUUID } from 'crypto';
-import { execFile } from 'child_process';
-import { promisify } from 'util';
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const { createHiggsfieldClient } = require('@higgsfield/client/v2');
 
-const execFileAsync = promisify(execFile);
+interface HiggsfieldsVideoResponse {
+  status: 'queued' | 'in_progress' | 'completed' | 'failed' | 'nsfw';
+  request_id: string;
+  video?: { url: string };
+}
+
+interface HiggsfieldsClient {
+  subscribe(endpoint: string, options: { input: Record<string, unknown>; withPolling?: boolean }): Promise<HiggsfieldsVideoResponse>;
+}
 
 export interface HiggsfieldsResult {
   id: string;
@@ -16,11 +24,22 @@ export interface HiggsfieldsResult {
 @Injectable()
 export class HiggsfieldsService {
   private readonly logger = new Logger(HiggsfieldsService.name);
+  private readonly client: HiggsfieldsClient;
 
   constructor(
     private readonly s3Service: S3Service,
     private readonly configService: ConfigService,
-  ) {}
+  ) {
+    const apiKey = this.configService.getOrThrow<string>('HIGGSFIELD_API_KEY');
+    const apiSecret = this.configService.getOrThrow<string>(
+      'HIGGSFIELD_API_KEY_SECRET',
+    );
+
+    this.client = createHiggsfieldClient({
+      credentials: `${apiKey}:${apiSecret}`,
+      maxPollTime: 10 * 60 * 1000,
+    });
+  }
 
   async generateVideo(params: {
     prompt: string;
@@ -28,9 +47,9 @@ export class HiggsfieldsService {
   }): Promise<string> {
     const modelId =
       this.configService.get<string>('HIGGSFIELD_MODEL_ID') ??
-      'cinematic_studio_video_v2';
+      'dop-turbo';
 
-    const result = await this.runCli(modelId, params);
+    const result = await this.runGeneration(modelId, params);
 
     return result.resultUrl;
   }
@@ -48,51 +67,60 @@ export class HiggsfieldsService {
     return await this.downloadAndSaveVideo(videoUrl, params.businessId);
   }
 
-  private async runCli(
+  private async runGeneration(
     model: string,
     params: { prompt: string; sourceUrl?: string },
   ): Promise<HiggsfieldsResult> {
-    const args = [
-      'generate',
-      'create',
+    const videoParams: Record<string, unknown> = {
       model,
-      '--prompt',
-      params.prompt,
-      '--aspect_ratio',
-      '9:16',
-      '--wait',
-      '--json',
-    ];
+      prompt: params.prompt,
+    };
 
     if (params.sourceUrl) {
-      args.push('--start-image', params.sourceUrl);
+      videoParams.input_images = [
+        { type: 'image_url', image_url: params.sourceUrl },
+      ];
     }
 
     try {
-      const { stdout } = await execFileAsync('higgsfield', args, {
-        timeout: 10 * 60 * 1000,
+      const response = await this.client.subscribe('/v1/image2video/dop', {
+        input: { params: videoParams },
+        withPolling: true,
       });
 
-      const jobs = JSON.parse(stdout);
-      const job = jobs[0];
-
-      if (!job || job.status !== 'completed' || !job.result_url) {
-        this.logger.error(`Unexpected CLI response: ${stdout}`);
+      if (response.status === 'nsfw') {
         throw new InternalServerErrorException(
-          `Video generation failed: status=${job?.status}`,
+          'Video generation failed: content rejected by moderation',
+        );
+      }
+
+      if (response.status !== 'completed') {
+        this.logger.error(
+          `Unexpected SDK response: status=${response.status}`,
+        );
+        throw new InternalServerErrorException(
+          `Video generation failed: status=${response.status}`,
+        );
+      }
+
+      const resultUrl = response.video?.url;
+      if (!resultUrl) {
+        throw new InternalServerErrorException(
+          'Video generation failed: no result URL',
         );
       }
 
       return {
-        id: job.id,
-        status: job.status,
-        resultUrl: job.result_url,
+        id: response.request_id,
+        status: 'completed',
+        resultUrl,
       };
     } catch (err) {
       if (err instanceof InternalServerErrorException) throw err;
-      this.logger.error(`Higgsfield CLI error: ${err.message}`);
+      const message = err instanceof Error ? err.message : String(err);
+      this.logger.error(`Higgsfield SDK error: ${message}`);
       throw new InternalServerErrorException(
-        `Video generation failed: ${err.message}`,
+        `Video generation failed: ${message}`,
       );
     }
   }
@@ -103,7 +131,7 @@ export class HiggsfieldsService {
   ): Promise<string> {
     const response = await fetch(videoUrl);
     if (!response.ok) {
-      throw new Error(`Failed to download video: ${response.status}`);
+      throw new InternalServerErrorException(`Failed to download video: ${response.status}`);
     }
     const buffer = Buffer.from(await response.arrayBuffer());
     const key = `ai-videos/${businessId}/${randomUUID()}.mp4`;
