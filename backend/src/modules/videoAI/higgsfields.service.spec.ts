@@ -6,7 +6,7 @@ import { S3Service } from '../../core/s3/s3.service';
 const mockSubscribe = jest.fn();
 jest.mock('@higgsfield/client/v2', () => ({
   createHiggsfieldClient: () => ({ subscribe: mockSubscribe }),
-}));
+}), { virtual: true });
 
 import { HiggsfieldsService } from './higgsfields.service';
 
@@ -14,22 +14,27 @@ const mockFetch = jest.fn();
 global.fetch = mockFetch;
 
 function makeResponse(overrides: {
-  request_id?: string;
-  status?: string;
+  id?: string;
+  status?: 'queued' | 'in_progress' | 'completed' | 'failed' | 'nsfw';
   videoUrl?: string | null;
 } = {}) {
   const {
-    request_id = 'req-001',
+    id = 'req-001',
     status = 'completed',
     videoUrl = 'https://cdn.example.com/video.mp4',
   } = overrides;
 
   return {
-    request_id,
-    status,
-    status_url: `https://platform.higgsfield.ai/status/${request_id}`,
-    cancel_url: `https://platform.higgsfield.ai/cancel/${request_id}`,
-    video: videoUrl ? { url: videoUrl } : undefined,
+    id,
+    type: 'image2video',
+    created_at: '2026-05-25T12:00:00Z',
+    jobs: [{
+      id: 'job-001',
+      job_set_type: 'image2video',
+      status,
+      results: videoUrl ? { raw: { url: videoUrl }, min: { url: videoUrl } } : null,
+    }],
+    input_params: {},
   };
 }
 
@@ -76,7 +81,7 @@ describe('HiggsfieldsService (unit)', () => {
   });
 
   describe('generateVideo', () => {
-    it('returns result URL on successful generation', async () => {
+    it('returns result URL when initial response is completed', async () => {
       mockSubscribe.mockResolvedValueOnce(makeResponse());
 
       const result = await service.generateVideo({ prompt: 'sunset ocean' });
@@ -91,9 +96,39 @@ describe('HiggsfieldsService (unit)', () => {
               prompt: 'sunset ocean',
             }),
           }),
-          withPolling: true,
         }),
       );
+    });
+
+    it('polls until completed when initial status is queued', async () => {
+      jest.useFakeTimers();
+
+      mockSubscribe.mockResolvedValueOnce(makeResponse({ status: 'queued', videoUrl: null }));
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(makeResponse({ status: 'in_progress', videoUrl: null })),
+      }).mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(makeResponse({ status: 'completed' })),
+      });
+
+      const promise = service.generateVideo({ prompt: 'sunset ocean' });
+
+      await jest.advanceTimersByTimeAsync(5_000);
+      await jest.advanceTimersByTimeAsync(5_000);
+
+      const result = await promise;
+
+      expect(result).toBe('https://cdn.example.com/video.mp4');
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://platform.higgsfield.ai/requests/req-001/status',
+        expect.objectContaining({
+          headers: { Authorization: 'Key test-key:test-secret' },
+        }),
+      );
+
+      jest.useRealTimers();
     });
 
     it('uses custom model from config', async () => {
@@ -102,8 +137,9 @@ describe('HiggsfieldsService (unit)', () => {
         makeResponse({ videoUrl: 'https://cdn.example.com/v2.mp4' }),
       );
 
-      await service.generateVideo({ prompt: 'test' });
+      const result = await service.generateVideo({ prompt: 'test' });
 
+      expect(result).toBe('https://cdn.example.com/v2.mp4');
       expect(mockSubscribe).toHaveBeenCalledWith(
         '/v1/image2video/dop',
         expect.objectContaining({
@@ -164,7 +200,7 @@ describe('HiggsfieldsService (unit)', () => {
       ).rejects.toThrow(InternalServerErrorException);
     });
 
-    it('throws InternalServerErrorException when status is completed but video URL is missing', async () => {
+    it('throws InternalServerErrorException when completed but no video URL', async () => {
       mockSubscribe.mockResolvedValueOnce(
         makeResponse({ status: 'completed', videoUrl: null }),
       );

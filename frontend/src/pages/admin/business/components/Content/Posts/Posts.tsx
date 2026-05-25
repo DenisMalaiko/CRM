@@ -310,13 +310,30 @@ function Posts() {
                       {(item?.media && item?.media.length) && (
                         item?.media.map((media) => (
                           <>
-                            <img
-                              src={`${media.url}`}
-                              alt="AI generated"
-                              className="w-full rounded-xl border border-slate-200"
-                            />
+                            {media.type === 'Video' && (
+                              <div>
+                                <video
+                                  src={media.url}
+                                  poster={media.sourceUrl ?? undefined}
+                                  controls
+                                  playsInline
+                                  preload="metadata"
+                                  className="w-full rounded-xl border border-slate-200"
+                                />
+                              </div>
+                            )}
 
-                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition duration-300 flex items-center justify-center flex-col">
+                            {media.type === 'Image' && (
+                              <div>
+                                <img
+                                  src={`${media.url}`}
+                                  alt="AI generated"
+                                  className="w-full rounded-xl border border-slate-200"
+                                />
+                              </div>
+                            )}
+
+                            {/*<div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition duration-300 flex items-center justify-center flex-col">
                               <div className="flex gap-5">
                                 <button
                                   onClick={() => setOpenEditPhotoDlg({ photoId: item.id, mediaId: media.id })}
@@ -332,7 +349,7 @@ function Posts() {
                                   <ImagePlay size={18} />
                                 </button>
                               </div>
-                            </div>
+                            </div>*/}
                           </>
                         ))
                       )}
