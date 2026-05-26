@@ -8,7 +8,7 @@ const Replicate = require("replicate");
 
 import { jsonrepair } from "jsonrepair";
 
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { S3Service } from "../../core/s3/s3.service";
 import {
   postImageRoleBlock,
@@ -642,6 +642,46 @@ export class AiReplicateService {
       buffer,
       "image/png"
     );
+
+    return key;
+  }
+
+  async generateAndSaveVideo(params: {
+    prompt: string;
+    businessId: string;
+    sourceUrl?: string;
+    aspectRatio?: string;
+    duration?: number;
+  }): Promise<string> {
+    const input: Record<string, unknown> = {
+      fps: 24,
+      prompt: params.prompt,
+      duration: params.duration ?? 5,
+      resolution: '720p',
+      aspect_ratio: params.aspectRatio ?? '16:9',
+    };
+
+    if (params.sourceUrl) {
+      input.image = params.sourceUrl;
+    }
+
+    const output = await this.replicate.run('bytedance/seedance-1-lite', { input });
+
+    if (!output || typeof output.url !== 'function') {
+      throw new InternalServerErrorException('Replicate returned no video output');
+    }
+
+    const videoUrl = output.url();
+    const response = await fetch(videoUrl);
+    if (!response.ok) {
+      throw new InternalServerErrorException(
+        `Failed to download generated video: HTTP ${response.status}`,
+      );
+    }
+
+    const buffer = Buffer.from(await response.arrayBuffer());
+    const key = `ai-videos/${params.businessId}/${randomUUID()}.mp4`;
+    await this.s3Service.upload(key, buffer, 'video/mp4');
 
     return key;
   }

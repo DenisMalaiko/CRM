@@ -5,10 +5,9 @@ import { StorageModule } from "../../core/storage/storage.module";
 import { AiArtifactController } from "./aiArtifact.controller";
 import { AiArtifactService } from "./aiArtifact.service";
 import { AiModule } from "../ai/ai.module";
-import { VideoAIModule } from "../videoAI/videoAI.module";
 
 @Module({
-  imports: [AuthModule, AiModule, S3Module, StorageModule, VideoAIModule],
+  imports: [AuthModule, AiModule, S3Module, StorageModule],
   controllers: [AiArtifactController],
   providers: [AiArtifactService],
 })

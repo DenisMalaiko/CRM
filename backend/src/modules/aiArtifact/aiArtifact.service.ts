@@ -12,7 +12,6 @@ import {
 import { AiService } from "../ai/ai.service";
 import {AiPost} from "../ai/entities/aiPost.entity";
 import { AiReplicateService, Photo } from "../ai/ai-replicate.service";
-import { HiggsfieldsService } from "../videoAI/higgsfields.service";
 
 @Injectable()
 export class AiArtifactService {
@@ -24,7 +23,6 @@ export class AiArtifactService {
     private readonly storageUrlService: StorageUrlService,
     private readonly aiService: AiService,
     private readonly aiReplicateService: AiReplicateService,
-    private readonly higgsfieldsService: HiggsfieldsService,
   ) {}
 
   async getAiArtifacts(businessId: string, type?: AIArtifactType): Promise<AIArtifactBase[]> {
@@ -183,7 +181,8 @@ export class AiArtifactService {
             artifactId: artifact.id,
             businessId,
             description: body?.form?.prompt ?? '',
-            galleryPhotosUrls
+            galleryPhotosUrls,
+            artifactType: body.form.type,
           });
         }
         return Promise.resolve(artifact);
@@ -496,41 +495,25 @@ export class AiArtifactService {
     });
   }
 
-  async startGenerateVideo(params: { artifactId: string; businessId: string; description: string; galleryPhotosUrls: any; }) {
-    const { artifactId, businessId, description, galleryPhotosUrls } = params;
-
-    console.log("-------------");
-    console.log("DESCRIPTION ", description);
-    console.log("-------------");
-    console.log("GALLERY PHOTOS ", galleryPhotosUrls);
+  async startGenerateVideo(params: { artifactId: string; businessId: string; description: string; galleryPhotosUrls: any; artifactType: AIArtifactType; }) {
+    const { artifactId, businessId, description, galleryPhotosUrls, artifactType } = params;
 
     const artifact = await this.prisma.aIArtifact.findUnique({ where: { id: artifactId } });
     if (!artifact || artifact.businessId !== businessId) throw new NotFoundException(`Artifact ${artifactId} not found`);
 
-    const business = await this.prisma.business.findUnique({
-      where: { id: businessId },
-      select: { name: true },
-    });
-    if (!business) throw new NotFoundException(`Business ${businessId} not found`);
-
-    //const enhancedPrompt = await this.aiService.generateVideoPrompt(description, business);
-    const sourceUrl = galleryPhotosUrls[0].url;
+    const sourceUrl = galleryPhotosUrls[0]?.url;
 
     const media = await this.prisma.aIArtifactMedia.create({
       data: { artifactId, businessId, type: MediaType.Video, sourceUrl },
     });
 
-    console.log("-------------");
-    console.log("PROMPT ", description);
-    console.log("-------------");
-    console.log("SOURCE URL ", sourceUrl);
-    console.log("-------------");
-
     try {
-      const s3Key = await this.higgsfieldsService.generateAndSaveVideo({
+      const aspectRatio = artifactType === AIArtifactType.Story ? '9:16' : '4:5';
+      const s3Key = await this.aiReplicateService.generateAndSaveVideo({
         prompt: description,
         businessId,
-        sourceUrl
+        sourceUrl,
+        aspectRatio,
       });
       await this.prisma.aIArtifactMedia.update({
         where: { id: media.id },

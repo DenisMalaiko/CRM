@@ -10,7 +10,6 @@ import { S3Service } from '../../core/s3/s3.service';
 import { StorageUrlService } from '../../core/storage/storage-url.service';
 import { AiService } from '../ai/ai.service';
 import { AiReplicateService } from '../ai/ai-replicate.service';
-import { HiggsfieldsService } from '../videoAI/higgsfields.service';
 
 describe('AiArtifactService (integration)', () => {
   let module: TestingModule;
@@ -19,13 +18,7 @@ describe('AiArtifactService (integration)', () => {
 
   let mockAiService: jest.Mocked<Pick<AiService, 'generateVideoPrompt' | 'generateAiPhoto'>>;
   let mockAiReplicateService: jest.Mocked<
-    Pick<AiReplicateService, 'startAiPhotoJobAsync' | 'pollAndSaveImage' | 'buildPostImagePrompt' | 'buildStoryImagePrompt' | 'generatePostImage' | 'generateStoryImage'>
-  >;
-  let mockHiggsfieldsService: jest.Mocked<
-    Pick<
-      HiggsfieldsService,
-      'generateAndSaveVideo' | 'downloadAndSaveVideo'
-    >
+    Pick<AiReplicateService, 'startAiPhotoJobAsync' | 'pollAndSaveImage' | 'buildPostImagePrompt' | 'buildStoryImagePrompt' | 'generatePostImage' | 'generateStoryImage' | 'generateAndSaveVideo'>
   >;
   let mockS3Service: jest.Mocked<Pick<S3Service, 'upload' | 'delete'>>;
   let mockStorageUrlService: jest.Mocked<Pick<StorageUrlService, 'getPublicUrl'>>;
@@ -51,15 +44,7 @@ describe('AiArtifactService (integration)', () => {
       buildStoryImagePrompt: jest.fn().mockResolvedValue({ prompt: 'built-story-prompt', imageUrls: [] }),
       generatePostImage: jest.fn().mockResolvedValue('ai-images/biz/generated-post.png'),
       generateStoryImage: jest.fn().mockResolvedValue('ai-images/biz/generated-story.png'),
-    };
-
-    mockHiggsfieldsService = {
-      generateAndSaveVideo: jest
-        .fn()
-        .mockResolvedValue('ai-videos/biz/saved-video.mp4'),
-      downloadAndSaveVideo: jest
-        .fn()
-        .mockResolvedValue('ai-videos/biz/saved-video.mp4'),
+      generateAndSaveVideo: jest.fn().mockResolvedValue('ai-videos/biz/saved-video.mp4'),
     };
 
     mockS3Service = {
@@ -82,7 +67,6 @@ describe('AiArtifactService (integration)', () => {
         { provide: StorageUrlService, useValue: mockStorageUrlService },
         { provide: AiService, useValue: mockAiService },
         { provide: AiReplicateService, useValue: mockAiReplicateService },
-        { provide: HiggsfieldsService, useValue: mockHiggsfieldsService },
       ],
     }).compile();
 
@@ -140,9 +124,7 @@ describe('AiArtifactService (integration)', () => {
     mockAiReplicateService.buildStoryImagePrompt.mockResolvedValue({ prompt: 'built-story-prompt', imageUrls: [] });
     mockAiReplicateService.generatePostImage.mockResolvedValue('ai-images/biz/generated-post.png');
     mockAiReplicateService.generateStoryImage.mockResolvedValue('ai-images/biz/generated-story.png');
-    mockHiggsfieldsService.generateAndSaveVideo.mockResolvedValue(
-      'ai-videos/biz/saved-video.mp4',
-    );
+    mockAiReplicateService.generateAndSaveVideo.mockResolvedValue('ai-videos/biz/saved-video.mp4');
     mockStorageUrlService.getPublicUrl.mockImplementation(
       (key: string) => `https://cdn.example.com/${key}`,
     );
@@ -399,23 +381,15 @@ describe('AiArtifactService (integration)', () => {
   // startGenerateVideo
   // ─────────────────────────────────────────────
   describe('startGenerateVideo', () => {
-    it('calls generateVideoPrompt then generateAndSaveVideo and saves video URL', async () => {
-      mockHiggsfieldsService.generateAndSaveVideo.mockResolvedValue('ai-videos/biz/saved.mp4');
+    it('creates a Video media record and updates it with the S3 key on success', async () => {
+      mockAiReplicateService.generateAndSaveVideo.mockResolvedValue('ai-videos/biz/saved.mp4');
 
       await service.startGenerateVideo({
         artifactId,
         businessId,
         description: 'product launch',
-      });
-
-      expect(mockAiService.generateVideoPrompt).toHaveBeenCalledWith(
-        'product launch',
-        expect.objectContaining({ name: 'Test Business' }),
-      );
-      expect(mockHiggsfieldsService.generateAndSaveVideo).toHaveBeenCalledWith({
-        prompt: 'Cinematic product showcase with soft lighting',
-        businessId,
-        sourceUrl: undefined,
+        galleryPhotosUrls: [],
+        artifactType: AIArtifactType.Post,
       });
 
       const media = await prisma.aIArtifactMedia.findFirst({
@@ -425,15 +399,69 @@ describe('AiArtifactService (integration)', () => {
       expect(media!.url).toBe('ai-videos/biz/saved.mp4');
     });
 
-    it('passes sourceUrl to generateAndSaveVideo when provided', async () => {
+    it('calls aiReplicateService.generateAndSaveVideo with correct params', async () => {
+      mockAiReplicateService.generateAndSaveVideo.mockResolvedValue('ai-videos/biz/saved.mp4');
+
+      await service.startGenerateVideo({
+        artifactId,
+        businessId,
+        description: 'product launch',
+        galleryPhotosUrls: [],
+        artifactType: AIArtifactType.Post,
+      });
+
+      expect(mockAiReplicateService.generateAndSaveVideo).toHaveBeenCalledWith({
+        prompt: 'product launch',
+        businessId,
+        sourceUrl: undefined,
+        aspectRatio: '4:5',
+      });
+    });
+
+    it('uses aspect ratio 9:16 for Story artifacts', async () => {
+      mockAiReplicateService.generateAndSaveVideo.mockResolvedValue('ai-videos/biz/story.mp4');
+
+      await service.startGenerateVideo({
+        artifactId,
+        businessId,
+        description: 'story promo',
+        galleryPhotosUrls: [],
+        artifactType: AIArtifactType.Story,
+      });
+
+      expect(mockAiReplicateService.generateAndSaveVideo).toHaveBeenCalledWith(
+        expect.objectContaining({ aspectRatio: '9:16' }),
+      );
+    });
+
+    it('uses aspect ratio 4:5 for Post artifacts', async () => {
+      mockAiReplicateService.generateAndSaveVideo.mockResolvedValue('ai-videos/biz/post.mp4');
+
+      await service.startGenerateVideo({
+        artifactId,
+        businessId,
+        description: 'post promo',
+        galleryPhotosUrls: [],
+        artifactType: AIArtifactType.Post,
+      });
+
+      expect(mockAiReplicateService.generateAndSaveVideo).toHaveBeenCalledWith(
+        expect.objectContaining({ aspectRatio: '4:5' }),
+      );
+    });
+
+    it('passes first gallery photo URL as sourceUrl when provided', async () => {
+      mockAiReplicateService.generateAndSaveVideo.mockResolvedValue('ai-videos/biz/saved.mp4');
+
       await service.startGenerateVideo({
         artifactId,
         businessId,
         description: 'showcase',
-        sourceUrl: 'https://example.com/source.jpg',
+        galleryPhotosUrls: [{ url: 'https://example.com/source.jpg' }],
+        artifactType: AIArtifactType.Post,
       });
 
-      expect(mockHiggsfieldsService.generateAndSaveVideo).toHaveBeenCalledWith(
+      expect(mockAiReplicateService.generateAndSaveVideo).toHaveBeenCalledWith(
         expect.objectContaining({ sourceUrl: 'https://example.com/source.jpg' }),
       );
 
@@ -443,16 +471,39 @@ describe('AiArtifactService (integration)', () => {
       expect(media!.sourceUrl).toBe('https://example.com/source.jpg');
     });
 
-    it('returns the artifact with media array', async () => {
+    it('returns the artifact with media array on success', async () => {
       const result = await service.startGenerateVideo({
         artifactId,
         businessId,
         description: 'test video desc',
+        galleryPhotosUrls: [],
+        artifactType: AIArtifactType.Post,
       });
 
       expect(result).toBeDefined();
       expect(result!.id).toBe(artifactId);
       expect(Array.isArray(result!.media)).toBe(true);
+    });
+
+    it('deletes the media record when generateAndSaveVideo throws', async () => {
+      mockAiReplicateService.generateAndSaveVideo.mockRejectedValue(
+        new Error('Replicate failed'),
+      );
+
+      await expect(
+        service.startGenerateVideo({
+          artifactId,
+          businessId,
+          description: 'failing video',
+          galleryPhotosUrls: [],
+          artifactType: AIArtifactType.Post,
+        }),
+      ).rejects.toThrow('Replicate failed');
+
+      const media = await prisma.aIArtifactMedia.findFirst({
+        where: { artifactId, type: MediaType.Video },
+      });
+      expect(media).toBeNull();
     });
 
     it('throws NotFoundException when artifact does not exist', async () => {
@@ -461,16 +512,20 @@ describe('AiArtifactService (integration)', () => {
           artifactId: '00000000-0000-0000-0000-000000000000',
           businessId,
           description: 'test',
+          galleryPhotosUrls: [],
+          artifactType: AIArtifactType.Post,
         }),
       ).rejects.toThrow(NotFoundException);
     });
 
-    it('throws NotFoundException for artifact from another business', async () => {
+    it('throws NotFoundException for artifact from another business (tenant isolation)', async () => {
       await expect(
         service.startGenerateVideo({
           artifactId,
           businessId: '00000000-0000-0000-0000-000000000001',
           description: 'test',
+          galleryPhotosUrls: [],
+          artifactType: AIArtifactType.Post,
         }),
       ).rejects.toThrow(NotFoundException);
     });
@@ -693,7 +748,7 @@ describe('AiArtifactService (integration)', () => {
       expect(result).toHaveLength(1);
     });
 
-    it('passes artifact.id, businessId, and serialized imagePrompt as description to startGenerateVideo', async () => {
+    it('passes artifact.id, businessId, form.prompt as description, galleryPhotosUrls, and artifactType to startGenerateVideo', async () => {
       await service.createArtifact(businessId, {
         form: baseForm,
         mediaType: MediaType.Video,
@@ -704,9 +759,10 @@ describe('AiArtifactService (integration)', () => {
       expect(calledParams.businessId).toBe(businessId);
       expect(typeof calledParams.artifactId).toBe('string');
       expect(calledParams.artifactId).not.toBe('');
-      // description must be the serialized imagePrompt
-      expect(calledParams.description).toContain('SCENE: A bright product showcase');
-      expect(calledParams.description).toContain('TITLE: Product Title');
+      // description is form.prompt, not the serialized imagePrompt
+      expect(calledParams.description).toBe('Test prompt');
+      expect(calledParams.artifactType).toBe(AIArtifactType.Post);
+      expect(Array.isArray(calledParams.galleryPhotosUrls)).toBe(true);
     });
 
     it('skips media generation and returns artifact as-is when mediaType is neither Image nor Video', async () => {
