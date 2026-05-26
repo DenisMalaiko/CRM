@@ -28,7 +28,6 @@ import { GalleryModule } from "./modules/gallery/gallery.module";
 import { IdeaModule } from "./modules/idea/idea.module";
 import { IdeaAIModule } from "./modules/ideaAI/ideaAI.module";
 import { TrendsModule } from "./modules/trends/trends.module";
-import { VideoAIModule } from "./modules/videoAI/videoAI.module";
 
 @Module({
   imports: [
@@ -74,7 +73,6 @@ import { VideoAIModule } from "./modules/videoAI/videoAI.module";
     IdeaModule,
     IdeaAIModule,
     TrendsModule,
-    VideoAIModule,
   ],
   controllers: [AppController],
   providers: [

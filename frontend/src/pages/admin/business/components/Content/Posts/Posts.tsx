@@ -333,7 +333,7 @@ function Posts() {
                               </div>
                             )}
 
-                            {/*<div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition duration-300 flex items-center justify-center flex-col">
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition duration-300 flex items-center justify-center flex-col">
                               <div className="flex gap-5">
                                 <button
                                   onClick={() => setOpenEditPhotoDlg({ photoId: item.id, mediaId: media.id })}
@@ -349,7 +349,7 @@ function Posts() {
                                   <ImagePlay size={18} />
                                 </button>
                               </div>
-                            </div>*/}
+                            </div>
                           </>
                         ))
                       )}
