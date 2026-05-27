@@ -8,7 +8,7 @@ const Replicate = require("replicate");
 
 import { jsonrepair } from "jsonrepair";
 
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import { S3Service } from "../../core/s3/s3.service";
 import {
   postImageRoleBlock,
@@ -72,6 +72,7 @@ export type Photo = {
 
 @Injectable()
 export class AiReplicateService {
+  private readonly logger = new Logger(AiReplicateService.name);
   private readonly replicate;
   private client: any;
 
@@ -653,19 +654,35 @@ export class AiReplicateService {
     aspectRatio?: string;
     duration?: number;
   }): Promise<string> {
-    const input: Record<string, unknown> = {
+    console.log("----------------");
+    console.log("PROMPT ", params.prompt);
+    console.log("----------------");
+
+    /*const input: Record<string, unknown> = {
       fps: 24,
       prompt: params.prompt,
       duration: params.duration ?? 5,
       resolution: '720p',
       aspect_ratio: params.aspectRatio ?? '16:9',
+    };*/
+
+    const input = {
+      seed: 99,
+      prompt: params.prompt,
+      duration: params.duration ?? 7,
+      resolution: "720p",
+      aspect_ratio: params.aspectRatio ?? '16:9',
+      generate_audio: true,
+      reference_audios: [],
+      reference_images: [] as string[],
+      reference_videos: []
     };
 
     if (params.sourceUrl) {
-      input.image = params.sourceUrl;
+      input.reference_images.push(params?.sourceUrl);
     }
 
-    const output = await this.replicate.run('bytedance/seedance-1-lite', { input });
+    const output = await this.replicate.run('bytedance/seedance-2.0-fast', { input });
 
     if (!output || typeof output.url !== 'function') {
       throw new InternalServerErrorException('Replicate returned no video output');
