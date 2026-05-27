@@ -508,7 +508,7 @@ export class AiArtifactService {
     });
 
     try {
-      const aspectRatio = artifactType === AIArtifactType.Story ? '9:16' : '4:5';
+      const aspectRatio = artifactType === AIArtifactType.Story ? '9:16' : '3:4';
       const s3Key = await this.aiReplicateService.generateAndSaveVideo({
         prompt: description,
         businessId,
