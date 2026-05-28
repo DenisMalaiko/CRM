@@ -70,4 +70,5 @@ export type TAIGalleryPhotoCreate = TGalleryPhotoBase & {
   prompt: string;
   photosIds: string[];
   defaultPhotosIds: string[];
+  aspectRatio: string;
 }

@@ -514,7 +514,7 @@ export class GalleryService {
       description: photo.description ?? null,
     }));
 
-    const generatedPhoto = await this.aiService.generateAiPhoto(id, body.prompt, galleryPhotosUrls);
+    const generatedPhoto = await this.aiService.generateAiPhoto(id, body.prompt, galleryPhotosUrls, body.aspectRatio);
 
     return this.prisma.$transaction(async (tx) => {
       const photo = await tx.galleryPhoto.create({

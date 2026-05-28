@@ -11,6 +11,8 @@ jest.mock('react-toastify', () => ({ toast: { success: jest.fn(), error: jest.fn
 const mockGeneratePhoto = jest.fn();
 jest.mock('../../../../../../../store/gallery/galleryApi', () => ({
   useGenerateAiPhotoMutation: () => [mockGeneratePhoto, { isLoading: false }],
+  useGetPhotosMutation: () => [jest.fn().mockReturnValue({ unwrap: () => Promise.resolve({ data: [] }) }), {}],
+  useLazyGetDefaultPhotosQuery: () => [jest.fn().mockReturnValue({ unwrap: () => Promise.resolve({ data: [] }) })],
 }));
 
 jest.mock('../../../Assets/Gallery/components/selectGalleryDlg/SelectGalleryDlg', () => ({
@@ -19,7 +21,7 @@ jest.mock('../../../Assets/Gallery/components/selectGalleryDlg/SelectGalleryDlg'
   ),
 }));
 
-let mockGalleryState = { photos: [], defaultPhotos: [], aiPhotos: [] };
+const mockGalleryState = { photos: [], defaultPhotos: [], aiPhotos: [] };
 
 jest.mock('../../../../../../../store/hooks', () => ({
   useAppDispatch: () => jest.fn(),
@@ -61,28 +63,29 @@ describe('CreateAiPhotoDlg', () => {
 
   it('Generate button is disabled when prompt is empty', () => {
     renderDialog();
-    const btn = screen.getByRole('button', { name: /generate/i });
-    expect(btn).toBeDisabled();
+    expect(screen.getByRole('button', { name: /generate/i })).toBeDisabled();
   });
 
   it('Generate button is enabled when prompt has text', () => {
     renderDialog();
-    const textarea = screen.getByPlaceholderText(/describe the photo/i);
-    userEvent.type(textarea, 'a sunset over mountains');
-    const btn = screen.getByRole('button', { name: /generate/i });
-    expect(btn).not.toBeDisabled();
+    userEvent.type(screen.getByPlaceholderText(/enter prompt/i), 'a sunset over mountains');
+    expect(screen.getByRole('button', { name: /generate/i })).not.toBeDisabled();
   });
 
   it('calls generatePhoto with correct args on submit', async () => {
-    const unwrapResult = { data: { id: '1', url: 'x.jpg' }, message: 'Done' };
-    mockGeneratePhoto.mockReturnValue({ unwrap: () => Promise.resolve(unwrapResult) });
+    mockGeneratePhoto.mockReturnValue({ unwrap: () => Promise.resolve({ data: { id: '1', url: 'x.jpg' }, message: 'Done' }) });
     renderDialog();
-    userEvent.type(screen.getByPlaceholderText(/describe the photo/i), 'a mountain');
+    userEvent.type(screen.getByPlaceholderText(/enter prompt/i), 'a mountain');
     userEvent.click(screen.getByRole('button', { name: /generate/i }));
     await waitFor(() => {
       expect(mockGeneratePhoto).toHaveBeenCalledWith({
         id: 'biz-1',
-        form: { prompt: 'a mountain', photosIds: [], defaultPhotosIds: [] },
+        form: expect.objectContaining({
+          prompt: 'a mountain',
+          photosIds: [],
+          defaultPhotosIds: [],
+          aspectRatio: '1:1',
+        }),
       });
     });
   });
@@ -90,10 +93,9 @@ describe('CreateAiPhotoDlg', () => {
   it('calls onSuccess and onClose after successful generation', async () => {
     const onSuccess = jest.fn();
     const onClose = jest.fn();
-    const unwrapResult = { data: { id: '1' }, message: 'Done' };
-    mockGeneratePhoto.mockReturnValue({ unwrap: () => Promise.resolve(unwrapResult) });
+    mockGeneratePhoto.mockReturnValue({ unwrap: () => Promise.resolve({ data: { id: '1' }, message: 'Done' }) });
     renderDialog({ onSuccess, onClose });
-    userEvent.type(screen.getByPlaceholderText(/describe the photo/i), 'a mountain');
+    userEvent.type(screen.getByPlaceholderText(/enter prompt/i), 'a mountain');
     userEvent.click(screen.getByRole('button', { name: /generate/i }));
     await waitFor(() => {
       expect(onSuccess).toHaveBeenCalled();
@@ -113,5 +115,54 @@ describe('CreateAiPhotoDlg', () => {
     renderDialog({ onClose });
     userEvent.click(screen.getByRole('button', { name: /close/i }));
     expect(onClose).toHaveBeenCalled();
+  });
+
+  // Aspect ratio tests
+  describe('aspect ratio', () => {
+    it('renders all three aspect ratio options', () => {
+      renderDialog();
+      const radios = screen.getAllByRole('radio') as HTMLInputElement[];
+      const values = radios.map((r) => r.value);
+      expect(values).toContain('16:9');
+      expect(values).toContain('4:5');
+      expect(values).toContain('1:1');
+    });
+
+    it('selects 1:1 by default', () => {
+      renderDialog();
+      const radios = screen.getAllByRole('radio') as HTMLInputElement[];
+      const selected = radios.find((r) => r.checked);
+      expect(selected?.value).toBe('1:1');
+    });
+
+    it('changes selection when a different ratio is clicked', () => {
+      renderDialog();
+      const radio169 = screen.getAllByRole('radio').find(
+        (r) => (r as HTMLInputElement).value === '16:9'
+      ) as HTMLInputElement;
+      userEvent.click(radio169);
+      expect(radio169.checked).toBe(true);
+      const radio11 = screen.getAllByRole('radio').find(
+        (r) => (r as HTMLInputElement).value === '1:1'
+      ) as HTMLInputElement;
+      expect(radio11.checked).toBe(false);
+    });
+
+    it('sends the selected aspectRatio in the API call payload', async () => {
+      mockGeneratePhoto.mockReturnValue({ unwrap: () => Promise.resolve({ data: { id: '1' }, message: 'Done' }) });
+      renderDialog();
+      const radio45 = screen.getAllByRole('radio').find(
+        (r) => (r as HTMLInputElement).value === '4:5'
+      ) as HTMLInputElement;
+      userEvent.click(radio45);
+      userEvent.type(screen.getByPlaceholderText(/enter prompt/i), 'a portrait');
+      userEvent.click(screen.getByRole('button', { name: /generate/i }));
+      await waitFor(() => {
+        expect(mockGeneratePhoto).toHaveBeenCalledWith({
+          id: 'biz-1',
+          form: expect.objectContaining({ aspectRatio: '4:5' }),
+        });
+      });
+    });
   });
 });

@@ -62,4 +62,8 @@ export class AiGeneratedGalleryPhotoDto extends GalleryPhotoBaseDto {
 
   @IsArray()
   defaultPhotosIds: string[];
+
+  @IsOptional()
+  @IsString()
+  aspectRatio?: string;
 }
