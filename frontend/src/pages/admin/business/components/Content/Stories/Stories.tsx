@@ -106,7 +106,6 @@ function Stories() {
           const productsResponse: ApiResponse<TProduct[]> = await getProducts(businessId).unwrap();
 
           if(response && response?.data) {
-            console.log("STORIES: ", response.data)
             dispatch(setStories(response.data));
           }
           if(profilesResponse && profilesResponse?.data) dispatch(setProfiles(profilesResponse.data));
@@ -323,12 +322,25 @@ function Stories() {
                     <div className="flex flex-col gap-4 px-3 py-3">
                       <div className="relative w-full aspect-[9/16] bg-slate-100 rounded-xl overflow-hidden">
                         {item?.media.map((media) => (
-                          <>
-                            <img
-                              src={media.url}
-                              alt="AI story"
-                              className="inset-0 h-full w-full rounded-xl object-cover"
-                            />
+                          <React.Fragment key={media.id}>
+                            {media.type === 'Video' && (
+                              <video
+                                src={media.url}
+                                poster={media.sourceUrl ?? undefined}
+                                controls
+                                playsInline
+                                preload="metadata"
+                                className="inset-0 h-full w-full rounded-xl object-cover"
+                              />
+                            )}
+
+                            {media.type === 'Image' && (
+                              <img
+                                src={media.url}
+                                alt="AI story"
+                                className="inset-0 h-full w-full rounded-xl object-cover"
+                              />
+                            )}
 
                             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition duration-300 flex items-center justify-center flex-col">
                               <div className="flex gap-5">
@@ -347,7 +359,7 @@ function Stories() {
                                 </button>
                               </div>
                             </div>
-                          </>
+                          </React.Fragment>
                         ))}
                       </div>
                     </div>

@@ -10,6 +10,7 @@ import {PostsResponseSchema, StoriesResponseSchema, NormalizedPromptSchema} from
 import {jsonrepair} from "jsonrepair";
 import * as process from "node:process";
 import {ideaPrompt} from "./prompts/idea/idea";
+import {TRANSLATE_TO_ENGLISH_SYSTEM_PROMPT} from "./prompts/translate/translate";
 
 import {
   postRoleBlock,
@@ -116,8 +117,8 @@ export class AiService {
     return parsed.stories;
   }
 
-  async generateAiPhoto(businessId: string, prompt: string, photos: Photo[]): Promise<string> {
-    return await this.aiReplicate.generateAiPhoto(prompt, businessId, photos)
+  async generateAiPhoto(businessId: string, prompt: string, photos: Photo[], aspectRatio?: string): Promise<string> {
+    return await this.aiReplicate.generateAiPhoto(prompt, businessId, photos, aspectRatio)
   }
 
 
@@ -390,6 +391,19 @@ export class AiService {
       .filter(p => p.isActive)
       .map((p, i) => `Prompt ${i + 1}: - ${p.text}`)
       .join('\n');
+  }
+
+  async translateToEnglish(text: string): Promise<string> {
+    try {
+      const response = await this.model.invoke([
+        ['system', TRANSLATE_TO_ENGLISH_SYSTEM_PROMPT],
+        ['human', text],
+      ]);
+      return this.extractTextContent(response.content);
+    } catch (error) {
+      this.logger.warn('Failed to translate prompt to English, using original text', error);
+      return text;
+    }
   }
 
   async generateVideoPrompt(

@@ -509,8 +509,9 @@ export class AiArtifactService {
 
     try {
       const aspectRatio = artifactType === AIArtifactType.Story ? '9:16' : '3:4';
+      const translatedPrompt = await this.aiService.translateToEnglish(description);
       const s3Key = await this.aiReplicateService.generateAndSaveVideo({
-        prompt: description,
+        prompt: translatedPrompt,
         businessId,
         sourceUrl,
         aspectRatio,

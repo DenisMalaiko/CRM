@@ -4,8 +4,7 @@ import { useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 
 // Redux
-import { useSelector } from "react-redux";
-import { useAppDispatch } from "../../../../../../../store/hooks";
+import { useAppDispatch, useAppSelector } from "../../../../../../../store/hooks";
 import { useGenerateAiPhotoMutation } from "../../../../../../../store/gallery/galleryApi";
 import { useGetPhotosMutation, useLazyGetDefaultPhotosQuery } from "../../../../../../../store/gallery/galleryApi";
 import {
@@ -26,6 +25,12 @@ import { GalleryType } from "../../../../../../../enum/GalleryType";
 // Utils
 import { showError } from "../../../../../../../utils/showError";
 
+const ASPECT_RATIO_OPTIONS = [
+  { value: '16:9', label: '16:9' },
+  { value: '4:5',  label: '4:5'  },
+  { value: '1:1',  label: '1:1'  },
+];
+
 type Props = {
   open: boolean;
   onClose: () => void;
@@ -40,7 +45,7 @@ export function CreateAiPhotoDlg({ open, onClose, onSuccess }: Props) {
   const [ getDefaultPhotos ] = useLazyGetDefaultPhotosQuery();
   const [ generatePhoto, { isLoading }] = useGenerateAiPhotoMutation();
 
-  const { photos, defaultPhotos } = useSelector((state: any) => state.galleryModule);
+  const { photos, defaultPhotos } = useAppSelector((state) => state.galleryModule);
 
   const mappedPhotos = photos.map((photo: TGalleryPhoto) => ({ ...photo, isDefault: false }));
   const mappedDefaultPhotos = defaultPhotos.map((photo: TDefaultGalleryPhoto) => ({ ...photo, isDefault: true }));
@@ -53,6 +58,7 @@ export function CreateAiPhotoDlg({ open, onClose, onSuccess }: Props) {
     prompt: '',
     photosIds: [] as string[],
     defaultPhotosIds: [] as string[],
+    aspectRatio: '1:1',
   });
 
   useEffect(() => {
@@ -71,15 +77,11 @@ export function CreateAiPhotoDlg({ open, onClose, onSuccess }: Props) {
     }
 
     fetchData();
-  }, [dispatch]);
+  }, [dispatch, businessId, getPhotos, getDefaultPhotos]);
 
-
-  if (!open) return null;
-  if (!businessId) return null;
-
-  // Handle Change
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!businessId) return;
     try {
       const response = await generatePhoto({
         id: businessId,
@@ -90,6 +92,7 @@ export function CreateAiPhotoDlg({ open, onClose, onSuccess }: Props) {
           prompt: form.prompt,
           photosIds: form.photosIds,
           defaultPhotosIds: form.defaultPhotosIds,
+          aspectRatio: form.aspectRatio,
         },
       }).unwrap();
 
@@ -103,14 +106,16 @@ export function CreateAiPhotoDlg({ open, onClose, onSuccess }: Props) {
     }
   };
 
-  // Delete Image
-  const deleteImage = async (imageId?: string) => {
+  const deleteImage = (imageId?: string) => {
     setForm(prev => ({
       ...prev,
       photosIds: prev.photosIds.filter((id: string) => id !== imageId),
       defaultPhotosIds: prev.defaultPhotosIds.filter((id: string) => id !== imageId)
     }))
   }
+
+  if (!open) return null;
+  if (!businessId) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50">
@@ -176,6 +181,28 @@ export function CreateAiPhotoDlg({ open, onClose, onSuccess }: Props) {
               setForm(prev => ({ ...prev, photosIds: businessIds, defaultPhotosIds: defaultIds }));
             }}
           />
+
+          {/* Aspect Ratio */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 text-left mb-1">Aspect Ratio</label>
+            <div className="flex gap-3">
+              {ASPECT_RATIO_OPTIONS.map((option) => (
+                <label key={option.value} className="cursor-pointer flex-1">
+                  <input
+                    type="radio"
+                    name="aspectRatio"
+                    value={option.value}
+                    checked={form.aspectRatio === option.value}
+                    onChange={() => setForm(prev => ({ ...prev, aspectRatio: option.value }))}
+                    className="hidden peer"
+                  />
+                  <div className="p-3 border rounded-xl text-center text-sm font-medium transition-all border-gray-300 hover:border-gray-400 peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:shadow-md text-gray-700 peer-checked:text-blue-600">
+                    {option.label}
+                  </div>
+                </label>
+              ))}
+            </div>
+          </div>
 
           <div className="flex justify-end pt-2">
             <button

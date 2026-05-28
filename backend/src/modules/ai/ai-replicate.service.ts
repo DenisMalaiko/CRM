@@ -8,7 +8,7 @@ const Replicate = require("replicate");
 
 import { jsonrepair } from "jsonrepair";
 
-import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import { S3Service } from "../../core/s3/s3.service";
 import {
   postImageRoleBlock,
@@ -353,20 +353,20 @@ export class AiReplicateService {
     return await this.savePhoto(businessId, buffer);
   }
 
-  async generateAiPhoto(prompt: string, businessId: string, photos: Photo[]): Promise<string> {
+  async generateAiPhoto(prompt: string, businessId: string, photos: Photo[], aspectRatio?: string): Promise<string> {
 
-    const type = photos ? photos[0]?.type : null;
-    let aspectRatio;
-
-    switch(type) {
-      case AIArtifactType.Post:
-        aspectRatio = "4:5";
-        break;
-      case AIArtifactType.Story:
-        aspectRatio = "9:16";
-        break;
-      default:
-        aspectRatio = "1:1";
+    if (!aspectRatio) {
+      const type = photos ? photos[0]?.type : null;
+      switch(type) {
+        case AIArtifactType.Post:
+          aspectRatio = "4:5";
+          break;
+        case AIArtifactType.Story:
+          aspectRatio = "9:16";
+          break;
+        default:
+          aspectRatio = "1:1";
+      }
     }
 
     const stream = await this.replicate.run(
@@ -658,14 +658,6 @@ export class AiReplicateService {
     console.log("PROMPT ", params.prompt);
     console.log("----------------");
 
-    /*const input: Record<string, unknown> = {
-      fps: 24,
-      prompt: params.prompt,
-      duration: params.duration ?? 5,
-      resolution: '720p',
-      aspect_ratio: params.aspectRatio ?? '16:9',
-    };*/
-
     const input = {
       seed: 99,
       prompt: params.prompt,
@@ -682,7 +674,15 @@ export class AiReplicateService {
       input.reference_images.push(params?.sourceUrl);
     }
 
-    const output = await this.replicate.run('bytedance/seedance-2.0-fast', { input });
+    let output;
+    try {
+      output = await this.replicate.run('bytedance/seedance-2.0-fast', { input });
+    } catch (error) {
+      if (error?.message?.includes('flagged as sensitive')) {
+        throw new BadRequestException('The input was flagged as sensitive content. Please try again with different inputs.');
+      }
+      throw error;
+    }
 
     if (!output || typeof output.url !== 'function') {
       throw new InternalServerErrorException('Replicate returned no video output');
