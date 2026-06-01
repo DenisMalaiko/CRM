@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { ImagePlay, Trash2, WandSparkles } from "lucide-react";
+import { Download, ImagePlay, Trash2, WandSparkles } from "lucide-react";
 import { toast } from "react-toastify";
 import { useAppDispatch, useAppSelector } from "../../../../../../store/hooks";
 import {
@@ -70,6 +70,10 @@ export function AiPhoto() {
     setOpenSliderDlg(true);
   };
 
+  const handleDownload = (photo: TGalleryPhoto) => {
+    window.open(photo.url, '_blank');
+  };
+
   const handleDelete = async (e: React.MouseEvent, id: string) => {
     e.preventDefault();
     const ok = await confirm({
@@ -109,7 +113,7 @@ export function AiPhoto() {
           </div>
         ) : (
           <div className="grid gap-6 grid-cols-2 sm:grid-cols-3 md:grid-cols-2 xl:grid-cols-3">
-            {aiPhotos.map((photo) => (
+            {[...aiPhotos].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).map((photo) => (
               <div
                 key={photo.id}
                 className="group relative rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition h-80 bg-gray-200 p-5 flex justify-center items-center"
@@ -133,6 +137,13 @@ export function AiPhoto() {
                       className="opacity-0 group-hover:opacity-100 transition duration-300 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg"
                     >
                       <ImagePlay size={18} />
+                    </button>
+
+                    <button
+                      onClick={() => handleDownload(photo)}
+                      className="opacity-0 group-hover:opacity-100 transition duration-300 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg"
+                    >
+                      <Download size={18} />
                     </button>
 
                     <button

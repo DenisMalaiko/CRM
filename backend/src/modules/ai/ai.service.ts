@@ -74,7 +74,6 @@ export class AiService {
 
     for (const post of posts) {
       if (post.image_prompt) {
-        console.log("POST ", post);
         post.imageUrl = await this.aiReplicate.generatePostImage(post.image_prompt, profile.businessId, photos);
       }
     }
@@ -91,7 +90,6 @@ export class AiService {
 
     for (const story of stories) {
       if (story.image_prompt) {
-        console.log("STORY ", story);
         story.imageUrl = await this.aiReplicate.generateStoryImage(story.image_prompt, profile.businessId, photos);
       }
     }
@@ -217,12 +215,17 @@ export class AiService {
   }
 
   private async buildPromptForPostsManually(profile, photos) {
-    const customPrompt = normalizeUserPromptBlock(profile.prompt);
-    const customPromptResponse = await this.model.invoke(customPrompt);
-    const customPromptRawText = this.extractTextContent(customPromptResponse.content);
-    const parsedPrompts = NormalizedPromptSchema.parse(this.safeParseJson(customPromptRawText));
-    const textPrompts = parsedPrompts.text;
-    const imagePrompts = parsedPrompts.image;
+    let textPrompts: string[] = [];
+    let imagePrompts: string[] = [];
+
+    if (profile.prompt) {
+      const customPrompt = normalizeUserPromptBlock(profile.prompt);
+      const customPromptResponse = await this.model.invoke(customPrompt);
+      const customPromptRawText = this.extractTextContent(customPromptResponse.content);
+      const parsedPrompts = NormalizedPromptSchema.parse(this.safeParseJson(customPromptRawText));
+      textPrompts = parsedPrompts.text;
+      imagePrompts = parsedPrompts.image;
+    }
 
     const audienceBlock = this.getAudiences(profile.audiences);
     const productsBlock = this.getProducts(profile.products);
@@ -270,12 +273,17 @@ export class AiService {
   }
 
   private async buildPromptForStoriesManually(profile, photos) {
-    const customPrompt = normalizeUserPromptBlock(profile.prompt);
-    const customPromptResponse = await this.model.invoke(customPrompt);
-    const customPromptRawText = this.extractTextContent(customPromptResponse.content);
-    const parsedPrompts = NormalizedPromptSchema.parse(this.safeParseJson(customPromptRawText));
-    const textPrompts = parsedPrompts.text;
-    const imagePrompts = parsedPrompts.image;
+    let textPrompts: string[] = [];
+    let imagePrompts: string[] = [];
+
+    if (profile.prompt) {
+      const customPrompt = normalizeUserPromptBlock(profile.prompt);
+      const customPromptResponse = await this.model.invoke(customPrompt);
+      const customPromptRawText = this.extractTextContent(customPromptResponse.content);
+      const parsedPrompts = NormalizedPromptSchema.parse(this.safeParseJson(customPromptRawText));
+      textPrompts = parsedPrompts.text;
+      imagePrompts = parsedPrompts.image;
+    }
 
     const audienceBlock = this.getAudiences(profile.audiences);
     const productsBlock = this.getProducts(profile.products);
@@ -317,6 +325,7 @@ export class AiService {
   }
 
   getAudiences(audiences?) {
+    if (!audiences?.length) return '';
     return audiences
       .map((a, i) => `
         Audience ${i + 1}:
@@ -332,6 +341,7 @@ export class AiService {
   }
 
   getProducts(products?) {
+    if (!products?.length) return '';
     return products
       .filter(p => p.isActive)
       .map((p, i) => `

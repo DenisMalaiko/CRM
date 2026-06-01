@@ -9,28 +9,27 @@ export function storyRoleBlock() {
 }
 
 export function storyBusinessContextBlock(profile, audienceBlock, productsBlock) {
+  const contextSection = profile.name ? `
+    Context:
+    - Name: ${profile.name}
+    - Focus: ${profile.profileFocus}
+    - Idea: ${profile.ideas}
+  ` : '';
+
   return `
    ## BUSINESS CONTEXT
-    
+
     Business:
     - Name: ${profile.business.name}
-    - Industry: ${profile.business.industry}
+    - Industry: ${profile.business.industry ?? 'Not specified'}
     - Website: ${profile.business.website}
     - Language: ${profile.business.language}
     - Brand History: ${profile.business.brand}
     - Brand Advantages: ${profile.business.advantages.join(', ')}
     - Brand Goals: ${profile.business.goals.join(', ')}
-    
-    Profile:
-    - Name: ${profile.name}
-    - Focus: ${profile.profileFocus}
-    - Idea: ${profile.ideas}
-    
-    Target audience:
-    ${audienceBlock}
-    
-    Products / services:
-    ${productsBlock}
+    ${contextSection}
+    ${audienceBlock ? `Target audience:\n    ${audienceBlock}` : ''}
+    ${productsBlock ? `Products / services:\n    ${productsBlock}` : ''}
   `
 }
 
@@ -75,13 +74,23 @@ export function storyCompetitorBlock() {
 }
 
 export function storyIdeaBlock(ideasBlock) {
+  if (!ideasBlock?.trim()) {
+    return `
+      ## CREATIVE DIRECTION
+
+      No specific creative idea was provided.
+      Generate the story based on the business context, audience insights, and user prompt.
+      Focus on the brand's goals and advantages to create relevant, engaging content.
+    `;
+  }
+
   return `
     ## CREATIVE IDEA (PRIMARY INSPIRATION)
-    
+
     Use the following idea as the narrative direction for the story sequence.
-    
+
     ${ideasBlock}
-    
+
     Stories MUST follow this narrative direction if provided.
   `
 }

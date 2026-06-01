@@ -8,28 +8,27 @@ export function postRoleBlock() {
 }
 
 export function postBusinessContextBlock(profile, audienceBlock, productsBlock) {
+  const contextSection = profile.name ? `
+    Context:
+    - Name: ${profile.name}
+    - Focus: ${profile.profileFocus}
+    - Idea: ${profile.ideas}
+  ` : '';
+
   return `
     ## BUSINESS CONTEXT
-    
+
     Business:
     - Name: ${profile.business.name}
-    - Industry: ${profile.business.industry}
+    - Industry: ${profile.business.industry ?? 'Not specified'}
     - Website: ${profile.business.website}
     - Language: ${profile.business.language}
     - Brand History: ${profile.business.brand}
     - Brand Advantages: ${profile.business.advantages.join(', ')}
     - Brand Goals: ${profile.business.goals.join(', ')}
-    
-    Context:
-    - Name: ${profile.name}
-    - Focus: ${profile.profileFocus}
-    - Idea: ${profile.ideas}
-    
-    Target audience:
-    ${audienceBlock}
-    
-    Products / services:
-    ${productsBlock}
+    ${contextSection}
+    ${audienceBlock ? `Target audience:\n    ${audienceBlock}` : ''}
+    ${productsBlock ? `Products / services:\n    ${productsBlock}` : ''}
   `;
 }
 
@@ -47,19 +46,27 @@ export function postCompetitorBlock() {
 }
 
 export function postIdeaBlock(ideasBlock) {
+  if (!ideasBlock?.trim()) {
+    return `
+      ## CREATIVE DIRECTION
+
+      No specific creative idea was provided.
+      Generate content based on the business context, audience insights, and user prompt.
+      Focus on the brand's goals and advantages to create relevant, engaging content.
+    `;
+  }
+
   return `
     ## CREATIVE IDEA (PRIMARY INSPIRATION)
-    
+
     Use the idea as the main creative direction.
-    
+
     The idea defines:
     - WHAT
     - WHY
     - EMOTION
     - STORY FRAME
-    
-    If ignored → INVALID.
-    
+
     ${ideasBlock}
   `;
 }

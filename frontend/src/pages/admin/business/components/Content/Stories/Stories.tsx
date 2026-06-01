@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import Select from "react-select";
-import {ImagePlay, WandSparkles} from "lucide-react";
+import {Download, ImagePlay, WandSparkles} from "lucide-react";
 
 // Redux
 import { useSelector } from "react-redux";
@@ -356,6 +356,13 @@ function Stories() {
                                   className="opacity-0 group-hover:opacity-100 transition duration-300 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg"
                                 >
                                   <ImagePlay size={18} />
+                                </button>
+
+                                <button
+                                  onClick={() => window.open(media.url, '_blank')}
+                                  className="opacity-0 group-hover:opacity-100 transition duration-300 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg"
+                                >
+                                  <Download size={18} />
                                 </button>
                               </div>
                             </div>

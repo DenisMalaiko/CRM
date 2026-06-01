@@ -26,7 +26,7 @@ import { GalleryType } from "../../../../../../../enum/GalleryType";
 import { showError } from "../../../../../../../utils/showError";
 
 const ASPECT_RATIO_OPTIONS = [
-  { value: '16:9', label: '16:9' },
+  { value: '9:16', label: '9:16' },
   { value: '4:5',  label: '4:5'  },
   { value: '1:1',  label: '1:1'  },
 ];
@@ -51,7 +51,7 @@ export function CreateAiPhotoDlg({ open, onClose, onSuccess }: Props) {
   const mappedDefaultPhotos = defaultPhotos.map((photo: TDefaultGalleryPhoto) => ({ ...photo, isDefault: true }));
   const allPhotos = [...mappedDefaultPhotos, ...mappedPhotos] as TGalleryPhoto[];
 
-  const [form, setForm] = useState({
+  const initialForm = {
     businessId: businessId!,
     type: GalleryType.AI,
     isActive: true,
@@ -59,7 +59,9 @@ export function CreateAiPhotoDlg({ open, onClose, onSuccess }: Props) {
     photosIds: [] as string[],
     defaultPhotosIds: [] as string[],
     aspectRatio: '1:1',
-  });
+  };
+
+  const [form, setForm] = useState(initialForm);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -98,6 +100,7 @@ export function CreateAiPhotoDlg({ open, onClose, onSuccess }: Props) {
 
       if (response && response.data) {
         toast.success(response.message);
+        setForm(initialForm);
         onSuccess();
         onClose();
       }

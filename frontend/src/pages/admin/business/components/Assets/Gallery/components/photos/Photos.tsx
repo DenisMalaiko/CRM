@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import {Trash2, ImagePlay, PenBox, WandSparkles} from "lucide-react";
+import {Download, Trash2, ImagePlay, PenBox, WandSparkles} from "lucide-react";
 import { toast } from "react-toastify";
 
 // Redux
@@ -196,6 +196,13 @@ function Photos({ photos }: { photos: any[] }) {
                   className="opacity-0 group-hover:opacity-100 transition duration-300 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg"
                 >
                   <ImagePlay size={18} />
+                </button>
+
+                <button
+                  onClick={() => window.open(photo.url, '_blank')}
+                  className="opacity-0 group-hover:opacity-100 transition duration-300 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg"
+                >
+                  <Download size={18} />
                 </button>
               </div>
             </div>
