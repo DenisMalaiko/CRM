@@ -30,3 +30,27 @@
 - [x] No `console.log` in new code (removed existing one from `savePhoto`)
 - [ ] Pending: user must run `sudo npx prisma generate` to regenerate Prisma client
 - Summary: Added `AIArtifactMedia` table, async Replicate polling, Higgsfield video API integration, and 3 new REST endpoints on the ai-artifact controller
+
+## Prompt-only post/story generation — 2026-06-01
+
+### Plan
+- [x] Read affected files (aiArtifact.service, ai.service, post/content, story/content)
+- [x] Safe Prisma queries with `?? []` + `.length` guards in `createArtifact`
+- [x] Null-safe `getAudiences` and `getProducts` helpers
+- [x] Guard `normalizeUserPromptBlock` when prompt is empty
+- [x] Conditional `postBusinessContextBlock` / `storyBusinessContextBlock` (audience/products sections)
+- [x] Graceful `postIdeaBlock` / `storyIdeaBlock` when no ideas provided
+- [x] Remove pre-existing `console.log` in `generatePostsBasedOnBusinessProfile` and `generateStoriesBasedOnBusinessProfile`
+- [x] Quality gate: backend-reviewer + backend-tester
+
+### Notes
+- Migration needed: no
+- Affected modules: `aiArtifact`, `ai`
+- DTO fields already `@IsOptional()` — no DTO changes needed
+
+### Review
+- [x] backend-reviewer → PASS (retry 1: fixed console.log)
+- [x] backend-tester → 29/29 tests pass
+- [x] No migration needed
+- [x] No regressions found
+- Summary: Made products, ideas, and audiences optional for AI post/story generation — when absent, the system generates content based solely on user prompt + business context

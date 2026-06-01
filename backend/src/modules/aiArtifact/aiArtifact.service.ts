@@ -74,6 +74,13 @@ export class AiArtifactService {
   }
 
   async createArtifact(businessId: string, body: { form: CreateAIArtifact, mediaType: MediaType }) {
+    const audiencesIds = body.form.audiencesIds ?? [];
+    const productsIds = body.form.productsIds ?? [];
+    const ideasIds = body.form.ideasIds ?? [];
+    const ideasAiIds = body.form.ideasAiIds ?? [];
+    const defaultPhotosIds = body.form.defaultPhotosIds ?? [];
+    const photosIds = body.form.photosIds ?? [];
+
     const [
       business,
       audiences,
@@ -84,12 +91,12 @@ export class AiArtifactService {
       photos,
     ] = await Promise.all([
       this.prisma.business.findUnique({ where: { id: businessId }}),
-      this.prisma.targetAudience.findMany({ where: { id: { in: body.form.audiencesIds }}}),
-      this.prisma.product.findMany({ where: { id: { in: body.form.productsIds }}}),
-      this.prisma.idea.findMany({ where: { id: { in: body.form.ideasIds }}}),
-      this.prisma.ideaAI.findMany({ where: { id: { in: body.form.ideasAiIds }}}),
-      this.prisma.defaultPhoto.findMany({ where: { id: { in: body.form.defaultPhotosIds }}}),
-      this.prisma.galleryPhoto.findMany({ where: { id: { in: body.form.photosIds }}})
+      audiencesIds.length ? this.prisma.targetAudience.findMany({ where: { id: { in: audiencesIds } } }) : [],
+      productsIds.length ? this.prisma.product.findMany({ where: { id: { in: productsIds } } }) : [],
+      ideasIds.length ? this.prisma.idea.findMany({ where: { id: { in: ideasIds } } }) : [],
+      ideasAiIds.length ? this.prisma.ideaAI.findMany({ where: { id: { in: ideasAiIds } } }) : [],
+      defaultPhotosIds.length ? this.prisma.defaultPhoto.findMany({ where: { id: { in: defaultPhotosIds } } }) : [],
+      photosIds.length ? this.prisma.galleryPhoto.findMany({ where: { id: { in: photosIds } } }) : [],
     ]);
 
     const settings = {

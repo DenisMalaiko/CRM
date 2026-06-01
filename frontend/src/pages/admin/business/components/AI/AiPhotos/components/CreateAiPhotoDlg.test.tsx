@@ -16,8 +16,23 @@ jest.mock('../../../../../../../store/gallery/galleryApi', () => ({
 }));
 
 jest.mock('../../../Assets/Gallery/components/selectGalleryDlg/SelectGalleryDlg', () => ({
-  SelectGalleryDlg: ({ focus }: { focus: string | null }) => (
-    <div data-testid="select-gallery-dlg" data-focus={focus ?? 'null'} />
+  SelectGalleryDlg: ({
+    focus,
+    onSelect,
+  }: {
+    focus: string | null;
+    onSelect: (photos: { id: string; isDefault: boolean }[]) => void;
+  }) => (
+    <div data-testid="select-gallery-dlg" data-focus={focus ?? 'null'}>
+      <button
+        onClick={() => onSelect([
+          { id: 'biz-photo-1', isDefault: false },
+          { id: 'def-photo-1', isDefault: true },
+        ])}
+      >
+        Select Photos
+      </button>
+    </div>
   ),
 }));
 
@@ -163,6 +178,119 @@ describe('CreateAiPhotoDlg', () => {
           form: expect.objectContaining({ aspectRatio: '4:5' }),
         });
       });
+    });
+  });
+
+  describe('form reset after successful generation', () => {
+    beforeEach(() => {
+      mockGeneratePhoto.mockReturnValue({
+        unwrap: () => Promise.resolve({ data: { id: 'new-1', url: 'result.jpg' }, message: 'Generated!' }),
+      });
+    });
+
+    it('clears the prompt textarea after successful generation', async () => {
+      renderDialog();
+      userEvent.type(screen.getByPlaceholderText(/enter prompt/i), 'a city at night');
+      userEvent.click(screen.getByRole('button', { name: /generate/i }));
+      await waitFor(() => {
+        expect((screen.getByPlaceholderText(/enter prompt/i) as HTMLTextAreaElement).value).toBe('');
+      });
+    });
+
+    it('resets aspectRatio back to 1:1 after successful generation', async () => {
+      renderDialog();
+      const radio169 = screen.getAllByRole('radio').find(
+        (r) => (r as HTMLInputElement).value === '16:9'
+      ) as HTMLInputElement;
+      userEvent.click(radio169);
+      expect(radio169.checked).toBe(true);
+
+      userEvent.type(screen.getByPlaceholderText(/enter prompt/i), 'a beach scene');
+      userEvent.click(screen.getByRole('button', { name: /generate/i }));
+
+      await waitFor(() => {
+        const radio11 = screen.getAllByRole('radio').find(
+          (r) => (r as HTMLInputElement).value === '1:1'
+        ) as HTMLInputElement;
+        expect(radio11.checked).toBe(true);
+      });
+    });
+
+    it('removes selected photos from the prompt area after successful generation', async () => {
+      renderDialog();
+      userEvent.click(screen.getByRole('button', { name: /select photos/i }));
+      userEvent.type(screen.getByPlaceholderText(/enter prompt/i), 'a forest');
+      userEvent.click(screen.getByRole('button', { name: /generate/i }));
+
+      await waitFor(() => {
+        expect(mockGeneratePhoto).toHaveBeenCalledWith({
+          id: 'biz-1',
+          form: expect.objectContaining({
+            photosIds: ['biz-photo-1'],
+            defaultPhotosIds: ['def-photo-1'],
+          }),
+        });
+      });
+
+      await waitFor(() => {
+        expect(screen.queryByRole('button', { name: '' })).not.toBeInTheDocument();
+      });
+    });
+
+    it('sends photosIds and defaultPhotosIds as empty arrays when no photos are selected', async () => {
+      renderDialog();
+      userEvent.type(screen.getByPlaceholderText(/enter prompt/i), 'mountains');
+      userEvent.click(screen.getByRole('button', { name: /generate/i }));
+
+      await waitFor(() => {
+        expect(mockGeneratePhoto).toHaveBeenCalledWith({
+          id: 'biz-1',
+          form: expect.objectContaining({
+            photosIds: [],
+            defaultPhotosIds: [],
+          }),
+        });
+      });
+    });
+
+    it('calls toast.success with the response message on successful generation', async () => {
+      const { toast } = require('react-toastify');
+      renderDialog();
+      userEvent.type(screen.getByPlaceholderText(/enter prompt/i), 'sunset');
+      userEvent.click(screen.getByRole('button', { name: /generate/i }));
+      await waitFor(() => {
+        expect(toast.success).toHaveBeenCalledWith('Generated!');
+      });
+    });
+
+    it('does not reset the form when generation returns no data', async () => {
+      mockGeneratePhoto.mockReturnValue({
+        unwrap: () => Promise.resolve({ data: null, message: 'No data' }),
+      });
+      renderDialog();
+      userEvent.type(screen.getByPlaceholderText(/enter prompt/i), 'a lake');
+      userEvent.click(screen.getByRole('button', { name: /generate/i }));
+
+      await waitFor(() => {
+        expect(mockGeneratePhoto).toHaveBeenCalledTimes(1);
+      });
+
+      expect((screen.getByPlaceholderText(/enter prompt/i) as HTMLTextAreaElement).value).toBe('a lake');
+    });
+
+    it('does not reset the form when generation throws an error', async () => {
+      mockGeneratePhoto.mockReturnValue({
+        unwrap: () => Promise.reject(new Error('Server error')),
+      });
+      renderDialog();
+      userEvent.type(screen.getByPlaceholderText(/enter prompt/i), 'a desert');
+      userEvent.click(screen.getByRole('button', { name: /generate/i }));
+
+      await waitFor(() => {
+        expect(mockGeneratePhoto).toHaveBeenCalledTimes(1);
+      });
+
+      expect((screen.getByPlaceholderText(/enter prompt/i) as HTMLTextAreaElement).value).toBe('a desert');
     });
   });
 });
