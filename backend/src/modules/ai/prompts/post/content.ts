@@ -45,29 +45,42 @@ export function postCompetitorBlock() {
   `;
 }
 
-export function postIdeaBlock(ideasBlock) {
-  if (!ideasBlock?.trim()) {
+export function postIdeaBlock(ideasBlock, userPrompt?: string) {
+  if (ideasBlock?.trim()) {
     return `
-      ## CREATIVE DIRECTION
+      ## CREATIVE IDEA (PRIMARY INSPIRATION)
 
-      No specific creative idea was provided.
-      Generate content based on the business context, audience insights, and user prompt.
-      Focus on the brand's goals and advantages to create relevant, engaging content.
+      Use the idea as the main creative direction.
+
+      The idea defines:
+      - WHAT
+      - WHY
+      - EMOTION
+      - STORY FRAME
+
+      ${ideasBlock}
+    `;
+  }
+
+  if (userPrompt?.trim()) {
+    return `
+      ## CREATIVE DIRECTION (FROM USER PROMPT)
+
+      The user provided the following creative direction for this post:
+      "${userPrompt}"
+
+      Use this as the PRIMARY topic and inspiration for the post.
+      The post MUST be about this topic — not about the business in general.
+      Adapt the business context to support this topic where relevant.
     `;
   }
 
   return `
-    ## CREATIVE IDEA (PRIMARY INSPIRATION)
+    ## CREATIVE DIRECTION
 
-    Use the idea as the main creative direction.
-
-    The idea defines:
-    - WHAT
-    - WHY
-    - EMOTION
-    - STORY FRAME
-
-    ${ideasBlock}
+    No specific creative idea was provided.
+    Generate content based on the business context, audience insights, and user prompt.
+    Focus on the brand's goals and advantages to create relevant, engaging content.
   `;
 }
 

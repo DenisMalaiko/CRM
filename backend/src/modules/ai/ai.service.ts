@@ -98,10 +98,15 @@ export class AiService {
   }
 
   async generatePostsBasedOnManuallySettings(settings, photos: Photo[]): Promise<any> {
+    console.log("-------------");
     const prompt = await this.buildPromptForPostsManually(settings, photos);
+    console.log("PROMPT: ", prompt);
+    console.log("-------------");
     const response = await this.model.invoke(prompt);
     const rawText = this.extractTextContent(response.content);
+    console.log("RAW TEXT: ", rawText);
     const parsed = PostsResponseSchema.parse(this.safeParseJson(rawText));
+    console.log("-------------");
 
     return parsed.posts;
   }
@@ -237,7 +242,7 @@ export class AiService {
       postRoleBlock(),
       postBusinessContextBlock(profile, audienceBlock, productsBlock),
       postCompetitorBlock(),
-      postIdeaBlock(ideasBlock),
+      postIdeaBlock(ideasBlock, profile.prompt),
       postTextGenerationBlock(textPrompts),
       postFormatReplicationBlock(),
       postImagePromptBlock(imagePrompts, profile, photos),
@@ -296,7 +301,7 @@ export class AiService {
       storyBusinessContextBlock(profile, audienceBlock, productsBlock),
       storyRulesBlock(),
       storyCompetitorBlock(),
-      storyIdeaBlock(ideasBlock),
+      storyIdeaBlock(ideasBlock, profile.prompt),
       storyTextGenerationBlock(textPrompts),
       storyFormatReplicationBlock(),
       storyImagePromptBlock(imagePrompts, profile, photos),

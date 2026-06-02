@@ -73,26 +73,39 @@ export function storyCompetitorBlock() {
   `;
 }
 
-export function storyIdeaBlock(ideasBlock) {
-  if (!ideasBlock?.trim()) {
+export function storyIdeaBlock(ideasBlock, userPrompt?: string) {
+  if (ideasBlock?.trim()) {
     return `
-      ## CREATIVE DIRECTION
+      ## CREATIVE IDEA (PRIMARY INSPIRATION)
 
-      No specific creative idea was provided.
-      Generate the story based on the business context, audience insights, and user prompt.
-      Focus on the brand's goals and advantages to create relevant, engaging content.
+      Use the following idea as the narrative direction for the story sequence.
+
+      ${ideasBlock}
+
+      Stories MUST follow this narrative direction if provided.
+    `;
+  }
+
+  if (userPrompt?.trim()) {
+    return `
+      ## CREATIVE DIRECTION (FROM USER PROMPT)
+
+      The user provided the following creative direction for this story:
+      "${userPrompt}"
+
+      Use this as the PRIMARY topic and inspiration for the story.
+      The story MUST be about this topic — not about the business in general.
+      Adapt the business context to support this topic where relevant.
     `;
   }
 
   return `
-    ## CREATIVE IDEA (PRIMARY INSPIRATION)
+    ## CREATIVE DIRECTION
 
-    Use the following idea as the narrative direction for the story sequence.
-
-    ${ideasBlock}
-
-    Stories MUST follow this narrative direction if provided.
-  `
+    No specific creative idea was provided.
+    Generate the story based on the business context, audience insights, and user prompt.
+    Focus on the brand's goals and advantages to create relevant, engaging content.
+  `;
 }
 
 export function storyTextGenerationBlock(textPrompts) {
