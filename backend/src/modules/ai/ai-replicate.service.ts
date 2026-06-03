@@ -654,10 +654,6 @@ export class AiReplicateService {
     aspectRatio?: string;
     duration?: number;
   }): Promise<string> {
-    console.log("----------------");
-    console.log("PROMPT ", params.prompt);
-    console.log("----------------");
-
     const input = {
       seed: 99,
       prompt: params.prompt,
@@ -680,6 +676,9 @@ export class AiReplicateService {
     } catch (error) {
       if (error?.message?.includes('flagged as sensitive')) {
         throw new BadRequestException('The input was flagged as sensitive content. Please try again with different inputs.');
+      }
+      if (error?.message?.includes('copyright')) {
+        throw new BadRequestException('The video could not be generated due to copyright restrictions. Try rephrasing your prompt without specific names or copyrighted references.');
       }
       throw error;
     }

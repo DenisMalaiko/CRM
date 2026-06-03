@@ -45,29 +45,42 @@ export function postCompetitorBlock() {
   `;
 }
 
-export function postIdeaBlock(ideasBlock) {
-  if (!ideasBlock?.trim()) {
+export function postIdeaBlock(ideasBlock, userPrompt?: string) {
+  if (ideasBlock?.trim()) {
     return `
-      ## CREATIVE DIRECTION
+      ## CREATIVE IDEA (PRIMARY INSPIRATION)
 
-      No specific creative idea was provided.
-      Generate content based on the business context, audience insights, and user prompt.
-      Focus on the brand's goals and advantages to create relevant, engaging content.
+      Use the idea as the main creative direction.
+
+      The idea defines:
+      - WHAT
+      - WHY
+      - EMOTION
+      - STORY FRAME
+
+      ${ideasBlock}
+    `;
+  }
+
+  if (userPrompt?.trim()) {
+    return `
+      ## CREATIVE DIRECTION (FROM USER PROMPT)
+
+      The user provided the following creative direction for this post:
+      "${userPrompt}"
+
+      Use this as the PRIMARY topic and inspiration for the post.
+      The post MUST be about this topic — not about the business in general.
+      Adapt the business context to support this topic where relevant.
     `;
   }
 
   return `
-    ## CREATIVE IDEA (PRIMARY INSPIRATION)
+    ## CREATIVE DIRECTION
 
-    Use the idea as the main creative direction.
-
-    The idea defines:
-    - WHAT
-    - WHY
-    - EMOTION
-    - STORY FRAME
-
-    ${ideasBlock}
+    No specific creative idea was provided.
+    Generate content based on the business context, audience insights, and user prompt.
+    Focus on the brand's goals and advantages to create relevant, engaging content.
   `;
 }
 
@@ -113,7 +126,7 @@ function getImageName(url: string) {
   return url.split('/').pop();
 }
 
-function postImageStructureBlock(profile, photos, imagePrompts) {
+function postImageStructureBlock(profile, photos, imagePrompts, userPrompt?: string) {
   const businessImages= photos.filter(p => p.type === GalleryPhotoType.Image);
   const decorationsImages= photos.filter(p => p.type === GalleryPhotoType.Decoration);
   const designImages = photos.filter(p => p.type === GalleryPhotoType.Post);
@@ -171,36 +184,48 @@ function postImageStructureBlock(profile, photos, imagePrompts) {
     `;
   }
 
+  if (userPrompt?.trim()) {
+    if (scene === '') {
+      scene = `Create a scene that visually represents the following user request. Incorporate ALL specific details from the request — including proper nouns, names of people, places, and events: <user_request>${userPrompt}</user_request>`;
+    } else {
+      scene += ` Also incorporate the user's specific request into the scene: <user_request>${userPrompt}</user_request>. Include all specific details — proper nouns, names of people, places, and events mentioned by the user.`;
+    }
+  }
+
   return `
     ## IMAGE PROMPT STRUCTURE
-    
+
     You MUST follow STRICT composition rules based on provided image types.
-    
+
     ### SCENE (ENGLISH ONLY):
     Scene: "${scene}"
-    
+
     ### USER CUSTOM PROMPT (TRANSLATE + APPLY)
     Original instructions:
-    UserPrompt: "${imagePrompts.join('\n')}"
-    
+    UserPrompt: "${(imagePrompts ?? []).join('\n')}"
+    ${userPrompt?.trim() ? `
+    Original user request (incorporate specific details — names, places, events — into UserPrompt):
+    <user_request>${userPrompt}</user_request>
+    ` : ''}
     🚨 CRITICAL:
-    
+
     You MUST:
     - Translate the instructions to English
     - Immediately apply them inside the UserPrompt
-    
+
     ❗ DO NOT output the translation separately
     ❗ DO NOT keep original language
     ❗ ONLY use English inside UserPrompt
-    
+
     If instructions are not applied → INVALID OUTPUT
-    
-    
+
+
     #### GENERAL RULES:
     - Scene MUST be in English
     - UserPrompt MUST be in English
-    - Describe ONLY the provided images
-    - DO NOT invent anything
+    ${userPrompt?.trim() ? `- Reflect the user's described scenario; use provided images as the visual base when available
+    - Incorporate specific details (proper nouns, names, places, events) from the user's request` : `- Describe ONLY the provided images
+    - DO NOT invent anything`}
     - DO NOT use post text (hook, body, CTA)
     - Treat images as immutable
     - Do NOT describe text inside the image
@@ -228,7 +253,7 @@ function postImageStructureBlock(profile, photos, imagePrompts) {
   `;
 }
 
-export function postImagePromptBlock(imagePrompts, profile, photos) {
+export function postImagePromptBlock(imagePrompts, profile, photos, userPrompt?: string) {
   const hasImagePrompts = imagePrompts?.length > 0;
 
   if (hasImagePrompts) {
@@ -255,44 +280,44 @@ export function postImagePromptBlock(imagePrompts, profile, photos) {
     
     Language: ${profile.business.language}
     
-    ${postImageStructureBlock(profile, photos, imagePrompts)}
+    ${postImageStructureBlock(profile, photos, imagePrompts, userPrompt)}
   `;
   } else {
     return `
     ## IMAGE PROMPT GENERATION
-    
+
     FRONTEND INPUT:
     ${imagePrompts}
-    
+
     ### TEXT SOURCE (CRITICAL):
-    
+
     You have already generated:
     - hook
     - body
     - cta
-    
+
     You MUST use that generated content as the ONLY source for image text.
-    
+
     Priority:
     - If frontend text exists → use it EXACTLY
     - Otherwise → generate text from the POST CONTENT you created earlier
     - Use this language - ${profile.business.language}
-    
+
     You MUST NOT invent unrelated text.
- 
+
     ### TEXT TRANSFORMATION RULE:
-    
+
     - Title → short, punchy version of hook
     - Subtitle → simplified key idea from body
     - Caption → short CTA version
-    
+
     Rules:
     - Keep text short and visually suitable
     - Do NOT copy full sentences
     - Do NOT invent new ideas
     - Stay consistent with your generated post
-    
-    ${postImageStructureBlock(profile, photos, imagePrompts)}
+
+    ${postImageStructureBlock(profile, photos, imagePrompts, userPrompt)}
   `;
   }
 }

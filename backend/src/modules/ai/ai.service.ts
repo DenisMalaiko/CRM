@@ -97,7 +97,7 @@ export class AiService {
     return stories;
   }
 
-  async generatePostsBasedOnManuallySettings(settings, photos: Photo[]): Promise<any> {
+  async generatePostsBasedOnManuallySettings(settings, photos: Photo[]): Promise<AiPost[]> {
     const prompt = await this.buildPromptForPostsManually(settings, photos);
     const response = await this.model.invoke(prompt);
     const rawText = this.extractTextContent(response.content);
@@ -237,10 +237,10 @@ export class AiService {
       postRoleBlock(),
       postBusinessContextBlock(profile, audienceBlock, productsBlock),
       postCompetitorBlock(),
-      postIdeaBlock(ideasBlock),
+      postIdeaBlock(ideasBlock, profile.prompt),
       postTextGenerationBlock(textPrompts),
       postFormatReplicationBlock(),
-      postImagePromptBlock(imagePrompts, profile, photos),
+      postImagePromptBlock(imagePrompts, profile, photos, profile.prompt),
       postOutputBlock()
     ]
 
@@ -296,10 +296,10 @@ export class AiService {
       storyBusinessContextBlock(profile, audienceBlock, productsBlock),
       storyRulesBlock(),
       storyCompetitorBlock(),
-      storyIdeaBlock(ideasBlock),
+      storyIdeaBlock(ideasBlock, profile.prompt),
       storyTextGenerationBlock(textPrompts),
       storyFormatReplicationBlock(),
-      storyImagePromptBlock(imagePrompts, profile, photos),
+      storyImagePromptBlock(imagePrompts, profile, photos, profile.prompt),
       storyOutputBlock(),
     ]
 
