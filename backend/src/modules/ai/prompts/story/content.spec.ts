@@ -1,7 +1,9 @@
 import {
   storyBusinessContextBlock,
   storyIdeaBlock,
+  storyImagePromptBlock,
 } from './content';
+import { GalleryPhotoType } from '@prisma/client';
 
 // ─────────────────────────────────────────────
 // storyBusinessContextBlock
@@ -111,5 +113,115 @@ describe('storyIdeaBlock', () => {
     const ideasBlock = 'Idea 1: Bold visual narrative.';
     const result = storyIdeaBlock(ideasBlock);
     expect(result).toContain('narrative direction');
+  });
+});
+
+// ─────────────────────────────────────────────
+// storyImagePromptBlock
+// ─────────────────────────────────────────────
+describe('storyImagePromptBlock', () => {
+  const baseProfile = {
+    name: null,
+    business: {
+      name: 'Story Biz',
+      industry: 'Fashion',
+      website: 'https://storybiz.com',
+      language: 'Ukrainian',
+      brand: 'Bold and modern',
+      advantages: ['Unique designs', 'Fast turnaround'],
+      goals: ['Build brand awareness'],
+    },
+  };
+
+  const businessPhoto = {
+    type: GalleryPhotoType.Image,
+    url: 'https://s3.example.com/photos/runway-shot.jpg',
+  };
+
+  const decorationPhoto = {
+    type: GalleryPhotoType.Decoration,
+    url: 'https://s3.example.com/photos/sparkle-overlay.png',
+  };
+
+  const imagePrompts = ['Story headline', 'Supporting text', 'Swipe CTA'];
+
+  it('WITHOUT userPrompt — contains "DO NOT invent anything" rule', () => {
+    const result = storyImagePromptBlock(imagePrompts, baseProfile, [], undefined);
+    expect(result).toContain('DO NOT invent anything');
+  });
+
+  it('WITHOUT userPrompt — contains "Describe ONLY the provided images" rule', () => {
+    const result = storyImagePromptBlock(imagePrompts, baseProfile, [], undefined);
+    expect(result).toContain('Describe ONLY the provided images');
+  });
+
+  it('WITHOUT userPrompt — does NOT contain user scenario language in rules', () => {
+    const result = storyImagePromptBlock(imagePrompts, baseProfile, [], undefined);
+    expect(result).not.toContain("Reflect the user's described scenario");
+  });
+
+  it('WITH userPrompt and NO photos — scene contains the user prompt text', () => {
+    const userPrompt = 'Show models at Paris Fashion Week';
+    const result = storyImagePromptBlock(imagePrompts, baseProfile, [], userPrompt);
+    expect(result).toContain('Show models at Paris Fashion Week');
+  });
+
+  it('WITH userPrompt and NO photos — scene uses "Create a scene" phrasing', () => {
+    const userPrompt = 'Show models at Paris Fashion Week';
+    const result = storyImagePromptBlock(imagePrompts, baseProfile, [], userPrompt);
+    expect(result).toContain('Create a scene that visually represents');
+  });
+
+  it('WITH userPrompt and NO photos — does NOT contain "DO NOT invent anything" rule', () => {
+    const userPrompt = 'Show models at Paris Fashion Week';
+    const result = storyImagePromptBlock(imagePrompts, baseProfile, [], userPrompt);
+    expect(result).not.toContain('DO NOT invent anything');
+  });
+
+  it('WITH userPrompt and NO photos — rules reference user scenario instead of "invent" restriction', () => {
+    const userPrompt = 'Show models at Paris Fashion Week';
+    const result = storyImagePromptBlock(imagePrompts, baseProfile, [], userPrompt);
+    expect(result).toContain("Reflect the user's described scenario");
+  });
+
+  it('WITH userPrompt and WITH photos — scene contains both photo instructions and user prompt', () => {
+    const userPrompt = 'Emphasize the spring collection launch';
+    const result = storyImagePromptBlock(imagePrompts, baseProfile, [businessPhoto], userPrompt);
+    expect(result).toContain('runway-shot.jpg');
+    expect(result).toContain('Emphasize the spring collection launch');
+  });
+
+  it('WITH userPrompt and WITH photos — scene appends user context to photo instructions', () => {
+    const userPrompt = 'Emphasize the spring collection launch';
+    const result = storyImagePromptBlock(imagePrompts, baseProfile, [businessPhoto], userPrompt);
+    expect(result).toContain("incorporate the user's specific request into the scene");
+  });
+
+  it('WITH userPrompt and WITH photos — rules reference user scenario', () => {
+    const userPrompt = 'Emphasize the spring collection launch';
+    const result = storyImagePromptBlock(imagePrompts, baseProfile, [businessPhoto], userPrompt);
+    expect(result).toContain("Reflect the user's described scenario");
+    expect(result).not.toContain('DO NOT invent anything');
+  });
+
+  it('WITH userPrompt — user prompt text appears in the UserPrompt section', () => {
+    const userPrompt = 'Tease the upcoming summer drop';
+    const result = storyImagePromptBlock(imagePrompts, baseProfile, [], userPrompt);
+    const userPromptSectionIndex = result.indexOf('Original user request');
+    expect(userPromptSectionIndex).toBeGreaterThan(-1);
+    expect(result.slice(userPromptSectionIndex)).toContain('Tease the upcoming summer drop');
+  });
+
+  it('WITH userPrompt and decoration photos — scene contains both photo and user prompt details', () => {
+    const userPrompt = 'Celebrate brand anniversary 2025';
+    const result = storyImagePromptBlock(imagePrompts, baseProfile, [businessPhoto, decorationPhoto], userPrompt);
+    expect(result).toContain('runway-shot.jpg');
+    expect(result).toContain('sparkle-overlay.png');
+    expect(result).toContain('Celebrate brand anniversary 2025');
+  });
+
+  it('WITHOUT userPrompt — no "Original user request" section appears', () => {
+    const result = storyImagePromptBlock(imagePrompts, baseProfile, [], undefined);
+    expect(result).not.toContain('Original user request');
   });
 });

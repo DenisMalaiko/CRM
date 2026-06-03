@@ -1,7 +1,9 @@
 import {
   postBusinessContextBlock,
   postIdeaBlock,
+  postImagePromptBlock,
 } from './content';
+import { GalleryPhotoType } from '@prisma/client';
 
 // ─────────────────────────────────────────────
 // postBusinessContextBlock
@@ -105,5 +107,115 @@ describe('postIdeaBlock', () => {
     const ideasBlock = 'Idea 1: Creative direction here.';
     const result = postIdeaBlock(ideasBlock);
     expect(result).not.toContain('No specific creative idea was provided');
+  });
+});
+
+// ─────────────────────────────────────────────
+// postImagePromptBlock
+// ─────────────────────────────────────────────
+describe('postImagePromptBlock', () => {
+  const baseProfile = {
+    name: null,
+    business: {
+      name: 'Acme Corp',
+      industry: 'E-commerce',
+      website: 'https://acme.com',
+      language: 'English',
+      brand: 'Trusted since 2010',
+      advantages: ['Fast delivery', 'Best prices'],
+      goals: ['Grow market share'],
+    },
+  };
+
+  const businessPhoto = {
+    type: GalleryPhotoType.Image,
+    url: 'https://s3.example.com/photos/product-shot.jpg',
+  };
+
+  const decorationPhoto = {
+    type: GalleryPhotoType.Decoration,
+    url: 'https://s3.example.com/photos/star-icon.png',
+  };
+
+  const imagePrompts = ['Bold headline here', 'Subheading text', 'CTA text'];
+
+  it('WITHOUT userPrompt — contains "DO NOT invent anything" rule', () => {
+    const result = postImagePromptBlock(imagePrompts, baseProfile, [], undefined);
+    expect(result).toContain('DO NOT invent anything');
+  });
+
+  it('WITHOUT userPrompt — contains "Describe ONLY the provided images" rule', () => {
+    const result = postImagePromptBlock(imagePrompts, baseProfile, [], undefined);
+    expect(result).toContain('Describe ONLY the provided images');
+  });
+
+  it('WITHOUT userPrompt — does NOT contain user scenario language in rules', () => {
+    const result = postImagePromptBlock(imagePrompts, baseProfile, [], undefined);
+    expect(result).not.toContain("Reflect the user's described scenario");
+  });
+
+  it('WITH userPrompt and NO photos — scene contains the user prompt text', () => {
+    const userPrompt = 'Show a Christmas market in Vienna';
+    const result = postImagePromptBlock(imagePrompts, baseProfile, [], userPrompt);
+    expect(result).toContain('Show a Christmas market in Vienna');
+  });
+
+  it('WITH userPrompt and NO photos — scene uses "Create a scene" phrasing', () => {
+    const userPrompt = 'Show a Christmas market in Vienna';
+    const result = postImagePromptBlock(imagePrompts, baseProfile, [], userPrompt);
+    expect(result).toContain('Create a scene that visually represents');
+  });
+
+  it('WITH userPrompt and NO photos — does NOT contain "DO NOT invent anything" rule', () => {
+    const userPrompt = 'Show a Christmas market in Vienna';
+    const result = postImagePromptBlock(imagePrompts, baseProfile, [], userPrompt);
+    expect(result).not.toContain('DO NOT invent anything');
+  });
+
+  it('WITH userPrompt and NO photos — rules reference user scenario instead of "invent" restriction', () => {
+    const userPrompt = 'Show a Christmas market in Vienna';
+    const result = postImagePromptBlock(imagePrompts, baseProfile, [], userPrompt);
+    expect(result).toContain("Reflect the user's described scenario");
+  });
+
+  it('WITH userPrompt and WITH photos — scene contains both photo instructions and user prompt', () => {
+    const userPrompt = 'Add a festive holiday atmosphere';
+    const result = postImagePromptBlock(imagePrompts, baseProfile, [businessPhoto], userPrompt);
+    expect(result).toContain('product-shot.jpg');
+    expect(result).toContain('Add a festive holiday atmosphere');
+  });
+
+  it('WITH userPrompt and WITH photos — scene appends user context to photo instructions', () => {
+    const userPrompt = 'Add a festive holiday atmosphere';
+    const result = postImagePromptBlock(imagePrompts, baseProfile, [businessPhoto], userPrompt);
+    expect(result).toContain("incorporate the user's specific request into the scene");
+  });
+
+  it('WITH userPrompt and WITH photos — rules reference user scenario', () => {
+    const userPrompt = 'Add a festive holiday atmosphere';
+    const result = postImagePromptBlock(imagePrompts, baseProfile, [businessPhoto], userPrompt);
+    expect(result).toContain("Reflect the user's described scenario");
+    expect(result).not.toContain('DO NOT invent anything');
+  });
+
+  it('WITH userPrompt — user prompt text appears in the UserPrompt section', () => {
+    const userPrompt = 'Highlight the summer sale event';
+    const result = postImagePromptBlock(imagePrompts, baseProfile, [], userPrompt);
+    const userPromptSectionIndex = result.indexOf('Original user request');
+    expect(userPromptSectionIndex).toBeGreaterThan(-1);
+    expect(result.slice(userPromptSectionIndex)).toContain('Highlight the summer sale event');
+  });
+
+  it('WITH userPrompt and decoration photos — scene contains both photo and user prompt details', () => {
+    const userPrompt = 'Celebrate New Year 2025';
+    const result = postImagePromptBlock(imagePrompts, baseProfile, [businessPhoto, decorationPhoto], userPrompt);
+    expect(result).toContain('product-shot.jpg');
+    expect(result).toContain('star-icon.png');
+    expect(result).toContain('Celebrate New Year 2025');
+  });
+
+  it('WITHOUT userPrompt — no "Original user request" section appears', () => {
+    const result = postImagePromptBlock(imagePrompts, baseProfile, [], undefined);
+    expect(result).not.toContain('Original user request');
   });
 });

@@ -97,16 +97,11 @@ export class AiService {
     return stories;
   }
 
-  async generatePostsBasedOnManuallySettings(settings, photos: Photo[]): Promise<any> {
-    console.log("-------------");
+  async generatePostsBasedOnManuallySettings(settings, photos: Photo[]): Promise<AiPost[]> {
     const prompt = await this.buildPromptForPostsManually(settings, photos);
-    console.log("PROMPT: ", prompt);
-    console.log("-------------");
     const response = await this.model.invoke(prompt);
     const rawText = this.extractTextContent(response.content);
-    console.log("RAW TEXT: ", rawText);
     const parsed = PostsResponseSchema.parse(this.safeParseJson(rawText));
-    console.log("-------------");
 
     return parsed.posts;
   }
@@ -245,7 +240,7 @@ export class AiService {
       postIdeaBlock(ideasBlock, profile.prompt),
       postTextGenerationBlock(textPrompts),
       postFormatReplicationBlock(),
-      postImagePromptBlock(imagePrompts, profile, photos),
+      postImagePromptBlock(imagePrompts, profile, photos, profile.prompt),
       postOutputBlock()
     ]
 
@@ -304,7 +299,7 @@ export class AiService {
       storyIdeaBlock(ideasBlock, profile.prompt),
       storyTextGenerationBlock(textPrompts),
       storyFormatReplicationBlock(),
-      storyImagePromptBlock(imagePrompts, profile, photos),
+      storyImagePromptBlock(imagePrompts, profile, photos, profile.prompt),
       storyOutputBlock(),
     ]
 
