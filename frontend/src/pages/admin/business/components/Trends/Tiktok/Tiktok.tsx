@@ -1,22 +1,22 @@
 import React, { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import { Heart, Share2, MessageCircle } from "lucide-react";
 
 // Redux
-import { useSelector } from "react-redux";
-import { useAppDispatch } from "../../../../../../store/hooks";
+import { useAppDispatch, useAppSelector } from "../../../../../../store/hooks";
 import { useLazyGetTikTokVideosByBusinessIdQuery } from "../../../../../../store/trends/trendsApi";
 import { setTiktokVideos } from "../../../../../../store/trends/trendsSlice";
 
 // Utils
 import { showError } from "../../../../../../utils/showError";
 
-function Tiktok() {
+export function Tiktok() {
   const dispatch = useAppDispatch();
   const { businessId } = useParams<{ businessId: string }>();
 
   const [ getTikTokVideosByBusinessId, { isLoading } ] = useLazyGetTikTokVideosByBusinessIdQuery();
 
-  const { tiktokVideos } = useSelector((state: any) => state.trendsModule);
+  const { tiktokVideos } = useAppSelector((state) => state.trendsModule);
 
 
 
@@ -34,17 +34,9 @@ function Tiktok() {
     }
 
     fetchData();
-  }, [dispatch]);
+  }, [dispatch, businessId, getTikTokVideosByBusinessId]);
 
   const getTrends = async () => {
-    console.log("GET TRENDS")
-    /*if (!businessId) return;
-    try {
-      const response = await getTikTokVideosByBusinessId(businessId).unwrap();
-      if (response && response.data) dispatch(setTiktokVideos(response.data));
-    } catch (error) {
-      showError(error);
-    }*/
   }
 
   return (
@@ -118,27 +110,26 @@ function Tiktok() {
                 {/* Footer */}
                 <div className="mt-auto border-t border-slate-100 bg-slate-50 px-3 py-3">
                   <div>
-                    <div className="text-xs font-semibold uppercase tracking-wide text-slate-400 text-left">
-                      Hashtags:
-                      <div>
-                        {item.hashtags.map((hashtag: any, index: number) => (
-                          <span key={index} className="text-slate-600">
-                            #{hashtag}
-                            {index < item.hashtags.length - 1 && ", "}
-                          </span>
-                        ))}
-                      </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {item.hashtags.map((hashtag: any, index: number) => (
+                        <span key={hashtag} className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-600">#{hashtag}</span>
+                      ))}
                     </div>
 
-                    <p className="font-semibold text-slate-900 text-left">
-                      Like: {item.likeCount}
-                    </p>
-                    <p className="font-semibold text-slate-900 text-left">
-                      Shares: {item.shareCount}
-                    </p>
-                    <p className="font-semibold text-slate-900 text-left">
-                      Comments: {item.commentCount}
-                    </p>
+                    <div className="mt-2 flex items-center gap-4 text-sm text-slate-500">
+                      <span className="flex items-center gap-1">
+                        <Heart className="h-4 w-4" />
+                        {item.likeCount}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Share2 className="h-4 w-4" />
+                        {item.shareCount}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <MessageCircle className="h-4 w-4" />
+                        {item.commentCount}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
@@ -152,3 +143,4 @@ function Tiktok() {
 }
 
 export default Tiktok;
+

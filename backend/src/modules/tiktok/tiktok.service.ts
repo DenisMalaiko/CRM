@@ -120,7 +120,7 @@ export class TiktokService {
       adsSoundsCountryCode: country,
       adsTimeRange: '7',
       adsVideosCountryCode: 'US',
-      resultsPerPage: 10,
+      resultsPerPage: 2,
     };
 
     if (industry) {
