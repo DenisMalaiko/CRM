@@ -54,3 +54,25 @@
 - [x] No migration needed
 - [x] No regressions found
 - Summary: Made products, ideas, and audiences optional for AI post/story generation — when absent, the system generates content based solely on user prompt + business context
+
+## TikTok cron silent failure fix — 2026-06-05
+
+### Plan
+- [x] Read affected files (apify.service, tiktok.service, trends.service)
+- [x] Add `logger.warn` in ApifyService when dataset is empty despite SUCCEEDED status
+- [x] Add warn logs in TiktokService when hashtags/videos are empty (with context)
+- [x] Add `emptyCount` counter in TrendsService to distinguish empty from success
+- [x] Quality gate: backend-reviewer + backend-tester
+
+### Notes
+- Migration needed: no
+- Affected modules: `apify`, `tiktok`, `trends`
+- Logging-only changes — zero behavior modifications
+- Root cause: Apify actor `clockworks~tiktok-trends-scraper` CheerioCrawler fails to scrape TikTok (external issue), but our code treated empty dataset as success
+
+### Review
+- [x] backend-reviewer → PASS
+- [x] backend-tester → 28/28 tests pass (4 new for emptyCount)
+- [x] No migration needed
+- [x] No regressions found
+- Summary: Added warn-level logging across apify/tiktok/trends services to surface silent failures when Apify scraper returns empty datasets

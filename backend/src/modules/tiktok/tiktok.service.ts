@@ -86,13 +86,19 @@ export class TiktokService {
     if (!business) return null;
 
     const tags: Tag[] | null = await this.fetchTikTokHashtags(business);
-    if (!tags || tags.length === 0) return [];
+    if (!tags || tags.length === 0) {
+      this.logger.warn(`No hashtags fetched for business ${business.id}, country=${business.country}, industry=${business.industry}`);
+      return [];
+    }
 
     const hashtagValues = tags.map((tag) => tag.value);
     if (hashtagValues.length === 0) return [];
 
     const videos = await this.fetchTikTokVideos(business, hashtagValues);
-    if (videos.length === 0) return [];
+    if (videos.length === 0) {
+      this.logger.warn(`No videos fetched for business ${business.id} despite ${hashtagValues.length} hashtags`);
+      return [];
+    }
 
     return this._upsertVideos(videos, businessId);
   }
@@ -132,7 +138,11 @@ export class TiktokService {
       settings,
     );
 
-    this.logger.log(`TikTok scraper returned ${items.length} hashtags`);
+    if (items.length === 0) {
+      this.logger.warn(`TikTok trends scraper returned 0 hashtags for country=${country}, industry=${industry}`);
+    } else {
+      this.logger.log(`TikTok scraper returned ${items.length} hashtags`);
+    }
 
     return items
       .filter((i: any) => !i.error)
@@ -226,7 +236,11 @@ export class TiktokService {
       settings,
     );
 
-    this.logger.log(`TikTok scraper returned ${items.length} videos`);
+    if (items.length === 0) {
+      this.logger.warn(`TikTok scraper returned 0 videos for hashtags: [${hashtags.join(', ')}]`);
+    } else {
+      this.logger.log(`TikTok scraper returned ${items.length} videos`);
+    }
 
     return items
       .filter((i) => !i?.error && i?.id)
