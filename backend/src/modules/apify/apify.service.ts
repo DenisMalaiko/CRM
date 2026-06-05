@@ -39,6 +39,9 @@ export class ApifyService {
       .listItems();
 
     if (!Array.isArray(items) || items.length === 0) {
+      this.logger.warn(
+        `Apify run ${run.id} for actor "${actor}" returned an empty dataset despite SUCCEEDED status`,
+      );
       return [];
     }
 

@@ -108,6 +108,8 @@ src/
 
 ## Module Conventions
 
+> Coding conventions (guards, DTOs, scoping, AI patterns, hygiene) are defined in `.claude/rules/conventions.md` and loaded automatically.
+
 ### Anatomy of a module
 Every feature module follows this exact pattern:
 
@@ -227,36 +229,6 @@ npx prisma migrate dev --name add_field_to_model
 # Always run migrate dev locally before committing
 ```
 
-## Auth Conventions
-
-- JWT guard is applied **globally** — use `@Public()` decorator to opt out on public routes
-- User payload available via `@Request() req` → `req.user` (id, role, agencyId)
-- Passwords hashed with bcrypt (never stored or returned in plain text)
-- Token refresh handled at the middleware level — services don't handle 401 retries
-
-## Response Shape
-
-All responses are wrapped by `ApiResponseInterceptor`:
-```json
-{
-  "message": "Businesses fetched",
-  "data": { ... }
-}
-```
-
-Use `@ResponseMessage('...')` decorator on controller methods to set the message.
-
-## AI Integration Patterns
-
-```ts
-// ✅ Use LangChain for prompt chains with structured output
-// ✅ Use Zod schemas to validate AI JSON responses
-// ✅ Use jsonrepair before JSON.parse on AI output — LLMs produce malformed JSON
-// ✅ Keep prompts in src/modules/ai/prompts/ as separate files per content type
-// ❌ Don't inline long prompt strings in services
-// ❌ Don't trust raw AI output — always validate with Zod
-```
-
 ## Testing Standards
 
 ```ts
@@ -279,15 +251,3 @@ describe('BusinessService', () => {
 });
 ```
 
-## Common Pitfalls to Avoid
-
-| ❌ Anti-pattern                              | ✅ Correct approach                                      |
-|----------------------------------------------|----------------------------------------------------------|
-| Business logic in controllers                | Move to service                                          |
-| Missing `@IsOptional()` on optional DTO fields | Always annotate optional fields explicitly             |
-| Querying without tenant scoping              | Always filter by `agencyId` or `businessId`             |
-| Returning Prisma model directly              | Use entity class or select specific fields              |
-| `JSON.parse()` on AI output directly         | `jsonrepair()` first, then parse, then Zod validate     |
-| Editing migration files                      | Create a new migration instead                          |
-| `any` type in TypeScript                     | Explicit type or Zod-inferred type                      |
-| `console.log` left in committed code         | Remove before commit                                    |

@@ -36,13 +36,20 @@ export class TrendsService {
     this.logger.log(`Found ${businesses.length} active businesses`);
 
     let successCount = 0;
+    let emptyCount = 0;
     let failCount = 0;
 
     for (const business of businesses) {
       try {
-        await this.tiktokService.fetchTikTokVideosByBusinessId(business.id);
-        successCount++;
-        this.logger.log(`Fetched TikTok videos for "${business.name}" (${business.id})`);
+        const result = await this.tiktokService.fetchTikTokVideosByBusinessId(business.id);
+        const count = result?.length ?? 0;
+        if (count > 0) {
+          successCount++;
+          this.logger.log(`Fetched ${count} TikTok videos for "${business.name}" (${business.id})`);
+        } else {
+          emptyCount++;
+          this.logger.warn(`Fetched 0 TikTok videos for "${business.name}" (${business.id})`);
+        }
       } catch (error) {
         failCount++;
         const message = error instanceof Error ? error.message : String(error);
@@ -53,7 +60,7 @@ export class TrendsService {
     }
 
     this.logger.log(
-      `Daily TikTok fetch completed: ${successCount} succeeded, ${failCount} failed out of ${businesses.length}`,
+      `Daily TikTok fetch completed: ${successCount} succeeded, ${emptyCount} empty, ${failCount} failed out of ${businesses.length}`,
     );
   }
 }
