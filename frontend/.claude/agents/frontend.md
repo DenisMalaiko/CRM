@@ -74,124 +74,15 @@ mcp__context7__query-docs          →  fetch relevant docs for the task
 6. **Notify on API needs** — if a component needs new data, send message to `developer` agent
 
 
-## Component Conventions
+## Conventions
 
-### File Structure
-```
-src/
-├── components/          # Shared UI components used across multiple pages
-│   ├── confirmDlg/      # ConfirmDlg.tsx — promise-based confirm dialog
-│   ├── createCreativeDlg/
-│   ├── header/          # Header.tsx
-│   ├── sliderDlg/
-│   ├── textDlg/
-│   ├── tooltip/         # Tooltip.tsx
-│   └── videoDlg/
-├── const/               # Static data constants
-│   ├── Ads.ts
-│   ├── Geo.ts
-│   ├── Industries.ts
-│   └── Languages.ts
-├── enum/                # TypeScript enums
-│   ├── BusinessStatus.ts
-│   ├── UserRole.ts
-│   └── ...              # One enum per file
-├── hooks/               # Custom hooks
-│   ├── useForm.ts
-│   ├── usePagination.ts
-│   └── useValidation.ts
-├── models/              # TypeScript interfaces for domain objects
-│   ├── ApiResponse.ts
-│   ├── Business.ts
-│   ├── User.ts
-│   └── ...              # One model per file
-├── pages/               # Route-level components
-│   ├── admin/           # Admin panel pages
-│   │   └── business/
-│   │       └── components/  # Page-local components (not shared)
-│   ├── adminSuper/      # Super admin pages
-│   └── auth/            # signIn, signUp
-├── router/              # Route guards and route definitions
-├── store/               # Redux slices + RTK Query API per feature
-│   ├── index.ts         # Store setup
-│   ├── hooks.ts         # useAppDispatch, useAppSelector typed hooks
-│   ├── api/             # Shared fetchBaseQuery base (auth, refresh, toasts)
-│   ├── auth/            # authSlice.ts + authApi.ts
-│   ├── businesses/      # businessesSlice.ts + businessesApi.ts
-│   ├── competitor/
-│   ├── gallery/
-│   └── ...              # One folder per domain
-└── utils/               # Pure helper functions
-    ├── handleError.ts
-    ├── validations.ts
-    ├── reactSelectStyles.ts
-    └── ...
-```
+All coding conventions, naming rules, and file placement rules are defined in `.claude/rules/`:
+- **`.claude/rules/react-conventions.md`** — component style, TypeScript, styling, state management, naming
+- **`.claude/rules/file-structure.md`** — where to place new files
 
-### Component Template
-```tsx
-import React from 'react';
- 
-type Props = {
-  // explicit props — no implicit any
-};
- 
-export function MyComponent({ }: Props) {
-  return (
-    <div>
-      {/* content */}
-    </div>
-  );
-}
-```
-
-> Use `type` (not `interface`) for props, named `export function` (not arrow + `FC`), explicit `import React` — match the existing codebase style.
+Follow these rules strictly. They are loaded automatically for all agents.
 
 > Hooks that return JSX are allowed for self-contained dialog/overlay patterns (see `useConfirmDialog`), but standard hooks should return data/callbacks only.
-
-
-### Naming Rules
-- Components: `PascalCase` — `UserCard.tsx`
-- Hooks: `camelCase` prefixed with `use` — `useUserData.ts`
-- Redux slices: `camelCase` + `Slice` suffix — `authSlice.ts`
-- Types/interfaces: `PascalCase` — `UserProfile`, `ApiResponse<T>`
-- Event handlers: `handle` prefix — `handleSubmit`, `handleChange`
-
-
-### Redux Toolkit Patterns
-```ts
-// ✅ Use createSlice + createAsyncThunk
-const usersSlice = createSlice({
-  name: 'users',
-  initialState,
-  reducers: { /* sync actions */ },
-  extraReducers: (builder) => { /* async actions */ },
-});
- 
-// ✅ Typed hooks — define once in store/index.ts
-export const useAppDispatch = () => useDispatch<AppDispatch>();
-export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
- 
-// ❌ Never mutate state outside of createSlice
-// ❌ Never use plain useDispatch / useSelector — use typed wrappers
-```
-
-### React Router v6 Patterns
-```tsx
-// ✅ Use nested routes and Outlet
-// ✅ useNavigate for programmatic navigation
-// ✅ useParams / useSearchParams with explicit typing
-// ❌ Don't use history.push (v5 pattern)
-// ❌ Don't use <Switch> (replaced by <Routes>)
-```
-
-### Date Handling
-```ts
-// ✅ Use date-fns for all new code
-import { format, parseISO, differenceInDays } from 'date-fns';
- 
-// ❌ Don't add new moment usage — migrate existing on touch
-```
 
 
 ## Performance Best Practices

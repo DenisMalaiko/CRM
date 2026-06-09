@@ -61,22 +61,7 @@ Before writing any code:
 1. Follow the plan step by step
 2. Mark each item complete as you go: `- [x]`
 3. After each meaningful change — write a one-line summary of what was done and why
-4. Follow all conventions from `.claude/agents/frontend.md`:
-    - `export function` not arrow + FC
-    - `type Props` not `interface`
-    - explicit `import React`
-    - Tailwind only, no inline styles
-    - date-fns not moment
-    - typed Redux hooks (`useAppDispatch`, `useAppSelector`)
-
-### File placement rules
-- New shared component (used on 2+ pages) → `src/components/<name>/`
-- Page-local component → `src/pages/.../components/<name>/`
-- New hook → `src/hooks/`
-- New type → `src/models/`
-- New enum → `src/enum/`
-- New constant → `src/const/`
-- New Redux slice + API → `src/store/<domain>/`
+4. Follow all conventions from `.claude/rules/react-conventions.md` and `.claude/rules/file-structure.md`
 
 ### Agent coordination
 - If backend changes are needed → `SendMessage` to `developer` agent with exact requirements
