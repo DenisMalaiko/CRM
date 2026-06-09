@@ -6,5 +6,40 @@
     "context7@claude-plugins-official": true,
     "figma@claude-plugins-official": true,
     "superpowers@claude-plugins-official": true
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "filepath=$(cat - | jq -r '.tool_input.file_path // empty') && [ -n \"$filepath\" ] && [[ \"$filepath\" == *.ts ]] && npx prettier --write \"$filepath\" 2>/dev/null; exit 0"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "filepath=$(cat - | jq -r '.tool_input.file_path // empty') && if [[ \"$filepath\" == *.env* ]] || [[ \"$filepath\" == *credentials* ]] || [[ \"$filepath\" == *secret* ]]; then echo 'Blocked: protected file' >&2; exit 2; fi; exit 0"
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "osascript -e 'display notification \"Claude потребує уваги\" with title \"Claude Code\"'"
+          }
+        ]
+      }
+    ]
   }
 }

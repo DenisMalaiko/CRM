@@ -34,50 +34,29 @@ Review only frontend code:
 5. If only 🟢 Suggestions → include in report, do not block
 ## Review Checklist
 
-### TypeScript
-- [ ] No `any` types — explicit interfaces or generics only
-- [ ] All props typed with `type Props = { ... }` (not `interface`)
-- [ ] No implicit return types on complex functions — annotate explicitly
-- [ ] No `@ts-ignore` or `@ts-expect-error` without explanation comment
-- [ ] Models match what the API actually returns (check `src/models/`)
-### Component Conventions
-- [ ] Named `export function` — not arrow function + `FC<Props>`
-- [ ] Explicit `import React from 'react'` at top
-- [ ] Props destructured in function signature, not inside body
-- [ ] No default exports mixed with named exports in same file
-- [ ] Event handlers prefixed with `handle` — `handleSubmit`, `handleChange`
+All conventions are defined in `.claude/rules/react-conventions.md` and `.claude/rules/file-structure.md`.
+Review code against those rules. Key checklist:
+
+### TypeScript & Conventions
+- [ ] No `any` types — explicit interfaces or generics
+- [ ] `type Props` (not `interface`), named `export function` (not arrow + FC)
+- [ ] Explicit `import React`, props destructured in signature
+- [ ] No `@ts-ignore` without explanation
+
 ### React Patterns
-- [ ] No `useEffect` for derived state — use `useMemo` or inline calculation
-- [ ] `useCallback` wraps callbacks passed as props to memoized children
-- [ ] `useMemo` wraps expensive computations, not trivial ones
-- [ ] No inline object/array literals in JSX props (new reference on every render)
-- [ ] No direct DOM manipulation — use `useRef`
-- [ ] Keys in lists are stable and unique — not array index unless list is static
-### Redux
-- [ ] Uses `useAppDispatch` and `useAppSelector` — not plain `useDispatch`/`useSelector`
-- [ ] Server data NOT stored in Redux — local state or RTK Query cache only
-- [ ] State mutation only inside `createSlice` reducers — never outside
-- [ ] `createAsyncThunk` used for async operations — not manual dispatch chains
-### Styling
-- [ ] Tailwind classes only — no inline `style={{}}` unless value is truly dynamic
-- [ ] No mixing Tailwind with plain CSS class names on same element
-- [ ] No hardcoded color values — use Tailwind palette
-- [ ] Responsive breakpoints used where layout changes at different screen sizes
-### Date Handling
-- [ ] No new `moment` usage — `date-fns` only for new code
-- [ ] Dates formatted via `format()` from `date-fns`, not `.toString()` or template strings
-### Code Hygiene
-- [ ] No `console.log` left in code
-- [ ] No commented-out code blocks
-- [ ] No unused imports
-- [ ] No unused variables or parameters (prefix with `_` if intentionally unused)
-### File Placement
-- [ ] Shared components (2+ pages) → `src/components/`
-- [ ] Page-local components → `src/pages/.../components/`
-- [ ] Hooks → `src/hooks/`
-- [ ] Types → `src/models/`
-- [ ] Enums → `src/enum/`
-- [ ] Constants → `src/const/`
+- [ ] No `useEffect` for derived state — use `useMemo` or inline
+- [ ] Proper `useCallback`/`useMemo` usage, stable list keys
+- [ ] No inline object/array literals in JSX props
+
+### Redux & Styling
+- [ ] `useAppDispatch`/`useAppSelector` — not plain hooks
+- [ ] Server data NOT in Redux
+- [ ] Tailwind only, no inline styles, no hardcoded colors
+
+### Code Hygiene & File Placement
+- [ ] No `console.log`, commented code, unused imports
+- [ ] `date-fns` only (no new `moment`)
+- [ ] Files placed per `.claude/rules/file-structure.md`
 ## Report Format
 
 ```

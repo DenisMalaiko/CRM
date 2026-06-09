@@ -24,7 +24,7 @@ Review only backend code:
 - Core infrastructure (`.ts` in `src/core/`)
 - Shared enums and entities (`src/shared/`)
 
-Do NOT review frontend code — that belongs to `reviewer` agent.
+Do NOT review frontend code.
 
 ## Review Process
 

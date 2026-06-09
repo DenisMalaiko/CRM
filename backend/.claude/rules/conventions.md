@@ -1,58 +1,14 @@
-# Backend Coding Conventions
+# Backend Coding Conventions — Summary
 
-These rules apply to all backend code. Loaded automatically into every session.
+Full rules are split into path-scoped files for token efficiency:
 
-## Route Protection
+- **DTO Validation** → `rules/dto-validation.md` (scoped to `dto/` files)
+- **Prisma & Tenant Scoping** → `rules/prisma-queries.md` (scoped to `*.service.ts` + `prisma/`)
+- **AI Integration** → `rules/ai-integration.md` (scoped to `ai/` modules)
+- **API Response & Routes** → `rules/api-response.md` (scoped to `*.controller.ts`)
+- **Code Hygiene** → `rules/code-hygiene.md` (scoped to all `src/**/*.ts`)
 
-- Protected routes use `@UseGuards(JwtAuthGuard)` (class-level or method-level)
-- Use `@Public()` decorator to opt out on public routes
-- User payload available via `@Request() req` → `req.user` (id, role, agencyId)
-
-## DTO Validation
-
-- Every DTO field must have `class-validator` decorators (`@IsString()`, `@IsNotEmpty()`, `@IsOptional()`, etc.)
-- Nested DTOs use `@ValidateNested()` + `@Type()`
-- Array fields use `@IsArray()` + `@ArrayMinSize()` where appropriate
-- Optional fields always annotated with `@IsOptional()`
-
-## Tenant Scoping
-
-- All Prisma queries filter by `agencyId` or `businessId`
-- No unscoped queries unless explicitly justified with a comment (e.g., cron jobs)
-- `findMany` / `findFirst` / `update` / `delete` include tenant filter in `where`
-
-## Response Shape
-
-- Every controller method has `@ResponseMessage('...')` decorator
-- All responses wrapped by `ApiResponseInterceptor` into `{ message, data }`
-- Errors use NestJS exceptions (`BadRequestException`, `NotFoundException`, etc.) — not raw `throw new Error()`
-
-## Architecture
-
-- Business logic lives in the **service**, not the controller
-- Controller only handles: route definition, guards, DTO binding, calling service, return
-- New modules must be registered in `app.module.ts` imports
-
-## AI Integration
-
-- `jsonrepair()` before `JSON.parse()` on any AI-generated output
-- Zod schema validation on parsed AI responses
-- Prompts in `src/modules/ai/prompts/` as separate files per content type — not inline strings
-- Never trust raw AI output — always validate
-
-## File Uploads
-
-- `StorageModule` must be imported in the target module
-- S3 key includes tenant context (agencyId or businessId)
-
-## Code Hygiene
-
-- No `console.log` — use NestJS `Logger` instead
-- No `any` types — use proper TypeScript types or Prisma-generated types
-- No commented-out code blocks
-- Passwords hashed with bcrypt — never stored or returned in plain text
-
-## Common Pitfalls
+## Quick Reference — Common Pitfalls
 
 | Anti-pattern                                 | Correct approach                                         |
 |----------------------------------------------|----------------------------------------------------------|
