@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
+import { X } from "lucide-react";
 import { toast } from "react-toastify";
 
 // Hooks
@@ -42,6 +43,7 @@ function CreateCompetitorDlg({ open, onClose, competitor }: any) {
       return {
         name: competitor.name,
         facebookLink: competitor.facebookLink,
+        instagramLink: competitor.instagramLink,
         isActive: competitor.isActive,
         businessId: competitor.businessId,
       }
@@ -50,6 +52,7 @@ function CreateCompetitorDlg({ open, onClose, competitor }: any) {
     return {
       name: "",
       facebookLink: "",
+      instagramLink: "",
       isActive: true,
       businessId: businessId,
     };
@@ -63,6 +66,7 @@ function CreateCompetitorDlg({ open, onClose, competitor }: any) {
   const { errors, validateField, validateAll } = useValidation({
     name: (value) => minLength(value, 3),
     facebookLink: (value) => minLength(value, 3),
+    instagramLink: (value) => value ? minLength(value, 3) : null,
     isActive: (value) => isBoolean(value),
     businessId: (value) => isRequired(value),
   });
@@ -124,9 +128,9 @@ function CreateCompetitorDlg({ open, onClose, competitor }: any) {
           <h2 className="text-lg font-semibold">{ isEdit ? "Edit" : "Create" } Competitor</h2>
           <button
             onClick={onClose}
-            className="text-slate-500 hover:text-slate-700 rounded-full p-1 hover:bg-slate-100"
+            className="text-white text-xl bg-blue-600 rounded-full p-2 hover:bg-blue-700 cursor-pointer"
           >
-            ✕
+            <X size={20} strokeWidth={2} color="white" />
           </button>
         </div>
 
@@ -164,6 +168,23 @@ function CreateCompetitorDlg({ open, onClose, competitor }: any) {
               autoComplete="off"
             />
             {errors.facebookLink && <p className="text-red-500 text-sm mt-2 text-left">{errors.facebookLink}</p>}
+          </div>
+
+          <div>
+            <div className="flex items-center gap-2 justify-between">
+              <label className="block text-sm font-medium text-slate-700 text-left">Instagram Link</label>
+            </div>
+
+            <input
+              type="text"
+              name="instagramLink"
+              value={form.instagramLink}
+              onChange={onChange}
+              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
+              placeholder="Enter instagram link"
+              autoComplete="off"
+            />
+            {errors.instagramLink && <p className="text-red-500 text-sm mt-2 text-left">{errors.instagramLink}</p>}
           </div>
 
           <label className="flex items-start gap-3 cursor-pointer select-none">

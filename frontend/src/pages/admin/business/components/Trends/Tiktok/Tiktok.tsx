@@ -4,7 +4,7 @@ import { Heart, Share2, MessageCircle } from "lucide-react";
 
 // Redux
 import { useAppDispatch, useAppSelector } from "../../../../../../store/hooks";
-import { useLazyGetTikTokVideosByBusinessIdQuery } from "../../../../../../store/trends/trendsApi";
+import { useLazyGetTikTokVideosByBusinessIdQuery, useFetchTikTokVideosMutation } from "../../../../../../store/trends/trendsApi";
 import { setTiktokVideos } from "../../../../../../store/trends/trendsSlice";
 
 // Utils
@@ -15,6 +15,7 @@ export function Tiktok() {
   const { businessId } = useParams<{ businessId: string }>();
 
   const [ getTikTokVideosByBusinessId, { isLoading } ] = useLazyGetTikTokVideosByBusinessIdQuery();
+  const [ fetchTikTokVideos, { isLoading: isMutating } ] = useFetchTikTokVideosMutation();
 
   const { tiktokVideos } = useAppSelector((state) => state.trendsModule);
 
@@ -37,6 +38,14 @@ export function Tiktok() {
   }, [dispatch, businessId, getTikTokVideosByBusinessId]);
 
   const getTrends = async () => {
+    try {
+      if (!businessId) return;
+      await fetchTikTokVideos(businessId).unwrap();
+      const response = await getTikTokVideosByBusinessId(businessId).unwrap();
+      if (response && response.data) dispatch(setTiktokVideos(response.data));
+    } catch (error) {
+      showError(error);
+    }
   }
 
   return (
@@ -47,10 +56,10 @@ export function Tiktok() {
 
           <button
             onClick={() => getTrends()}
-            disabled={isLoading}
+            disabled={isLoading || isMutating}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700"
           >
-            { isLoading ? (
+            { (isLoading || isMutating) ? (
               <>
                 <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"/>
                 Getting Trends...

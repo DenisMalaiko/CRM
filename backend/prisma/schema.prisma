@@ -240,8 +240,9 @@ model Competitor {
   id           String           @id @default(uuid())
   businessId   String
   name         String
-  facebookLink String
-  isActive     Boolean          @default(true)
+  facebookLink  String
+  instagramLink String           @default("")
+  isActive      Boolean          @default(true)
   createdAt    DateTime         @default(now())
   business     Business         @relation(fields: [businessId], references: [id])
   ads          CompetitorAds[]

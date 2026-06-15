@@ -2,6 +2,7 @@ export type TCompetitorBase = {
   businessId: string;
   name: string;
   facebookLink: string;
+  instagramLink: string;
   isActive: boolean;
 }
 

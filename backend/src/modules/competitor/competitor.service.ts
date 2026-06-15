@@ -1,6 +1,8 @@
 import { Injectable, InternalServerErrorException, NotFoundException, HttpException, BadRequestException } from '@nestjs/common';
 import { PrismaService} from '../../core/prisma/prisma.service';
 import { FacebookService } from "../facebook/facebook.service";
+import { InstagramService } from "../instagram/instagram.service";
+import { CompetitorMediaService } from "./competitor-media.service";
 import { TCompetitor, TCompetitorCreate, TCompetitorUpdate, TCompetitorPostParams, TCompetitorAdsParams } from "./entities/competitor.entity";
 import { PlatformList } from "@prisma/client";
 
@@ -9,6 +11,8 @@ export class CompetitorService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly facebookService: FacebookService,
+    private readonly instagramService: InstagramService,
+    private readonly competitorMediaService: CompetitorMediaService,
   ) {}
 
   async getCompetitors(businessId: string): Promise<TCompetitor[]> {
@@ -42,6 +46,7 @@ export class CompetitorService {
         data: {
           name: body.name,
           facebookLink: body.facebookLink,
+          instagramLink: body.instagramLink,
           isActive: body.isActive,
         }
       });
@@ -56,6 +61,7 @@ export class CompetitorService {
 
   async deleteCompetitor(id: string): Promise<TCompetitor> {
     try {
+      await this.deleteCompetitorMedia(id);
       return await this.prisma.competitor.delete({ where: { id } });
     } catch (err: any) {
       if (err.code === 'P2025') {
@@ -63,6 +69,57 @@ export class CompetitorService {
       }
       throw err;
     }
+  }
+
+  private async deleteCompetitorMedia(competitorId: string): Promise<void> {
+    const [posts, ads] = await Promise.all([
+      this.prisma.competitorPost.findMany({
+        where: { competitorId },
+        select: { media: true },
+      }),
+      this.prisma.competitorAds.findMany({
+        where: { competitorId },
+        select: { videos: true, images: true },
+      }),
+    ]);
+
+    const s3Keys: string[] = [];
+
+    for (const post of posts) {
+      if (!Array.isArray(post.media)) continue;
+
+      for (const item of post.media as any[]) {
+        if (item.thumbnail) {
+          const key = this.competitorMediaService.extractS3Key(item.thumbnail);
+          if (key) s3Keys.push(key);
+        }
+        if (item.url) {
+          const key = this.competitorMediaService.extractS3Key(item.url);
+          if (key) s3Keys.push(key);
+        }
+      }
+    }
+
+    for (const ad of ads) {
+      for (const mediaArray of [ad.videos, ad.images]) {
+        if (!Array.isArray(mediaArray)) continue;
+
+        for (const item of mediaArray as any[]) {
+          if (item.thumbnail) {
+            const key = this.competitorMediaService.extractS3Key(item.thumbnail);
+            if (key) s3Keys.push(key);
+          }
+          if (item.url) {
+            const key = this.competitorMediaService.extractS3Key(item.url);
+            if (key) s3Keys.push(key);
+          }
+        }
+      }
+    }
+
+    await Promise.allSettled(
+      s3Keys.map(key => this.competitorMediaService.deleteMedia(key))
+    );
   }
 
 
@@ -87,19 +144,34 @@ export class CompetitorService {
 
   async getPosts(id: string): Promise<any[]> {
     return await this.prisma.competitorPost.findMany({
-      where: { competitorId: id },
+      where: { competitorId: id, platform: PlatformList.Facebook },
     });
   }
 
   async savePosts(competitorId: string, posts: any[]) {
     return Promise.all(
-      posts.map(post =>
-        this.prisma.competitorPost.upsert({
+      posts.map(async post => {
+        const existing = await this.prisma.competitorPost.findUnique({
           where: {
             externalId_platform_competitorId: {
               externalId: post.externalId,
               platform: PlatformList.Facebook,
-              competitorId: competitorId,
+              competitorId,
+            },
+          },
+          select: { media: true },
+        });
+
+        const media = existing?.media
+          ? existing.media
+          : await this.competitorMediaService.processMedia(competitorId, post.media);
+
+        return this.prisma.competitorPost.upsert({
+          where: {
+            externalId_platform_competitorId: {
+              externalId: post.externalId,
+              platform: PlatformList.Facebook,
+              competitorId,
             },
           },
           create: {
@@ -109,7 +181,7 @@ export class CompetitorService {
 
             text: post.text,
             url: post.url,
-            media: post.media,
+            media,
 
             likes: post.likes,
             shares: post.shares,
@@ -126,10 +198,95 @@ export class CompetitorService {
 
             fetchedAt: new Date(),
             postedAt: post.postedAt,
-            media: post.media,
           },
-        })
-      )
+        });
+      })
+    );
+  }
+
+
+  // Instagram Posts
+  async fetchInstagramPosts(id: string, body: TCompetitorPostParams): Promise<any> {
+    const competitor = await this.prisma.competitor.findUnique({
+      where: { id }
+    });
+
+    if (!competitor?.instagramLink) return null;
+
+    const posts = await this.instagramService.fetchPosts(
+      competitor.id,
+      competitor.instagramLink,
+      body
+    );
+
+    if(!posts) return [];
+
+    return await this.saveInstagramPosts(id, posts);
+  }
+
+  async getInstagramPosts(id: string): Promise<any[]> {
+    return await this.prisma.competitorPost.findMany({
+      where: { competitorId: id, platform: PlatformList.Instagram },
+    });
+  }
+
+  async saveInstagramPosts(competitorId: string, posts: any[]) {
+    return Promise.all(
+      posts.map(async post => {
+        const existing = await this.prisma.competitorPost.findUnique({
+          where: {
+            externalId_platform_competitorId: {
+              externalId: post.externalId,
+              platform: PlatformList.Instagram,
+              competitorId,
+            },
+          },
+          select: { media: true },
+        });
+
+        const media = existing?.media
+          ? existing.media
+          : await this.competitorMediaService.processMedia(competitorId, post.media);
+
+        console.log("-------------");
+        console.log("Media ", media);
+        console.log("-------------");
+
+        return this.prisma.competitorPost.upsert({
+          where: {
+            externalId_platform_competitorId: {
+              externalId: post.externalId,
+              platform: PlatformList.Instagram,
+              competitorId,
+            },
+          },
+          create: {
+            externalId: post.externalId,
+            platform: PlatformList.Instagram,
+            competitorId,
+
+            text: post.text,
+            url: post.url,
+            media,
+
+            likes: post.likes,
+            shares: post.shares,
+            views: post.views,
+            comments: post.comments,
+
+            postedAt: post.postedAt,
+          },
+          update: {
+            likes: post.likes,
+            shares: post.shares,
+            views: post.views,
+            comments: post.comments,
+
+            fetchedAt: new Date(),
+            postedAt: post.postedAt,
+          },
+        });
+      })
     );
   }
 

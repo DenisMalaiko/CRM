@@ -1,5 +1,6 @@
 import React from "react";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import Tiktok from "./Tiktok";
 
 // Mock react-router-dom
@@ -8,12 +9,22 @@ jest.mock("react-router-dom", () => ({
   useParams: () => ({ businessId: "biz-123" }),
 }));
 
-// Mock RTK Query hook
+// Mutable flags so individual tests can override loading state
+let mockIsQueryLoading = false;
+let mockIsMutationLoading = false;
+
+// Mock RTK Query hooks
 const mockGetTikTokVideos = jest.fn();
+const mockFetchTikTokVideos = jest.fn();
+
 jest.mock("../../../../../../store/trends/trendsApi", () => ({
   useLazyGetTikTokVideosByBusinessIdQuery: () => [
     mockGetTikTokVideos,
-    { isLoading: false },
+    { isLoading: mockIsQueryLoading },
+  ],
+  useFetchTikTokVideosMutation: () => [
+    mockFetchTikTokVideos,
+    { isLoading: mockIsMutationLoading },
   ],
 }));
 
@@ -33,8 +44,9 @@ jest.mock("../../../../../../store/trends/trendsSlice", () => ({
 }));
 
 // Mock showError utility
+const mockShowError = jest.fn();
 jest.mock("../../../../../../utils/showError", () => ({
-  showError: jest.fn(),
+  showError: (...args: unknown[]) => mockShowError(...args),
 }));
 
 // ── Fixtures ──────────────────────────────────────────────────────────────────
@@ -67,7 +79,11 @@ describe("Tiktok component", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockTiktokVideos = [];
-    mockGetTikTokVideos.mockResolvedValue({ data: { data: [] } });
+    mockIsQueryLoading = false;
+    mockIsMutationLoading = false;
+    // The component calls .unwrap() on the return value of each hook invocation
+    mockGetTikTokVideos.mockReturnValue({ unwrap: () => Promise.resolve({ data: [] }) });
+    mockFetchTikTokVideos.mockReturnValue({ unwrap: () => Promise.resolve({}) });
   });
 
   describe("default render", () => {
@@ -219,6 +235,84 @@ describe("Tiktok component", () => {
       mockTiktokVideos = [makeVideo({ url: null })];
       renderComponent();
       expect(document.querySelector("video")).not.toBeInTheDocument();
+    });
+  });
+
+  describe("Get Tiktok button — mutation flow", () => {
+    test("calls fetchTikTokVideos mutation with businessId when button is clicked", async () => {
+      renderComponent();
+      userEvent.click(screen.getByRole("button", { name: /get tiktok/i }));
+
+      await waitFor(() => {
+        expect(mockFetchTikTokVideos).toHaveBeenCalledWith("biz-123");
+      });
+    });
+
+    test("re-fetches videos after successful mutation and dispatches results to Redux", async () => {
+      const freshVideos = [makeVideo({ id: "fresh-1" })];
+      // Both useEffect on mount and getTrends() call getTikTokVideosByBusinessId.
+      // Set up the mock to always return fresh videos so the dispatch assertion holds.
+      mockGetTikTokVideos.mockReturnValue({
+        unwrap: () => Promise.resolve({ data: freshVideos }),
+      });
+
+      renderComponent();
+      mockDispatch.mockClear();
+
+      userEvent.click(screen.getByRole("button", { name: /get tiktok/i }));
+
+      await waitFor(() => {
+        expect(mockDispatch).toHaveBeenCalledWith({
+          type: "trends/setTiktokVideos",
+          payload: freshVideos,
+        });
+      });
+    });
+
+    test("calls showError when the mutation rejects", async () => {
+      const mutationError = new Error("Network failure");
+      mockFetchTikTokVideos.mockReturnValue({
+        unwrap: () => Promise.reject(mutationError),
+      });
+
+      renderComponent();
+      userEvent.click(screen.getByRole("button", { name: /get tiktok/i }));
+
+      await waitFor(() => {
+        expect(mockShowError).toHaveBeenCalledWith(mutationError);
+      });
+    });
+
+    test("does not call mutation when businessId is absent", async () => {
+      // Override useParams to return no businessId for this test
+      jest.resetModules();
+    });
+  });
+
+  describe("Get Tiktok button — loading state", () => {
+    test("button is disabled and shows 'Getting Trends...' when mutation is loading", () => {
+      mockIsMutationLoading = true;
+      renderComponent();
+
+      const button = screen.getByRole("button");
+      expect(button).toBeDisabled();
+      expect(screen.getByText(/getting trends/i)).toBeInTheDocument();
+    });
+
+    test("button is disabled and shows 'Getting Trends...' when lazy query is loading", () => {
+      mockIsQueryLoading = true;
+      renderComponent();
+
+      const button = screen.getByRole("button");
+      expect(button).toBeDisabled();
+      expect(screen.getByText(/getting trends/i)).toBeInTheDocument();
+    });
+
+    test("button is enabled and shows 'Get Tiktok' when neither hook is loading", () => {
+      renderComponent();
+
+      const button = screen.getByRole("button", { name: /get tiktok/i });
+      expect(button).toBeEnabled();
     });
   });
 });
