@@ -11,6 +11,10 @@ export class CompetitorBaseDto {
   @IsString()
   facebookLink: string;
 
+  @IsString()
+  @IsOptional()
+  instagramLink: string;
+
   @IsBoolean()
   isActive: boolean;
 }

@@ -89,6 +89,11 @@ function BaseData() {
             </div>
 
             <div className="w-full flex justify-between border-b pb-2">
+              <span className="font-medium">Instagram Link</span>
+              <a href={competitor?.instagramLink} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline cursor-pointer">{competitor.instagramLink}</a>
+            </div>
+
+            <div className="w-full flex justify-between border-b pb-2">
               <span className="font-medium">Active</span>
               <span className={`
                   inline-flex items-center rounded-full px-2.5 py-1

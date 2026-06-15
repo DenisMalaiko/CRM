@@ -78,6 +78,23 @@ export const competitorApi = api.injectEndpoints({
     }),
 
 
+    // Instagram Posts
+    fetchInstagramPosts: builder.mutation<ApiResponse<any>, { id: string, form: TCompetitorPostParams }>({
+      query: ({ id, form }) => ({
+        url: `/competitors/instagramPosts/${id}`,
+        method: "POST",
+        body: form,
+      })
+    }),
+
+    getInstagramPosts: builder.mutation<ApiResponse<any>, string>({
+      query: (id: string) => ({
+        url: `/competitors/instagramPosts/${id}`,
+        method: "GET",
+      })
+    }),
+
+
     // Fetch Ads
     fetchAds: builder.mutation<ApiResponse<any>, { id: string, form: TCompetitorAdsParams }>({
       query: ({ id, form }) => ({
@@ -108,6 +125,9 @@ export const {
 
   useGetPostsMutation,
   useFetchPostsMutation,
+
+  useGetInstagramPostsMutation,
+  useFetchInstagramPostsMutation,
 
   useGetAdsMutation,
   useFetchAdsMutation,

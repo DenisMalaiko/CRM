@@ -21,11 +21,18 @@ export const trendsApi = api.injectEndpoints({
           data: result.data as ApiResponse<any[]>
         };
       }
-    })
+    }),
+    fetchTikTokVideos: builder.mutation<ApiResponse<any>, string>({
+      query: (businessId) => ({
+        url: `/trends/tiktok/${businessId}`,
+        method: 'POST',
+      }),
+    }),
   }),
   overrideExisting: false,
 })
 
 export const {
-  useLazyGetTikTokVideosByBusinessIdQuery
+  useLazyGetTikTokVideosByBusinessIdQuery,
+  useFetchTikTokVideosMutation,
 } = trendsApi;

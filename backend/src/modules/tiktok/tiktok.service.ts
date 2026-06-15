@@ -86,6 +86,10 @@ export class TiktokService {
     if (!business) return null;
 
     const tags: Tag[] | null = await this.fetchTikTokHashtags(business);
+    console.log("----------------------");
+    console.log("HASHTAGS: ", tags);
+    console.log("----------------------");
+
     if (!tags || tags.length === 0) {
       this.logger.warn(`No hashtags fetched for business ${business.id}, country=${business.country}, industry=${business.industry}`);
       return [];

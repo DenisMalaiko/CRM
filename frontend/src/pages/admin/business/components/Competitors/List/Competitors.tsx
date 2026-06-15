@@ -38,6 +38,7 @@ function Competitors() {
   const header = [
     { name: "Name", key: "name" },
     { name: "Facebook", key: "facebookLink" },
+    { name: "Instagram", key: "instagramLink" },
     { name: "Active", key: "isActive" },
     { name: "Actions", key: "actions"}
   ];
@@ -157,10 +158,39 @@ function Competitors() {
                       return (
                         <tr key={item.id} onClick={() => openCompetitor(item?.id)} className="bg-white hover:bg-slate-50 cursor-pointer">
                           <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.name}</td>
-                          <td className="px-4 py-3 font-medium text-blue-600 underline text-left">
-                            <a href={item.facebookLink} target="blank">
-                              {item.facebookLink}
-                            </a>
+                          <td className="px-4 py-3 text-left">
+                            {item.facebookLink && (
+                              <a
+                                href={item.facebookLink}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                                className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-800"
+                              >
+                                Facebook
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+                                  <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
+                                  <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
+                                </svg>
+                              </a>
+                            )}
+                          </td>
+                          <td className="px-4 py-3 text-left">
+                            {item.instagramLink && (
+                              <a
+                                href={item.instagramLink}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                                className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-800"
+                              >
+                                Instagram
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+                                  <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
+                                  <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
+                                </svg>
+                              </a>
+                            )}
                           </td>
                           <td className="px-4 py-3 font-medium text-slate-900 text-left">
                           <span className={`

@@ -120,7 +120,7 @@ function AdsTable() {
   return (
     <div className="w-full rounded-2xl bg-white shadow border border-slate-200 mb-5">
       <div className="w-full flex items-center border-b p-4 justify-between">
-        <h2 className="text-lg text-left font-semibold text-slate-800">Ads</h2>
+        <h2 className="text-lg text-left font-semibold text-slate-800">Meta Ads</h2>
 
         <button
           onClick={() => openGetAdsDlg()}

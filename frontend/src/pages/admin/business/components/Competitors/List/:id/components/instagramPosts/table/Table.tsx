@@ -7,23 +7,21 @@ import { usePagination } from "../../../../../../../../../../hooks/usePagination
 import { useCopyToClipboard } from "../../../../../../../../../../hooks/useCopyToClipboard";
 
 // Redux
-import { useSelector } from "react-redux";
-import { RootState } from "../../../../../../../../../../store";
-import { useAppDispatch } from "../../../../../../../../../../store/hooks";
-import { useGetPostsMutation } from "../../../../../../../../../../store/competitor/competitorApi";
-import { setPosts } from "../../../../../../../../../../store/competitor/competitorSlice";
+import { useAppDispatch, useAppSelector } from "../../../../../../../../../../store/hooks";
+import { useGetInstagramPostsMutation } from "../../../../../../../../../../store/competitor/competitorApi";
+import { setInstagramPosts } from "../../../../../../../../../../store/competitor/competitorSlice";
 
 // Components
 import TextDlg from "../../../../../../../../../../components/textDlg/TextDlg";
 import SliderDlg from "../../../../../../../../../../components/sliderDlg/SliderDlg";
-import FetchPostsDlg from "../fetchPostsDlg/FetchPostsDlg";
+import FetchInstagramPostsDlg from "../fetchInstagramPostsDlg/FetchInstagramPostsDlg";
 
 // Models
 import { ApiResponse } from "../../../../../../../../../../models/ApiResponse";
 import { toDate } from "../../../../../../../../../../utils/toDate";
 import { showError } from "../../../../../../../../../../utils/showError";
 
-function PostsTable() {
+function InstagramPostsTable() {
   const dispatch = useAppDispatch();
   const { id } = useParams<{ id: string }>();
 
@@ -35,20 +33,20 @@ function PostsTable() {
   const [ openSliderDlg, setOpenSliderDlg ] = useState<any>(null);
   const [ selectedMedia, setSelectedMedia ] = useState<any>(null);
 
-  const [sortKey, setSortKey] = useState<'postedAt' | 'likes' | 'shares' | 'comments'>('postedAt');
+  const [sortKey, setSortKey] = useState<'postedAt' | 'likes' | 'comments'>('postedAt');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
 
-  const [ getPosts ] = useGetPostsMutation();
+  const [ getInstagramPosts ] = useGetInstagramPostsMutation();
 
-  const { posts } = useSelector((state: RootState) => state.competitorModule);
+  const { instagramPosts } = useAppSelector((state) => state.competitorModule);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         if(id) {
-          const responsePosts: ApiResponse<any> = await getPosts(id).unwrap();
+          const responsePosts: ApiResponse<any> = await getInstagramPosts(id).unwrap();
 
-          if(responsePosts && responsePosts.data) dispatch(setPosts(responsePosts.data));
+          if(responsePosts && responsePosts.data) dispatch(setInstagramPosts(responsePosts.data));
         }
       } catch (error) {
         showError(error);
@@ -56,12 +54,12 @@ function PostsTable() {
     }
 
     fetchData();
-  }, [dispatch]);
+  }, [dispatch, id, getInstagramPosts]);
 
   const sortedPosts = useMemo(() => {
-    if (!posts?.length) return [];
+    if (!instagramPosts?.length) return [];
 
-    return [...posts].sort((a, b) => {
+    return [...instagramPosts].sort((a, b) => {
       if (sortKey === 'postedAt') {
         const aTime = a.postedAt ? new Date(a.postedAt).getTime() : 0;
         const bTime = b.postedAt ? new Date(b.postedAt).getTime() : 0;
@@ -78,7 +76,7 @@ function PostsTable() {
         ? bVal - aVal
         : aVal - bVal;
     });
-  }, [posts, sortKey, sortDir]);
+  }, [instagramPosts, sortKey, sortDir]);
 
   const { copy, copied } = useCopyToClipboard();
   const { page, setPage, totalPages, paginatedItems, hasPrev, hasNext } = usePagination({
@@ -95,7 +93,7 @@ function PostsTable() {
   }
 
   // Sort Posts
-  const onSort = (key: 'likes' | 'shares' | 'comments' | 'postedAt') => {
+  const onSort = (key: 'likes' | 'comments' | 'postedAt') => {
     if (sortKey === key) {
       setSortDir(prev => (prev === 'desc' ? 'asc' : 'desc'));
     } else {
@@ -119,7 +117,7 @@ function PostsTable() {
   return (
     <div className="w-full rounded-2xl bg-white shadow border border-slate-200 mb-5">
       <div className="w-full flex items-center border-b p-4 justify-between">
-        <h2 className="text-lg text-left font-semibold text-slate-800">Facebook Posts</h2>
+        <h2 className="text-lg text-left font-semibold text-slate-800">Instagram Posts</h2>
 
         <button
           onClick={() => openGetPostsDlg()}
@@ -129,15 +127,15 @@ function PostsTable() {
             bg-blue-600 hover:bg-blue-700
           `}
         >
-          Get Posts
+          Get Instagram Posts
         </button>
 
-        <FetchPostsDlg
+        <FetchInstagramPostsDlg
           open={openPostsDlg}
           onClose={() => {
             setOpenPostsDlg(false);
           }}
-        ></FetchPostsDlg>
+        />
       </div>
 
       <div className="w-full mx-auto p-4">
@@ -162,13 +160,6 @@ function PostsTable() {
                   className="px-4 py-3 text-xs font-semibold uppercase tracking-wide cursor-pointer select-none text-slate-600 text-left text-nowrap"
                 >
                   Likes {sortKey === 'likes' ? (sortDir === 'desc' ? '↓' : '↑') : ''}
-                </th>
-
-                <th
-                  onClick={() => onSort('shares')}
-                  className="px-4 py-3 text-xs font-semibold uppercase tracking-wide cursor-pointer select-none text-slate-600 text-left text-nowrap"
-                >
-                  Shares {sortKey === 'shares' ? (sortDir === 'desc' ? '↓' : '↑') : ''}
                 </th>
 
                 <th
@@ -250,12 +241,11 @@ function PostsTable() {
                   </td>
                   <td className="px-4 py-3 font-medium text-slate-900 text-left text-sm">{ item.platform }</td>
                   <td className="px-4 py-3 font-medium text-slate-900 text-left text-sm">{ item.likes }</td>
-                  <td className="px-4 py-3 font-medium text-slate-900 text-left text-sm">{ item.shares }</td>
                   <td className="px-4 py-3 font-medium text-slate-900 text-left text-sm">{ item.comments }</td>
                   <td className="px-4 py-3 font-medium text-slate-900 text-left text-sm text-nowrap">{ toDate(item.postedAt) }</td>
                   <td className="px-4 py-3 font-medium text-slate-900 text-left">
-                    <a href={item.url} className="text-blue-600 text-left" target="_blank">
-                      <ExternalLink size={18} strokeWidth={2} ></ExternalLink>
+                    <a href={item.url} className="text-blue-600 text-left" target="_blank" rel="noopener noreferrer">
+                      <ExternalLink size={18} strokeWidth={2} />
                     </a>
                   </td>
                 </tr>
@@ -309,4 +299,4 @@ function PostsTable() {
   )
 }
 
-export default PostsTable;
+export default InstagramPostsTable;

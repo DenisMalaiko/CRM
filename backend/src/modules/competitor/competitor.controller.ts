@@ -62,6 +62,20 @@ export class CompetitorController {
 
 
 
+  // Instagram Posts
+  @Post("/instagramPosts/:id")
+  @ResponseMessage('Instagram posts have been got!')
+  async fetchInstagramPosts(@Param() { id }: CompetitorIdParamDto, @Body() body: CompetitorPostParamsDto) {
+    return this.competitorService.fetchInstagramPosts(id, body);
+  }
+
+  @Get("/instagramPosts/:id")
+  @ResponseMessage('Instagram posts have been got!')
+  async getInstagramPosts(@Param() { id }: CompetitorIdParamDto) {
+    return this.competitorService.getInstagramPosts(id);
+  }
+
+
   // Ads
   @Post("/ads/:id")
   @ResponseMessage('Ads have been got!')
