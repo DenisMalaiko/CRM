@@ -1,29 +1,50 @@
-import { Injectable } from "@nestjs/common";
-import { ApifyService } from "../apify/apify.service";
-import { PlatformList } from "@prisma/client";
-import { TCompetitorPostParams } from "../competitor/entities/competitor.entity";
+import { Injectable } from '@nestjs/common';
+import { ApifyService } from '../apify/apify.service';
+import { PlatformList } from '@prisma/client';
+import { TCompetitorPostParams } from '../competitor/entities/competitor.entity';
 
 @Injectable()
 export class InstagramService {
   constructor(private readonly apify: ApifyService) {}
 
-  async fetchPosts(competitorId: string, pageUrl: string, body: TCompetitorPostParams) {
-    const items = await this.apify.runActor<any>(
-      'apify~instagram-scraper',
-      {
-        "addParentData": false,
-        "directUrls": [pageUrl],
-        "resultsLimit": 50,
-        "resultsType": "posts",
-        "searchLimit": 10,
-        "searchType": "hashtag",
-        ...body,
-      }
-    );
+  async fetchPosts(
+    competitorId: string,
+    pageUrl: string,
+    body: TCompetitorPostParams,
+  ) {
+    const items = await this.apify.runActor<any>('apify~instagram-scraper', {
+      addParentData: false,
+      directUrls: [pageUrl],
+      resultsLimit: 50,
+      resultsType: 'posts',
+      searchLimit: 10,
+      searchType: 'hashtag',
+      ...body,
+    });
 
     return items
-      .filter(i => !i.error)
-      .map(i => this._postsMapper(competitorId, i));
+      .filter((i) => !i.error)
+      .map((i) => this._postsMapper(competitorId, i));
+  }
+
+  async fetchReels(
+    competitorId: string,
+    pageUrl: string,
+    body: TCompetitorPostParams,
+  ) {
+    const items = await this.apify.runActor<any>('apify~instagram-scraper', {
+      addParentData: false,
+      directUrls: [pageUrl],
+      resultsLimit: 50,
+      resultsType: 'reels',
+      searchLimit: 10,
+      searchType: 'hashtag',
+      ...body,
+    });
+
+    return items
+      .filter((i) => !i.error)
+      .map((i) => this._reelsMapper(competitorId, i));
   }
 
   private _postsMapper(competitorId: string, item: any) {
@@ -48,19 +69,46 @@ export class InstagramService {
     };
   }
 
+  private _reelsMapper(competitorId: string, item: any) {
+    const likesCount =
+      item?.likesCount != null && item.likesCount >= 0 ? item.likesCount : null;
+
+    return {
+      externalId: item?.id ?? item?.shortCode,
+      platform: PlatformList.Instagram,
+      competitorId,
+
+      text: item?.caption ?? null,
+      url: item?.url ?? null,
+      media: this._media(item) ?? [],
+
+      likes: likesCount,
+      shares: null,
+      views: item?.videoViewCount ?? null,
+      plays: item?.videoPlayCount ?? null,
+      comments: item?.commentsCount ?? null,
+
+      postedAt: item?.timestamp ? new Date(item.timestamp) : null,
+    };
+  }
+
   private _media(item: any) {
     if (item?.videoUrl) {
-      return [{
-        thumbnail: item?.displayUrl,
-        url: item?.videoUrl,
-      }];
+      return [
+        {
+          thumbnail: item?.displayUrl,
+          url: item?.videoUrl,
+        },
+      ];
     }
 
     if (item?.displayUrl) {
-      return [{
-        thumbnail: item?.displayUrl,
-        url: null,
-      }];
+      return [
+        {
+          thumbnail: item?.displayUrl,
+          url: null,
+        },
+      ];
     }
 
     if (Array.isArray(item?.images)) {

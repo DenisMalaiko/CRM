@@ -1,9 +1,13 @@
-import {Injectable, InternalServerErrorException, NotFoundException} from '@nestjs/common';
-import { PrismaService } from "../../core/prisma/prisma.service";
-import { CompetitorService } from "../competitor/competitor.service";
-import { AiService } from "../ai/ai.service";
-import { FacebookService } from "../facebook/facebook.service";
-import { TIdea, TIdeaParams, TIdeaUpdate } from "./entities/idea.entity";
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
+import { PrismaService } from '../../core/prisma/prisma.service';
+import { CompetitorService } from '../competitor/competitor.service';
+import { AiService } from '../ai/ai.service';
+import { IdeaSourceType } from '@prisma/client';
+import { TIdea, TIdeaParams, TIdeaUpdate } from './entities/idea.entity';
 
 @Injectable()
 export class IdeaService {
@@ -11,65 +15,137 @@ export class IdeaService {
     private readonly prisma: PrismaService,
     private readonly aiService: AiService,
     private readonly competitorService: CompetitorService,
-    private readonly facebookService: FacebookService,
   ) {}
 
-  async getIdeas(businessId: string): Promise<TIdea[]> {
-    return await this.prisma.idea.findMany({
-      where: { businessId: businessId },
-    });
+  async getIdeas(
+    businessId: string,
+    sourceType?: IdeaSourceType,
+  ): Promise<TIdea[]> {
+    const where: { businessId: string; sourceType?: IdeaSourceType } = {
+      businessId,
+    };
+    if (sourceType) {
+      where.sourceType = sourceType;
+    }
+    return await this.prisma.idea.findMany({ where });
   }
 
-  async fetchIdeas(businessId: string, body: TIdeaParams): Promise<TIdea[] | null> {
+  async fetchIdeas(businessId: string, body: TIdeaParams): Promise<any> {
     const competitors = await this.competitorService.getCompetitors(businessId);
+    const allItems: any[] = [];
+    const postParams = { onlyPostsNewerThan: body.onlyPostsNewerThan };
+    const adsParams = {
+      activeStatus: 'all',
+      period: '',
+      sortBy: 'most_recent',
+    };
 
-    const results = await Promise.allSettled(
-      competitors
-        .filter(c => c?.facebookLink)
-        .map(async (competitor) => {
-          try {
-            const competitorPosts = await this.facebookService.fetchPosts(
-              competitor.id,
-              competitor.facebookLink,
-              body
+    for (const competitor of competitors) {
+      if (competitor.facebookLink) {
+        try {
+          const posts = await this.competitorService.fetchPosts(
+            competitor.id,
+            postParams,
+          );
+          if (posts?.length) {
+            allItems.push(
+              ...posts.map((p: any) => ({
+                ...p,
+                sourceId: p.id,
+                sourceType: 'FacebookPost' as const,
+              })),
             );
-
-            if (!competitorPosts?.length) return [];
-
-            const savedPosts = await this.competitorService.savePosts(
-              competitor.id,
-              competitorPosts
-            );
-
-            return savedPosts;
-
-          } catch (error) {
-            console.error(
-              `Failed to fetch posts for competitor ${competitor.id}`,
-              error.message
-            );
-            return [];
           }
-        })
-    );
+        } catch (error) {}
 
-    const posts = results
-      .filter(r => r.status === 'fulfilled')
-      .flatMap((r: any) => r.value);
+        try {
+          const ads = await this.competitorService.fetchAds(
+            competitor.id,
+            adsParams,
+          );
+          if (ads?.length) {
+            allItems.push(
+              ...ads.map((a: any) => ({
+                ...a,
+                sourceId: a.id,
+                sourceType: 'FacebookAd' as const,
+                text: [a.title, a.body, a.caption].filter(Boolean).join(' — '),
+                likes: 0,
+                shares: 0,
+                views: 0,
+                comments: 0,
+              })),
+            );
+          }
+        } catch (error) {}
+      }
 
-    const result = await this.aiService.analyzeCompetitorPosts(posts);
+      if (competitor.instagramLink) {
+        try {
+          const posts = await this.competitorService.fetchInstagramPosts(
+            competitor.id,
+            postParams,
+          );
+          if (posts?.length) {
+            allItems.push(
+              ...posts.map((p: any) => ({
+                ...p,
+                sourceId: p.id,
+                sourceType: 'InstagramPost' as const,
+              })),
+            );
+          }
+        } catch (error) {}
 
-    const data = result.map((post: any) => {
-      const item: any = posts.find((p) => p.id === post.competitorPostId);
+        try {
+          const reels = await this.competitorService.fetchInstagramReels(
+            competitor.id,
+            postParams,
+          );
+          if (reels?.length) {
+            allItems.push(
+              ...reels.map((r: any) => ({
+                ...r,
+                sourceId: r.id,
+                sourceType: 'InstagramReel' as const,
+              })),
+            );
+          }
+        } catch (error) {}
+      }
+    }
 
-      return {
-        ...post,
-        businessId,
-        competitorId: item.competitorId,
-        score: this.calculateIdeaScore(item),
-        url: item.url,
-      };
-    });
+    if (!allItems.length) return [];
+
+    const result = await this.aiService.analyzeCompetitorPosts(allItems);
+
+    const data = result
+      .map((idea: any) => {
+        const item = allItems.find((p) => p.sourceId === idea.sourceId);
+        if (!item) return null;
+
+        const base: any = {
+          ...idea,
+          businessId,
+          competitorId: item.competitorId,
+          score: this.calculateIdeaScore(item),
+          url: item.url ?? '',
+        };
+
+        if (
+          idea.sourceType === 'FacebookPost' ||
+          idea.sourceType === 'InstagramPost'
+        ) {
+          base.competitorPostId = item.id;
+        } else if (idea.sourceType === 'InstagramReel') {
+          base.competitorReelId = item.id;
+        } else if (idea.sourceType === 'FacebookAd') {
+          base.competitorAdId = item.id;
+        }
+
+        return base;
+      })
+      .filter(Boolean);
 
     return await this.saveIdeas(data);
   }
@@ -79,18 +155,27 @@ export class IdeaService {
       ideas.map((idea) =>
         this.prisma.idea.upsert({
           where: {
-            businessId_competitorPostId_competitorId: {
+            businessId_sourceType_sourceId_competitorId: {
               businessId: idea.businessId,
+              sourceType: idea.sourceType,
+              sourceId: idea.sourceId,
               competitorId: idea.competitorId,
-              competitorPostId: idea.competitorPostId,
             },
           },
           create: idea,
           update: {
-            ...idea,
+            title: idea.title,
+            description: idea.description,
+            who: idea.who,
+            what: idea.what,
+            why: idea.why,
+            how: idea.how,
+            feeling: idea.feeling,
+            score: idea.score,
+            url: idea.url,
           },
-        })
-      )
+        }),
+      ),
     );
   }
 
@@ -102,7 +187,7 @@ export class IdeaService {
     try {
       return await this.prisma.idea.update({
         where: { id },
-        data: { status: body.status }
+        data: { status: body.status },
       });
     } catch (err: any) {
       if (err.code === 'P2025') {

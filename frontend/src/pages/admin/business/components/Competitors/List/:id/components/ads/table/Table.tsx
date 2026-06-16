@@ -130,7 +130,7 @@ function AdsTable() {
             bg-blue-600 hover:bg-blue-700
           `}
         >
-          Get Ads
+          Get Meta Ads
         </button>
 
         <FetchAdsDlg

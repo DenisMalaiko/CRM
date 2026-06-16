@@ -1,6 +1,5 @@
-import {IsDateString, IsUUID, IsEnum} from 'class-validator';
-import { IdeaStatus } from "@prisma/client";
-
+import { IsDateString, IsUUID, IsEnum, IsOptional } from 'class-validator';
+import { IdeaStatus, IdeaSourceType } from '@prisma/client';
 
 export class IdeaIdParamDto {
   @IsUUID()
@@ -15,4 +14,10 @@ export class IdeaParamsDto {
 export class IdeaUpdateDto {
   @IsEnum(IdeaStatus)
   status: IdeaStatus;
+}
+
+export class IdeaFilterDto {
+  @IsOptional()
+  @IsEnum(IdeaSourceType)
+  sourceType?: IdeaSourceType;
 }
