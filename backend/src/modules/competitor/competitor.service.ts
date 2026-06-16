@@ -1,10 +1,22 @@
-import { Injectable, InternalServerErrorException, NotFoundException, HttpException, BadRequestException } from '@nestjs/common';
-import { PrismaService} from '../../core/prisma/prisma.service';
-import { FacebookService } from "../facebook/facebook.service";
-import { InstagramService } from "../instagram/instagram.service";
-import { CompetitorMediaService } from "./competitor-media.service";
-import { TCompetitor, TCompetitorCreate, TCompetitorUpdate, TCompetitorPostParams, TCompetitorAdsParams } from "./entities/competitor.entity";
-import { PlatformList } from "@prisma/client";
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+  HttpException,
+  BadRequestException,
+} from '@nestjs/common';
+import { PrismaService } from '../../core/prisma/prisma.service';
+import { FacebookService } from '../facebook/facebook.service';
+import { InstagramService } from '../instagram/instagram.service';
+import { CompetitorMediaService } from './competitor-media.service';
+import {
+  TCompetitor,
+  TCompetitorCreate,
+  TCompetitorUpdate,
+  TCompetitorPostParams,
+  TCompetitorAdsParams,
+} from './entities/competitor.entity';
+import { PlatformList } from '@prisma/client';
 
 @Injectable()
 export class CompetitorService {
@@ -22,8 +34,8 @@ export class CompetitorService {
   }
 
   async getCompetitor(id: string): Promise<TCompetitor | null> {
-    const competitor =  await this.prisma.competitor.findUnique({
-      where: { id }
+    const competitor = await this.prisma.competitor.findUnique({
+      where: { id },
     });
 
     if (!competitor) return null;
@@ -33,22 +45,25 @@ export class CompetitorService {
 
   async createCompetitor(body: TCompetitorCreate): Promise<TCompetitor> {
     return await this.prisma.competitor.create({
-      data: body
+      data: body,
     });
   }
 
-  async updateCompetitor(id: string, body: TCompetitorUpdate): Promise<TCompetitor> {
+  async updateCompetitor(
+    id: string,
+    body: TCompetitorUpdate,
+  ): Promise<TCompetitor> {
     if (!id) throw new NotFoundException('Competitor ID is required');
 
     try {
       return await this.prisma.competitor.update({
-        where: {id},
+        where: { id },
         data: {
           name: body.name,
           facebookLink: body.facebookLink,
           instagramLink: body.instagramLink,
           isActive: body.isActive,
-        }
+        },
       });
     } catch (err: any) {
       if (err.code === 'P2025') {
@@ -72,8 +87,12 @@ export class CompetitorService {
   }
 
   private async deleteCompetitorMedia(competitorId: string): Promise<void> {
-    const [posts, ads] = await Promise.all([
+    const [posts, reels, ads] = await Promise.all([
       this.prisma.competitorPost.findMany({
+        where: { competitorId },
+        select: { media: true },
+      }),
+      this.prisma.competitorReel.findMany({
         where: { competitorId },
         select: { media: true },
       }),
@@ -100,13 +119,30 @@ export class CompetitorService {
       }
     }
 
+    for (const reel of reels) {
+      if (!Array.isArray(reel.media)) continue;
+
+      for (const item of reel.media as any[]) {
+        if (item.thumbnail) {
+          const key = this.competitorMediaService.extractS3Key(item.thumbnail);
+          if (key) s3Keys.push(key);
+        }
+        if (item.url) {
+          const key = this.competitorMediaService.extractS3Key(item.url);
+          if (key) s3Keys.push(key);
+        }
+      }
+    }
+
     for (const ad of ads) {
       for (const mediaArray of [ad.videos, ad.images]) {
         if (!Array.isArray(mediaArray)) continue;
 
         for (const item of mediaArray as any[]) {
           if (item.thumbnail) {
-            const key = this.competitorMediaService.extractS3Key(item.thumbnail);
+            const key = this.competitorMediaService.extractS3Key(
+              item.thumbnail,
+            );
             if (key) s3Keys.push(key);
           }
           if (item.url) {
@@ -118,15 +154,14 @@ export class CompetitorService {
     }
 
     await Promise.allSettled(
-      s3Keys.map(key => this.competitorMediaService.deleteMedia(key))
+      s3Keys.map((key) => this.competitorMediaService.deleteMedia(key)),
     );
   }
-
 
   // Posts
   async fetchPosts(id: string, body: TCompetitorPostParams): Promise<any> {
     const competitor = await this.prisma.competitor.findUnique({
-      where: { id }
+      where: { id },
     });
 
     if (!competitor?.facebookLink) return null;
@@ -134,10 +169,10 @@ export class CompetitorService {
     const posts = await this.facebookService.fetchPosts(
       competitor.id,
       competitor.facebookLink,
-      body
+      body,
     );
 
-    if(!posts) return [];
+    if (!posts) return [];
 
     return await this.savePosts(id, posts);
   }
@@ -150,7 +185,7 @@ export class CompetitorService {
 
   async savePosts(competitorId: string, posts: any[]) {
     return Promise.all(
-      posts.map(async post => {
+      posts.map(async (post) => {
         const existing = await this.prisma.competitorPost.findUnique({
           where: {
             externalId_platform_competitorId: {
@@ -164,7 +199,10 @@ export class CompetitorService {
 
         const media = existing?.media
           ? existing.media
-          : await this.competitorMediaService.processMedia(competitorId, post.media);
+          : await this.competitorMediaService.processMedia(
+              competitorId,
+              post.media,
+            );
 
         return this.prisma.competitorPost.upsert({
           where: {
@@ -200,15 +238,17 @@ export class CompetitorService {
             postedAt: post.postedAt,
           },
         });
-      })
+      }),
     );
   }
 
-
   // Instagram Posts
-  async fetchInstagramPosts(id: string, body: TCompetitorPostParams): Promise<any> {
+  async fetchInstagramPosts(
+    id: string,
+    body: TCompetitorPostParams,
+  ): Promise<any> {
     const competitor = await this.prisma.competitor.findUnique({
-      where: { id }
+      where: { id },
     });
 
     if (!competitor?.instagramLink) return null;
@@ -216,10 +256,10 @@ export class CompetitorService {
     const posts = await this.instagramService.fetchPosts(
       competitor.id,
       competitor.instagramLink,
-      body
+      body,
     );
 
-    if(!posts) return [];
+    if (!posts) return [];
 
     return await this.saveInstagramPosts(id, posts);
   }
@@ -232,7 +272,7 @@ export class CompetitorService {
 
   async saveInstagramPosts(competitorId: string, posts: any[]) {
     return Promise.all(
-      posts.map(async post => {
+      posts.map(async (post) => {
         const existing = await this.prisma.competitorPost.findUnique({
           where: {
             externalId_platform_competitorId: {
@@ -246,11 +286,14 @@ export class CompetitorService {
 
         const media = existing?.media
           ? existing.media
-          : await this.competitorMediaService.processMedia(competitorId, post.media);
+          : await this.competitorMediaService.processMedia(
+              competitorId,
+              post.media,
+            );
 
-        console.log("-------------");
-        console.log("Media ", media);
-        console.log("-------------");
+        console.log('-------------');
+        console.log('Media ', media);
+        console.log('-------------');
 
         return this.prisma.competitorPost.upsert({
           where: {
@@ -286,16 +329,104 @@ export class CompetitorService {
             postedAt: post.postedAt,
           },
         });
-      })
+      }),
     );
   }
 
+  // Instagram Reels
+  async fetchInstagramReels(
+    id: string,
+    body: TCompetitorPostParams,
+  ): Promise<any> {
+    const competitor = await this.prisma.competitor.findUnique({
+      where: { id },
+    });
+
+    if (!competitor?.instagramLink) return null;
+
+    const reels = await this.instagramService.fetchReels(
+      competitor.id,
+      competitor.instagramLink,
+      body,
+    );
+
+    if (!reels) return [];
+
+    return await this.saveInstagramReels(id, reels);
+  }
+
+  async getInstagramReels(id: string): Promise<any[]> {
+    return await this.prisma.competitorReel.findMany({
+      where: { competitorId: id, platform: PlatformList.Instagram },
+    });
+  }
+
+  async saveInstagramReels(competitorId: string, reels: any[]) {
+    return Promise.all(
+      reels.map(async (reel) => {
+        const existing = await this.prisma.competitorReel.findUnique({
+          where: {
+            externalId_platform_competitorId: {
+              externalId: reel.externalId,
+              platform: PlatformList.Instagram,
+              competitorId,
+            },
+          },
+          select: { media: true },
+        });
+
+        const media = existing?.media
+          ? existing.media
+          : await this.competitorMediaService.processMedia(
+              competitorId,
+              reel.media,
+            );
+
+        return this.prisma.competitorReel.upsert({
+          where: {
+            externalId_platform_competitorId: {
+              externalId: reel.externalId,
+              platform: PlatformList.Instagram,
+              competitorId,
+            },
+          },
+          create: {
+            externalId: reel.externalId,
+            platform: PlatformList.Instagram,
+            competitorId,
+
+            text: reel.text,
+            url: reel.url,
+            media,
+
+            likes: reel.likes,
+            shares: reel.shares,
+            views: reel.views,
+            plays: reel.plays,
+            comments: reel.comments,
+
+            postedAt: reel.postedAt,
+          },
+          update: {
+            likes: reel.likes,
+            shares: reel.shares,
+            views: reel.views,
+            plays: reel.plays,
+            comments: reel.comments,
+
+            fetchedAt: new Date(),
+            postedAt: reel.postedAt,
+          },
+        });
+      }),
+    );
+  }
 
   // Ads
   async fetchAds(id: string, body: TCompetitorAdsParams): Promise<any> {
     try {
       const competitor = await this.prisma.competitor.findUnique({
-        where: { id }
+        where: { id },
       });
 
       if (!competitor?.facebookLink) return null;
@@ -303,10 +434,10 @@ export class CompetitorService {
       const ads: any = await this.facebookService.fetchAds(
         competitor.id,
         competitor.facebookLink,
-        body
+        body,
       );
 
-      if(!ads) return [];
+      if (!ads) return [];
 
       return await this.saveAds(id, ads);
     } catch (err: any) {
@@ -315,7 +446,7 @@ export class CompetitorService {
       }
 
       throw new InternalServerErrorException(
-        err?.message ?? 'Failed to fetch ads'
+        err?.message ?? 'Failed to fetch ads',
       );
     }
   }
@@ -328,7 +459,7 @@ export class CompetitorService {
 
   async saveAds(competitorId: string, ads: any[]) {
     return Promise.all(
-      ads.map(ad =>
+      ads.map((ad) =>
         this.prisma.competitorAds.upsert({
           where: {
             externalId_platform_competitorId: {
@@ -369,8 +500,8 @@ export class CompetitorService {
             fetchedAt: new Date(),
             isActive: ad.isActive,
           },
-        })
-      )
+        }),
+      ),
     );
   }
 }

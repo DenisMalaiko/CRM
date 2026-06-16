@@ -6,6 +6,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import BaseData from "./components/base/Base";
 import PostsTable from "./components/posts/table/Table";
 import InstagramPostsTable from "./components/instagramPosts/table/Table";
+import InstagramReelsTable from "./components/instagramReels/table/Table";
 import AdsTable from "./components/ads/table/Table";
 
 function Competitor() {
@@ -33,6 +34,8 @@ function Competitor() {
       <PostsTable />
 
       <InstagramPostsTable />
+
+      <InstagramReelsTable />
 
       <AdsTable />
     </section>

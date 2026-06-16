@@ -6,6 +6,7 @@ type CompetitorState = {
   competitor: TCompetitor | null
   posts: any[] | null
   instagramPosts: any[] | null
+  instagramReels: any[] | null
   ads: any[] | null
 }
 
@@ -14,6 +15,7 @@ const initialState: CompetitorState = {
   competitor: null,
   posts: [],
   instagramPosts: [],
+  instagramReels: [],
   ads: []
 }
 
@@ -33,11 +35,14 @@ const competitorSlice = createSlice({
     setInstagramPosts: (state, action: PayloadAction<any[]>) => {
       state.instagramPosts = action.payload;
     },
+    setInstagramReels: (state, action: PayloadAction<any[]>) => {
+      state.instagramReels = action.payload;
+    },
     setAds: (state, action: PayloadAction<any[]>) => {
       state.ads = action.payload;
     }
   }
 });
 
-export const { setCompetitors, setCompetitor, setPosts, setInstagramPosts, setAds } = competitorSlice.actions;
+export const { setCompetitors, setCompetitor, setPosts, setInstagramPosts, setInstagramReels, setAds } = competitorSlice.actions;
 export default competitorSlice.reducer;
