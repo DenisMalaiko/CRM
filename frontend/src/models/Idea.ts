@@ -22,7 +22,7 @@ export type TIdea = {
 
 export type TIdeaParams = {
   onlyPostsNewerThan: Date;
-  sourceType: IdeaSourceType;
+  sourceType?: IdeaSourceType;
 }
 
 export type TIdeaUpdate = {

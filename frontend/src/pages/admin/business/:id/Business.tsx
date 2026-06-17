@@ -11,6 +11,9 @@ import {
   Image,
   Swords,
   Lightbulb,
+  Facebook,
+  Instagram,
+  Megaphone,
   Camera,
   TrendingUp,
   LucideLayoutDashboard
@@ -82,23 +85,23 @@ function Business() {
     },
     {
       id: "ideas/facebook-posts",
-      title: "Facebook Posts Ideas",
-      icon: Lightbulb,
+      title: "Posts Ideas",
+      icon: Facebook,
     },
     {
       id: "ideas/instagram-posts",
-      title: "Instagram Posts Ideas",
-      icon: Lightbulb,
+      title: "Posts Ideas",
+      icon: Instagram,
     },
     {
       id: "ideas/instagram-reels",
-      title: "Instagram Reels Ideas",
-      icon: Lightbulb,
+      title: "Reels Ideas",
+      icon: Instagram,
     },
     {
       id: "ideas/meta-ads",
       title: "Meta Ads Ideas",
-      icon: Lightbulb,
+      icon: Megaphone,
     },
   ]
 

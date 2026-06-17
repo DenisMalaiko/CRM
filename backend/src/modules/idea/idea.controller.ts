@@ -30,7 +30,9 @@ export class IdeaController {
     @Param() { id }: IdeaIdParamDto,
     @Query() query: IdeaFilterDto,
   ) {
-    return await this.ideaService.getIdeas(id, query.sourceType);
+    const data = await this.ideaService.getIdeas(id, query.sourceType);
+    console.log("DATA ", data);
+    return data;
   }
 
   @Post('/:id')

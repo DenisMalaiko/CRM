@@ -105,7 +105,7 @@ function IdeasTable({ sourceType, title }: Props) {
   // Yesterday at midnight — stable reference, only computed once
   const initForm = useMemo<TIdeaParams>(() => {
     const date = new Date();
-    date.setDate(date.getDate() - 1);
+    date.setMonth(date.getMonth() - 1);
     date.setHours(0, 0, 0, 0);
     return { onlyPostsNewerThan: date, sourceType };
   }, [sourceType]);
