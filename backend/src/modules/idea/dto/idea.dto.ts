@@ -9,6 +9,10 @@ export class IdeaIdParamDto {
 export class IdeaParamsDto {
   @IsDateString()
   onlyPostsNewerThan: string;
+
+  @IsOptional()
+  @IsEnum(IdeaSourceType)
+  sourceType?: IdeaSourceType;
 }
 
 export class IdeaUpdateDto {

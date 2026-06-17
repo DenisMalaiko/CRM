@@ -1,4 +1,12 @@
-import { IdeaWho, IdeaWhat, IdeaWhy, IdeaHow, IdeaFeeling, IdeaStatus } from "@prisma/client";
+import {
+  IdeaWho,
+  IdeaWhat,
+  IdeaWhy,
+  IdeaHow,
+  IdeaFeeling,
+  IdeaStatus,
+  IdeaSourceType,
+} from '@prisma/client';
 
 export type TIdeaParams = {
   onlyPostsNewerThan: string;
@@ -7,6 +15,9 @@ export type TIdeaParams = {
 export type TIdea = {
   id: string;
   businessId: string;
+  sourceType: IdeaSourceType;
+  sourceId: string;
+  competitorId: string;
   title: string;
   description: string;
   who: IdeaWho;
@@ -17,7 +28,7 @@ export type TIdea = {
   score: number;
   createdAt: Date;
   status: IdeaStatus;
-}
+};
 
 export class TIdeaUpdate {
   status: IdeaStatus;

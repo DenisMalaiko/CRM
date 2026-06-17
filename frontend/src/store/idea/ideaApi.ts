@@ -1,6 +1,7 @@
 import { api } from "../api/api";
 import { ApiResponse } from "../../models/ApiResponse";
 import { TIdea, TIdeaParams, TIdeaUpdate } from "../../models/Idea";
+import { IdeaSourceType } from "../../enum/IdeaSourceType";
 
 export const ideaApi = api.injectEndpoints({
   endpoints: (builder) => ({
@@ -24,10 +25,11 @@ export const ideaApi = api.injectEndpoints({
       }
     }),
 
-    getIdeas: builder.mutation<ApiResponse<TIdea[]>, string>({
-      query: (id: string) => ({
-        url: `/ideas/list/${id}`,
+    getIdeas: builder.mutation<ApiResponse<TIdea[]>, { businessId: string; sourceType?: IdeaSourceType }>({
+      query: ({ businessId, sourceType }) => ({
+        url: `/ideas/list/${businessId}`,
         method: "GET",
+        params: sourceType ? { sourceType } : undefined,
       })
     }),
 

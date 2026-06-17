@@ -17,6 +17,7 @@ import { setIdeas } from "../../../../../../../../store/idea/ideaSlice";
 
 // ENUM
 import { IdeaStatus } from "../../../../../../../../enum/IdeaStatus";
+import { IdeaSourceType } from "../../../../../../../../enum/IdeaSourceType";
 
 // UTILS
 import { isRequired, minLength } from "../../../../../../../../utils/validations";
@@ -25,7 +26,7 @@ import { ChangeArg, isNativeEvent } from "../../../../../../../../utils/isNative
 import {ApiResponse} from "../../../../../../../../models/ApiResponse";
 import {TIdea} from "../../../../../../../../models/Idea";
 
-function UpdateIdeaDlg({ open, onClose, idea }: any) {
+function UpdateIdeaDlg({ open, onClose, idea, sourceType }: { open: boolean; onClose: () => void; idea: TIdea | null; sourceType: IdeaSourceType }) {
   const dispatch = useAppDispatch();
   const { businessId } = useParams<{ businessId: string }>();
   const StatusList = Object.values(IdeaStatus);
@@ -66,7 +67,7 @@ function UpdateIdeaDlg({ open, onClose, idea }: any) {
       const response = await updateIdea({ id: idea!.id, form }).unwrap();
 
       if(response && response?.data) {
-        const responseIdeas: ApiResponse<TIdea[]> = await getIdeas(businessId).unwrap();
+        const responseIdeas: ApiResponse<TIdea[]> = await getIdeas({ businessId, sourceType }).unwrap();
 
         if(responseIdeas && responseIdeas?.data) {
           dispatch(setIdeas(responseIdeas.data));
