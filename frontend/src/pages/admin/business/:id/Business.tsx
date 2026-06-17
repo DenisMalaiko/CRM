@@ -81,8 +81,23 @@ function Business() {
       icon: Swords,
     },
     {
-      id: "ideas",
-      title: "Competitors Ideas",
+      id: "ideas/facebook-posts",
+      title: "Facebook Posts Ideas",
+      icon: Lightbulb,
+    },
+    {
+      id: "ideas/instagram-posts",
+      title: "Instagram Posts Ideas",
+      icon: Lightbulb,
+    },
+    {
+      id: "ideas/instagram-reels",
+      title: "Instagram Reels Ideas",
+      icon: Lightbulb,
+    },
+    {
+      id: "ideas/meta-ads",
+      title: "Meta Ads Ideas",
       icon: Lightbulb,
     },
   ]

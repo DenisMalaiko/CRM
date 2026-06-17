@@ -46,7 +46,10 @@ import Competitors from "./pages/admin/business/components/Competitors/List/Comp
 import Competitor from "./pages/admin/business/components/Competitors/List/:id/Competitor";
 import Gallery from "./pages/admin/business/components/Assets/Gallery/Gallery";
 import DesignSystem from "./pages/admin/business/components/Assets/Gallery/DesignSystem";
-import Ideas from "./pages/admin/business/components/Competitors/Ideas/Ideas";
+import FacebookPostsIdeas from "./pages/admin/business/components/Competitors/Ideas/FacebookPostsIdeas";
+import InstagramPostsIdeas from "./pages/admin/business/components/Competitors/Ideas/InstagramPostsIdeas";
+import InstagramReelsIdeas from "./pages/admin/business/components/Competitors/Ideas/InstagramReelsIdeas";
+import MetaAdsIdeas from "./pages/admin/business/components/Competitors/Ideas/MetaAdsIdeas";
 import Stories from "./pages/admin/business/components/Content/Stories/Stories";
 import Tiktok from "./pages/admin/business/components/Trends/Tiktok/Tiktok";
 
@@ -137,7 +140,10 @@ function App() {
             {/*Competitors*/}
             <Route path="competitors" element={<Competitors />}></Route>
             <Route path="competitors/:id" element={<Competitor/>} />
-            <Route path="ideas" element={<Ideas />}></Route>
+            <Route path="ideas/facebook-posts" element={<FacebookPostsIdeas />} />
+            <Route path="ideas/instagram-posts" element={<InstagramPostsIdeas />} />
+            <Route path="ideas/instagram-reels" element={<InstagramReelsIdeas />} />
+            <Route path="ideas/meta-ads" element={<MetaAdsIdeas />} />
 
             {/*AI*/}
             <Route path="ideasAI" element={<AiIdeas />}></Route>
