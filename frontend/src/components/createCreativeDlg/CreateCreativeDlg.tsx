@@ -141,7 +141,7 @@ function CreateCreativeDlg({ open, onClose, focus }: Props) {
           const productsResponse: ApiResponse<TProduct[]> = await getProducts(businessId).unwrap();
           const audiencesResponse: ApiResponse<TAudience[]> = await getAudiences(businessId).unwrap();
           const promptsResponse: ApiResponse<TPrompt[]> = await getPrompts(businessId).unwrap();
-          const ideasResponse: ApiResponse<TIdea[]> = await getIdeas(businessId).unwrap();
+          const ideasResponse: ApiResponse<TIdea[]> = await getIdeas({ businessId }).unwrap();
           const ideasAiResponse: ApiResponse<TIdeaAI[]> = await getIdeasAI(businessId).unwrap();
 
           if(response && response?.data) dispatch(setProfiles(response.data));

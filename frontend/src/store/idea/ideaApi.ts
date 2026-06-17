@@ -25,11 +25,11 @@ export const ideaApi = api.injectEndpoints({
       }
     }),
 
-    getIdeas: builder.mutation<ApiResponse<TIdea[]>, { businessId: string; sourceType: IdeaSourceType }>({
+    getIdeas: builder.mutation<ApiResponse<TIdea[]>, { businessId: string; sourceType?: IdeaSourceType }>({
       query: ({ businessId, sourceType }) => ({
         url: `/ideas/list/${businessId}`,
         method: "GET",
-        params: { sourceType },
+        params: sourceType ? { sourceType } : undefined,
       })
     }),
 

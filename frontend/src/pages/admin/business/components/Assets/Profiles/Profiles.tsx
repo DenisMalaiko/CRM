@@ -77,7 +77,7 @@ function Profiles() {
           const audiencesResponse: ApiResponse<TAudience[]> = await getAudiences(businessId).unwrap();
           const platformsResponse: ApiResponse<TPlatform[]> = await getPlatforms(businessId).unwrap();
           const promptsResponse: ApiResponse<any[]> = await getPrompts(businessId).unwrap();
-          const ideasResponse: ApiResponse<TIdea[]> = await getIdeas(businessId).unwrap();
+          const ideasResponse: ApiResponse<TIdea[]> = await getIdeas({ businessId }).unwrap();
           const ideasAiResponse: ApiResponse<TIdeaAI[]> = await getIdeasAI(businessId).unwrap();
 
           if(response && response?.data) dispatch(setProfiles(response.data));
