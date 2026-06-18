@@ -85,7 +85,7 @@ function Business() {
     },
     {
       id: "ideas/facebook-posts",
-      title: "Posts Ideas",
+      title: "Facebook Ideas",
       icon: Facebook,
     },
     {

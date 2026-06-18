@@ -56,12 +56,12 @@ type Props = {
 type TIdeaWithUrl = TIdea & { url?: string };
 
 const header = [
-  { name: "Title", key: "title" },
-  { name: "Description", key: "description" },
+  { name: "Idea", key: "idea" },
   { name: "Competitor", key: "competitor" },
   { name: "Score", key: "score" },
   { name: "Status", key: "status" },
   { name: "Created At", key: "createdAt" },
+  { name: "Posted At", key: "postedAt" },
   { name: "Url", key: "url" },
   { name: "Actions", key: "actions" },
 ];
@@ -125,6 +125,7 @@ function IdeasTable({ sourceType, title }: Props) {
             getCompetitors(businessId).unwrap(),
           ]);
 
+          console.log(`[IdeasTable] ${title} response:`, response);
           if (response?.data) dispatch(setIdeas(response.data));
           if (responseCompetitors?.data) dispatch(setCompetitors(responseCompetitors.data));
         }
@@ -340,16 +341,18 @@ function IdeasTable({ sourceType, title }: Props) {
                 <thead className="bg-slate-50">
                   <tr>
                     <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide cursor-pointer select-none text-slate-600 text-left">
-                      Title
+                      Idea
                     </th>
 
-                    <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide cursor-pointer select-none text-slate-600 text-left">
-                      Description
-                    </th>
-
-                    <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide cursor-pointer select-none text-slate-600 text-left">
+                    <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide cursor-pointer select-none text-slate-600 text-left min-w-[210px]">
                       Competitor
                     </th>
+
+                    {!isSingleSource && (
+                      <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide cursor-pointer select-none text-slate-600 text-left">
+                        Type
+                      </th>
+                    )}
 
                     <th
                       onClick={() => handleSort("score")}
@@ -370,6 +373,10 @@ function IdeasTable({ sourceType, title }: Props) {
                       className="px-4 py-3 text-xs font-semibold uppercase tracking-wide cursor-pointer select-none text-slate-600 text-left text-nowrap"
                     >
                       Created At {sortKey === "createdAt" ? (sortDir === "desc" ? "↓" : "↑") : ""}
+                    </th>
+
+                    <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide cursor-pointer select-none text-slate-600 text-left text-nowrap">
+                      Posted At
                     </th>
 
                     <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide cursor-pointer select-none text-slate-600 text-left">
@@ -393,21 +400,18 @@ function IdeasTable({ sourceType, title }: Props) {
                     paginatedItems &&
                     paginatedItems.map((item: TIdeaWithUrl) => (
                       <tr key={item.id} className="bg-white hover:bg-slate-50">
-                        <td className="px-4 py-3 font-medium text-slate-900 text-left">
-                          <p>{item.title}</p>
-                        </td>
+                        <td className="px-4 py-3 text-slate-900 text-left">
+                          <p className="font-medium">{item.title}</p>
+                          <p className="text-sm text-slate-500 line-clamp-2 mt-1">{item.description}</p>
 
-                        <td className="px-4 py-3 font-medium text-slate-900 text-left">
-                          <p className="line-clamp-2">{item.description}</p>
-
-                          <div className="flex items-center gap-2 text-slate-500 mt-3">
+                          <div className="flex items-center gap-2 mt-2">
                             <Eye
-                              size={20}
+                              size={18}
                               onClick={() => handleOpenText(item.description)}
                               className="cursor-pointer text-blue-600 hover:text-blue-700"
                             />
                             <Copy
-                              size={18}
+                              size={16}
                               onClick={() => copy(item.description)}
                               className="cursor-pointer text-blue-600 hover:text-blue-700"
                             />
@@ -423,6 +427,18 @@ function IdeasTable({ sourceType, title }: Props) {
                           </Link>
                         </td>
 
+                        {!isSingleSource && (
+                          <td className="px-4 py-3 font-medium text-slate-900 text-left">
+                            <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${
+                              item.sourceType === IdeaSourceType.InstagramReel
+                                ? "bg-purple-100 text-purple-700"
+                                : "bg-sky-100 text-sky-700"
+                            }`}>
+                              {item.sourceType === IdeaSourceType.InstagramReel ? "Reel" : "Post"}
+                            </span>
+                          </td>
+                        )}
+
                         <td className="px-4 py-3 font-medium text-slate-900 text-left">
                           {item.score}
                         </td>
@@ -436,7 +452,11 @@ function IdeasTable({ sourceType, title }: Props) {
                         </td>
 
                         <td className="px-4 py-3 font-medium text-slate-900 text-left text-nowrap">
-                          {toDate(item.createdAt)}
+                          {new Date(item.createdAt).toLocaleDateString("uk-UA")}
+                        </td>
+
+                        <td className="px-4 py-3 font-medium text-slate-900 text-left text-nowrap">
+                          {item.postedAt ? new Date(item.postedAt).toLocaleDateString("uk-UA") : "—"}
                         </td>
 
                         <td className="px-4 py-3 font-medium text-slate-900 text-left">
