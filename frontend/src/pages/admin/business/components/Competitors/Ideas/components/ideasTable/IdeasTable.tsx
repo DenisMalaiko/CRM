@@ -48,7 +48,7 @@ type SelectOption = { value: string; label: string };
 const typedSelectStyles = centeredSelectStyles as StylesConfig<SelectOption, true, GroupBase<SelectOption>>;
 
 type Props = {
-  sourceType: IdeaSourceType;
+  sourceType: IdeaSourceType | IdeaSourceType[];
   title: string;
 };
 
@@ -56,12 +56,12 @@ type Props = {
 type TIdeaWithUrl = TIdea & { url?: string };
 
 const header = [
-  { name: "Title", key: "title" },
-  { name: "Description", key: "description" },
+  { name: "Idea", key: "idea" },
   { name: "Competitor", key: "competitor" },
   { name: "Score", key: "score" },
   { name: "Status", key: "status" },
   { name: "Created At", key: "createdAt" },
+  { name: "Posted At", key: "postedAt" },
   { name: "Url", key: "url" },
   { name: "Actions", key: "actions" },
 ];
@@ -79,6 +79,10 @@ function IdeasTable({ sourceType, title }: Props) {
   const [getCompetitors] = useGetCompetitorsMutation();
   const [deleteIdea] = useDeleteIdeaMutation();
 
+  const sourceTypes = Array.isArray(sourceType) ? sourceType : [sourceType];
+  const isSingleSource = sourceTypes.length === 1;
+  const singleSourceType = isSingleSource ? sourceTypes[0] : undefined;
+
   const { ideas } = useSelector((state: RootState) => state.ideaModule);
   const { competitors } = useSelector((state: RootState) => state.competitorModule);
 
@@ -88,8 +92,11 @@ function IdeasTable({ sourceType, title }: Props) {
   const [selectedIdea, setSelectedIdea] = useState<TIdea | null>(null);
   const [competitorsIds, setCompetitorsIds] = useState<string[]>([]);
   const [statusFilter, setStatusFilter] = useState<string[]>([]);
+  const [sourceTypeFilter, setSourceTypeFilter] = useState<string[]>([]);
   const [openTextDlg, setOpenTextDlg] = useState<boolean>(false);
   const [selectedText, setSelectedText] = useState<string | null>(null);
+
+  const sourceTypeOptions = sourceTypes.map((st) => ({ value: st, label: st }));
 
   const { copy } = useCopyToClipboard();
 
@@ -102,24 +109,23 @@ function IdeasTable({ sourceType, title }: Props) {
     [competitors]
   );
 
-  // Yesterday at midnight — stable reference, only computed once
   const initForm = useMemo<TIdeaParams>(() => {
     const date = new Date();
     date.setMonth(date.getMonth() - 1);
     date.setHours(0, 0, 0, 0);
-    return { onlyPostsNewerThan: date, sourceType };
-  }, [sourceType]);
+    return { onlyPostsNewerThan: date, sourceType: singleSourceType };
+  }, [singleSourceType]);
 
-  // Load ideas and competitors for this sourceType on mount
   useEffect(() => {
     const fetchData = async () => {
       try {
         if (businessId) {
           const [response, responseCompetitors] = await Promise.all([
-            getIdeas({ businessId, sourceType }).unwrap(),
+            getIdeas({ businessId, sourceType: singleSourceType }).unwrap(),
             getCompetitors(businessId).unwrap(),
           ]);
 
+          console.log(`[IdeasTable] ${title} response:`, response);
           if (response?.data) dispatch(setIdeas(response.data));
           if (responseCompetitors?.data) dispatch(setCompetitors(responseCompetitors.data));
         }
@@ -129,7 +135,7 @@ function IdeasTable({ sourceType, title }: Props) {
     };
 
     fetchData();
-  }, [dispatch, businessId, sourceType]);
+  }, [dispatch, businessId, singleSourceType]);
 
   const competitorsMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -140,7 +146,13 @@ function IdeasTable({ sourceType, title }: Props) {
   const filteredIdeas: TIdea[] = useMemo(() => {
     if (!ideas?.length) return [];
 
-    let result = ideas as TIdea[];
+    const allowedTypes = new Set(sourceTypes);
+    let result = (ideas as TIdea[]).filter((i) => allowedTypes.has(i.sourceType));
+
+    if (sourceTypeFilter.length) {
+      const selected = new Set(sourceTypeFilter);
+      result = result.filter((i) => selected.has(i.sourceType));
+    }
 
     if (competitorsIds.length) {
       const selected = new Set(competitorsIds);
@@ -153,7 +165,7 @@ function IdeasTable({ sourceType, title }: Props) {
     }
 
     return result;
-  }, [ideas, competitorsIds, statusFilter]);
+  }, [ideas, competitorsIds, statusFilter, sourceTypeFilter]);
 
   const sortedIdeas: TIdea[] = useMemo(() => {
     if (!filteredIdeas.length) return [];
@@ -181,7 +193,7 @@ function IdeasTable({ sourceType, title }: Props) {
   const { page, setPage, totalPages, paginatedItems, hasPrev, hasNext } = usePagination({
     items: sortedIdeas,
     pageSize: 10,
-    resetDeps: [sortKey, sortDir, competitorsIds.join(","), statusFilter.join(",")],
+    resetDeps: [sortKey, sortDir, competitorsIds.join(","), statusFilter.join(","), sourceTypeFilter.join(",")],
   });
 
   if (!businessId) return null;
@@ -190,13 +202,13 @@ function IdeasTable({ sourceType, title }: Props) {
     try {
       const response: ApiResponse<TIdea[]> = await fetchIdeas({
         id: businessId,
-        form: { onlyPostsNewerThan: initForm.onlyPostsNewerThan, sourceType },
+        form: { onlyPostsNewerThan: initForm.onlyPostsNewerThan, sourceType: singleSourceType },
       }).unwrap();
 
       if (response?.data) {
         const responseIdeas: ApiResponse<TIdea[]> = await getIdeas({
           businessId,
-          sourceType,
+          sourceType: singleSourceType,
         }).unwrap();
 
         if (responseIdeas?.data) {
@@ -237,7 +249,7 @@ function IdeasTable({ sourceType, title }: Props) {
 
           const response: ApiResponse<TIdea[]> = await getIdeas({
             businessId,
-            sourceType,
+            sourceType: singleSourceType,
           }).unwrap();
           if (response?.data) {
             dispatch(setIdeas(response.data));
@@ -282,6 +294,19 @@ function IdeasTable({ sourceType, title }: Props) {
                 />
               )}
 
+              {!isSingleSource && (
+                <Select<{ value: string; label: string }, true>
+                  isMulti
+                  placeholder="Select Type"
+                  options={sourceTypeOptions}
+                  value={sourceTypeOptions.filter((option) => sourceTypeFilter.includes(option.value))}
+                  onChange={(selected) => {
+                    setSourceTypeFilter(selected.map((option) => option.value));
+                  }}
+                  styles={typedSelectStyles}
+                />
+              )}
+
               <Select<{ value: string; label: string }, true>
                 isMulti
                 placeholder="Select Status"
@@ -316,16 +341,18 @@ function IdeasTable({ sourceType, title }: Props) {
                 <thead className="bg-slate-50">
                   <tr>
                     <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide cursor-pointer select-none text-slate-600 text-left">
-                      Title
+                      Idea
                     </th>
 
-                    <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide cursor-pointer select-none text-slate-600 text-left">
-                      Description
-                    </th>
-
-                    <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide cursor-pointer select-none text-slate-600 text-left">
+                    <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide cursor-pointer select-none text-slate-600 text-left min-w-[210px]">
                       Competitor
                     </th>
+
+                    {!isSingleSource && (
+                      <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide cursor-pointer select-none text-slate-600 text-left">
+                        Type
+                      </th>
+                    )}
 
                     <th
                       onClick={() => handleSort("score")}
@@ -346,6 +373,10 @@ function IdeasTable({ sourceType, title }: Props) {
                       className="px-4 py-3 text-xs font-semibold uppercase tracking-wide cursor-pointer select-none text-slate-600 text-left text-nowrap"
                     >
                       Created At {sortKey === "createdAt" ? (sortDir === "desc" ? "↓" : "↑") : ""}
+                    </th>
+
+                    <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide cursor-pointer select-none text-slate-600 text-left text-nowrap">
+                      Posted At
                     </th>
 
                     <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide cursor-pointer select-none text-slate-600 text-left">
@@ -369,21 +400,18 @@ function IdeasTable({ sourceType, title }: Props) {
                     paginatedItems &&
                     paginatedItems.map((item: TIdeaWithUrl) => (
                       <tr key={item.id} className="bg-white hover:bg-slate-50">
-                        <td className="px-4 py-3 font-medium text-slate-900 text-left">
-                          <p>{item.title}</p>
-                        </td>
+                        <td className="px-4 py-3 text-slate-900 text-left">
+                          <p className="font-medium">{item.title}</p>
+                          <p className="text-sm text-slate-500 line-clamp-2 mt-1">{item.description}</p>
 
-                        <td className="px-4 py-3 font-medium text-slate-900 text-left">
-                          <p className="line-clamp-2">{item.description}</p>
-
-                          <div className="flex items-center gap-2 text-slate-500 mt-3">
+                          <div className="flex items-center gap-2 mt-2">
                             <Eye
-                              size={20}
+                              size={18}
                               onClick={() => handleOpenText(item.description)}
                               className="cursor-pointer text-blue-600 hover:text-blue-700"
                             />
                             <Copy
-                              size={18}
+                              size={16}
                               onClick={() => copy(item.description)}
                               className="cursor-pointer text-blue-600 hover:text-blue-700"
                             />
@@ -399,6 +427,18 @@ function IdeasTable({ sourceType, title }: Props) {
                           </Link>
                         </td>
 
+                        {!isSingleSource && (
+                          <td className="px-4 py-3 font-medium text-slate-900 text-left">
+                            <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${
+                              item.sourceType === IdeaSourceType.InstagramReel
+                                ? "bg-purple-100 text-purple-700"
+                                : "bg-sky-100 text-sky-700"
+                            }`}>
+                              {item.sourceType === IdeaSourceType.InstagramReel ? "Reel" : "Post"}
+                            </span>
+                          </td>
+                        )}
+
                         <td className="px-4 py-3 font-medium text-slate-900 text-left">
                           {item.score}
                         </td>
@@ -412,7 +452,11 @@ function IdeasTable({ sourceType, title }: Props) {
                         </td>
 
                         <td className="px-4 py-3 font-medium text-slate-900 text-left text-nowrap">
-                          {toDate(item.createdAt)}
+                          {new Date(item.createdAt).toLocaleDateString("uk-UA")}
+                        </td>
+
+                        <td className="px-4 py-3 font-medium text-slate-900 text-left text-nowrap">
+                          {item.postedAt ? new Date(item.postedAt).toLocaleDateString("uk-UA") : "—"}
                         </td>
 
                         <td className="px-4 py-3 font-medium text-slate-900 text-left">
@@ -484,7 +528,7 @@ function IdeasTable({ sourceType, title }: Props) {
           setSelectedIdea(null);
         }}
         idea={selectedIdea}
-        sourceType={sourceType}
+        sourceType={singleSourceType}
       />
 
       <TextDlg

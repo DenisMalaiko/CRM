@@ -17,6 +17,7 @@ export type TIdea = {
   feeling: string;
   score: number;
   createdAt: Date;
+  postedAt: Date;
   status: IdeaStatus;
 }
 

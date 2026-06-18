@@ -26,6 +26,7 @@ export type TIdea = {
   how: IdeaHow;
   feeling: IdeaFeeling;
   score: number;
+  postedAt: Date | null;
   createdAt: Date;
   status: IdeaStatus;
 };

@@ -41,6 +41,10 @@ export class IdeaController {
     @Param() { id }: IdeaIdParamDto,
     @Body() body: IdeaParamsDto,
   ) {
+    console.log("----------");
+    console.log("BODY ", body);
+    console.log("----------");
+
     return await this.ideaService.fetchIdeas(id, body);
   }
 

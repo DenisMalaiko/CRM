@@ -130,6 +130,7 @@ export class IdeaService {
           competitorId: item.competitorId,
           score: this.calculateIdeaScore(item),
           url: item.url ?? '',
+          postedAt: item.postedAt ?? item.start ?? null,
         };
 
         if (
@@ -173,6 +174,7 @@ export class IdeaService {
             feeling: idea.feeling,
             score: idea.score,
             url: idea.url,
+            postedAt: idea.postedAt,
           },
         }),
       ),

@@ -390,6 +390,7 @@ model Idea {
   how              IdeaHow
   feeling          IdeaFeeling
   score            Int
+  postedAt         DateTime?
   createdAt        DateTime       @default(now())
   status           IdeaStatus     @default(New)
 
