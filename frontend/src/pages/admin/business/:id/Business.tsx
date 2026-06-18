@@ -89,13 +89,8 @@ function Business() {
       icon: Facebook,
     },
     {
-      id: "ideas/instagram-posts",
-      title: "Posts Ideas",
-      icon: Instagram,
-    },
-    {
-      id: "ideas/instagram-reels",
-      title: "Reels Ideas",
+      id: "ideas/instagram",
+      title: "Instagram Ideas",
       icon: Instagram,
     },
     {

@@ -26,7 +26,7 @@ import { ChangeArg, isNativeEvent } from "../../../../../../../../utils/isNative
 import {ApiResponse} from "../../../../../../../../models/ApiResponse";
 import {TIdea} from "../../../../../../../../models/Idea";
 
-function UpdateIdeaDlg({ open, onClose, idea, sourceType }: { open: boolean; onClose: () => void; idea: TIdea | null; sourceType: IdeaSourceType }) {
+function UpdateIdeaDlg({ open, onClose, idea, sourceType }: { open: boolean; onClose: () => void; idea: TIdea | null; sourceType?: IdeaSourceType }) {
   const dispatch = useAppDispatch();
   const { businessId } = useParams<{ businessId: string }>();
   const StatusList = Object.values(IdeaStatus);
