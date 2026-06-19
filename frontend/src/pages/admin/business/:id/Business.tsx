@@ -16,7 +16,8 @@ import {
   Megaphone,
   Camera,
   TrendingUp,
-  LucideLayoutDashboard
+  LucideLayoutDashboard,
+  CalendarRange
 } from "lucide-react"
 import { Outlet, NavLink, useNavigate } from "react-router-dom";
 
@@ -51,6 +52,14 @@ function Business() {
       id: "stories",
       title: "Stories",
       icon: Sparkles,
+    },
+  ]
+
+  const tabsContentPlan = [
+    {
+      id: "contentPlan",
+      title: "Content Plan",
+      icon: CalendarRange,
     },
   ]
 
@@ -167,6 +176,31 @@ function Business() {
             <div className="rounded-2xl bg-white shadow border border-slate-200 py-2 px-2 mb-5">
               <div className="flex flex-col gap-1">
                 {tabsGeneration.map((tab) => {
+                  const Icon = tab.icon
+
+                  return (
+                    <NavLink
+                      to={tab.id}
+                      key={tab.id}
+                      className={({ isActive }) =>
+                        `flex items-center gap-3 px-3 py-2 rounded-lg font-medium ${
+                          isActive
+                            ? "bg-blue-100 text-blue-600"
+                            : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"
+                        }`
+                      }
+                    >
+                      <Icon size={18} />
+                      {tab.title}
+                    </NavLink>
+                  )
+                })}
+              </div>
+            </div>
+
+            <div className="rounded-2xl bg-white shadow border border-slate-200 py-2 px-2 mb-5">
+              <div className="flex flex-col gap-1">
+                {tabsContentPlan.map((tab) => {
                   const Icon = tab.icon
 
                   return (

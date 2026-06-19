@@ -55,6 +55,7 @@ import Tiktok from "./pages/admin/business/components/Trends/Tiktok/Tiktok";
 // AI
 import AiIdeas from "./pages/admin/business/components/AI/AiIdeas/AiIdeas";
 import AiPhoto from "./pages/admin/business/components/AI/AiPhotos/AiPhoto";
+import ContentPlan from "./pages/admin/business/components/ContentPlan/ContentPlan";
 
 import { useAppDispatch } from "./store/hooks";
 import { useSignInByTokenMutation } from "./store/auth/authApi";
@@ -142,6 +143,9 @@ function App() {
             <Route path="ideas/facebook-posts" element={<FacebookPostsIdeas />} />
             <Route path="ideas/instagram" element={<InstagramIdeas />} />
             <Route path="ideas/meta-ads" element={<MetaAdsIdeas />} />
+
+            {/*Content Plan*/}
+            <Route path="contentPlan" element={<ContentPlan />} />
 
             {/*AI*/}
             <Route path="ideasAI" element={<AiIdeas />}></Route>
