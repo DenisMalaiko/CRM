@@ -15,6 +15,7 @@ import galleryModule from "./gallery/gallerySlice";
 import ideaModule from "./idea/ideaSlice";
 import trendsModule from "./trends/trendsSlice";
 import ideaAiModule from "./ai/ideas/ideaAiSlice";
+import contentPlanModule from "./contentPlan/contentPlanSlice";
 import { api } from './api/api'
 
 export const store = configureStore({
@@ -34,6 +35,7 @@ export const store = configureStore({
     galleryModule: galleryModule,
     ideaModule: ideaModule,
     ideaAiModule: ideaAiModule,
+    contentPlanModule: contentPlanModule,
     trendsModule: trendsModule,
     [api.reducerPath]: api.reducer,
   },

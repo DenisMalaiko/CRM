@@ -1,5 +1,29 @@
 # Task Log
 
+## Content Plan — нова сторінка з генерацією контент-стратегії — 2026-06-19
+
+### Plan
+- [x] Створити enum ContentPlanStatus
+- [x] Створити модель TContentPlan, TContentPlanGenerate, TContentPlanUpdate
+- [x] Створити Redux slice contentPlanSlice
+- [x] Створити RTK Query API contentPlanApi
+- [x] Зареєструвати module в store
+- [x] Створити GenerateContentPlanDlg (2 режими: manual / profile)
+- [x] Створити UpdateContentPlanDlg
+- [x] Створити сторінку ContentPlan з таблицею
+- [x] Додати пункт sidebar "Content Plan"
+- [x] Додати route в App.tsx
+- [x] Quality gate: reviewer + tester
+
+### Review
+- [x] reviewer → PASS (after fixes: removed `any` types, moved static arrays outside components, added generic types to Select)
+- [x] tester → 55 tests pass (5 test suites)
+- [x] tsc --noEmit → 0 errors
+- [x] No regressions found
+- Summary: Нова сторінка Content Plan з таблицею (Title, Description, Status, Mode, Created At), попапом генерації з radio-перемиканням manual/profile, та попапом редагування.
+
+---
+
 ## CreateAiPhotoDlg + AiPhoto cleanup — 2026-04-25
 
 ### Plan
