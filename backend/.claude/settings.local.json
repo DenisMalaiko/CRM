@@ -1,3 +1,10 @@
 {
+  "permissions": {
+    "allow": [
+      "Bash(git -C /Applications/Localhost/CRM/backend log --all --oneline --source --remotes --branches)",
+      "Bash(git -C /Applications/Localhost/CRM/backend show b295ef9 --stat)",
+      "Bash(git:*)"
+    ]
+  },
   "outputStyle": "Explanatory"
 }
