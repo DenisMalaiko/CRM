@@ -7,28 +7,29 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './core/prisma/prisma.module';
-import { ApiResponseInterceptor } from "./core/interceptors/api-response.interceptor";
-import { StorageModule } from "./core/storage/storage.module";
-import { S3Module } from "./core/s3/s3.module";
+import { ApiResponseInterceptor } from './core/interceptors/api-response.interceptor';
+import { StorageModule } from './core/storage/storage.module';
+import { S3Module } from './core/s3/s3.module';
 
 import { AdminModule } from './modules/admin/admin.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { AgencyModule } from './modules/agency/agency.module';
 import { BusinessModule } from './modules/business/business.module';
 import { ProductsModule } from './modules/products/products.module';
-import { ProfilesModule } from "./modules/profiles/profiles.module";
-import { AudienceModule } from "./modules/audience/audience.module";
-import { AiModule } from "./modules/ai/ai.module";
-import { AIArtifactModule } from "./modules/aiArtifact/aiArtifact.module";
+import { ProfilesModule } from './modules/profiles/profiles.module';
+import { AudienceModule } from './modules/audience/audience.module';
+import { AiModule } from './modules/ai/ai.module';
+import { AIArtifactModule } from './modules/aiArtifact/aiArtifact.module';
 import { PromptModule } from './modules/prompt/prompt.module';
-import { CompetitorModule } from "./modules/competitor/competitor.module";
-import { ApifyModule } from "./modules/apify/apify.module";
-import { FacebookModule } from "./modules/facebook/facebook.module";
+import { CompetitorModule } from './modules/competitor/competitor.module';
+import { ApifyModule } from './modules/apify/apify.module';
+import { FacebookModule } from './modules/facebook/facebook.module';
 import { TiktokModule } from './modules/tiktok/tiktok.module';
-import { GalleryModule } from "./modules/gallery/gallery.module";
-import { IdeaModule } from "./modules/idea/idea.module";
-import { IdeaAIModule } from "./modules/ideaAI/ideaAI.module";
-import { TrendsModule } from "./modules/trends/trends.module";
+import { GalleryModule } from './modules/gallery/gallery.module';
+import { IdeaModule } from './modules/idea/idea.module';
+import { IdeaAIModule } from './modules/ideaAI/ideaAI.module';
+import { TrendsModule } from './modules/trends/trends.module';
+import { ContentPlanModule } from './modules/contentPlan/contentPlan.module';
 
 @Module({
   imports: [
@@ -41,13 +42,13 @@ import { TrendsModule } from "./modules/trends/trends.module";
       {
         name: 'medium',
         ttl: 10000,
-        limit: 20
+        limit: 20,
       },
       {
         name: 'long',
         ttl: 60000,
-        limit: 100
-      }
+        limit: 100,
+      },
     ]),
     ConfigModule.forRoot({
       isGlobal: true,
@@ -75,6 +76,7 @@ import { TrendsModule } from "./modules/trends/trends.module";
     IdeaModule,
     IdeaAIModule,
     TrendsModule,
+    ContentPlanModule,
   ],
   controllers: [AppController],
   providers: [
@@ -86,8 +88,7 @@ import { TrendsModule } from "./modules/trends/trends.module";
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
     },
-    AppService
+    AppService,
   ],
 })
-
 export class AppModule {}
