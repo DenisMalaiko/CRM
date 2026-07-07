@@ -15,6 +15,17 @@ import { jsonrepair } from 'jsonrepair';
 import * as process from 'node:process';
 import { ideaPrompt } from './prompts/idea/idea';
 import { TRANSLATE_TO_ENGLISH_SYSTEM_PROMPT } from './prompts/translate/translate';
+import {
+  contentPlanRoleBlock,
+  contentPlanBusinessContextBlock,
+  contentPlanIdeasBlock,
+  contentPlanOutputBlock,
+} from './prompts/contentPlan/content';
+import {
+  ContentPlanResponseSchema,
+  ContentPlanPostSchema,
+} from './schema/ai-content-plan.schema';
+import { z } from 'zod';
 
 import {
   postRoleBlock,
@@ -462,6 +473,74 @@ export class AiService {
       .filter((p) => p.isActive)
       .map((p, i) => `Prompt ${i + 1}: - ${p.text}`)
       .join('\n');
+  }
+
+  async generateContentPlan(settings: {
+    business: {
+      name: string;
+      industry?: string | null;
+      website: string;
+      language: string;
+      brand: string;
+      advantages: string[];
+      goals: string[];
+    };
+    audiences: {
+      ageRange: string;
+      gender?: string | null;
+      geo: string;
+      pains: string[];
+      desires: string[];
+      triggers: string[];
+      incomeLevel?: string | null;
+    }[];
+    products: {
+      name: string;
+      type: string;
+      description: string;
+      priceSegment: string;
+      isActive: boolean;
+    }[];
+    ideas: {
+      title: string;
+      description: string;
+      feeling?: string;
+      who?: string;
+      what?: string;
+      why?: string;
+      how?: string;
+      competitorText?: string | null;
+    }[];
+    context?: string;
+  }): Promise<{
+    title: string;
+    description: string;
+    posts: z.infer<typeof ContentPlanPostSchema>[];
+  }> {
+    const audienceBlock = this.getAudiences(settings.audiences);
+    const productsBlock = this.getProducts(settings.products);
+    const ideasBlock = this.getIdeas(settings.ideas);
+
+    const prompt = [
+      contentPlanRoleBlock(),
+      contentPlanBusinessContextBlock(
+        settings.business,
+        audienceBlock,
+        productsBlock,
+      ),
+      contentPlanIdeasBlock(ideasBlock, settings.context),
+      contentPlanOutputBlock(),
+    ].join('\n\n');
+
+    const response = await this.model.invoke(prompt);
+    const rawText = this.extractTextContent(response.content);
+    const parsed = ContentPlanResponseSchema.parse(this.safeParseJson(rawText));
+
+    return {
+      title: parsed.title,
+      description: parsed.description,
+      posts: parsed.posts,
+    };
   }
 
   async translateToEnglish(text: string): Promise<string> {
