@@ -55,6 +55,7 @@ model Business {
   prompts          Prompt[]
   ideas            Idea[]
   ideasAI          IdeaAI[]
+  contentPlans     ContentPlan[]
 }
 
 model BusinessProfile {
@@ -581,6 +582,34 @@ model BusinessTrendMatch {
   trend             Trend           @relation(fields: [trendId], references: [id], onDelete: Cascade)
 
   @@id([businessProfileId, trendId])
+}
+
+model ContentPlan {
+  id          String            @id @default(uuid())
+  businessId  String
+  title       String
+  description String            @default("")
+  status      ContentPlanStatus @default(Draft)
+  mode        ContentPlanMode
+  postsJson   Json
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @default(now()) @updatedAt
+
+  business Business @relation(fields: [businessId], references: [id])
+
+  @@index([businessId])
+}
+
+enum ContentPlanStatus {
+  Draft
+  Active
+  Completed
+  Archived
+}
+
+enum ContentPlanMode {
+  manual
+  profile
 }
 
 enum Plan {
