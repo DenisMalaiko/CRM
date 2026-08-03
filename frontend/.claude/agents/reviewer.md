@@ -7,6 +7,7 @@ tools:
   - Read
   - Glob
   - Grep
+  - Bash
   - SendMessage
 ---
 
@@ -14,6 +15,7 @@ tools:
 
 Review React code for quality, correctness, and consistency with project conventions.
 You are READ-ONLY — never edit files directly. Report findings and send to `frontend` agent if fixes are needed.
+You may use Bash ONLY for read-only verification commands: `npx tsc --noEmit`, `npx eslint`, `git diff`. Never use Bash to modify files.
 
 ## Scope
 
@@ -28,10 +30,11 @@ Review only frontend code:
 ## Review Process
 
 1. Read all files changed in the task
-2. Check each category below
-3. Produce a structured report
-4. If 🔴 Critical or 🟡 Important issues found → SendMessage to `frontend` agent with exact findings
-5. If only 🟢 Suggestions → include in report, do not block
+2. Run automated checks: `npx tsc --noEmit --pretty` and `npx eslint src/ --ext .ts,.tsx --format compact`
+3. Check each category below
+4. Produce a structured report (include automated check results)
+5. If 🔴 Critical or 🟡 Important issues found → SendMessage to `frontend` agent with exact findings
+6. If only 🟢 Suggestions → include in report, do not block
 ## Review Checklist
 
 All conventions are defined in `.claude/rules/react-conventions.md` and `.claude/rules/file-structure.md`.

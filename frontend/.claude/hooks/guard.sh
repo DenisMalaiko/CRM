@@ -17,8 +17,17 @@ BLOCKED_PATTERNS=(
   "git reset --hard"
   "git clean -fd"
   "git checkout -- ."
+  "git branch -D"
+  "git stash drop"
+  "git stash clear"
   "drop table"
   "DROP TABLE"
+  "npx prisma migrate reset"
+  "npx prisma db push --force-reset"
+  "docker system prune"
+  "docker compose down -v"
+  "chmod 777"
+  "chmod -R 777"
 )
 
 for pattern in "${BLOCKED_PATTERNS[@]}"; do
