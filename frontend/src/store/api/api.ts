@@ -27,8 +27,6 @@ const baseQueryWithReauth = async (args: any, api: any, extraOptions: any) => {
   }
 
   if (result.error && result.error.status === 401) {
-    console.warn("Access token expired, trying refresh...")
-
     const refreshResult = await baseQuery(
       {
         url: "/auth/refresh",
@@ -38,8 +36,8 @@ const baseQueryWithReauth = async (args: any, api: any, extraOptions: any) => {
     );
 
     if (refreshResult.error) {
-      console.error("Failed to refresh token, logging out...");
       api.dispatch(logout());
+      toast.info('Session expired. Please sign in again.');
     }
 
     const refreshData = refreshResult?.data as RefreshResponse;
@@ -48,7 +46,6 @@ const baseQueryWithReauth = async (args: any, api: any, extraOptions: any) => {
     // TODO: If Admin Refresh Page
     if (token) {
       api.dispatch(setAccessToken(token));
-      console.log("Token refreshed, retrying request...");
       result = await baseQuery(args, api, extraOptions);
     }
   }

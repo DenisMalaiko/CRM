@@ -5,10 +5,7 @@ import './App.css';
 import 'react-datepicker/dist/react-datepicker.css';
 import "slick-carousel/slick/slick.css"
 import "slick-carousel/slick/slick-theme.css"
-import { RootState } from "./store";
-
-
-import {toast, ToastContainer} from 'react-toastify';
+import {ToastContainer} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 // Components
@@ -57,18 +54,19 @@ import AiIdeas from "./pages/admin/business/components/AI/AiIdeas/AiIdeas";
 import AiPhoto from "./pages/admin/business/components/AI/AiPhotos/AiPhoto";
 import ContentPlan from "./pages/admin/business/components/ContentPlan/ContentPlan";
 
-import { useAppDispatch } from "./store/hooks";
+import { useAppDispatch, useAppSelector } from "./store/hooks";
 import { useSignInByTokenMutation } from "./store/auth/authApi";
 import { setUser, setAccessToken, logout, setAuthInitialized } from "./store/auth/authSlice";
-import { useSelector } from "react-redux";
 import { TUser } from "./models/User";
+import { useTokenExpiration } from "./hooks/useTokenExpiration";
 
 function App() {
   const ConfirmDialog = useConfirmDialog();
   const [ signInByToken ] = useSignInByTokenMutation();
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const { authInitialized } = useSelector((state: RootState) => state.authModule);
+  const { authInitialized } = useAppSelector((state) => state.authModule);
+  useTokenExpiration();
 
 
   useEffect(() => {
