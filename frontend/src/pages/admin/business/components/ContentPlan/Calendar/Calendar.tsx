@@ -1,0 +1,107 @@
+import React, { useState } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  startOfMonth,
+  endOfMonth,
+  startOfWeek,
+  endOfWeek,
+  eachDayOfInterval,
+  format,
+  addMonths,
+  subMonths,
+  isSameMonth,
+  isToday,
+} from "date-fns";
+
+function Calendar() {
+  const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
+
+  const handlePrevMonth = () => setCurrentMonth(prev => subMonths(prev, 1));
+  const handleNextMonth = () => setCurrentMonth(prev => addMonths(prev, 1));
+  const handleToday = () => setCurrentMonth(new Date());
+
+  const days = eachDayOfInterval({
+    start: startOfWeek(startOfMonth(currentMonth), { weekStartsOn: 1 }),
+    end: endOfWeek(endOfMonth(currentMonth), { weekStartsOn: 1 }),
+  });
+
+  const weekDayHeaders = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+  return (
+    <div className="rounded-2xl bg-white shadow border border-slate-200">
+      <div className="border-b p-4 flex items-center justify-between">
+        <h2 className="text-lg font-semibold text-slate-800">Calendar</h2>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleToday}
+            className="px-3 py-1.5 text-sm rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 font-medium"
+          >
+            Today
+          </button>
+
+          <button
+            onClick={handlePrevMonth}
+            className="h-8 w-8 flex items-center justify-center rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50"
+            aria-label="Previous month"
+          >
+            <ChevronLeft size={16} />
+          </button>
+
+          <span className="min-w-[140px] text-center font-semibold text-slate-800">
+            {format(currentMonth, "MMMM yyyy")}
+          </span>
+
+          <button
+            onClick={handleNextMonth}
+            className="h-8 w-8 flex items-center justify-center rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50"
+            aria-label="Next month"
+          >
+            <ChevronRight size={16} />
+          </button>
+        </div>
+      </div>
+
+      <div className="p-4">
+        <div className="grid grid-cols-7">
+          {weekDayHeaders.map(day => (
+            <div
+              key={day}
+              className="py-2 text-xs font-semibold text-slate-500 uppercase tracking-wide text-center"
+            >
+              {day}
+            </div>
+          ))}
+
+          {days.map(day => {
+            const isCurrentMonth = isSameMonth(day, currentMonth);
+            const isTodayDate = isToday(day);
+
+            return (
+              <div
+                key={day.toISOString()}
+                className={`min-h-[88px] p-2 border-t border-slate-100 ${
+                  !isCurrentMonth ? "bg-slate-50" : ""
+                }`}
+              >
+                <span
+                  className={`inline-flex h-7 w-7 items-center justify-center rounded-lg text-sm ${
+                    isTodayDate
+                      ? "bg-blue-100 text-blue-600 font-semibold"
+                      : isCurrentMonth
+                      ? "text-slate-700"
+                      : "text-slate-300"
+                  }`}
+                >
+                  {format(day, "d")}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default Calendar;

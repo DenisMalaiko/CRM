@@ -17,7 +17,8 @@ import {
   Camera,
   TrendingUp,
   LucideLayoutDashboard,
-  CalendarRange
+  CalendarRange,
+  CalendarDays
 } from "lucide-react"
 import { Outlet, NavLink, useNavigate } from "react-router-dom";
 
@@ -60,6 +61,11 @@ function Business() {
       id: "contentPlan",
       title: "Content Plan",
       icon: CalendarRange,
+    },
+    {
+      id: "calendar",
+      title: "Calendar",
+      icon: CalendarDays,
     },
   ]
 
