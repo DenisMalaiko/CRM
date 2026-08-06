@@ -1,5 +1,22 @@
 # Task Log
 
+## Calendar Public Holidays — відображення свят за країною бізнесу — 2026-08-05
+
+### Plan
+- [x] Створити модель THoliday
+- [x] Створити RTK Query API holidaysApi (getHolidays endpoint)
+- [x] Оновити Calendar компонент: fetch + render holidays
+- [x] Quality gate: reviewer + tester
+
+### Review
+- [x] reviewer → PASS (suggestions only: minor style notes)
+- [x] tester → 17 tests pass (10 existing + 7 new)
+- [x] tsc --noEmit → 0 errors
+- [x] No regressions found
+- Summary: Calendar тепер відображає публічні свята з bg-red-50 фоном та localName текстом, дані отримуються через RTK Query endpoint /holidays/:year/:countryCode, автоматично пропускається якщо у бізнесу не вказана країна.
+
+---
+
 ## Content Plan — нова сторінка з генерацією контент-стратегії — 2026-06-19
 
 ### Plan
