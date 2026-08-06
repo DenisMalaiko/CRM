@@ -30,6 +30,7 @@ import { IdeaModule } from './modules/idea/idea.module';
 import { IdeaAIModule } from './modules/ideaAI/ideaAI.module';
 import { TrendsModule } from './modules/trends/trends.module';
 import { ContentPlanModule } from './modules/contentPlan/contentPlan.module';
+import { HolidaysModule } from './modules/holidays/holidays.module';
 
 @Module({
   imports: [
@@ -77,6 +78,7 @@ import { ContentPlanModule } from './modules/contentPlan/contentPlan.module';
     IdeaAIModule,
     TrendsModule,
     ContentPlanModule,
+    HolidaysModule,
   ],
   controllers: [AppController],
   providers: [

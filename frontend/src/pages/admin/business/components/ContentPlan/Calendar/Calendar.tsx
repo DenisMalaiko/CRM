@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
   startOfMonth,
@@ -11,10 +11,47 @@ import {
   subMonths,
   isSameMonth,
   isToday,
+  getYear,
 } from "date-fns";
+import { useParams } from "react-router-dom";
+import { useAppDispatch, useAppSelector } from "../../../../../../store/hooks";
+import { useGetHolidaysQuery } from "../../../../../../store/holidays/holidaysApi";
+import { useGetBusinessMutation } from "../../../../../../store/businesses/businessesApi";
+import { setBusiness } from "../../../../../../store/businesses/businessesSlice";
+import { THoliday } from "../../../../../../models/Holiday";
+import { ApiResponse } from "../../../../../../models/ApiResponse";
+import { TBusiness } from "../../../../../../models/Business";
 
-function Calendar() {
+export function Calendar() {
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
+  const { businessId } = useParams<{ businessId: string }>();
+  const dispatch = useAppDispatch();
+  const business = useAppSelector(state => state.businessModule.business);
+  const country = business?.country;
+  const [getBusiness] = useGetBusinessMutation();
+
+  useEffect(() => {
+    if (!business && businessId) {
+      getBusiness(businessId).unwrap().then((response: ApiResponse<TBusiness>) => {
+        if (response?.data) dispatch(setBusiness(response.data));
+      });
+    }
+  }, [business, businessId, dispatch, getBusiness]);
+  const year = getYear(currentMonth);
+  const { data: holidaysResponse } = useGetHolidaysQuery(
+    { year, countryCode: country! },
+    { skip: !country }
+  );
+
+  const holidayMap = useMemo(() => {
+    const map = new Map<string, THoliday>();
+    if (holidaysResponse?.data) {
+      for (const holiday of holidaysResponse.data) {
+        map.set(holiday.date, holiday);
+      }
+    }
+    return map;
+  }, [holidaysResponse]);
 
   const handlePrevMonth = () => setCurrentMonth(prev => subMonths(prev, 1));
   const handleNextMonth = () => setCurrentMonth(prev => addMonths(prev, 1));
@@ -67,21 +104,28 @@ function Calendar() {
           {weekDayHeaders.map(day => (
             <div
               key={day}
-              className="py-2 text-xs font-semibold text-slate-500 uppercase tracking-wide text-center"
+              className="py-2 pl-2 text-xs font-semibold text-slate-500 uppercase tracking-wide text-left"
             >
               {day}
             </div>
           ))}
+        </div>
 
+        <div className="grid grid-cols-7 gap-px bg-slate-200 border border-slate-200">
           {days.map(day => {
             const isCurrentMonth = isSameMonth(day, currentMonth);
             const isTodayDate = isToday(day);
+            const holiday = holidayMap.get(format(day, "yyyy-MM-dd"));
 
             return (
               <div
                 key={day.toISOString()}
-                className={`min-h-[88px] p-2 border-t border-slate-100 ${
-                  !isCurrentMonth ? "bg-slate-50" : ""
+                className={`min-h-[120px] p-2 flex flex-col justify-start items-start ${
+                  !isCurrentMonth
+                    ? "bg-slate-50"
+                    : holiday
+                    ? "bg-red-50"
+                    : "bg-white"
                 }`}
               >
                 <span
@@ -95,6 +139,14 @@ function Calendar() {
                 >
                   {format(day, "d")}
                 </span>
+
+                {holiday && isCurrentMonth && (
+                  <div className="mt-1 w-full bg-red-100 rounded px-1.5 py-0.5 overflow-hidden text-left">
+                    <span className="text-xs text-red-700 block truncate">
+                      {holiday.localName}
+                    </span>
+                  </div>
+                )}
               </div>
             );
           })}
