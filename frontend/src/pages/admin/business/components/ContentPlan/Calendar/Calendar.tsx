@@ -15,10 +15,10 @@ import {
 } from "date-fns";
 import { useParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../../../../../store/hooks";
-import { useGetHolidaysQuery } from "../../../../../../store/holidays/holidaysApi";
+import { useGetCalendarificHolidaysQuery } from "../../../../../../store/calendarific/calendarificApi";
 import { useGetBusinessMutation } from "../../../../../../store/businesses/businessesApi";
 import { setBusiness } from "../../../../../../store/businesses/businessesSlice";
-import { THoliday } from "../../../../../../models/Holiday";
+import { TCalendarificHoliday } from "../../../../../../models/CalendarificHoliday";
 import { ApiResponse } from "../../../../../../models/ApiResponse";
 import { TBusiness } from "../../../../../../models/Business";
 
@@ -38,20 +38,22 @@ export function Calendar() {
     }
   }, [business, businessId, dispatch, getBusiness]);
   const year = getYear(currentMonth);
-  const { data: holidaysResponse } = useGetHolidaysQuery(
+  const { data: calendarificResponse } = useGetCalendarificHolidaysQuery(
     { year, countryCode: country! },
     { skip: !country }
   );
 
-  const holidayMap = useMemo(() => {
-    const map = new Map<string, THoliday>();
-    if (holidaysResponse?.data) {
-      for (const holiday of holidaysResponse.data) {
-        map.set(holiday.date, holiday);
+  const calendarificMap = useMemo(() => {
+    const map = new Map<string, TCalendarificHoliday[]>();
+    if (calendarificResponse?.data) {
+      for (const holiday of calendarificResponse.data) {
+        const existing = map.get(holiday.date) || [];
+        existing.push(holiday);
+        map.set(holiday.date, existing);
       }
     }
     return map;
-  }, [holidaysResponse]);
+  }, [calendarificResponse]);
 
   const handlePrevMonth = () => setCurrentMonth(prev => subMonths(prev, 1));
   const handleNextMonth = () => setCurrentMonth(prev => addMonths(prev, 1));
@@ -67,7 +69,15 @@ export function Calendar() {
   return (
     <div className="rounded-2xl bg-white shadow border border-slate-200">
       <div className="border-b p-4 flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-slate-800">Calendar</h2>
+        <div className="flex items-center gap-4">
+          <h2 className="text-lg font-semibold text-slate-800">Calendar</h2>
+          <div className="flex items-center gap-3 text-xs text-slate-500">
+            <span className="flex items-center gap-1">
+              <span className="inline-block h-2.5 w-2.5 rounded-full bg-blue-400" />
+              Holidays
+            </span>
+          </div>
+        </div>
 
         <div className="flex items-center gap-2">
           <button
@@ -115,18 +125,19 @@ export function Calendar() {
           {days.map(day => {
             const isCurrentMonth = isSameMonth(day, currentMonth);
             const isTodayDate = isToday(day);
-            const holiday = holidayMap.get(format(day, "yyyy-MM-dd"));
+            const dateKey = format(day, "yyyy-MM-dd");
+            const calendarificHolidays = calendarificMap.get(dateKey);
+
+            const bgColor = !isCurrentMonth
+              ? "bg-slate-50"
+              : calendarificHolidays
+              ? "bg-blue-50"
+              : "bg-white";
 
             return (
               <div
                 key={day.toISOString()}
-                className={`min-h-[120px] p-2 flex flex-col justify-start items-start ${
-                  !isCurrentMonth
-                    ? "bg-slate-50"
-                    : holiday
-                    ? "bg-red-50"
-                    : "bg-white"
-                }`}
+                className={`min-h-[120px] p-2 flex flex-col justify-start items-start ${bgColor}`}
               >
                 <span
                   className={`inline-flex h-7 w-7 items-center justify-center rounded-lg text-sm ${
@@ -140,13 +151,13 @@ export function Calendar() {
                   {format(day, "d")}
                 </span>
 
-                {holiday && isCurrentMonth && (
-                  <div className="mt-1 w-full bg-red-100 rounded px-1.5 py-0.5 overflow-hidden text-left">
-                    <span className="text-xs text-red-700 block truncate">
-                      {holiday.localName}
+                {calendarificHolidays && isCurrentMonth && calendarificHolidays.map((ch, i) => (
+                  <div key={i} className="mt-1 w-full bg-blue-100 rounded px-1.5 py-0.5 overflow-hidden text-left">
+                    <span className="text-xs text-blue-700 block truncate" title={ch.primaryType}>
+                      {ch.name}
                     </span>
                   </div>
-                )}
+                ))}
               </div>
             );
           })}

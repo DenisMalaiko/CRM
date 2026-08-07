@@ -30,7 +30,7 @@ import { IdeaModule } from './modules/idea/idea.module';
 import { IdeaAIModule } from './modules/ideaAI/ideaAI.module';
 import { TrendsModule } from './modules/trends/trends.module';
 import { ContentPlanModule } from './modules/contentPlan/contentPlan.module';
-import { HolidaysModule } from './modules/holidays/holidays.module';
+import { CalendarificModule } from './modules/calendarific/calendarific.module';
 
 @Module({
   imports: [
@@ -78,7 +78,7 @@ import { HolidaysModule } from './modules/holidays/holidays.module';
     IdeaAIModule,
     TrendsModule,
     ContentPlanModule,
-    HolidaysModule,
+    CalendarificModule,
   ],
   controllers: [AppController],
   providers: [
