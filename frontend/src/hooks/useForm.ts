@@ -12,10 +12,11 @@ type ChangeArg =
 
 export function useForm<T extends Record<string, any>>(initialState: T) {
   const [form, setForm] = useState<T>(initialState);
+  const serialized = JSON.stringify(initialState);
 
   useEffect(() => {
-    setForm(initialState);
-  }, [initialState]);
+    setForm(JSON.parse(serialized));
+  }, [serialized]);
 
   const handleChange = (arg: ChangeArg) => {
     let name: string;

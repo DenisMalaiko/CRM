@@ -1,7 +1,7 @@
 import { IsInt, IsString, Length, Min, Max } from 'class-validator';
 import { Type } from 'class-transformer';
 
-export class GetHolidaysParamsDto {
+export class GetCalendarificParamsDto {
   @Type(() => Number)
   @IsInt()
   @Min(2000)
