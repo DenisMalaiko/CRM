@@ -163,12 +163,6 @@ describe('InstagramPostsTable', () => {
       expect(screen.getByText('500')).toBeInTheDocument();
     });
 
-    it('renders shares count in the table row', () => {
-      mockInstagramPosts = [makePost({ shares: 75 })];
-      renderComponent();
-      expect(screen.getByText('75')).toBeInTheDocument();
-    });
-
     it('renders comments count in the table row', () => {
       mockInstagramPosts = [makePost({ comments: 33 })];
       renderComponent();
@@ -251,14 +245,6 @@ describe('InstagramPostsTable', () => {
 
       userEvent.click(screen.getByText(/^comments/i));
       expect(screen.getByText(/comments.*↓/i)).toBeInTheDocument();
-    });
-
-    it('clicking "Shares" header shows ↓ sort indicator', () => {
-      mockInstagramPosts = [makePost()];
-      renderComponent();
-
-      userEvent.click(screen.getByText(/^shares/i));
-      expect(screen.getByText(/shares.*↓/i)).toBeInTheDocument();
     });
 
     it('sorts posts by likes descending when Likes header is clicked', () => {

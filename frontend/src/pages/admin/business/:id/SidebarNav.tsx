@@ -2,22 +2,12 @@ import React, { useState } from "react"
 import { NavLink, useLocation } from "react-router-dom"
 import {
   Database,
-  Package,
-  Users,
   FileText,
-  Sparkles,
   CalendarRange,
-  CalendarDays,
   Layers,
-  Wand2,
-  Image,
   LayoutDashboard,
   Swords,
-  Facebook,
-  Instagram,
-  Megaphone,
   Lightbulb,
-  Camera,
   TrendingUp,
   ChevronRight,
   LucideIcon,
@@ -26,68 +16,64 @@ import {
 type SidebarTab = {
   id: string
   title: string
-  icon: LucideIcon
 }
 
 type SidebarGroup = {
   label: string
+  icon: LucideIcon
   tabs: SidebarTab[]
 }
 
 const sidebarGroups: SidebarGroup[] = [
   {
-    label: "Base Data",
+    label: "Info",
+    icon: Database,
     tabs: [
-      { id: "baseData", title: "Base Data", icon: Database },
-      { id: "products", title: "Products", icon: Package },
-      { id: "audiences", title: "Audiences", icon: Users },
+      { id: "baseData", title: "Base Data" },
+      { id: "products", title: "Products" },
+      { id: "audiences", title: "Audiences" },
     ],
   },
   {
-    label: "Generation",
+    label: "Ideas",
+    icon: Lightbulb,
     tabs: [
-      { id: "posts", title: "Posts", icon: FileText },
-      { id: "stories", title: "Stories", icon: Sparkles },
+      { id: "competitors", title: "Competitors" },
+      { id: "ideas/facebook-posts", title: "Facebook Ideas" },
+      { id: "ideas/instagram", title: "Instagram Ideas" },
+      { id: "ideas/meta-ads", title: "Meta Ads Ideas" },
+      { id: "ideasAI", title: "AI Ideas" },
     ],
   },
   {
-    label: "Content Plan",
+    label: "Content",
+    icon: FileText,
     tabs: [
-      { id: "contentPlan", title: "Content Plan", icon: CalendarRange },
-      { id: "calendar", title: "Calendar", icon: CalendarDays },
+      { id: "contentPlan", title: "Content Plan" },
+      { id: "posts", title: "Posts" },
+      { id: "stories", title: "Stories" },
     ],
   },
   {
-    label: "Creator",
+    label: "Gallery",
+    icon: Layers,
     tabs: [
-      { id: "profiles", title: "Context", icon: Layers },
-      { id: "prompts", title: "Prompts", icon: Wand2 },
-      { id: "gallery", title: "Gallery", icon: Image },
-      { id: "designSystem", title: "Design", icon: LayoutDashboard },
+      { id: "gallery", title: "Gallery" },
+      { id: "designSystem", title: "Design" },
+      { id: "aiPhoto", title: "AI Photo" },
     ],
   },
-  {
-    label: "Competitors",
+
+
+  /*{
+    label: "Others",
+    icon: TrendingUp,
     tabs: [
-      { id: "competitors", title: "Competitors", icon: Swords },
-      { id: "ideas/facebook-posts", title: "Facebook Ideas", icon: Facebook },
-      { id: "ideas/instagram", title: "Instagram Ideas", icon: Instagram },
-      { id: "ideas/meta-ads", title: "Meta Ads Ideas", icon: Megaphone },
+      { id: "trends", title: "Tiktok" },
+      { id: "profiles", title: "Context" },
+      { id: "prompts", title: "Prompts" },
     ],
-  },
-  {
-    label: "AI",
-    tabs: [
-      { id: "ideasAI", title: "AI Ideas", icon: Lightbulb },
-      { id: "aiPhoto", title: "AI Photo", icon: Camera },
-    ],
-  },
-  {
-    label: "Trends",
-    tabs: [
-      { id: "trends", title: "Tiktok", icon: TrendingUp },
-    ],
-  },
+  },*/
 ]
 
 function findActiveGroupIndex(pathname: string): number | null {
@@ -122,7 +108,7 @@ export function SidebarNav() {
       <NavLink
         to="dashboard"
         className={({ isActive }) =>
-          `flex items-center gap-3 px-3 py-2 rounded-lg font-medium ${
+          `flex items-center gap-3 px-3 py-2 rounded-lg font-medium border-b border-slate-100 ${
             isActive
               ? "bg-blue-100 text-blue-600"
               : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"
@@ -132,6 +118,22 @@ export function SidebarNav() {
         <LayoutDashboard size={18} />
         Dashboard
       </NavLink>
+
+      <NavLink
+        to="calendar"
+        className={({ isActive }) =>
+          `flex items-center gap-3 px-3 py-2 rounded-lg font-medium ${
+            isActive
+              ? "bg-blue-100 text-blue-600"
+              : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"
+          }`
+        }
+      >
+        <CalendarRange size={18} />
+        Calendar
+      </NavLink>
+
+
       <div className="border-b border-slate-100 my-1" />
       {sidebarGroups.map((group, index) => {
         const isOpen = openGroupIndex === index
@@ -141,9 +143,12 @@ export function SidebarNav() {
           <div key={group.label} className={isLast ? "" : "border-b border-slate-100"}>
             <button
               onClick={() => handleToggle(index)}
-              className="flex items-center justify-between w-full px-3 py-2 text-sm font-semibold text-slate-500 uppercase tracking-wide"
+              className="flex items-center justify-between w-full px-3 py-2 rounded-lg font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-600"
             >
-              {group.label}
+              <span className="flex items-center gap-3">
+                <group.icon size={18} />
+                {group.label}
+              </span>
               <ChevronRight
                 size={14}
                 className={`transition-transform duration-200 ${isOpen ? "rotate-90" : ""}`}
@@ -157,26 +162,21 @@ export function SidebarNav() {
             >
               <div className="overflow-hidden min-h-0">
                 <div className="flex flex-col gap-1 pb-1">
-                  {group.tabs.map((tab) => {
-                    const Icon = tab.icon
-
-                    return (
-                      <NavLink
-                        to={tab.id}
-                        key={tab.id}
-                        className={({ isActive }) =>
-                          `flex items-center gap-3 px-3 py-2 rounded-lg font-medium ${
-                            isActive
-                              ? "bg-blue-100 text-blue-600"
-                              : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"
-                          }`
-                        }
-                      >
-                        <Icon size={18} />
-                        {tab.title}
-                      </NavLink>
-                    )
-                  })}
+                  {group.tabs.map((tab) => (
+                    <NavLink
+                      to={tab.id}
+                      key={tab.id}
+                      className={({ isActive }) =>
+                        `flex items-center gap-3 px-3 py-2 rounded-lg font-medium ${
+                          isActive
+                            ? "bg-blue-100 text-blue-600"
+                            : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"
+                        }`
+                      }
+                    >
+                      {tab.title}
+                    </NavLink>
+                  ))}
                 </div>
               </div>
             </div>

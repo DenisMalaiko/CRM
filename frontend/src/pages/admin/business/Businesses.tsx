@@ -88,7 +88,7 @@ function Businesses() {
 
   // Open Business Page
   const openBusiness = (id?: string) => {
-    navigate(`${id}/baseData`);
+    navigate(`${id}/dashboard`);
   }
 
   return (
@@ -147,7 +147,7 @@ function Businesses() {
                   <tr key={item.id} onClick={() => openBusiness(item?.id)} className="bg-white hover:bg-slate-50 cursor-pointer transition-colors">
                     <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.name}</td>
                     <td className="px-4 py-3 font-medium text-slate-900 text-left">
-                      <a href={item.website} className="text-blue-600 text-left underline" target="_blank">
+                      <a href={item.website} className="text-blue-600 text-left underline" target="_blank" rel="noreferrer">
                         {item.name}
                       </a>
                     </td>

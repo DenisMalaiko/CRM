@@ -2,26 +2,26 @@ import React, { useEffect, useMemo } from "react"
 import { useParams } from "react-router-dom"
 import { formatDistanceToNow } from "date-fns"
 import { Package, Users, Layers, Wand2, CalendarRange, Lightbulb, LucideIcon } from "lucide-react"
-import { useAppDispatch, useAppSelector } from "../../../../../../store/hooks"
-import { useGetProductsMutation } from "../../../../../../store/products/productsApi"
-import { useGetAudiencesMutation } from "../../../../../../store/audience/audienceApi"
-import { useGetProfilesMutation } from "../../../../../../store/profile/profileApi"
-import { useGetPromptsMutation } from "../../../../../../store/prompts/promptApi"
-import { useLazyGetContentPlansQuery } from "../../../../../../store/contentPlan/contentPlanApi"
-import { useLazyGetIdeasAIQuery } from "../../../../../../store/ai/ideas/ideaAiApi"
-import { setProducts } from "../../../../../../store/products/productsSlice"
-import { setAudiences } from "../../../../../../store/audience/audienceSlice"
-import { setProfiles } from "../../../../../../store/profile/profileSlice"
-import { setPrompts } from "../../../../../../store/prompts/promptSlice"
-import { setContentPlans } from "../../../../../../store/contentPlan/contentPlanSlice"
-import { setIdeasAi } from "../../../../../../store/ai/ideas/ideaAiSlice"
-import { TProduct } from "../../../../../../models/Product"
-import { TAudience } from "../../../../../../models/Audience"
-import { TBusinessProfile } from "../../../../../../models/BusinessProfile"
-import { TPrompt } from "../../../../../../models/Prompt"
-import { TContentPlan } from "../../../../../../models/ContentPlan"
-import { TIdeaAI } from "../../../../../../models/IdeaAI"
-import { showError } from "../../../../../../utils/showError"
+import { useAppDispatch, useAppSelector } from "../../../../../store/hooks"
+import { useGetProductsMutation } from "../../../../../store/products/productsApi"
+import { useGetAudiencesMutation } from "../../../../../store/audience/audienceApi"
+import { useGetProfilesMutation } from "../../../../../store/profile/profileApi"
+import { useGetPromptsMutation } from "../../../../../store/prompts/promptApi"
+import { useLazyGetContentPlansQuery } from "../../../../../store/contentPlan/contentPlanApi"
+import { useLazyGetIdeasAIQuery } from "../../../../../store/ai/ideas/ideaAiApi"
+import { setProducts } from "../../../../../store/products/productsSlice"
+import { setAudiences } from "../../../../../store/audience/audienceSlice"
+import { setProfiles } from "../../../../../store/profile/profileSlice"
+import { setPrompts } from "../../../../../store/prompts/promptSlice"
+import { setContentPlans } from "../../../../../store/contentPlan/contentPlanSlice"
+import { setIdeasAi } from "../../../../../store/ai/ideas/ideaAiSlice"
+import { TProduct } from "../../../../../models/Product"
+import { TAudience } from "../../../../../models/Audience"
+import { TBusinessProfile } from "../../../../../models/BusinessProfile"
+import { TPrompt } from "../../../../../models/Prompt"
+import { TContentPlan } from "../../../../../models/ContentPlan"
+import { TIdeaAI } from "../../../../../models/IdeaAI"
+import { showError } from "../../../../../utils/showError"
 
 type StatCardProps = {
   icon: LucideIcon
@@ -43,8 +43,8 @@ function StatCard({ icon: Icon, label, count }: StatCardProps) {
         <Icon size={20} className="text-blue-600" />
       </div>
       <div>
-        <p className="text-2xl font-bold text-slate-800">{count}</p>
-        <p className="text-sm text-slate-500">{label}</p>
+        <p className="text-2xl font-bold text-slate-800 text-left">{count}</p>
+        <p className="text-sm text-slate-500 text-left">{label}</p>
       </div>
     </div>
   )
@@ -138,8 +138,10 @@ export function BusinessDashboard() {
         ))}
       </div>
 
-      <div className="rounded-2xl bg-white shadow border border-slate-200 p-6">
-        <h2 className="text-lg font-semibold text-slate-800 mb-4">Recent Activity</h2>
+      <div className="rounded-2xl bg-white shadow border border-slate-200">
+        <div className="border-b p-4 flex items-center justify-between">
+          <h2 className="text-lg text-left font-semibold text-slate-800">Recent Activity</h2>
+        </div>
         {recentActivity.length === 0 ? (
           <p className="text-sm text-slate-400">No recent activity</p>
         ) : (
@@ -147,11 +149,11 @@ export function BusinessDashboard() {
             {recentActivity.map((item) => (
               <div
                 key={`${item.type}-${item.id}`}
-                className="flex items-center justify-between py-2 border-b border-slate-50 last:border-0"
+                className="flex items-center justify-between px-5 py-3 border-b border-slate-50 last:border-0"
               >
                 <div>
-                  <p className="text-sm font-medium text-slate-700">{item.label}</p>
-                  <p className="text-xs text-slate-400">{item.type}</p>
+                  <p className="text-sm font-medium text-slate-700 text-left">{item.label}</p>
+                  <p className="text-xs text-slate-400 text-left">{item.type}</p>
                 </div>
                 <p className="text-xs text-slate-400">
                   {formatDistanceToNow(new Date(item.createdAt), { addSuffix: true })}
