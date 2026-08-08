@@ -3,7 +3,7 @@ import { render, screen, waitFor } from "@testing-library/react"
 import { MemoryRouter, Route, Routes } from "react-router-dom"
 import { Provider } from "react-redux"
 import { configureStore } from "@reduxjs/toolkit"
-import BusinessDashboard from "./BusinessDashboard"
+import { BusinessDashboard } from "./BusinessDashboard"
 
 const mockGetProducts = jest.fn().mockReturnValue({ unwrap: () => Promise.resolve({ data: [{ id: "1", name: "Product 1" }] }) })
 const mockGetAudiences = jest.fn().mockReturnValue({ unwrap: () => Promise.resolve({ data: [{ id: "1", name: "Audience 1" }] }) })
@@ -101,11 +101,9 @@ describe("BusinessDashboard", () => {
   it("calls mutation hooks on mount with businessId", async () => {
     renderDashboard()
 
-    await waitFor(() => {
-      expect(mockGetProducts).toHaveBeenCalledWith("test-id")
-      expect(mockGetAudiences).toHaveBeenCalledWith("test-id")
-      expect(mockGetProfiles).toHaveBeenCalledWith("test-id")
-      expect(mockGetPrompts).toHaveBeenCalledWith("test-id")
-    })
+    await waitFor(() => expect(mockGetProducts).toHaveBeenCalledWith("test-id"))
+    await waitFor(() => expect(mockGetAudiences).toHaveBeenCalledWith("test-id"))
+    await waitFor(() => expect(mockGetProfiles).toHaveBeenCalledWith("test-id"))
+    await waitFor(() => expect(mockGetPrompts).toHaveBeenCalledWith("test-id"))
   })
 })

@@ -50,7 +50,7 @@ function StatCard({ icon: Icon, label, count }: StatCardProps) {
   )
 }
 
-export default function BusinessDashboard() {
+export function BusinessDashboard() {
   const dispatch = useAppDispatch()
   const { businessId } = useParams<{ businessId: string }>()
 
@@ -95,6 +95,7 @@ export default function BusinessDashboard() {
     }
 
     fetchAll()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [businessId, dispatch])
 
   const stats: StatCardProps[] = [

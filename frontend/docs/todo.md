@@ -1,5 +1,27 @@
 # Task Log
 
+## Accordion Sidebar — redesign business profile sidebar — 2026-08-08
+
+### Plan
+- [x] Створити SidebarNav.tsx з accordion логікою
+- [x] Спростити Business.tsx — видалити sidebar код
+- [x] Quality gate: reviewer + tester
+
+### Notes
+- Одна картка замість 7 окремих
+- Accordion: тільки одна група відкрита
+- Авто-розгортання групи з активним маршрутом
+- Плавна анімація через CSS Grid
+
+### Review
+- [x] reviewer → PASS (after fixes: replaced useEffect with set-state-during-render, changed to named export)
+- [x] tester → 14 tests pass
+- [x] tsc --noEmit → 0 errors
+- [x] No regressions found
+- Summary: Sidebar перероблено з 7 окремих карток в один accordion компонент SidebarNav. Business.tsx спрощено з 342 до 37 рядків.
+
+---
+
 ## Calendar Public Holidays — відображення свят за країною бізнесу — 2026-08-05
 
 ### Plan
