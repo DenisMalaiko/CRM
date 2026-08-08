@@ -12,7 +12,6 @@ import {
   Wand2,
   Image,
   LayoutDashboard,
-  LucideLayoutDashboard,
   Swords,
   Facebook,
   Instagram,
@@ -64,7 +63,7 @@ const sidebarGroups: SidebarGroup[] = [
       { id: "profiles", title: "Context", icon: Layers },
       { id: "prompts", title: "Prompts", icon: Wand2 },
       { id: "gallery", title: "Gallery", icon: Image },
-      { id: "designSystem", title: "Design", icon: LucideLayoutDashboard },
+      { id: "designSystem", title: "Design", icon: LayoutDashboard },
     ],
   },
   {

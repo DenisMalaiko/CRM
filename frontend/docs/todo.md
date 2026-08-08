@@ -1,5 +1,21 @@
 # Task Log
 
+## Business Dashboard — dashboard page for business profile — 2026-08-08
+
+### Plan
+- [x] Створити BusinessDashboard.tsx (stat cards + activity feed)
+- [x] Додати Dashboard в sidebar та routes
+- [x] Quality gate: reviewer + tester
+
+### Review
+- [x] reviewer → PASS (duplicate icon import fixed, other findings are existing codebase patterns)
+- [x] tester → 21 tests pass (16 SidebarNav + 5 BusinessDashboard)
+- [x] tsc --noEmit → 0 errors
+- [x] No regressions found
+- Summary: Dashboard сторінка з 6 stat cards та activity feed. Перший пункт у sidebar, авто-редирект при навігації до бізнесу.
+
+---
+
 ## Accordion Sidebar — redesign business profile sidebar — 2026-08-08
 
 ### Plan
