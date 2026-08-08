@@ -41,12 +41,14 @@ describe('SidebarNav', () => {
     expect(screen.getByRole('link', { name: /stories/i })).toBeVisible();
   });
 
-  it('auto-expands the "Base Data" group when no matching route segment is found (fallback index 0)', () => {
+  it('does not force-open any group when no matching route segment is found', () => {
     renderAt('/unknown-page');
 
-    expect(screen.getByRole('link', { name: /base data/i })).toBeVisible();
-    expect(screen.getByRole('link', { name: /products/i })).toBeVisible();
-    expect(screen.getByRole('link', { name: /audiences/i })).toBeVisible();
+    const buttons = screen.getAllByRole('button');
+    buttons.forEach((button) => {
+      const accordion = button.nextElementSibling as HTMLElement;
+      expect(accordion).toHaveClass('grid-rows-[0fr]');
+    });
   });
 
   it('auto-expands the "Competitors" group when the route contains "/competitors"', () => {
@@ -156,5 +158,26 @@ describe('SidebarNav', () => {
     const closedButton = screen.getByRole('button', { name: /generation/i });
     const chevron = closedButton.querySelector('svg');
     expect(chevron).not.toHaveClass('rotate-90');
+  });
+
+  // ── Dashboard link ─────────────────────────────────────────────────────────
+
+  it('renders Dashboard link before groups', () => {
+    renderAt('/dashboard');
+
+    const dashboardLink = screen.getByRole('link', { name: /dashboard/i });
+    expect(dashboardLink).toBeInTheDocument();
+    expect(dashboardLink).toHaveAttribute('href', '/dashboard');
+    expect(dashboardLink).toHaveClass('bg-blue-100');
+  });
+
+  it('does not force-open any accordion group when on dashboard', () => {
+    renderAt('/dashboard');
+
+    const buttons = screen.getAllByRole('button');
+    buttons.forEach((button) => {
+      const accordion = button.nextElementSibling as HTMLElement;
+      expect(accordion).toHaveClass('grid-rows-[0fr]');
+    });
   });
 });

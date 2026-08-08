@@ -11,6 +11,7 @@ import {
   Layers,
   Wand2,
   Image,
+  LayoutDashboard,
   LucideLayoutDashboard,
   Swords,
   Facebook,
@@ -90,7 +91,7 @@ const sidebarGroups: SidebarGroup[] = [
   },
 ]
 
-function findActiveGroupIndex(pathname: string): number {
+function findActiveGroupIndex(pathname: string): number | null {
   for (let i = 0; i < sidebarGroups.length; i++) {
     for (const tab of sidebarGroups[i].tabs) {
       if (pathname.includes(`/${tab.id}`)) {
@@ -98,7 +99,7 @@ function findActiveGroupIndex(pathname: string): number {
       }
     }
   }
-  return 0
+  return null
 }
 
 export function SidebarNav() {
@@ -119,6 +120,20 @@ export function SidebarNav() {
 
   return (
     <div className="rounded-2xl bg-white shadow border border-slate-200 py-2 px-2">
+      <NavLink
+        to="dashboard"
+        className={({ isActive }) =>
+          `flex items-center gap-3 px-3 py-2 rounded-lg font-medium ${
+            isActive
+              ? "bg-blue-100 text-blue-600"
+              : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"
+          }`
+        }
+      >
+        <LayoutDashboard size={18} />
+        Dashboard
+      </NavLink>
+      <div className="border-b border-slate-100 my-1" />
       {sidebarGroups.map((group, index) => {
         const isOpen = openGroupIndex === index
         const isLast = index === sidebarGroups.length - 1

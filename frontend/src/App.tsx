@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Routes, Route, useNavigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { Guard, AdminGuard } from "./router/guard";
 import './App.css';
 import 'react-datepicker/dist/react-datepicker.css';
@@ -39,6 +39,7 @@ import Profiles from "./pages/admin/business/components/Assets/Profiles/Profiles
 import Audiences from "./pages/admin/business/components/Info/Audiences/Audiences";
 import Posts from "./pages/admin/business/components/Content/Posts/Posts";
 import Prompts from "./pages/admin/business/components/Assets/Prompts/Prompts";
+import { BusinessDashboard } from "./pages/admin/business/:id/components/Dashboard/BusinessDashboard";
 import Competitors from "./pages/admin/business/components/Competitors/List/Competitors";
 import Competitor from "./pages/admin/business/components/Competitors/List/:id/Competitor";
 import Gallery from "./pages/admin/business/components/Assets/Gallery/Gallery";
@@ -121,6 +122,9 @@ function App() {
           <Route path="businesses" element={<Businesses />} />
 
           <Route path="businesses/:businessId" element={<Business />}>
+            <Route index element={<Navigate to="dashboard" replace />} />
+            <Route path="dashboard" element={<BusinessDashboard />} />
+
             {/*Base Data*/}
             <Route path="baseData" element={<BaseData />} />
 
