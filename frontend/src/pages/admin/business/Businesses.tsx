@@ -37,6 +37,8 @@ function Businesses() {
   const header = [
     { name: "Name", key: "name" },
     { name: "Website", key: "website" },
+    { name: "Facebook", key: "facebookLink" },
+    { name: "Instagram", key: "instagramLink" },
     { name: "Industry", key: "industry" },
     { name: "Status", key: "status" },
     { name: "Actions", key: "actions" }
@@ -147,9 +149,31 @@ function Businesses() {
                   <tr key={item.id} onClick={() => openBusiness(item?.id)} className="bg-white hover:bg-slate-50 cursor-pointer transition-colors">
                     <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.name}</td>
                     <td className="px-4 py-3 font-medium text-slate-900 text-left">
-                      <a href={item.website} className="text-blue-600 text-left underline" target="_blank" rel="noreferrer">
-                        {item.name}
-                      </a>
+                      {item.website ? (
+                        <a href={item.website} onClick={(e) => e.stopPropagation()} className="text-blue-600 underline" target="_blank" rel="noreferrer">
+                          Website
+                        </a>
+                      ) : (
+                        <span className="text-slate-400">—</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 font-medium text-slate-900 text-left">
+                      {item.facebookLink ? (
+                        <a href={item.facebookLink} onClick={(e) => e.stopPropagation()} className="text-blue-600 underline" target="_blank" rel="noreferrer">
+                          Facebook
+                        </a>
+                      ) : (
+                        <span className="text-slate-400">—</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 font-medium text-slate-900 text-left">
+                      {item.instagramLink ? (
+                        <a href={item.instagramLink} onClick={(e) => e.stopPropagation()} className="text-blue-600 underline" target="_blank" rel="noreferrer">
+                          Instagram
+                        </a>
+                      ) : (
+                        <span className="text-slate-400">—</span>
+                      )}
                     </td>
                     <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.industry}</td>
                     <td className="px-4 py-3 font-medium text-slate-900 text-left">

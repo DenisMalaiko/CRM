@@ -1,4 +1,4 @@
-import {IsString, IsUUID, IsEnum, IsArray} from "class-validator";
+import {IsString, IsUUID, IsEnum, IsArray, IsOptional} from "class-validator";
 import { BusinessStatusUI } from "../../../shared/enums/BusinessStatus";
 
 export class BusinessBaseDto {
@@ -10,6 +10,14 @@ export class BusinessBaseDto {
 
   @IsString()
   website: string;
+
+  @IsString()
+  @IsOptional()
+  facebookLink?: string;
+
+  @IsString()
+  @IsOptional()
+  instagramLink?: string;
 
   @IsString()
   industry: string;

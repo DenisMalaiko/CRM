@@ -191,6 +191,8 @@ describe('CreateBusinessDlg — Country field', () => {
       id: 'biz-1',
       name: 'Existing Biz',
       website: 'https://existing.com',
+      facebookLink: '',
+      instagramLink: '',
       industry: 'Tech',
       status: 'Active',
       agencyId: 'agency-1',
@@ -221,6 +223,8 @@ describe('CreateBusinessDlg — Country field', () => {
       id: 'biz-1',
       name: 'Biz',
       website: 'https://biz.com',
+      facebookLink: '',
+      instagramLink: '',
       industry: 'Tech',
       status: 'Active',
       agencyId: 'agency-1',
@@ -235,5 +239,185 @@ describe('CreateBusinessDlg — Country field', () => {
 
     const countrySelect = screen.getByRole('combobox', { name: /select country/i });
     expect((countrySelect as HTMLSelectElement).value).toBe('GB');
+  });
+});
+
+// ── Facebook & Instagram fields ───────────────────────────────────────────────
+
+describe('CreateBusinessDlg — Facebook and Instagram fields', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockGetBusinesses.mockReturnValue({ unwrap: () => Promise.resolve({ data: [] }) });
+    mockCreateBusiness.mockReturnValue({
+      unwrap: () => Promise.resolve({ data: { id: 'biz-1' }, message: 'Created' }),
+    });
+    mockUpdateBusiness.mockReturnValue({
+      unwrap: () => Promise.resolve({ data: { id: 'biz-1' }, message: 'Updated' }),
+    });
+  });
+
+  // ── 1. Fields render ────────────────────────────────────────────────────────
+
+  it('renders the Facebook input field', () => {
+    renderDialog();
+    expect(screen.getByPlaceholderText(/enter facebook link/i)).toBeInTheDocument();
+  });
+
+  it('renders the Instagram input field', () => {
+    renderDialog();
+    expect(screen.getByPlaceholderText(/enter instagram link/i)).toBeInTheDocument();
+  });
+
+  it('renders the Facebook label', () => {
+    renderDialog();
+    expect(screen.getByText('Facebook')).toBeInTheDocument();
+  });
+
+  it('renders the Instagram label', () => {
+    renderDialog();
+    expect(screen.getByText('Instagram')).toBeInTheDocument();
+  });
+
+  // ── 2. Fields are optional — form submits with empty values ─────────────────
+
+  it('submits the form without errors when Facebook and Instagram fields are left empty', async () => {
+    renderDialog();
+
+    userEvent.type(screen.getByPlaceholderText(/enter name/i), 'My Company');
+    userEvent.type(screen.getByPlaceholderText(/enter website/i), 'https://mycompany.com');
+    userEvent.type(screen.getByPlaceholderText(/enter about brand/i), 'Brand text');
+    userEvent.type(screen.getByPlaceholderText(/enter advantage/i), 'Great quality');
+    userEvent.type(screen.getByPlaceholderText(/enter goal/i), 'Grow revenue');
+    userEvent.selectOptions(screen.getByRole('combobox', { name: /select country/i }), 'UA');
+    userEvent.selectOptions(screen.getByRole('combobox', { name: /select language/i }), 'en');
+
+    userEvent.click(screen.getByRole('button', { name: /save/i }));
+
+    await waitFor(() => {
+      expect(mockCreateBusiness).toHaveBeenCalled();
+    });
+
+    expect(screen.queryByText(/must be at least/i)).not.toBeInTheDocument();
+  });
+
+  it('sends empty strings for facebookLink and instagramLink when the fields are not filled', async () => {
+    renderDialog();
+
+    userEvent.type(screen.getByPlaceholderText(/enter name/i), 'My Company');
+    userEvent.type(screen.getByPlaceholderText(/enter website/i), 'https://mycompany.com');
+    userEvent.type(screen.getByPlaceholderText(/enter about brand/i), 'Brand text');
+    userEvent.type(screen.getByPlaceholderText(/enter advantage/i), 'Great quality');
+    userEvent.type(screen.getByPlaceholderText(/enter goal/i), 'Grow revenue');
+    userEvent.selectOptions(screen.getByRole('combobox', { name: /select country/i }), 'UA');
+    userEvent.selectOptions(screen.getByRole('combobox', { name: /select language/i }), 'en');
+
+    userEvent.click(screen.getByRole('button', { name: /save/i }));
+
+    await waitFor(() => {
+      expect(mockCreateBusiness).toHaveBeenCalled();
+      const payload = mockCreateBusiness.mock.calls[0][0];
+      expect(payload).toMatchObject({ facebookLink: '', instagramLink: '' });
+    });
+  });
+
+  it('shows a validation error when a Facebook link shorter than 3 characters is entered', async () => {
+    renderDialog();
+
+    userEvent.type(screen.getByPlaceholderText(/enter facebook link/i), 'fb');
+
+    userEvent.click(screen.getByRole('button', { name: /save/i }));
+
+    const errors = await screen.findAllByText(/must be at least/i);
+    expect(errors.length).toBeGreaterThan(0);
+  });
+
+  it('shows a validation error when an Instagram link shorter than 3 characters is entered', async () => {
+    renderDialog();
+
+    userEvent.type(screen.getByPlaceholderText(/enter instagram link/i), 'ig');
+
+    userEvent.click(screen.getByRole('button', { name: /save/i }));
+
+    const errors = await screen.findAllByText(/must be at least/i);
+    expect(errors.length).toBeGreaterThan(0);
+  });
+
+  // ── 3. Edit mode pre-populates fields from business data ────────────────────
+
+  it('pre-populates the Facebook field with the existing business value in edit mode', () => {
+    const existingBusiness = {
+      id: 'biz-1',
+      name: 'Biz',
+      website: 'https://biz.com',
+      facebookLink: 'https://facebook.com/biz',
+      instagramLink: '',
+      industry: 'Tech',
+      status: 'Active',
+      agencyId: 'agency-1',
+      brand: '',
+      advantages: [''],
+      goals: [''],
+      language: 'en',
+      country: 'UA',
+    };
+
+    renderDialog({ business: existingBusiness });
+
+    const facebookInput = screen.getByPlaceholderText(/enter facebook link/i) as HTMLInputElement;
+    expect(facebookInput.value).toBe('https://facebook.com/biz');
+  });
+
+  it('pre-populates the Instagram field with the existing business value in edit mode', () => {
+    const existingBusiness = {
+      id: 'biz-1',
+      name: 'Biz',
+      website: 'https://biz.com',
+      facebookLink: '',
+      instagramLink: 'https://instagram.com/biz',
+      industry: 'Tech',
+      status: 'Active',
+      agencyId: 'agency-1',
+      brand: '',
+      advantages: [''],
+      goals: [''],
+      language: 'en',
+      country: 'UA',
+    };
+
+    renderDialog({ business: existingBusiness });
+
+    const instagramInput = screen.getByPlaceholderText(/enter instagram link/i) as HTMLInputElement;
+    expect(instagramInput.value).toBe('https://instagram.com/biz');
+  });
+
+  it('includes facebookLink and instagramLink in the updateBusiness payload when editing', async () => {
+    const existingBusiness = {
+      id: 'biz-1',
+      name: 'Existing Biz',
+      website: 'https://existing.com',
+      facebookLink: 'https://facebook.com/existing',
+      instagramLink: 'https://instagram.com/existing',
+      industry: 'Tech',
+      status: 'Active',
+      agencyId: 'agency-1',
+      brand: 'Brand',
+      advantages: ['Advantage 1'],
+      goals: ['Goal 1'],
+      language: 'en',
+      country: 'UA',
+    };
+
+    renderDialog({ business: existingBusiness });
+
+    userEvent.click(screen.getByRole('button', { name: /save/i }));
+
+    await waitFor(() => {
+      expect(mockUpdateBusiness).toHaveBeenCalled();
+      const payload = mockUpdateBusiness.mock.calls[0][0];
+      expect(payload.form).toMatchObject({
+        facebookLink: 'https://facebook.com/existing',
+        instagramLink: 'https://instagram.com/existing',
+      });
+    });
   });
 });

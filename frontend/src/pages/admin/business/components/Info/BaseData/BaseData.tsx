@@ -92,10 +92,26 @@ function BaseData() {
                 </div>
                 <div className="flex justify-between border-b pb-2">
                   <span className="font-medium">Website</span>
-                  <a href={business.website} className="text-blue-600 text-left underline" target="_blank">
+                  <a href={business.website} className="text-blue-600 text-left underline" target="_blank" rel="noreferrer">
                     {business.name}
                   </a>
                 </div>
+                {business.facebookLink && (
+                  <div className="flex justify-between border-b pb-2">
+                    <span className="font-medium">Facebook</span>
+                    <a href={business.facebookLink} className="text-blue-600 text-left underline" target="_blank" rel="noreferrer">
+                      Facebook
+                    </a>
+                  </div>
+                )}
+                {business.instagramLink && (
+                  <div className="flex justify-between border-b pb-2">
+                    <span className="font-medium">Instagram</span>
+                    <a href={business.instagramLink} className="text-blue-600 text-left underline" target="_blank" rel="noreferrer">
+                      Instagram
+                    </a>
+                  </div>
+                )}
                 <div className="flex justify-between border-b pb-2">
                   <span className="font-medium">Industry</span>
                   <span className="text-slate-500">{business?.industry}</span>

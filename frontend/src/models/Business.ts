@@ -7,6 +7,8 @@ import { BusinessStatus } from "../enum/BusinessStatus";
 export type TBusiness = TBaseModel & {
   name: string;
   website: string;
+  facebookLink?: string;
+  instagramLink?: string;
   industry: string;
   status: BusinessStatus;
   language: string;
@@ -24,6 +26,8 @@ export type TBusiness = TBaseModel & {
 export type TBusinessCreate = {
   name: string;
   website: string;
+  facebookLink?: string;
+  instagramLink?: string;
   industry: string;
   status: BusinessStatus;
   language: string;

@@ -40,6 +40,8 @@ model Business {
   agencyId         String
   name             String
   website          String
+  facebookLink     String?
+  instagramLink    String?
   industry         String?
   status           BusinessStatus
   language         String            @default("en")
