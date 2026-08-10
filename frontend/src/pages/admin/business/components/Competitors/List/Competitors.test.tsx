@@ -143,7 +143,7 @@ describe('Competitors list', () => {
       (l) => l.getAttribute('href') === 'https://instagram.com/rival'
     );
     expect(igLink).toBeInTheDocument();
-    expect(igLink).toHaveTextContent('https://instagram.com/rival');
+    expect(igLink).toHaveTextContent('Instagram');
   });
 
   it('renders the Facebook Link as a link with correct href', () => {
@@ -155,7 +155,7 @@ describe('Competitors list', () => {
       (l) => l.getAttribute('href') === 'https://facebook.com/rival'
     );
     expect(fbLink).toBeInTheDocument();
-    expect(fbLink).toHaveTextContent('https://facebook.com/rival');
+    expect(fbLink).toHaveTextContent('Facebook');
   });
 
   it('renders "Yes" badge for an active competitor', () => {

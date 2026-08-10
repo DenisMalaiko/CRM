@@ -5,6 +5,8 @@ import { BusinessStatus } from "@prisma/client";
 export type TBusinessBase = {
   name: string;
   website: string;
+  facebookLink?: string | null;
+  instagramLink?: string | null;
   industry?: string | null;
   status: BusinessStatus;
   language: string;

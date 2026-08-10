@@ -56,6 +56,8 @@ export function CreateBusinessDlg({ open, onClose, business }: Props) {
       return {
         name: business.name,
         website: business.website,
+        facebookLink: business.facebookLink ?? "",
+        instagramLink: business.instagramLink ?? "",
         industry: business.industry,
         status: business.status,
         agencyId: business.agencyId,
@@ -70,6 +72,8 @@ export function CreateBusinessDlg({ open, onClose, business }: Props) {
     return {
       name: "",
       website: "",
+      facebookLink: "",
+      instagramLink: "",
       industry: Industries[0],
       status: BusinessStatus.Active,
       agencyId: user?.agencyId,
@@ -88,6 +92,8 @@ export function CreateBusinessDlg({ open, onClose, business }: Props) {
   const { errors, validateField, validateAll } = useValidation({
     name: (value) => minLength(value, 3),
     website: (value) => minLength(value, 3),
+    facebookLink: (value) => value ? minLength(value, 3) : null,
+    instagramLink: (value) => value ? minLength(value, 3) : null,
     industry: (value) => minLength(value, 3),
     status: (value) => isRequired(value),
     agencyId: (value) => isRequired(value),
@@ -220,6 +226,36 @@ export function CreateBusinessDlg({ open, onClose, business }: Props) {
                 autoComplete="off"
               />
               {errors.website && <p className="text-red-500 text-sm mt-2 text-left">{errors.website}</p>}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 text-left">Facebook</label>
+              <input
+                type="text"
+                name="facebookLink"
+                value={form.facebookLink}
+                onChange={onChange}
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
+                placeholder="Enter Facebook link"
+                autoComplete="off"
+              />
+              {errors.facebookLink && <p className="text-red-500 text-sm mt-2 text-left">{errors.facebookLink}</p>}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 text-left">Instagram</label>
+              <input
+                type="text"
+                name="instagramLink"
+                value={form.instagramLink}
+                onChange={onChange}
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
+                placeholder="Enter Instagram link"
+                autoComplete="off"
+              />
+              {errors.instagramLink && <p className="text-red-500 text-sm mt-2 text-left">{errors.instagramLink}</p>}
             </div>
           </div>
 
