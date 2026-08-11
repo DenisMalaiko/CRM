@@ -27,3 +27,19 @@ export type TBusinessCreate = TBusinessBase & {
 export type TBusinessUpdate = TBusinessBase & {
   agencyId: string;
 }
+
+export type TFacebookReport = {
+  id: string;
+  businessId: string;
+  followers: number;
+  posts: number;
+  fetchedAt: Date;
+}
+
+export type TInstagramReport = {
+  id: string;
+  businessId: string;
+  followers: number;
+  posts: number;
+  fetchedAt: Date;
+}

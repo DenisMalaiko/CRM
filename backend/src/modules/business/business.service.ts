@@ -1,11 +1,13 @@
 import { Injectable, InternalServerErrorException, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from "../../core/prisma/prisma.service";
-import { TBusiness, TBusinessCreate, TBusinessUpdate } from "./entities/business.entity";
+import { InstagramService } from "../instagram/instagram.service";
+import { TBusiness, TBusinessCreate, TBusinessUpdate, TFacebookReport, TInstagramReport } from "./entities/business.entity";
 
 @Injectable()
 export class BusinessService {
   constructor(
     private readonly prisma: PrismaService,
+    private readonly instagramService: InstagramService,
   ) {}
 
   async getBusinesses(agencyId: string): Promise<TBusiness[]> {
@@ -126,6 +128,48 @@ export class BusinessService {
 
       throw new InternalServerErrorException('Failed to update business');
     }
+  }
+
+  async getFacebookReport(businessId: string): Promise<TFacebookReport | null> {
+    return await this.prisma.facebookReport.findUnique({
+      where: { businessId },
+    });
+  }
+
+  async upsertFacebookReport(businessId: string, data: { followers: number; posts: number }): Promise<TFacebookReport> {
+    return await this.prisma.facebookReport.upsert({
+      where: { businessId },
+      update: { ...data, fetchedAt: new Date() },
+      create: { businessId, ...data },
+    });
+  }
+
+  async getInstagramReport(businessId: string): Promise<TInstagramReport | null> {
+    return await this.prisma.instagramReport.findUnique({
+      where: { businessId },
+    });
+  }
+
+  async fetchInstagramReport(businessId: string): Promise<TInstagramReport> {
+    const business = await this.prisma.business.findUnique({
+      where: { id: businessId },
+      select: { instagramLink: true },
+    });
+
+    if (!business?.instagramLink) {
+      throw new BadRequestException('Business has no Instagram link configured');
+    }
+
+    const details = await this.instagramService.fetchDetails(business.instagramLink);
+    return this.upsertInstagramReport(businessId, details);
+  }
+
+  async upsertInstagramReport(businessId: string, data: { followers: number; posts: number }): Promise<TInstagramReport> {
+    return await this.prisma.instagramReport.upsert({
+      where: { businessId },
+      update: { ...data, fetchedAt: new Date() },
+      create: { businessId, ...data },
+    });
   }
 
   async deleteBusiness(id: string) {

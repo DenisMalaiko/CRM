@@ -1,6 +1,6 @@
 import { api } from "../api/api";
 import { ApiResponse } from "../../models/ApiResponse";
-import { TBusiness, TBusinessCreate } from "../../models/Business";
+import { TBusiness, TBusinessCreate, TFacebookReport, TInstagramReport } from "../../models/Business";
 import { RootState } from "../index";
 import { TUser } from "../../models/User";
 
@@ -60,6 +60,27 @@ export const businessesApi = api.injectEndpoints({
         method: "DELETE",
       })
     }),
+
+    getFacebookReport: builder.mutation<ApiResponse<TFacebookReport>, string>({
+      query: (businessId: string) => ({
+        url: `/business/${businessId}/facebook-report`,
+        method: "GET",
+      })
+    }),
+
+    getInstagramReport: builder.mutation<ApiResponse<TInstagramReport>, string>({
+      query: (businessId: string) => ({
+        url: `/business/${businessId}/instagram-report`,
+        method: "GET",
+      })
+    }),
+
+    fetchInstagramReport: builder.mutation<ApiResponse<TInstagramReport>, string>({
+      query: (businessId: string) => ({
+        url: `/business/${businessId}/instagram-report/fetch`,
+        method: "POST",
+      })
+    }),
   }),
   overrideExisting: false,
 });
@@ -69,5 +90,8 @@ export const {
   useGetBusinessMutation,
   useCreateBusinessMutation,
   useUpdateBusinessMutation,
-  useDeleteBusinessMutation
+  useDeleteBusinessMutation,
+  useGetFacebookReportMutation,
+  useGetInstagramReportMutation,
+  useFetchInstagramReportMutation
 } = businessesApi;

@@ -39,3 +39,19 @@ export type TBusinessCreate = {
 
   agencyId: string;
 }
+
+export type TFacebookReport = {
+  id: string;
+  businessId: string;
+  followers: number;
+  posts: number;
+  fetchedAt: string;
+}
+
+export type TInstagramReport = {
+  id: string;
+  businessId: string;
+  followers: number;
+  posts: number;
+  fetchedAt: string;
+}

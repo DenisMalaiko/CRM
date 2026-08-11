@@ -1,5 +1,5 @@
 import {Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
-import { CreateBusinessDto, UpdateBusinessDto, BusinessIdParamDto } from "./dto/business.dto";
+import { CreateBusinessDto, UpdateBusinessDto, BusinessIdParamDto, ReportDto } from "./dto/business.dto";
 import { JwtAuthGuard } from "../../core/guards/jwt-auth.guard";
 import { BusinessService } from "./business.service";
 import { ResponseMessage } from "../../core/decorators/response-message.decorator";
@@ -29,6 +29,34 @@ export class BusinessController {
   @ResponseMessage('Business has been updated!')
   updateBusiness(@Param() { id }: BusinessIdParamDto, @Body() body: UpdateBusinessDto) {
     return this.businessService.updateBusiness(id, body);
+  }
+
+  @Get("/:id/facebook-report")
+  getFacebookReport(@Param() { id }: BusinessIdParamDto) {
+    return this.businessService.getFacebookReport(id);
+  }
+
+  @Post("/:id/facebook-report")
+  @ResponseMessage('Facebook report updated!')
+  upsertFacebookReport(@Param() { id }: BusinessIdParamDto, @Body() body: ReportDto) {
+    return this.businessService.upsertFacebookReport(id, body);
+  }
+
+  @Get("/:id/instagram-report")
+  getInstagramReport(@Param() { id }: BusinessIdParamDto) {
+    return this.businessService.getInstagramReport(id);
+  }
+
+  @Post("/:id/instagram-report")
+  @ResponseMessage('Instagram report updated!')
+  upsertInstagramReport(@Param() { id }: BusinessIdParamDto, @Body() body: ReportDto) {
+    return this.businessService.upsertInstagramReport(id, body);
+  }
+
+  @Post("/:id/instagram-report/fetch")
+  @ResponseMessage('Instagram report fetched!')
+  fetchInstagramReport(@Param() { id }: BusinessIdParamDto) {
+    return this.businessService.fetchInstagramReport(id);
   }
 
   @Delete("/:id")
