@@ -58,6 +58,26 @@ model Business {
   ideas            Idea[]
   ideasAI          IdeaAI[]
   contentPlans     ContentPlan[]
+  facebookReport   FacebookReport?
+  instagramReport  InstagramReport?
+}
+
+model FacebookReport {
+  id         String   @id @default(uuid())
+  businessId String   @unique
+  followers  Int      @default(0)
+  posts      Int      @default(0)
+  fetchedAt  DateTime @default(now())
+  business   Business @relation(fields: [businessId], references: [id])
+}
+
+model InstagramReport {
+  id         String   @id @default(uuid())
+  businessId String   @unique
+  followers  Int      @default(0)
+  posts      Int      @default(0)
+  fetchedAt  DateTime @default(now())
+  business   Business @relation(fields: [businessId], references: [id])
 }
 
 model BusinessProfile {

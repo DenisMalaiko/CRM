@@ -27,6 +27,27 @@ export class InstagramService {
       .map((i) => this._postsMapper(competitorId, i));
   }
 
+  async fetchDetails(pageUrl: string): Promise<{ followers: number; posts: number }> {
+    const items = await this.apify.runActor<any>('apify~instagram-scraper', {
+      addParentData: false,
+      directUrls: [pageUrl],
+      resultsLimit: 1,
+      resultsType: 'details',
+      searchLimit: 10,
+      searchType: 'hashtag',
+    });
+
+    const profile = items?.find((i: any) => !i.error && i.followersCount != null);
+    if (!profile) {
+      throw new Error('Failed to fetch Instagram profile details');
+    }
+
+    return {
+      followers: profile.followersCount ?? 0,
+      posts: profile.postsCount ?? 0,
+    };
+  }
+
   async fetchReels(
     competitorId: string,
     pageUrl: string,

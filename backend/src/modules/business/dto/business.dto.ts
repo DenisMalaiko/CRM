@@ -1,4 +1,4 @@
-import {IsString, IsUUID, IsEnum, IsArray, IsOptional} from "class-validator";
+import {IsString, IsUUID, IsEnum, IsArray, IsOptional, IsInt, Min} from "class-validator";
 import { BusinessStatusUI } from "../../../shared/enums/BusinessStatus";
 
 export class BusinessBaseDto {
@@ -48,4 +48,14 @@ export class UpdateBusinessDto extends BusinessBaseDto {}
 export class BusinessIdParamDto {
   @IsUUID()
   id: string;
+}
+
+export class ReportDto {
+  @IsInt()
+  @Min(0)
+  followers: number;
+
+  @IsInt()
+  @Min(0)
+  posts: number;
 }

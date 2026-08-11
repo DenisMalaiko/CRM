@@ -1,8 +1,11 @@
-import React, { useEffect, useMemo } from "react"
+import React, { useEffect, useMemo, useState } from "react"
 import { useParams } from "react-router-dom"
 import { formatDistanceToNow } from "date-fns"
-import { Package, Users, Layers, Wand2, CalendarRange, Lightbulb, LucideIcon } from "lucide-react"
+import { toast } from "react-toastify"
+import { Package, Users, Layers, Wand2, CalendarRange, Lightbulb, Megaphone, FileText, Film, LucideIcon } from "lucide-react"
 import { useAppDispatch, useAppSelector } from "../../../../../store/hooks"
+import { useGetFacebookReportMutation, useGetInstagramReportMutation, useFetchInstagramReportMutation } from "../../../../../store/businesses/businessesApi"
+import { TFacebookReport, TInstagramReport } from "../../../../../models/Business"
 import { useGetProductsMutation } from "../../../../../store/products/productsApi"
 import { useGetAudiencesMutation } from "../../../../../store/audience/audienceApi"
 import { useGetProfilesMutation } from "../../../../../store/profile/profileApi"
@@ -22,6 +25,12 @@ import { TPrompt } from "../../../../../models/Prompt"
 import { TContentPlan } from "../../../../../models/ContentPlan"
 import { TIdeaAI } from "../../../../../models/IdeaAI"
 import { showError } from "../../../../../utils/showError"
+
+const tabs = [
+  { key: "general" as const, label: "General" },
+  { key: "facebook" as const, label: "Facebook" },
+  { key: "instagram" as const, label: "Instagram" },
+]
 
 type StatCardProps = {
   icon: LucideIcon
@@ -51,6 +60,7 @@ function StatCard({ icon: Icon, label, count }: StatCardProps) {
 }
 
 export function BusinessDashboard() {
+  const [activeTab, setActiveTab] = useState<"general" | "facebook" | "instagram">("general")
   const dispatch = useAppDispatch()
   const { businessId } = useParams<{ businessId: string }>()
 
@@ -60,6 +70,12 @@ export function BusinessDashboard() {
   const [getPrompts] = useGetPromptsMutation()
   const [getContentPlans] = useLazyGetContentPlansQuery()
   const [getIdeasAI] = useLazyGetIdeasAIQuery()
+  const [getFacebookReport] = useGetFacebookReportMutation()
+  const [getInstagramReport] = useGetInstagramReportMutation()
+  const [fetchInstagramReport, { isLoading: isFetchingIg }] = useFetchInstagramReportMutation()
+
+  const [fbReport, setFbReport] = useState<TFacebookReport | null>(null)
+  const [igReport, setIgReport] = useState<TInstagramReport | null>(null)
 
   const products = useAppSelector((state) => state.productsModule.products)
   const audiences = useAppSelector((state) => state.audienceModule.audiences)
@@ -89,6 +105,13 @@ export function BusinessDashboard() {
 
         const ideasRes = await getIdeasAI(businessId!).unwrap()
         if (ideasRes?.data) dispatch(setIdeasAi(ideasRes.data as TIdeaAI[]))
+
+        const [fbRes, igRes] = await Promise.all([
+          getFacebookReport(businessId!).unwrap().catch(() => null),
+          getInstagramReport(businessId!).unwrap().catch(() => null),
+        ])
+        if (fbRes?.data) setFbReport(fbRes.data)
+        if (igRes?.data) setIgReport(igRes.data)
       } catch (error) {
         showError(error)
       }
@@ -101,11 +124,21 @@ export function BusinessDashboard() {
   const stats: StatCardProps[] = [
     { icon: Package, label: "Products", count: products?.length ?? 0 },
     { icon: Users, label: "Audiences", count: audiences?.length ?? 0 },
-    { icon: Layers, label: "Profiles", count: profiles?.length ?? 0 },
-    { icon: Wand2, label: "Prompts", count: prompts?.length ?? 0 },
-    { icon: CalendarRange, label: "Content Plans", count: contentPlans?.length ?? 0 },
     { icon: Lightbulb, label: "AI Ideas", count: ideasAi?.length ?? 0 },
   ]
+
+  const handleFetchInstagram = async () => {
+    if (!businessId) return
+    try {
+      const response = await fetchInstagramReport(businessId).unwrap()
+      if (response?.data) {
+        setIgReport(response.data)
+        toast.success(response.message)
+      }
+    } catch (error) {
+      showError(error)
+    }
+  }
 
   const recentActivity = useMemo(() => {
     const items: ActivityItem[] = []
@@ -131,38 +164,97 @@ export function BusinessDashboard() {
   if (!businessId) return null
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-3 gap-4">
-        {stats.map((stat) => (
-          <StatCard key={stat.label} {...stat} />
+    <div>
+      <div className="flex gap-2 mb-6">
+        {tabs.map((tab) => (
+          <button
+            key={tab.key}
+            type="button"
+            onClick={() => setActiveTab(tab.key)}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              activeTab === tab.key
+                ? "bg-blue-600 text-white"
+                : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
+            }`}
+          >
+            {tab.label}
+          </button>
         ))}
       </div>
 
-      <div className="rounded-2xl bg-white shadow border border-slate-200">
-        <div className="border-b p-4 flex items-center justify-between">
-          <h2 className="text-lg text-left font-semibold text-slate-800">Recent Activity</h2>
-        </div>
-        {recentActivity.length === 0 ? (
-          <p className="text-sm text-slate-400">No recent activity</p>
-        ) : (
-          <div className="space-y-3">
-            {recentActivity.map((item) => (
-              <div
-                key={`${item.type}-${item.id}`}
-                className="flex items-center justify-between px-5 py-3 border-b border-slate-50 last:border-0"
-              >
-                <div>
-                  <p className="text-sm font-medium text-slate-700 text-left">{item.label}</p>
-                  <p className="text-xs text-slate-400 text-left">{item.type}</p>
-                </div>
-                <p className="text-xs text-slate-400">
-                  {formatDistanceToNow(new Date(item.createdAt), { addSuffix: true })}
-                </p>
-              </div>
+      {activeTab === "general" && (
+        <div className="space-y-6">
+          <div className="grid grid-cols-3 gap-4">
+            {stats.map((stat) => (
+              <StatCard key={stat.label} {...stat} />
             ))}
           </div>
-        )}
-      </div>
+
+          <div className="rounded-2xl bg-white shadow border border-slate-200">
+            <div className="border-b p-4 flex items-center justify-between">
+              <h2 className="text-lg text-left font-semibold text-slate-800">Recent Activity</h2>
+            </div>
+            {recentActivity.length === 0 ? (
+              <p className="text-sm text-slate-400">No recent activity</p>
+            ) : (
+              <div className="space-y-3">
+                {recentActivity.map((item) => (
+                  <div
+                    key={`${item.type}-${item.id}`}
+                    className="flex items-center justify-between px-5 py-3 border-b border-slate-50 last:border-0"
+                  >
+                    <div>
+                      <p className="text-sm font-medium text-slate-700 text-left">{item.label}</p>
+                      <p className="text-xs text-slate-400 text-left">{item.type}</p>
+                    </div>
+                    <p className="text-xs text-slate-400">
+                      {formatDistanceToNow(new Date(item.createdAt), { addSuffix: true })}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {activeTab === "facebook" && (
+        <div className="space-y-6">
+          <div className="grid grid-cols-3 gap-4">
+            <StatCard icon={Users} label="Followers" count={fbReport?.followers ?? 0} />
+            <StatCard icon={FileText} label="Posts" count={fbReport?.posts ?? 0} />
+            <StatCard icon={Megaphone} label="Active Ads" count={0} />
+          </div>
+        </div>
+      )}
+
+      {activeTab === "instagram" && (
+        <div className="space-y-6">
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={handleFetchInstagram}
+              disabled={isFetchingIg}
+              className="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
+            >
+              {isFetchingIg ? (
+                <>
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                  Fetching...
+                </>
+              ) : (
+                "Fetch Instagram Data"
+              )}
+            </button>
+          </div>
+          <div className="grid grid-cols-4 gap-4">
+            <StatCard icon={Users} label="Followers" count={igReport?.followers ?? 0} />
+            <StatCard icon={FileText} label="Posts" count={igReport?.posts ?? 0} />
+            <StatCard icon={Megaphone} label="Active Ads" count={0} />
+            <StatCard icon={Film} label="Reels" count={0} />
+          </div>
+        </div>
+      )}
     </div>
   )
 }
