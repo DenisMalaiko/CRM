@@ -53,5 +53,9 @@ export type TInstagramReport = {
   businessId: string;
   followers: number;
   posts: number;
+  postsImageCount: number;
+  postsVideoCount: number;
+  postsCarouselCount: number;
+  reels: number;
   fetchedAt: string;
 }

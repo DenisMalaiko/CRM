@@ -15,7 +15,7 @@ export class InstagramService {
     const items = await this.apify.runActor<any>('apify~instagram-scraper', {
       addParentData: false,
       directUrls: [pageUrl],
-      resultsLimit: 50,
+      resultsLimit: 200,
       resultsType: 'posts',
       searchLimit: 10,
       searchType: 'hashtag',
@@ -66,6 +66,53 @@ export class InstagramService {
     return items
       .filter((i) => !i.error)
       .map((i) => this._reelsMapper(competitorId, i));
+  }
+
+  async fetchContentTypeCounts(pageUrl: string): Promise<{ postsImageCount: number; postsVideoCount: number; postsCarouselCount: number }> {
+    const threeMonthsAgo = new Date();
+    threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+
+    const items = await this.apify.runActor<any>('apify~instagram-scraper', {
+      addParentData: false,
+      directUrls: [pageUrl],
+      resultsLimit: 200,
+      resultsType: 'posts',
+      searchLimit: 10,
+      searchType: 'hashtag',
+      onlyPostsNewerThan: threeMonthsAgo.toISOString().split('T')[0],
+    });
+
+    let postsImageCount = 0;
+    let postsVideoCount = 0;
+    let postsCarouselCount = 0;
+
+    for (const item of items) {
+      if (item.error) continue;
+      switch (item.type) {
+        case 'Video': postsVideoCount++; break;
+        case 'Sidecar': postsCarouselCount++; break;
+        default: postsImageCount++; break;
+      }
+    }
+
+    return { postsImageCount, postsVideoCount, postsCarouselCount };
+  }
+
+  async fetchReelsCount(pageUrl: string): Promise<number> {
+    const threeMonthsAgo = new Date();
+    threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+
+    const items = await this.apify.runActor<any>('apify~instagram-scraper', {
+      addParentData: false,
+      directUrls: [pageUrl],
+      resultsLimit: 200,
+      resultsType: 'reels',
+      searchLimit: 10,
+      searchType: 'hashtag',
+      onlyPostsNewerThan: threeMonthsAgo.toISOString().split('T')[0],
+    });
+
+    return items.filter((i: any) => !i.error).length;
   }
 
   private _postsMapper(competitorId: string, item: any) {
