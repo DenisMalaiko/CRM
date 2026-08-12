@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "InstagramReport" ADD COLUMN     "carouselCount" INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN     "imageCount" INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN     "videoCount" INTEGER NOT NULL DEFAULT 0;

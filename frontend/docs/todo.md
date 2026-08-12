@@ -1,5 +1,50 @@
 # Task Log
 
+## Instagram Reels Stats — reels метрики для Dashboard — 2026-08-12
+
+### Plan
+- [x] Backend: новий метод `fetchReelsCount()` в InstagramService
+- [x] Backend: Prisma schema — rename imageCount→postsImageCount, videoCount→postsVideoCount, carouselCount→postsCarouselCount, додати поле reels
+- [x] Backend: оновити тип TInstagramReport + upsertInstagramReport()
+- [x] Backend: оновити fetchInstagramReport() — паралельний виклик fetchReelsCount()
+- [x] Frontend: оновити TInstagramReport тип
+- [x] Frontend: показати reels в stat card на Dashboard
+- [x] Quality gate: reviewer + tester
+
+### Notes
+- Дані з Apify actor `apify~instagram-scraper` з `resultsType: 'reels'`
+- Фільтр за останні 3 місяці через `onlyPostsNewerThan`
+- Рахуємо тільки кількість reels
+- Reels stat card зараз показує хардкод 0
+
+### Review
+- [x] reviewer → PASS (after fix: removed unused imports Layers/Wand2/CalendarRange, changed grid-cols-4 to grid-cols-3)
+- [x] tester → 7 ContentTypeChart tests pass, 0 tsc errors
+- [x] No regressions found
+- Summary: Додано метод fetchReelsCount() в InstagramService (Apify reels за 90 днів), поле reels в InstagramReport. Перейменовано imageCount→postsImageCount, videoCount→postsVideoCount, carouselCount→postsCarouselCount для ясності. Reels stat card тепер показує реальні дані.
+
+---
+
+## Content Type Distribution Chart — donut chart для Instagram tab — 2026-08-12
+
+### Plan
+- [x] Backend: новий метод `fetchContentTypeCounts()` в InstagramService
+- [x] Backend: Prisma schema — imageCount, videoCount, carouselCount
+- [x] Backend: оновити тип TInstagramReport + fetchInstagramReport()
+- [x] Frontend: оновити TInstagramReport тип
+- [x] Frontend: створити ContentTypeChart компонент (CSS donut)
+- [x] Frontend: інтегрувати графік в Instagram таб
+- [x] Quality gate: reviewer + tester
+
+### Review
+- [x] reviewer → PASS (after fix: removed unused `carouselPct` variable)
+- [x] tester → 10 tests pass
+- [x] tsc --noEmit → 0 errors
+- [x] No regressions found
+- Summary: CSS donut chart для розподілу типів Instagram контенту (Image/Video/Carousel). Backend рахує `productType` з Apify за останні 3 місяці, зберігає в InstagramReport. Frontend відображає conic-gradient графік з легендою.
+
+---
+
 ## Business Dashboard — dashboard page for business profile — 2026-08-08
 
 ### Plan
