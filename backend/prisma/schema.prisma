@@ -80,6 +80,7 @@ model InstagramReport {
   postsVideoCount    Int      @default(0)
   postsCarouselCount Int      @default(0)
   reels              Int      @default(0)
+  stories            Int      @default(0)
   fetchedAt     DateTime @default(now())
   business      Business @relation(fields: [businessId], references: [id])
 }

@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react"
 import { useParams } from "react-router-dom"
 import { formatDistanceToNow } from "date-fns"
 import { toast } from "react-toastify"
-import { Package, Users, Lightbulb, Megaphone, FileText, Film, LucideIcon } from "lucide-react"
+import { Package, Users, Lightbulb, Megaphone, FileText, Film, BookImage, LucideIcon } from "lucide-react"
 import { useAppDispatch, useAppSelector } from "../../../../../store/hooks"
 import { useGetFacebookReportMutation, useGetInstagramReportMutation, useFetchInstagramReportMutation } from "../../../../../store/businesses/businessesApi"
 import { TFacebookReport, TInstagramReport } from "../../../../../models/Business"
@@ -248,10 +248,11 @@ export function BusinessDashboard() {
               )}
             </button>
           </div>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-4 gap-4">
             <StatCard icon={Users} label="Followers" count={igReport?.followers ?? 0} />
             <StatCard icon={FileText} label="Posts" count={igReport?.posts ?? 0} />
             <StatCard icon={Film} label="Reels" count={igReport?.reels ?? 0} />
+            <StatCard icon={BookImage} label="Stories" count={igReport?.stories ?? 0} />
           </div>
 
           <div className="grid grid-cols-3 gap-4">
