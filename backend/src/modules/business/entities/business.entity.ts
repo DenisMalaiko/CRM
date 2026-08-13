@@ -45,5 +45,6 @@ export type TInstagramReport = {
   postsVideoCount: number;
   postsCarouselCount: number;
   reels: number;
+  stories: number;
   fetchedAt: Date;
 }

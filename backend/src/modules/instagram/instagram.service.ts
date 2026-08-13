@@ -115,6 +115,23 @@ export class InstagramService {
     return items.filter((i: any) => !i.error).length;
   }
 
+  async fetchStoriesCount(pageUrl: string): Promise<number> {
+    const threeMonthsAgo = new Date();
+    threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+
+    const items = await this.apify.runActor<any>('apify~instagram-scraper', {
+      addParentData: false,
+      directUrls: [pageUrl],
+      resultsLimit: 200,
+      resultsType: 'stories',
+      searchLimit: 10,
+      searchType: 'hashtag',
+      onlyPostsNewerThan: threeMonthsAgo.toISOString().split('T')[0],
+    });
+
+    return items.filter((i: any) => !i.error).length;
+  }
+
   private _postsMapper(competitorId: string, item: any) {
     return {
       externalId: item?.id ?? item?.shortCode,
