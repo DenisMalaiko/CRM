@@ -160,19 +160,19 @@ export class BusinessService {
       throw new BadRequestException('Business has no Instagram link configured');
     }
 
-    const [details, contentCounts, reelsCount, storiesCount] = await Promise.all([
+    const [details, contentCounts, reelsCount, storiesCounts] = await Promise.all([
       this.instagramService.fetchDetails(business.instagramLink),
       this.instagramService.fetchContentTypeCounts(business.instagramLink),
       this.instagramService.fetchReelsCount(business.instagramLink),
-      this.instagramService.fetchStoriesCount(business.instagramLink),
+      this.instagramService.fetchStoriesTypeCounts(business.instagramLink),
     ]);
 
-    return this.upsertInstagramReport(businessId, { ...details, ...contentCounts, reels: reelsCount, stories: storiesCount });
+    return this.upsertInstagramReport(businessId, { ...details, ...contentCounts, reels: reelsCount, ...storiesCounts });
   }
 
   async upsertInstagramReport(
     businessId: string,
-    data: { followers: number; posts: number; postsImageCount?: number; postsVideoCount?: number; postsCarouselCount?: number; reels?: number; stories?: number },
+    data: { followers: number; posts: number; postsImageCount?: number; postsVideoCount?: number; postsCarouselCount?: number; reels?: number; stories?: number; storiesImageCount?: number; storiesVideoCount?: number },
   ): Promise<TInstagramReport> {
     return await this.prisma.instagramReport.upsert({
       where: { businessId },

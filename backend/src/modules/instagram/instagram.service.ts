@@ -115,7 +115,7 @@ export class InstagramService {
     return items.filter((i: any) => !i.error).length;
   }
 
-  async fetchStoriesCount(pageUrl: string): Promise<number> {
+  async fetchStoriesTypeCounts(pageUrl: string): Promise<{ stories: number; storiesImageCount: number; storiesVideoCount: number }> {
     const threeMonthsAgo = new Date();
     threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
 
@@ -129,7 +129,19 @@ export class InstagramService {
       onlyPostsNewerThan: threeMonthsAgo.toISOString().split('T')[0],
     });
 
-    return items.filter((i: any) => !i.error).length;
+    let storiesImageCount = 0;
+    let storiesVideoCount = 0;
+
+    for (const item of items) {
+      if (item.error) continue;
+      if (item.type === 'Video') {
+        storiesVideoCount++;
+      } else {
+        storiesImageCount++;
+      }
+    }
+
+    return { stories: storiesImageCount + storiesVideoCount, storiesImageCount, storiesVideoCount };
   }
 
   private _postsMapper(competitorId: string, item: any) {
