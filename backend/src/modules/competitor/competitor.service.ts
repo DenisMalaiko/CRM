@@ -27,9 +27,10 @@ export class CompetitorService {
     private readonly competitorMediaService: CompetitorMediaService,
   ) {}
 
-  async getCompetitors(businessId: string): Promise<TCompetitor[]> {
+  async getCompetitors(businessId: string) {
     return await this.prisma.competitor.findMany({
       where: { businessId: businessId },
+      include: { instagramReport: true },
     });
   }
 
@@ -156,6 +157,41 @@ export class CompetitorService {
     await Promise.allSettled(
       s3Keys.map((key) => this.competitorMediaService.deleteMedia(key)),
     );
+  }
+
+  // Instagram Report
+  async fetchCompetitorInstagramReport(id: string) {
+    const competitor = await this.prisma.competitor.findUnique({
+      where: { id },
+    });
+
+    if (!competitor?.instagramLink) {
+      throw new BadRequestException('Competitor has no Instagram link configured');
+    }
+
+    const [details, reelsCount, storiesCounts] = await Promise.all([
+      this.instagramService.fetchDetails(competitor.instagramLink),
+      this.instagramService.fetchReelsCount(competitor.instagramLink),
+      this.instagramService.fetchStoriesTypeCounts(competitor.instagramLink),
+    ]);
+
+    return this.prisma.competitorInstagramReport.upsert({
+      where: { competitorId: id },
+      update: {
+        followers: details.followers,
+        posts: details.posts,
+        reels: reelsCount,
+        stories: storiesCounts.stories,
+        fetchedAt: new Date(),
+      },
+      create: {
+        competitorId: id,
+        followers: details.followers,
+        posts: details.posts,
+        reels: reelsCount,
+        stories: storiesCounts.stories,
+      },
+    });
   }
 
   // Posts

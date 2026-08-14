@@ -1,10 +1,10 @@
 import { api } from "../api/api";
 import { ApiResponse } from "../../models/ApiResponse";
-import { TCompetitor, TCompetitorCreate, TCompetitorUpdate, TCompetitorPostParams, TCompetitorAdsParams } from "../../models/Competitor";
+import { TCompetitor, TCompetitorCreate, TCompetitorUpdate, TCompetitorPostParams, TCompetitorAdsParams, TCompetitorWithReport, TCompetitorInstagramReport } from "../../models/Competitor";
 
 export const competitorApi = api.injectEndpoints({
   endpoints: (builder) => ({
-    getCompetitors: builder.mutation<ApiResponse<TCompetitor[]>, string>({
+    getCompetitors: builder.mutation<ApiResponse<TCompetitorWithReport[]>, string>({
       queryFn: async (businessId, api, _extraOptions, baseQuery) => {
         if (!businessId) {
           return {
@@ -18,7 +18,7 @@ export const competitorApi = api.injectEndpoints({
         });
 
         return {
-          data: result.data as ApiResponse<TCompetitor[]>
+          data: result.data as ApiResponse<TCompetitorWithReport[]>
         };
       }
     }),
@@ -53,9 +53,9 @@ export const competitorApi = api.injectEndpoints({
       })
     }),
 
-    generateReport: builder.mutation<ApiResponse<any>, string>({
+    fetchCompetitorInstagramReport: builder.mutation<ApiResponse<TCompetitorInstagramReport>, string>({
       query: (id: string) => ({
-        url: `/competitors/generateReport/${id}`,
+        url: `/competitors/instagramReport/${id}`,
         method: "POST",
       })
     }),
@@ -139,6 +139,7 @@ export const {
   useCreateCompetitorMutation,
   useUpdateCompetitorMutation,
   useDeleteCompetitorMutation,
+  useFetchCompetitorInstagramReportMutation,
 
   useGetPostsMutation,
   useFetchPostsMutation,

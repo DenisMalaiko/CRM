@@ -6,6 +6,8 @@ import { Package, Users, Lightbulb, Megaphone, FileText, Film, BookImage, Lucide
 import { useAppDispatch, useAppSelector } from "../../../../../store/hooks"
 import { useGetFacebookReportMutation, useGetInstagramReportMutation, useFetchInstagramReportMutation } from "../../../../../store/businesses/businessesApi"
 import { TFacebookReport, TInstagramReport } from "../../../../../models/Business"
+import { useGetCompetitorsMutation, useFetchCompetitorInstagramReportMutation } from "../../../../../store/competitor/competitorApi"
+import { TCompetitorWithReport } from "../../../../../models/Competitor"
 import { useGetProductsMutation } from "../../../../../store/products/productsApi"
 import { useGetAudiencesMutation } from "../../../../../store/audience/audienceApi"
 import { useGetProfilesMutation } from "../../../../../store/profile/profileApi"
@@ -26,6 +28,7 @@ import { TContentPlan } from "../../../../../models/ContentPlan"
 import { TIdeaAI } from "../../../../../models/IdeaAI"
 import { showError } from "../../../../../utils/showError"
 import { ContentTypeChart } from "./ContentTypeChart"
+import { StoriesTypeChart } from "./StoriesTypeChart"
 
 const tabs = [
   { key: "general" as const, label: "General" },
@@ -73,10 +76,14 @@ export function BusinessDashboard() {
   const [getIdeasAI] = useLazyGetIdeasAIQuery()
   const [getFacebookReport] = useGetFacebookReportMutation()
   const [getInstagramReport] = useGetInstagramReportMutation()
-  const [fetchInstagramReport, { isLoading: isFetchingIg }] = useFetchInstagramReportMutation()
+  const [fetchInstagramReport] = useFetchInstagramReportMutation()
+  const [getCompetitors] = useGetCompetitorsMutation()
+  const [fetchCompetitorInstagramReport] = useFetchCompetitorInstagramReportMutation()
 
+  const [isFetchingIg, setIsFetchingIg] = useState(false)
   const [fbReport, setFbReport] = useState<TFacebookReport | null>(null)
   const [igReport, setIgReport] = useState<TInstagramReport | null>(null)
+  const [competitors, setCompetitors] = useState<TCompetitorWithReport[]>([])
 
   const products = useAppSelector((state) => state.productsModule.products)
   const audiences = useAppSelector((state) => state.audienceModule.audiences)
@@ -107,12 +114,14 @@ export function BusinessDashboard() {
         const ideasRes = await getIdeasAI(businessId!).unwrap()
         if (ideasRes?.data) dispatch(setIdeasAi(ideasRes.data as TIdeaAI[]))
 
-        const [fbRes, igRes] = await Promise.all([
+        const [fbRes, igRes, competitorsRes] = await Promise.all([
           getFacebookReport(businessId!).unwrap().catch(() => null),
           getInstagramReport(businessId!).unwrap().catch(() => null),
+          getCompetitors(businessId!).unwrap().catch(() => null),
         ])
         if (fbRes?.data) setFbReport(fbRes.data)
         if (igRes?.data) setIgReport(igRes.data)
+        if (competitorsRes?.data) setCompetitors(competitorsRes.data as TCompetitorWithReport[])
       } catch (error) {
         showError(error)
       }
@@ -130,14 +139,24 @@ export function BusinessDashboard() {
 
   const handleFetchInstagram = async () => {
     if (!businessId) return
+    setIsFetchingIg(true)
     try {
-      const response = await fetchInstagramReport(businessId).unwrap()
+      const [response] = await Promise.all([
+        fetchInstagramReport(businessId).unwrap(),
+        ...competitors.map((c) =>
+          fetchCompetitorInstagramReport(c.id).unwrap().catch(() => null)
+        ),
+      ])
       if (response?.data) {
         setIgReport(response.data)
         toast.success(response.message)
       }
+      const competitorsRes = await getCompetitors(businessId).unwrap().catch(() => null)
+      if (competitorsRes?.data) setCompetitors(competitorsRes.data as TCompetitorWithReport[])
     } catch (error) {
       showError(error)
+    } finally {
+      setIsFetchingIg(false)
     }
   }
 
@@ -261,6 +280,44 @@ export function BusinessDashboard() {
               postsVideoCount={igReport?.postsVideoCount ?? 0}
               postsCarouselCount={igReport?.postsCarouselCount ?? 0}
             />
+            <StoriesTypeChart
+              storiesImageCount={igReport?.storiesImageCount ?? 0}
+              storiesVideoCount={igReport?.storiesVideoCount ?? 0}
+            />
+          </div>
+
+          <div className="rounded-2xl bg-white shadow border border-slate-200">
+            <div className="border-b p-4">
+              <h2 className="text-lg text-left font-semibold text-slate-800">Competitors</h2>
+            </div>
+            <div className="p-4">
+            {competitors.length === 0 ? (
+              <p className="p-4 text-sm text-slate-400">No competitors added</p>
+            ) : (
+              <table className="min-w-full divide-y divide-slate-200 overflow-hidden rounded-xl border border-slate-200 shadow">
+                <thead className="bg-slate-50">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">Name</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">Followers</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">Posts</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">Reels</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">Stories</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {competitors.map((c) => (
+                    <tr key={c.id} className="bg-white hover:bg-slate-50">
+                      <td className="px-4 py-3 text-left font-medium text-slate-900">{c.name}</td>
+                      <td className="px-4 py-3 text-left font-medium text-slate-900">{c.instagramReport?.followers ?? 0}</td>
+                      <td className="px-4 py-3 text-left font-medium text-slate-900">{c.instagramReport?.posts ?? 0}</td>
+                      <td className="px-4 py-3 text-left font-medium text-slate-900">{c.instagramReport?.reels ?? 0}</td>
+                      <td className="px-4 py-3 text-left font-medium text-slate-900">{c.instagramReport?.stories ?? 0}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+            </div>
           </div>
         </div>
       )}

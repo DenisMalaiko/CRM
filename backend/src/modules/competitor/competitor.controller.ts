@@ -57,11 +57,12 @@ export class CompetitorController {
     return this.competitorService.deleteCompetitor(id);
   }
 
-  /*  @Post("/generateReport/:id")
-  @ResponseMessage('Report has been successfully generated!')
-  async generateReport(@Param() { id }: CompetitorIdParamDto) {
-    return this.competitorService.generateReport(id);
-  }*/
+  // Instagram Report
+  @Post('/instagramReport/:id')
+  @ResponseMessage('Instagram report has been fetched!')
+  async fetchCompetitorInstagramReport(@Param() { id }: CompetitorIdParamDto) {
+    return this.competitorService.fetchCompetitorInstagramReport(id);
+  }
 
   // Posts
   @Post('/posts/:id')

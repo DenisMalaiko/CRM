@@ -15,6 +15,16 @@ export type TCompetitorCreate = TCompetitorBase;
 
 export type TCompetitorUpdate = TCompetitorBase;
 
+export type TCompetitorInstagramReport = {
+  id: string;
+  competitorId: string;
+  followers: number;
+  posts: number;
+  reels: number;
+  stories: number;
+  fetchedAt: Date;
+}
+
 export type TCompetitorPostParams = {
   onlyPostsNewerThan: string;
 }

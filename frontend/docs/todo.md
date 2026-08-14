@@ -1,5 +1,33 @@
 # Task Log
 
+## Stories Formats (90D) — donut chart для Instagram tab — 2026-08-14
+
+### Plan
+- [x] Backend: Prisma schema — додати storiesImageCount, storiesVideoCount до InstagramReport
+- [x] Backend: замінити fetchStoriesCount → fetchStoriesTypeCounts в InstagramService
+- [x] Backend: оновити business.service.ts — використати новий метод
+- [x] Backend: оновити TInstagramReport entity тип
+- [x] Backend: оновити competitor.service.ts — адаптувати до перейменованого методу
+- [x] Frontend: оновити TInstagramReport модель
+- [x] Frontend: створити StoriesTypeChart компонент
+- [x] Frontend: інтегрувати в BusinessDashboard
+- [x] Quality gate: reviewer + tester
+
+### Review
+- [x] reviewer → PASS (3 suggestions only: legend count not rendered, hardcoded hex colors justified by conic-gradient, minor indentation)
+- [x] tester → 7 tests pass
+- [x] tsc --noEmit → 0 errors
+- [x] No regressions found
+- Summary: Додано метод fetchStoriesTypeCounts() в InstagramService (Apify stories за 90 днів з розбивкою Image/Video), поля storiesImageCount та storiesVideoCount в InstagramReport. Новий компонент StoriesTypeChart відображає donut chart аналогічний до PostsFormats.
+
+### Notes
+- Stories мають лише 2 формати: Image та Video (без Carousel)
+- Apify повертає поле `type` для stories так само як для постів
+- Scope: тільки бізнес-акаунт, не конкуренти
+- fetchStoriesTypeCounts повертає і загальний count, і розбивку — один API виклик замість двох
+
+---
+
 ## Instagram Reels Stats — reels метрики для Dashboard — 2026-08-12
 
 ### Plan

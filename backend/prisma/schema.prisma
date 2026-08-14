@@ -81,6 +81,8 @@ model InstagramReport {
   postsCarouselCount Int      @default(0)
   reels              Int      @default(0)
   stories            Int      @default(0)
+  storiesImageCount  Int      @default(0)
+  storiesVideoCount  Int      @default(0)
   fetchedAt     DateTime @default(now())
   business      Business @relation(fields: [businessId], references: [id])
 }
@@ -272,10 +274,22 @@ model Competitor {
   instagramLink String           @default("")
   isActive      Boolean          @default(true)
   createdAt    DateTime         @default(now())
-  business     Business         @relation(fields: [businessId], references: [id])
-  ads          CompetitorAds[]
-  posts        CompetitorPost[]
-  reels        CompetitorReel[]
+  business          Business                    @relation(fields: [businessId], references: [id])
+  ads               CompetitorAds[]
+  posts             CompetitorPost[]
+  reels             CompetitorReel[]
+  instagramReport   CompetitorInstagramReport?
+}
+
+model CompetitorInstagramReport {
+  id            String     @id @default(uuid())
+  competitorId  String     @unique
+  followers     Int        @default(0)
+  posts         Int        @default(0)
+  reels         Int        @default(0)
+  stories       Int        @default(0)
+  fetchedAt     DateTime   @default(now())
+  competitor    Competitor @relation(fields: [competitorId], references: [id], onDelete: Cascade)
 }
 
 model CompetitorPost {
