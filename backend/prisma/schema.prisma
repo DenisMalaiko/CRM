@@ -67,6 +67,7 @@ model FacebookReport {
   businessId String   @unique
   followers  Int      @default(0)
   posts      Int      @default(0)
+  likes      Int      @default(0)
   fetchedAt  DateTime @default(now())
   business   Business @relation(fields: [businessId], references: [id])
 }
