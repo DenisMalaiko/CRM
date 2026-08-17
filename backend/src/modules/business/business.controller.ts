@@ -42,6 +42,12 @@ export class BusinessController {
     return this.businessService.upsertFacebookReport(id, body);
   }
 
+  @Post("/:id/facebook-report/fetch")
+  @ResponseMessage('Facebook report fetched!')
+  fetchFacebookReport(@Param() { id }: BusinessIdParamDto) {
+    return this.businessService.fetchFacebookReport(id);
+  }
+
   @Get("/:id/instagram-report")
   getInstagramReport(@Param() { id }: BusinessIdParamDto) {
     return this.businessService.getInstagramReport(id);

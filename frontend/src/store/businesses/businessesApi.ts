@@ -81,6 +81,13 @@ export const businessesApi = api.injectEndpoints({
         method: "POST",
       })
     }),
+
+    fetchFacebookReport: builder.mutation<ApiResponse<TFacebookReport>, string>({
+      query: (businessId: string) => ({
+        url: `/business/${businessId}/facebook-report/fetch`,
+        method: "POST",
+      })
+    }),
   }),
   overrideExisting: false,
 });
@@ -93,5 +100,6 @@ export const {
   useDeleteBusinessMutation,
   useGetFacebookReportMutation,
   useGetInstagramReportMutation,
-  useFetchInstagramReportMutation
+  useFetchInstagramReportMutation,
+  useFetchFacebookReportMutation,
 } = businessesApi;

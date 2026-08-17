@@ -33,6 +33,7 @@ export type TFacebookReport = {
   businessId: string;
   followers: number;
   posts: number;
+  likes: number;
   fetchedAt: Date;
 }
 

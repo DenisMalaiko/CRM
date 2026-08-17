@@ -7,6 +7,18 @@ import { TCompetitorPostParams, TCompetitorAdsParams } from "../competitor/entit
 export class FacebookService {
   constructor(private readonly apify: ApifyService) {}
 
+  async fetchDetails(pageUrl: string): Promise<{ followers: number; likes: number }> {
+    const results = await this.apify.runActor<any>('apify/facebook-pages-scraper', {
+      startUrls: [{ url: pageUrl }],
+    });
+
+    const page = results[0];
+    return {
+      followers: page?.followers ?? 0,
+      likes: page?.likes ?? 0,
+    };
+  }
+
   async fetchAds(competitorId: string, pageUrl: string, body: TCompetitorAdsParams) {
     const items = await this.apify.runActor<any>(
       'curious_coder~facebook-ads-library-scraper',

@@ -12,6 +12,8 @@ const mockGetProfiles = jest.fn().mockReturnValue({ unwrap: () => Promise.resolv
 const mockGetPrompts = jest.fn().mockReturnValue({ unwrap: () => Promise.resolve({ data: [{ id: "1", name: "Prompt 1", createdAt: "2026-08-02T00:00:00Z" }] }) })
 const mockGetContentPlans = jest.fn().mockReturnValue({ unwrap: () => Promise.resolve({ data: [{ id: "1", title: "Plan 1", createdAt: "2026-08-03T00:00:00Z" }] }) })
 const mockGetIdeasAI = jest.fn().mockReturnValue({ unwrap: () => Promise.resolve({ data: [{ id: "1", title: "Idea 1", createdAt: "2026-08-04T00:00:00Z" }] }) })
+const mockGetCompetitors = jest.fn().mockReturnValue({ unwrap: () => Promise.resolve({ data: [] }) })
+const mockFetchCompetitorInstagramReport = jest.fn().mockReturnValue({ unwrap: () => Promise.resolve({}) })
 
 jest.mock("../../../../../store/products/productsApi", () => ({
   useGetProductsMutation: () => [mockGetProducts, { isLoading: false }],
@@ -30,6 +32,15 @@ jest.mock("../../../../../store/contentPlan/contentPlanApi", () => ({
 }))
 jest.mock("../../../../../store/ai/ideas/ideaAiApi", () => ({
   useLazyGetIdeasAIQuery: () => [mockGetIdeasAI, { isLoading: false }],
+}))
+jest.mock("../../../../../store/businesses/businessesApi", () => ({
+  useGetFacebookReportMutation: () => [jest.fn().mockReturnValue({ unwrap: () => Promise.resolve(null) }), { isLoading: false }],
+  useGetInstagramReportMutation: () => [jest.fn().mockReturnValue({ unwrap: () => Promise.resolve(null) }), { isLoading: false }],
+  useFetchInstagramReportMutation: () => [jest.fn().mockReturnValue({ unwrap: () => Promise.resolve(null) }), { isLoading: false }],
+}))
+jest.mock("../../../../../store/competitor/competitorApi", () => ({
+  useGetCompetitorsMutation: () => [mockGetCompetitors, { isLoading: false }],
+  useFetchCompetitorInstagramReportMutation: () => [mockFetchCompetitorInstagramReport, { isLoading: false }],
 }))
 
 const mockStore = configureStore({
@@ -64,6 +75,8 @@ describe("BusinessDashboard", () => {
     mockGetPrompts.mockReturnValue({ unwrap: () => Promise.resolve({ data: [{ id: "1", name: "Prompt 1", createdAt: "2026-08-02T00:00:00Z" }] }) })
     mockGetContentPlans.mockReturnValue({ unwrap: () => Promise.resolve({ data: [{ id: "1", title: "Plan 1", createdAt: "2026-08-03T00:00:00Z" }] }) })
     mockGetIdeasAI.mockReturnValue({ unwrap: () => Promise.resolve({ data: [{ id: "1", title: "Idea 1", createdAt: "2026-08-04T00:00:00Z" }] }) })
+    mockGetCompetitors.mockReturnValue({ unwrap: () => Promise.resolve({ data: [] }) })
+    mockFetchCompetitorInstagramReport.mockReturnValue({ unwrap: () => Promise.resolve({}) })
   })
 
   it("renders stat cards with correct counts", () => {
@@ -165,6 +178,69 @@ describe("BusinessDashboard", () => {
       expect(screen.getByText("Products")).toBeInTheDocument()
       expect(screen.getByText("Recent Activity")).toBeInTheDocument()
       expect(screen.queryByText("Coming soon")).not.toBeInTheDocument()
+    })
+  })
+
+  describe("competitors table", () => {
+    const competitorWithLink = {
+      id: "comp-1",
+      name: "Acme Corp",
+      instagramLink: "https://instagram.com/acmecorp",
+      instagramReport: { followers: 1200, posts: 30, reels: 5, stories: 10 },
+    }
+
+    beforeEach(() => {
+      mockGetCompetitors.mockReturnValue({
+        unwrap: () => Promise.resolve({ data: [competitorWithLink] }),
+      })
+    })
+
+    it("shows empty state when there are no competitors on the Instagram tab", async () => {
+      mockGetCompetitors.mockReturnValue({ unwrap: () => Promise.resolve({ data: [] }) })
+      renderDashboard()
+
+      userEvent.click(screen.getByRole("button", { name: "Instagram" }))
+
+      expect(await screen.findByText("No competitors added")).toBeInTheDocument()
+    })
+
+    it("renders competitor name with external link icon in the table", async () => {
+      renderDashboard()
+
+      userEvent.click(screen.getByRole("button", { name: "Instagram" }))
+
+      expect(await screen.findByText("Acme Corp")).toBeInTheDocument()
+    })
+
+    it("opens competitor Instagram profile in a new tab when the row is clicked", async () => {
+      const openSpy = jest.spyOn(window, "open").mockImplementation(() => null)
+      renderDashboard()
+
+      userEvent.click(screen.getByRole("button", { name: "Instagram" }))
+
+      const competitorName = await screen.findByText("Acme Corp")
+      // click the table row (nearest tr ancestor)
+      userEvent.click(competitorName.closest("tr")!)
+
+      expect(openSpy).toHaveBeenCalledWith(
+        "https://instagram.com/acmecorp",
+        "_blank",
+        "noopener,noreferrer"
+      )
+
+      openSpy.mockRestore()
+    })
+
+    it("displays competitor stats from instagramReport", async () => {
+      renderDashboard()
+
+      userEvent.click(screen.getByRole("button", { name: "Instagram" }))
+
+      await screen.findByText("Acme Corp")
+      expect(screen.getByText("1200")).toBeInTheDocument()
+      expect(screen.getByText("30")).toBeInTheDocument()
+      expect(screen.getByText("5")).toBeInTheDocument()
+      expect(screen.getByText("10")).toBeInTheDocument()
     })
   })
 })

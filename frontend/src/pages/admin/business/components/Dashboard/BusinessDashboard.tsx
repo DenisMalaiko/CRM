@@ -2,9 +2,9 @@ import React, { useEffect, useMemo, useState } from "react"
 import { useParams } from "react-router-dom"
 import { formatDistanceToNow } from "date-fns"
 import { toast } from "react-toastify"
-import { Package, Users, Lightbulb, Megaphone, FileText, Film, BookImage, LucideIcon } from "lucide-react"
+import { Package, Users, Lightbulb, Megaphone, FileText, Film, BookImage, LucideIcon, ExternalLink } from "lucide-react"
 import { useAppDispatch, useAppSelector } from "../../../../../store/hooks"
-import { useGetFacebookReportMutation, useGetInstagramReportMutation, useFetchInstagramReportMutation } from "../../../../../store/businesses/businessesApi"
+import { useGetFacebookReportMutation, useGetInstagramReportMutation, useFetchInstagramReportMutation, useFetchFacebookReportMutation } from "../../../../../store/businesses/businessesApi"
 import { TFacebookReport, TInstagramReport } from "../../../../../models/Business"
 import { useGetCompetitorsMutation, useFetchCompetitorInstagramReportMutation } from "../../../../../store/competitor/competitorApi"
 import { TCompetitorWithReport } from "../../../../../models/Competitor"
@@ -79,8 +79,10 @@ export function BusinessDashboard() {
   const [fetchInstagramReport] = useFetchInstagramReportMutation()
   const [getCompetitors] = useGetCompetitorsMutation()
   const [fetchCompetitorInstagramReport] = useFetchCompetitorInstagramReportMutation()
+  const [fetchFacebookReport] = useFetchFacebookReportMutation()
 
   const [isFetchingIg, setIsFetchingIg] = useState(false)
+  const [isFetchingFb, setIsFetchingFb] = useState(false)
   const [fbReport, setFbReport] = useState<TFacebookReport | null>(null)
   const [igReport, setIgReport] = useState<TInstagramReport | null>(null)
   const [competitors, setCompetitors] = useState<TCompetitorWithReport[]>([])
@@ -160,6 +162,22 @@ export function BusinessDashboard() {
     }
   }
 
+  const handleFetchFacebook = async () => {
+    if (!businessId) return
+    setIsFetchingFb(true)
+    try {
+      const response = await fetchFacebookReport(businessId).unwrap()
+      if (response?.data) {
+        setFbReport(response.data)
+        toast.success(response.message)
+      }
+    } catch (error) {
+      showError(error)
+    } finally {
+      setIsFetchingFb(false)
+    }
+  }
+
   const recentActivity = useMemo(() => {
     const items: ActivityItem[] = []
 
@@ -180,6 +198,10 @@ export function BusinessDashboard() {
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
       .slice(0, 10)
   }, [profiles, prompts, contentPlans, ideasAi])
+
+  function handleOpenInstagram(url: string) {
+    if (url) window.open(url, '_blank', 'noopener,noreferrer')
+  }
 
   if (!businessId) return null
 
@@ -240,6 +262,23 @@ export function BusinessDashboard() {
 
       {activeTab === "facebook" && (
         <div className="space-y-6">
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={handleFetchFacebook}
+              disabled={isFetchingFb}
+              className="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
+            >
+              {isFetchingFb ? (
+                <>
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                  Fetching...
+                </>
+              ) : (
+                "Fetch Facebook Data"
+              )}
+            </button>
+          </div>
           <div className="grid grid-cols-3 gap-4">
             <StatCard icon={Users} label="Followers" count={fbReport?.followers ?? 0} />
             <StatCard icon={FileText} label="Posts" count={fbReport?.posts ?? 0} />
@@ -306,8 +345,22 @@ export function BusinessDashboard() {
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {competitors.map((c) => (
-                    <tr key={c.id} className="bg-white hover:bg-slate-50">
-                      <td className="px-4 py-3 text-left font-medium text-slate-900">{c.name}</td>
+                    <tr
+                      key={c.id}
+                      role="link"
+                      tabIndex={0}
+                      className="cursor-pointer bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      onClick={() => handleOpenInstagram(c.instagramLink)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') handleOpenInstagram(c.instagramLink)
+                      }}
+                    >
+                      <td className="px-4 py-3 text-left font-medium text-slate-900">
+                        <span className="flex items-center gap-1.5">
+                          {c.name}
+                          <ExternalLink size={14} className="text-blue-500" />
+                        </span>
+                      </td>
                       <td className="px-4 py-3 text-left font-medium text-slate-900">{c.instagramReport?.followers ?? 0}</td>
                       <td className="px-4 py-3 text-left font-medium text-slate-900">{c.instagramReport?.posts ?? 0}</td>
                       <td className="px-4 py-3 text-left font-medium text-slate-900">{c.instagramReport?.reels ?? 0}</td>
@@ -317,6 +370,15 @@ export function BusinessDashboard() {
                 </tbody>
               </table>
             )}
+            </div>
+          </div>
+
+          <div className="rounded-2xl bg-white shadow border border-slate-200">
+            <div className="border-b p-4">
+              <h2 className="text-lg text-left font-semibold text-slate-800">Strategic Insights</h2>
+            </div>
+            <div className="p-4">
+              <p className="p-4 text-sm text-slate-400">No strategic insights yet</p>
             </div>
           </div>
         </div>

@@ -1,6 +1,7 @@
 import { Injectable, InternalServerErrorException, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from "../../core/prisma/prisma.service";
 import { InstagramService } from "../instagram/instagram.service";
+import { FacebookService } from "../facebook/facebook.service";
 import { TBusiness, TBusinessCreate, TBusinessUpdate, TFacebookReport, TInstagramReport } from "./entities/business.entity";
 
 @Injectable()
@@ -8,6 +9,7 @@ export class BusinessService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly instagramService: InstagramService,
+    private readonly facebookService: FacebookService,
   ) {}
 
   async getBusinesses(agencyId: string): Promise<TBusiness[]> {
@@ -136,12 +138,27 @@ export class BusinessService {
     });
   }
 
-  async upsertFacebookReport(businessId: string, data: { followers: number; posts: number }): Promise<TFacebookReport> {
+  async upsertFacebookReport(businessId: string, data: { followers: number; posts: number; likes?: number }): Promise<TFacebookReport> {
     return await this.prisma.facebookReport.upsert({
       where: { businessId },
       update: { ...data, fetchedAt: new Date() },
       create: { businessId, ...data },
     });
+  }
+
+  async fetchFacebookReport(businessId: string): Promise<TFacebookReport> {
+    const business = await this.prisma.business.findUnique({
+      where: { id: businessId },
+      select: { facebookLink: true },
+    });
+
+    if (!business?.facebookLink) {
+      throw new BadRequestException('Business has no Facebook link configured');
+    }
+
+    const details = await this.facebookService.fetchDetails(business.facebookLink);
+
+    return this.upsertFacebookReport(businessId, { ...details, posts: 0 });
   }
 
   async getInstagramReport(businessId: string): Promise<TInstagramReport | null> {
