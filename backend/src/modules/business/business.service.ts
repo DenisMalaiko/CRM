@@ -156,9 +156,12 @@ export class BusinessService {
       throw new BadRequestException('Business has no Facebook link configured');
     }
 
-    const details = await this.facebookService.fetchDetails(business.facebookLink);
+    const [details, postsData] = await Promise.all([
+      this.facebookService.fetchDetails(business.facebookLink),
+      this.facebookService.fetchPostsData(business.facebookLink),
+    ]);
 
-    return this.upsertFacebookReport(businessId, { ...details, posts: 0 });
+    return this.upsertFacebookReport(businessId, { ...details, ...postsData });
   }
 
   async getInstagramReport(businessId: string): Promise<TInstagramReport | null> {
