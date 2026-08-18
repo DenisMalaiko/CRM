@@ -284,6 +284,11 @@ export function BusinessDashboard() {
             <StatCard icon={FileText} label="Posts" count={fbReport?.posts ?? 0} />
             <StatCard icon={Megaphone} label="Active Ads" count={0} />
           </div>
+          <ContentTypeChart
+            postsImageCount={fbReport?.postsImageCount ?? 0}
+            postsVideoCount={fbReport?.postsVideoCount ?? 0}
+            postsCarouselCount={fbReport?.postsCarouselCount ?? 0}
+          />
         </div>
       )}
 

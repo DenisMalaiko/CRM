@@ -19,6 +19,37 @@ export class FacebookService {
     };
   }
 
+  async fetchPostsData(pageUrl: string): Promise<{ posts: number; postsImageCount: number; postsVideoCount: number; postsCarouselCount: number }> {
+    const ninetyDaysAgo = new Date();
+    ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+
+    const items = await this.apify.runActor<any>('apify~facebook-posts-scraper', {
+      captionText: false,
+      onlyPostsNewerThan: ninetyDaysAgo.toISOString().split('T')[0],
+      resultsLimit: 200,
+      startUrls: [{ url: pageUrl }],
+    });
+
+    let postsImageCount = 0;
+    let postsVideoCount = 0;
+    let postsCarouselCount = 0;
+
+    for (const item of items) {
+      if (item.error) continue;
+      const hasCarousel = Array.isArray(item.media) && item.media[0]?.mediaset_token;
+      const hasVideo = Array.isArray(item.media) && item.media.some((m: any) => m?.__typename === 'Video');
+      if (hasCarousel) {
+        postsCarouselCount++;
+      } else if (hasVideo) {
+        postsVideoCount++;
+      } else {
+        postsImageCount++;
+      }
+    }
+
+    return { posts: postsImageCount + postsVideoCount + postsCarouselCount, postsImageCount, postsVideoCount, postsCarouselCount };
+  }
+
   async fetchAds(competitorId: string, pageUrl: string, body: TCompetitorAdsParams) {
     const items = await this.apify.runActor<any>(
       'curious_coder~facebook-ads-library-scraper',

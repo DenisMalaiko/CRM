@@ -45,6 +45,9 @@ export type TFacebookReport = {
   businessId: string;
   followers: number;
   posts: number;
+  postsImageCount: number;
+  postsVideoCount: number;
+  postsCarouselCount: number;
   likes: number;
   fetchedAt: string;
 }
