@@ -218,12 +218,30 @@ describe("BusinessDashboard", () => {
       expect(screen.getByText("Posts Formats (90D)")).toBeInTheDocument()
     })
 
-    it("shows 'No data yet' in ContentTypeChart when facebook report is absent", () => {
+    it("shows 'No data yet' in all charts when facebook report is absent", () => {
       renderDashboard()
 
       userEvent.click(screen.getByRole("button", { name: "Facebook" }))
 
-      expect(screen.getByText("No data yet")).toBeInTheDocument()
+      // ContentTypeChart, AdsFormatChart, and AdsCtaChart all render "No data yet"
+      const noDataMessages = screen.getAllByText("No data yet")
+      expect(noDataMessages).toHaveLength(3)
+    })
+
+    it("renders AdsFormatChart heading on the Facebook tab", () => {
+      renderDashboard()
+
+      userEvent.click(screen.getByRole("button", { name: "Facebook" }))
+
+      expect(screen.getByText("Ads Formats")).toBeInTheDocument()
+    })
+
+    it("renders AdsCtaChart heading on the Facebook tab", () => {
+      renderDashboard()
+
+      userEvent.click(screen.getByRole("button", { name: "Facebook" }))
+
+      expect(screen.getByText("Ads CTA Types")).toBeInTheDocument()
     })
   })
 

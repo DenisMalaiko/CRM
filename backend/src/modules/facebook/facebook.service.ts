@@ -3,6 +3,26 @@ import { ApifyService } from "../apify/apify.service";
 import { PlatformList } from "@prisma/client";
 import { TCompetitorPostParams, TCompetitorAdsParams } from "../competitor/entities/competitor.entity";
 
+const DIRECT_MESSAGE_CTAS = new Set([
+  'MESSAGE_PAGE', 'WHATSAPP_MESSAGE', 'WHATSAPP_LINK', 'INSTAGRAM_MESSAGE',
+  'GET_IN_TOUCH', 'ASK_A_QUESTION', 'START_A_CHAT', 'CHAT_NOW',
+  'CHAT_ON_WHATSAPP', 'OPEN_MESSENGER_EXT', 'INQUIRE_NOW', 'BUY_VIA_MESSAGE',
+]);
+
+const INSTAGRAM_PAGE_CTAS = new Set([
+  'VIEW_INSTAGRAM_PROFILE', 'TRY_IN_CAMERA',
+]);
+
+const PRODUCT_CTAS = new Set([
+  'BUY', 'BUY_NOW', 'BUY_TICKETS', 'ADD_TO_CART',
+  'SELL_NOW', 'SWIPE_UP_PRODUCT', 'SWIPE_UP_SHOP', 'VIEW_PRODUCT',
+]);
+
+const META_PAGE_CTAS = new Set([
+  'LIKE_PAGE', 'VISIT_PROFILE', 'JOIN_GROUP', 'FIND_YOUR_GROUPS',
+  'JOIN_CHANNEL', 'VIEW_CHANNEL', 'PLAY_GAME_ON_FACEBOOK',
+]);
+
 @Injectable()
 export class FacebookService {
   constructor(private readonly apify: ApifyService) {}
@@ -48,6 +68,48 @@ export class FacebookService {
     }
 
     return { posts: postsImageCount + postsVideoCount + postsCarouselCount, postsImageCount, postsVideoCount, postsCarouselCount };
+  }
+
+  async fetchAdsData(pageUrl: string): Promise<{ activeAds: number; adsVideoCount: number; adsImageCount: number; adsOtherCount: number; adsCtaWebsite: number; adsCtaDirectMessage: number; adsCtaInstagramPage: number; adsCtaProduct: number; adsCtaMetaPage: number }> {
+    const items = await this.apify.runActor<any>('curious_coder~facebook-ads-library-scraper', {
+      count: 10,
+      scrapeAdDetails: true,
+      "scrapePageAds.activeStatus": "all",
+      "scrapePageAds.countryCode": "ALL",
+      "scrapePageAds.sortBy": "impressions_desc",
+      urls: [{ url: pageUrl }],
+    });
+
+    let activeAds = 0;
+    let adsVideoCount = 0;
+    let adsImageCount = 0;
+    let adsOtherCount = 0;
+    let adsCtaWebsite = 0;
+    let adsCtaDirectMessage = 0;
+    let adsCtaInstagramPage = 0;
+    let adsCtaProduct = 0;
+    let adsCtaMetaPage = 0;
+
+    for (const item of items) {
+      if (item.error) continue;
+      if (item.is_active) activeAds++;
+
+      const format = item.snapshot?.display_format;
+      if (format === 'VIDEO') adsVideoCount++;
+      else if (format === 'IMAGE') adsImageCount++;
+      else adsOtherCount++;
+
+      const ctaType = item.snapshot?.cta_type;
+      if (!ctaType) continue;
+
+      if (DIRECT_MESSAGE_CTAS.has(ctaType)) adsCtaDirectMessage++;
+      else if (INSTAGRAM_PAGE_CTAS.has(ctaType)) adsCtaInstagramPage++;
+      else if (PRODUCT_CTAS.has(ctaType)) adsCtaProduct++;
+      else if (META_PAGE_CTAS.has(ctaType)) adsCtaMetaPage++;
+      else adsCtaWebsite++;
+    }
+
+    return { activeAds, adsVideoCount, adsImageCount, adsOtherCount, adsCtaWebsite, adsCtaDirectMessage, adsCtaInstagramPage, adsCtaProduct, adsCtaMetaPage };
   }
 
   async fetchAds(competitorId: string, pageUrl: string, body: TCompetitorAdsParams) {

@@ -29,6 +29,8 @@ import { TIdeaAI } from "../../../../../models/IdeaAI"
 import { showError } from "../../../../../utils/showError"
 import { ContentTypeChart } from "./ContentTypeChart"
 import { StoriesTypeChart } from "./StoriesTypeChart"
+import { AdsFormatChart } from "./AdsFormatChart"
+import { AdsCtaChart } from "./AdsCtaChart"
 
 const tabs = [
   { key: "general" as const, label: "General" },
@@ -282,13 +284,27 @@ export function BusinessDashboard() {
           <div className="grid grid-cols-3 gap-4">
             <StatCard icon={Users} label="Followers" count={fbReport?.followers ?? 0} />
             <StatCard icon={FileText} label="Posts" count={fbReport?.posts ?? 0} />
-            <StatCard icon={Megaphone} label="Active Ads" count={0} />
+            <StatCard icon={Megaphone} label="Active Ads" count={fbReport?.activeAds ?? 0} />
           </div>
-          <ContentTypeChart
-            postsImageCount={fbReport?.postsImageCount ?? 0}
-            postsVideoCount={fbReport?.postsVideoCount ?? 0}
-            postsCarouselCount={fbReport?.postsCarouselCount ?? 0}
-          />
+          <div className="grid grid-cols-3 gap-4">
+            <ContentTypeChart
+              postsImageCount={fbReport?.postsImageCount ?? 0}
+              postsVideoCount={fbReport?.postsVideoCount ?? 0}
+              postsCarouselCount={fbReport?.postsCarouselCount ?? 0}
+            />
+            <AdsFormatChart
+              adsVideoCount={fbReport?.adsVideoCount ?? 0}
+              adsImageCount={fbReport?.adsImageCount ?? 0}
+              adsOtherCount={fbReport?.adsOtherCount ?? 0}
+            />
+            <AdsCtaChart
+              adsCtaWebsite={fbReport?.adsCtaWebsite ?? 0}
+              adsCtaDirectMessage={fbReport?.adsCtaDirectMessage ?? 0}
+              adsCtaInstagramPage={fbReport?.adsCtaInstagramPage ?? 0}
+              adsCtaProduct={fbReport?.adsCtaProduct ?? 0}
+              adsCtaMetaPage={fbReport?.adsCtaMetaPage ?? 0}
+            />
+          </div>
         </div>
       )}
 

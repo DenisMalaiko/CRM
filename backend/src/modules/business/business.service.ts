@@ -138,7 +138,10 @@ export class BusinessService {
     });
   }
 
-  async upsertFacebookReport(businessId: string, data: { followers: number; posts: number; likes?: number }): Promise<TFacebookReport> {
+  async upsertFacebookReport(
+    businessId: string,
+    data: { followers: number; posts: number; likes?: number; postsImageCount?: number; postsVideoCount?: number; postsCarouselCount?: number; activeAds?: number; adsVideoCount?: number; adsImageCount?: number; adsOtherCount?: number; adsCtaWebsite?: number; adsCtaDirectMessage?: number; adsCtaInstagramPage?: number; adsCtaProduct?: number; adsCtaMetaPage?: number },
+  ): Promise<TFacebookReport> {
     return await this.prisma.facebookReport.upsert({
       where: { businessId },
       update: { ...data, fetchedAt: new Date() },
@@ -156,12 +159,13 @@ export class BusinessService {
       throw new BadRequestException('Business has no Facebook link configured');
     }
 
-    const [details, postsData] = await Promise.all([
+    const [details, postsData, adsData] = await Promise.all([
       this.facebookService.fetchDetails(business.facebookLink),
       this.facebookService.fetchPostsData(business.facebookLink),
+      this.facebookService.fetchAdsData(business.facebookLink),
     ]);
 
-    return this.upsertFacebookReport(businessId, { ...details, ...postsData });
+    return this.upsertFacebookReport(businessId, { ...details, ...postsData, ...adsData });
   }
 
   async getInstagramReport(businessId: string): Promise<TInstagramReport | null> {
