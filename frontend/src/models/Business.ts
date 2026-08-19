@@ -49,6 +49,15 @@ export type TFacebookReport = {
   postsVideoCount: number;
   postsCarouselCount: number;
   likes: number;
+  activeAds: number;
+  adsVideoCount: number;
+  adsImageCount: number;
+  adsOtherCount: number;
+  adsCtaWebsite: number;
+  adsCtaDirectMessage: number;
+  adsCtaInstagramPage: number;
+  adsCtaProduct: number;
+  adsCtaMetaPage: number;
   fetchedAt: string;
 }
 
