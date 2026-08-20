@@ -46,7 +46,7 @@ export class FacebookService {
     const items = await this.apify.runActor<any>('apify~facebook-posts-scraper', {
       captionText: false,
       onlyPostsNewerThan: ninetyDaysAgo.toISOString().split('T')[0],
-      resultsLimit: 200,
+      resultsLimit: 300,
       startUrls: [{ url: pageUrl }],
     });
 
@@ -70,7 +70,7 @@ export class FacebookService {
     return { posts: postsImageCount + postsVideoCount + postsCarouselCount, postsImageCount, postsVideoCount, postsCarouselCount };
   }
 
-  async fetchAdsData(pageUrl: string): Promise<{ activeAds: number; adsVideoCount: number; adsImageCount: number; adsOtherCount: number; adsCtaWebsite: number; adsCtaDirectMessage: number; adsCtaInstagramPage: number; adsCtaProduct: number; adsCtaMetaPage: number }> {
+  async fetchAdsData(pageUrl: string): Promise<{ activeAds: number; adsVideoCount: number; adsImageCount: number; adsCarouselCount: number; adsDcoCount: number; adsCtaWebsite: number; adsCtaDirectMessage: number; adsCtaInstagramPage: number; adsCtaProduct: number; adsCtaMetaPage: number }> {
     const items = await this.apify.runActor<any>('curious_coder~facebook-ads-library-scraper', {
       count: 10,
       scrapeAdDetails: true,
@@ -83,24 +83,30 @@ export class FacebookService {
     let activeAds = 0;
     let adsVideoCount = 0;
     let adsImageCount = 0;
-    let adsOtherCount = 0;
+    let adsCarouselCount = 0;
+    let adsDcoCount = 0;
     let adsCtaWebsite = 0;
     let adsCtaDirectMessage = 0;
     let adsCtaInstagramPage = 0;
     let adsCtaProduct = 0;
     let adsCtaMetaPage = 0;
 
+    console.log('[ADS] total items from Apify:', items.length);
     for (const item of items) {
-      if (item.error) continue;
+      if (item.error) { console.log('[ADS] skipping item with error:', item.error); continue; }
       if (item.is_active) activeAds++;
 
       const format = item.snapshot?.display_format;
+      const ctaType = item.snapshot?.cta_type;
+      console.log('[ADS] item:', { id: item.ad_archive_id, is_active: item.is_active, format, ctaType, title: item.snapshot?.title?.substring(0, 50) });
+
       if (format === 'VIDEO') adsVideoCount++;
       else if (format === 'IMAGE') adsImageCount++;
-      else adsOtherCount++;
+      else if (format === 'CAROUSEL') adsCarouselCount++;
+      else if (format === 'DCO') adsDcoCount++;
+      else console.log('[ADS] unknown format:', format);
 
-      const ctaType = item.snapshot?.cta_type;
-      if (!ctaType) continue;
+      if (!ctaType) { console.log('[ADS] no ctaType, skipping CTA count'); continue; }
 
       if (DIRECT_MESSAGE_CTAS.has(ctaType)) adsCtaDirectMessage++;
       else if (INSTAGRAM_PAGE_CTAS.has(ctaType)) adsCtaInstagramPage++;
@@ -108,8 +114,9 @@ export class FacebookService {
       else if (META_PAGE_CTAS.has(ctaType)) adsCtaMetaPage++;
       else adsCtaWebsite++;
     }
+    console.log('[ADS] results:', { activeAds, adsVideoCount, adsImageCount, adsCarouselCount, adsDcoCount, adsCtaWebsite, adsCtaDirectMessage, adsCtaInstagramPage, adsCtaProduct, adsCtaMetaPage });
 
-    return { activeAds, adsVideoCount, adsImageCount, adsOtherCount, adsCtaWebsite, adsCtaDirectMessage, adsCtaInstagramPage, adsCtaProduct, adsCtaMetaPage };
+    return { activeAds, adsVideoCount, adsImageCount, adsCarouselCount, adsDcoCount, adsCtaWebsite, adsCtaDirectMessage, adsCtaInstagramPage, adsCtaProduct, adsCtaMetaPage };
   }
 
   async fetchAds(competitorId: string, pageUrl: string, body: TCompetitorAdsParams) {

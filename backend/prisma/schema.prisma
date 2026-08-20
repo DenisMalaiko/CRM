@@ -74,7 +74,8 @@ model FacebookReport {
   activeAds          Int      @default(0)
   adsVideoCount      Int      @default(0)
   adsImageCount      Int      @default(0)
-  adsOtherCount      Int      @default(0)
+  adsCarouselCount   Int      @default(0)
+  adsDcoCount        Int      @default(0)
   adsCtaWebsite        Int      @default(0)
   adsCtaDirectMessage  Int      @default(0)
   adsCtaInstagramPage  Int      @default(0)
@@ -292,6 +293,7 @@ model Competitor {
   posts             CompetitorPost[]
   reels             CompetitorReel[]
   instagramReport   CompetitorInstagramReport?
+  facebookReport    CompetitorFacebookReport?
 }
 
 model CompetitorInstagramReport {
@@ -301,6 +303,16 @@ model CompetitorInstagramReport {
   posts         Int        @default(0)
   reels         Int        @default(0)
   stories       Int        @default(0)
+  fetchedAt     DateTime   @default(now())
+  competitor    Competitor @relation(fields: [competitorId], references: [id], onDelete: Cascade)
+}
+
+model CompetitorFacebookReport {
+  id            String     @id @default(uuid())
+  competitorId  String     @unique
+  followers     Int        @default(0)
+  posts         Int        @default(0)
+  ads           Int        @default(0)
   fetchedAt     DateTime   @default(now())
   competitor    Competitor @relation(fields: [competitorId], references: [id], onDelete: Cascade)
 }

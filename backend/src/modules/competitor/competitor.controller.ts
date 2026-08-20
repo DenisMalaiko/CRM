@@ -64,6 +64,13 @@ export class CompetitorController {
     return this.competitorService.fetchCompetitorInstagramReport(id);
   }
 
+  // Facebook Report
+  @Post('/facebookReport/:id')
+  @ResponseMessage('Facebook report has been fetched!')
+  async fetchCompetitorFacebookReport(@Param() { id }: CompetitorIdParamDto) {
+    return this.competitorService.fetchCompetitorFacebookReport(id);
+  }
+
   // Posts
   @Post('/posts/:id')
   @ResponseMessage('Posts have been got!')
