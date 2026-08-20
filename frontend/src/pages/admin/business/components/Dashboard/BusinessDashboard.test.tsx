@@ -14,6 +14,7 @@ const mockGetContentPlans = jest.fn().mockReturnValue({ unwrap: () => Promise.re
 const mockGetIdeasAI = jest.fn().mockReturnValue({ unwrap: () => Promise.resolve({ data: [{ id: "1", title: "Idea 1", createdAt: "2026-08-04T00:00:00Z" }] }) })
 const mockGetCompetitors = jest.fn().mockReturnValue({ unwrap: () => Promise.resolve({ data: [] }) })
 const mockFetchCompetitorInstagramReport = jest.fn().mockReturnValue({ unwrap: () => Promise.resolve({}) })
+const mockFetchCompetitorFacebookReport = jest.fn().mockReturnValue({ unwrap: () => Promise.resolve({}) })
 const mockFetchFacebookReport = jest.fn().mockReturnValue({ unwrap: () => Promise.resolve(null) })
 const mockFetchInstagramReport = jest.fn().mockReturnValue({ unwrap: () => Promise.resolve(null) })
 
@@ -44,6 +45,7 @@ jest.mock("../../../../../store/businesses/businessesApi", () => ({
 jest.mock("../../../../../store/competitor/competitorApi", () => ({
   useGetCompetitorsMutation: () => [mockGetCompetitors, { isLoading: false }],
   useFetchCompetitorInstagramReportMutation: () => [mockFetchCompetitorInstagramReport, { isLoading: false }],
+  useFetchCompetitorFacebookReportMutation: () => [mockFetchCompetitorFacebookReport, { isLoading: false }],
 }))
 
 const mockStore = configureStore({
@@ -80,6 +82,7 @@ describe("BusinessDashboard", () => {
     mockGetIdeasAI.mockReturnValue({ unwrap: () => Promise.resolve({ data: [{ id: "1", title: "Idea 1", createdAt: "2026-08-04T00:00:00Z" }] }) })
     mockGetCompetitors.mockReturnValue({ unwrap: () => Promise.resolve({ data: [] }) })
     mockFetchCompetitorInstagramReport.mockReturnValue({ unwrap: () => Promise.resolve({}) })
+    mockFetchCompetitorFacebookReport.mockReturnValue({ unwrap: () => Promise.resolve({}) })
     mockFetchFacebookReport.mockReturnValue({ unwrap: () => Promise.resolve(null) })
     mockFetchInstagramReport.mockReturnValue({ unwrap: () => Promise.resolve(null) })
   })

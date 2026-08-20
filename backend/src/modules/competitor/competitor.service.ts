@@ -30,7 +30,7 @@ export class CompetitorService {
   async getCompetitors(businessId: string) {
     return await this.prisma.competitor.findMany({
       where: { businessId: businessId },
-      include: { instagramReport: true },
+      include: { instagramReport: true, facebookReport: true },
     });
   }
 
@@ -190,6 +190,42 @@ export class CompetitorService {
         posts: details.posts,
         reels: reelsCount,
         stories: storiesCounts.stories,
+      },
+    });
+  }
+
+  // Facebook Report
+  async fetchCompetitorFacebookReport(id: string) {
+    console.log('[FB-BE] fetchCompetitorFacebookReport called with id:', id);
+    const competitor = await this.prisma.competitor.findUnique({
+      where: { id },
+    });
+    console.log('[FB-BE] competitor found:', competitor?.name, 'facebookLink:', competitor?.facebookLink);
+
+    if (!competitor?.facebookLink) {
+      throw new BadRequestException('Competitor has no Facebook link configured');
+    }
+
+    const [details, postsData, adsData] = await Promise.all([
+      this.facebookService.fetchDetails(competitor.facebookLink).catch(() => ({ followers: 0, likes: 0 })),
+      this.facebookService.fetchPostsData(competitor.facebookLink).catch(() => ({ posts: 0, postsImageCount: 0, postsVideoCount: 0, postsCarouselCount: 0 })),
+      this.facebookService.fetchAdsData(competitor.facebookLink).catch(() => ({ activeAds: 0, adsVideoCount: 0, adsImageCount: 0, adsCarouselCount: 0, adsCtaWebsite: 0, adsCtaDirectMessage: 0, adsCtaInstagramPage: 0, adsCtaProduct: 0, adsCtaMetaPage: 0 })),
+    ]);
+    console.log('[FB-BE] fetched data:', { followers: details.followers, posts: postsData.posts, ads: adsData.activeAds });
+
+    return this.prisma.competitorFacebookReport.upsert({
+      where: { competitorId: id },
+      update: {
+        followers: details.followers,
+        posts: postsData.posts,
+        ads: adsData.activeAds,
+        fetchedAt: new Date(),
+      },
+      create: {
+        competitorId: id,
+        followers: details.followers,
+        posts: postsData.posts,
+        ads: adsData.activeAds,
       },
     });
   }

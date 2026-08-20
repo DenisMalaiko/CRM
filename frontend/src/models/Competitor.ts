@@ -25,8 +25,18 @@ export type TCompetitorInstagramReport = {
   fetchedAt: string;
 }
 
+export type TCompetitorFacebookReport = {
+  id: string;
+  competitorId: string;
+  followers: number;
+  posts: number;
+  ads: number;
+  fetchedAt: string;
+}
+
 export type TCompetitorWithReport = TCompetitor & {
   instagramReport: TCompetitorInstagramReport | null;
+  facebookReport: TCompetitorFacebookReport | null;
 }
 
 export type TCompetitorPostParams = {

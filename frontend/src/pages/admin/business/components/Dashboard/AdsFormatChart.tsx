@@ -3,7 +3,8 @@ import React from 'react'
 type Props = {
   adsVideoCount: number
   adsImageCount: number
-  adsOtherCount: number
+  adsCarouselCount: number
+  adsDcoCount: number
 }
 
 type LegendItem = {
@@ -12,8 +13,8 @@ type LegendItem = {
   bgClass: string
 }
 
-export function AdsFormatChart({ adsVideoCount, adsImageCount, adsOtherCount }: Props) {
-  const total = adsVideoCount + adsImageCount + adsOtherCount
+export function AdsFormatChart({ adsVideoCount, adsImageCount, adsCarouselCount, adsDcoCount }: Props) {
+  const total = adsVideoCount + adsImageCount + adsCarouselCount + adsDcoCount
 
   if (total === 0) {
     return (
@@ -26,16 +27,19 @@ export function AdsFormatChart({ adsVideoCount, adsImageCount, adsOtherCount }: 
 
   const imagePct = Math.round((adsImageCount / total) * 100)
   const videoPct = Math.round((adsVideoCount / total) * 100)
+  const carouselPct = Math.round((adsCarouselCount / total) * 100)
 
   const imageStop = imagePct
   const videoStop = imageStop + videoPct
+  const carouselStop = videoStop + carouselPct
 
-  const gradient = `conic-gradient(#3b82f6 0% ${imageStop}%, #8b5cf6 ${imageStop}% ${videoStop}%, #6b7280 ${videoStop}% 100%)`
+  const gradient = `conic-gradient(#3b82f6 0% ${imageStop}%, #8b5cf6 ${imageStop}% ${videoStop}%, #6b7280 ${videoStop}% ${carouselStop}%, #f59e0b ${carouselStop}% 100%)`
 
   const items: LegendItem[] = [
     { label: 'Image', count: adsImageCount, bgClass: 'bg-blue-500' },
     { label: 'Video', count: adsVideoCount, bgClass: 'bg-violet-500' },
-    { label: 'Other', count: adsOtherCount, bgClass: 'bg-gray-500' },
+    { label: 'Carousel', count: adsCarouselCount, bgClass: 'bg-gray-500' },
+    { label: 'DCO', count: adsDcoCount, bgClass: 'bg-amber-500' },
   ]
 
   return (
