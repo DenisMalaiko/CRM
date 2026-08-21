@@ -27,7 +27,7 @@ const META_PAGE_CTAS = new Set([
 export class FacebookService {
   constructor(private readonly apify: ApifyService) {}
 
-  async fetchDetails(pageUrl: string): Promise<{ followers: number; likes: number }> {
+  async fetchDetails(pageUrl: string): Promise<{ followers: number; likes: number; pageAdLibraryId: string | null }> {
     const results = await this.apify.runActor<any>('apify/facebook-pages-scraper', {
       startUrls: [{ url: pageUrl }],
     });
@@ -36,6 +36,7 @@ export class FacebookService {
     return {
       followers: page?.followers ?? 0,
       likes: page?.likes ?? 0,
+      pageAdLibraryId: page?.pageAdLibrary?.id ?? null,
     };
   }
 
@@ -46,18 +47,27 @@ export class FacebookService {
     const items = await this.apify.runActor<any>('apify~facebook-posts-scraper', {
       captionText: false,
       onlyPostsNewerThan: ninetyDaysAgo.toISOString().split('T')[0],
-      resultsLimit: 300,
+      resultsLimit: 90,
       startUrls: [{ url: pageUrl }],
     });
+
+    console.log('[POSTS] total items from Apify:', items.length);
 
     let postsImageCount = 0;
     let postsVideoCount = 0;
     let postsCarouselCount = 0;
+    let skippedErrors = 0;
 
     for (const item of items) {
-      if (item.error) continue;
+      if (item.error) {
+        skippedErrors++;
+        console.log('[POSTS] skipping item with error:', item.error, 'postId:', item.postId);
+        continue;
+      }
       const hasCarousel = Array.isArray(item.media) && item.media[0]?.mediaset_token;
       const hasVideo = Array.isArray(item.media) && item.media.some((m: any) => m?.__typename === 'Video');
+      const category = hasCarousel ? 'carousel' : hasVideo ? 'video' : 'image';
+      console.log('[POSTS] item:', { postId: item.postId, category, mediaCount: item.media?.length ?? 0 });
       if (hasCarousel) {
         postsCarouselCount++;
       } else if (hasVideo) {
@@ -67,20 +77,24 @@ export class FacebookService {
       }
     }
 
-    return { posts: postsImageCount + postsVideoCount + postsCarouselCount, postsImageCount, postsVideoCount, postsCarouselCount };
+    const total = postsImageCount + postsVideoCount + postsCarouselCount;
+    console.log('[POSTS] results:', { total, skippedErrors, postsImageCount, postsVideoCount, postsCarouselCount });
+    return { posts: total, postsImageCount, postsVideoCount, postsCarouselCount };
   }
 
-  async fetchAdsData(pageUrl: string): Promise<{ activeAds: number; adsVideoCount: number; adsImageCount: number; adsCarouselCount: number; adsDcoCount: number; adsCtaWebsite: number; adsCtaDirectMessage: number; adsCtaInstagramPage: number; adsCtaProduct: number; adsCtaMetaPage: number }> {
+  async fetchAdsData(pageUrl: string): Promise<{ activeAds: number; activeAds30d: number; adsVideoCount: number; adsImageCount: number; adsCarouselCount: number; adsDcoCount: number; adsCtaWebsite: number; adsCtaDirectMessage: number; adsCtaInstagramPage: number; adsCtaProduct: number; adsCtaMetaPage: number }> {
     const items = await this.apify.runActor<any>('curious_coder~facebook-ads-library-scraper', {
-      count: 10,
+      count: 90,
       scrapeAdDetails: true,
-      "scrapePageAds.activeStatus": "all",
+      "scrapePageAds.activeStatus": "active",
       "scrapePageAds.countryCode": "ALL",
       "scrapePageAds.sortBy": "impressions_desc",
       urls: [{ url: pageUrl }],
     });
 
-    let activeAds = 0;
+    const activeCollations = new Set<string>();
+    const activeCollations30d = new Set<string>();
+    const thirtyDaysAgo = Math.floor(Date.now() / 1000) - 30 * 24 * 60 * 60;
     let adsVideoCount = 0;
     let adsImageCount = 0;
     let adsCarouselCount = 0;
@@ -94,11 +108,17 @@ export class FacebookService {
     console.log('[ADS] total items from Apify:', items.length);
     for (const item of items) {
       if (item.error) { console.log('[ADS] skipping item with error:', item.error); continue; }
-      if (item.is_active) activeAds++;
+      const collationKey = item.collation_id ?? item.ad_archive_id;
+      if (item.is_active) {
+        activeCollations.add(collationKey);
+        if (item.start_date && item.start_date >= thirtyDaysAgo) {
+          activeCollations30d.add(collationKey);
+        }
+      }
 
       const format = item.snapshot?.display_format;
       const ctaType = item.snapshot?.cta_type;
-      console.log('[ADS] item:', { id: item.ad_archive_id, is_active: item.is_active, format, ctaType, title: item.snapshot?.title?.substring(0, 50) });
+      console.log('[ADS] item:', { id: item.ad_archive_id, collation_id: item.collation_id, collation_count: item.collation_count, is_active: item.is_active, format, ctaType, title: item.snapshot?.title?.substring(0, 50) });
 
       if (format === 'VIDEO') adsVideoCount++;
       else if (format === 'IMAGE') adsImageCount++;
@@ -114,6 +134,15 @@ export class FacebookService {
       else if (META_PAGE_CTAS.has(ctaType)) adsCtaMetaPage++;
       else adsCtaWebsite++;
     }
+    const activeAds = activeCollations.size;
+    const activeAds30d = activeCollations30d.size;
+    console.log('[ADS] ===== ACTIVE COLLATIONS LIST =====');
+    let idx = 1;
+    for (const key of activeCollations) {
+      const sample = items.find(i => (i.collation_id ?? i.ad_archive_id) === key);
+      console.log(`[ADS] #${idx++}: collation_key=${key}, collation_id=${sample?.collation_id}, ad_archive_id=${sample?.ad_archive_id}, collation_count=${sample?.collation_count}, title="${sample?.snapshot?.title?.substring(0, 60)}"`);
+    }
+    console.log('[ADS] ===================================');
     console.log('[ADS] results:', { activeAds, adsVideoCount, adsImageCount, adsCarouselCount, adsDcoCount, adsCtaWebsite, adsCtaDirectMessage, adsCtaInstagramPage, adsCtaProduct, adsCtaMetaPage });
 
     return { activeAds, adsVideoCount, adsImageCount, adsCarouselCount, adsDcoCount, adsCtaWebsite, adsCtaDirectMessage, adsCtaInstagramPage, adsCtaProduct, adsCtaMetaPage };
@@ -137,9 +166,9 @@ export class FacebookService {
       }
     );
 
-    return items
-      .filter(i => !i.error)
-      .map(i => this._adsMapper(competitorId, i));
+    const validItems = items.filter(i => !i.error);
+
+    return validItems.map(i => this._adsMapper(competitorId, i));
   }
 
   async fetchPosts(competitorId: string, pageUrl: string, body: TCompetitorPostParams) {

@@ -41,7 +41,7 @@ const tabs = [
 type StatCardProps = {
   icon: LucideIcon
   label: string
-  count: number
+  count: number | string
 }
 
 type ActivityItem = {
@@ -58,7 +58,7 @@ function StatCard({ icon: Icon, label, count }: StatCardProps) {
         <Icon size={20} className="text-blue-600" />
       </div>
       <div>
-        <p className="text-2xl font-bold text-slate-800 text-left">{count}</p>
+        <p className="text-2xl font-bold text-slate-800 text-left">{typeof count === 'number' ? count.toLocaleString('uk-UA') : count}</p>
         <p className="text-sm text-slate-500 text-left">{label}</p>
       </div>
     </div>
@@ -293,8 +293,8 @@ export function BusinessDashboard() {
           </div>
           <div className="grid grid-cols-3 gap-4">
             <StatCard icon={Users} label="Followers" count={fbReport?.followers ?? 0} />
-            <StatCard icon={FileText} label="Posts" count={fbReport?.posts ?? 0} />
-            <StatCard icon={Megaphone} label="Active Ads" count={fbReport?.activeAds ?? 0} />
+            <StatCard icon={FileText} label="Posts (90D)" count={fbReport?.posts != null ? (fbReport.posts >= 90 ? '90+' : fbReport.posts) : 0} />
+            <StatCard icon={Megaphone} label="Ads" count={fbReport?.activeAds ?? 0} />
           </div>
           <div className="grid grid-cols-3 gap-4">
             <ContentTypeChart
@@ -331,7 +331,8 @@ export function BusinessDashboard() {
                     <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">Name</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">Followers</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">Posts (90D)</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">Ads</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">Active Ads</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">Meta Ads Library</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -352,9 +353,23 @@ export function BusinessDashboard() {
                           <ExternalLink size={14} className="text-blue-500" />
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-left font-medium text-slate-900">{c.facebookReport?.followers ?? 0}</td>
-                      <td className="px-4 py-3 text-left font-medium text-slate-900">{c.facebookReport?.posts ?? 0}</td>
-                      <td className="px-4 py-3 text-left font-medium text-slate-900">{c.facebookReport?.ads ?? 0}</td>
+                      <td className="px-4 py-3 text-left font-medium text-slate-900">{(c.facebookReport?.followers ?? 0).toLocaleString('uk-UA')}</td>
+                      <td className="px-4 py-3 text-left font-medium text-slate-900">{c.facebookReport?.posts != null ? (c.facebookReport.posts >= 90 ? '90+' : c.facebookReport.posts) : 0}</td>
+                      <td className="px-4 py-3 text-left font-medium text-slate-900">{(c.facebookReport?.ads ?? 0).toLocaleString('uk-UA')}</td>
+                      <td className="px-4 py-3 text-left">
+                        {c.facebookPageId && (
+                          <a
+                            href={`https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=UA&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=${c.facebookPageId}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-800"
+                          >
+                            Ads Library
+                            <ExternalLink size={14} />
+                          </a>
+                        )}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -439,10 +454,10 @@ export function BusinessDashboard() {
                           <ExternalLink size={14} className="text-blue-500" />
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-left font-medium text-slate-900">{c.instagramReport?.followers ?? 0}</td>
-                      <td className="px-4 py-3 text-left font-medium text-slate-900">{c.instagramReport?.posts ?? 0}</td>
-                      <td className="px-4 py-3 text-left font-medium text-slate-900">{c.instagramReport?.reels ?? 0}</td>
-                      <td className="px-4 py-3 text-left font-medium text-slate-900">{c.instagramReport?.stories ?? 0}</td>
+                      <td className="px-4 py-3 text-left font-medium text-slate-900">{(c.instagramReport?.followers ?? 0).toLocaleString('uk-UA')}</td>
+                      <td className="px-4 py-3 text-left font-medium text-slate-900">{(c.instagramReport?.posts ?? 0).toLocaleString('uk-UA')}</td>
+                      <td className="px-4 py-3 text-left font-medium text-slate-900">{(c.instagramReport?.reels ?? 0).toLocaleString('uk-UA')}</td>
+                      <td className="px-4 py-3 text-left font-medium text-slate-900">{(c.instagramReport?.stories ?? 0).toLocaleString('uk-UA')}</td>
                     </tr>
                   ))}
                 </tbody>

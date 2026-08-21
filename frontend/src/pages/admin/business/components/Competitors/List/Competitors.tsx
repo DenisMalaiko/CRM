@@ -4,9 +4,8 @@ import { toast } from "react-toastify";
 
 
 // Redux
-import { useSelector } from "react-redux";
 import { RootState } from "../../../../../../store";
-import { useAppDispatch } from "../../../../../../store/hooks";
+import { useAppDispatch, useAppSelector } from "../../../../../../store/hooks";
 import {
   useGetCompetitorsMutation,
   useDeleteCompetitorMutation
@@ -32,13 +31,14 @@ function Competitors() {
   const [ getCompetitors ] = useGetCompetitorsMutation();
   const [ deleteCompetitor ] = useDeleteCompetitorMutation();
 
-  const { competitors } = useSelector((state: RootState) => state.competitorModule);
+  const { competitors } = useAppSelector((state: RootState) => state.competitorModule);
   const [ open, setOpen ] = useState(false);
   const [ selectedCompetitor, setSelectedCompetitor ] = useState<TCompetitor | null>(null);
   const header = [
     { name: "Name", key: "name" },
     { name: "Facebook", key: "facebookLink" },
     { name: "Instagram", key: "instagramLink" },
+    { name: "Meta Ads Library", key: "adsLibrary" },
     { name: "Active", key: "isActive" },
     { name: "Actions", key: "actions"}
   ];
@@ -65,7 +65,7 @@ function Competitors() {
   if(!businessId) return null;
 
   // Delete Prompt
-  const openConfirmDlg = async (e: any, item: any) => {
+  const openConfirmDlg = async (e: React.MouseEvent, item: TCompetitor) => {
     e.preventDefault();
 
     const ok = await confirm({
@@ -85,7 +85,7 @@ function Competitors() {
             dispatch(setCompetitors(response.data));
           }
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         showError(error);
       }
     }
@@ -130,7 +130,7 @@ function Competitors() {
             <table className="min-w-full divide-y divide-slate-200">
               <thead className="bg-slate-50">
                 <tr>
-                  {header.map((item, index) => (
+                  {header.map((item) => (
                     <th
                       key={item.key}
                       className={`
@@ -185,6 +185,23 @@ function Competitors() {
                                 className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-800"
                               >
                                 Instagram
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+                                  <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
+                                  <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
+                                </svg>
+                              </a>
+                            )}
+                          </td>
+                          <td className="px-4 py-3 text-left">
+                            {item.facebookPageId && (
+                              <a
+                                href={`https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=UA&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=${item.facebookPageId}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                                className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-800"
+                              >
+                                Ads Library
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
                                   <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
                                   <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />

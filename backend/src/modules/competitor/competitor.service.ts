@@ -207,11 +207,18 @@ export class CompetitorService {
     }
 
     const [details, postsData, adsData] = await Promise.all([
-      this.facebookService.fetchDetails(competitor.facebookLink).catch(() => ({ followers: 0, likes: 0 })),
+      this.facebookService.fetchDetails(competitor.facebookLink).catch(() => ({ followers: 0, likes: 0, pageAdLibraryId: null })),
       this.facebookService.fetchPostsData(competitor.facebookLink).catch(() => ({ posts: 0, postsImageCount: 0, postsVideoCount: 0, postsCarouselCount: 0 })),
       this.facebookService.fetchAdsData(competitor.facebookLink).catch(() => ({ activeAds: 0, adsVideoCount: 0, adsImageCount: 0, adsCarouselCount: 0, adsCtaWebsite: 0, adsCtaDirectMessage: 0, adsCtaInstagramPage: 0, adsCtaProduct: 0, adsCtaMetaPage: 0 })),
     ]);
     console.log('[FB-BE] fetched data:', { followers: details.followers, posts: postsData.posts, ads: adsData.activeAds });
+
+    if (details.pageAdLibraryId) {
+      await this.prisma.competitor.update({
+        where: { id },
+        data: { facebookPageId: details.pageAdLibraryId },
+      });
+    }
 
     return this.prisma.competitorFacebookReport.upsert({
       where: { competitorId: id },

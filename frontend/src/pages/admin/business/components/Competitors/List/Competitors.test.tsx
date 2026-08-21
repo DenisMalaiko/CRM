@@ -60,6 +60,7 @@ function makeCompetitor(overrides: Partial<{
   name: string;
   facebookLink: string;
   instagramLink: string;
+  facebookPageId: string;
   isActive: boolean;
   businessId: string;
   createdAt: Date;
@@ -69,6 +70,7 @@ function makeCompetitor(overrides: Partial<{
     name: 'Rival Co',
     facebookLink: 'https://facebook.com/rival',
     instagramLink: 'https://instagram.com/rival',
+    facebookPageId: undefined as string | undefined,
     isActive: true,
     businessId: 'biz-1',
     createdAt: new Date('2024-01-15'),
@@ -178,6 +180,34 @@ describe('Competitors list', () => {
     renderComponent();
     expect(screen.getByText('Rival A')).toBeInTheDocument();
     expect(screen.getByText('Rival B')).toBeInTheDocument();
+  });
+
+  // ── Meta Ads Library column ────────────────────────────────────────────────
+
+  it('renders the "Meta Ads Library" column header', () => {
+    renderComponent();
+    expect(screen.getByRole('columnheader', { name: /meta ads library/i })).toBeInTheDocument();
+  });
+
+  it('renders the Ads Library link with the correct Facebook Ads Library URL when facebookPageId is set', () => {
+    mockCompetitors = [makeCompetitor({ facebookPageId: '123456789' })];
+    renderComponent();
+
+    const link = screen.getByRole('link', { name: /ads library/i });
+    expect(link).toBeInTheDocument();
+    expect(link).toHaveAttribute(
+      'href',
+      'https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=UA&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=123456789'
+    );
+    expect(link).toHaveAttribute('target', '_blank');
+    expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+  });
+
+  it('does not render the Ads Library link when facebookPageId is absent', () => {
+    mockCompetitors = [makeCompetitor({ facebookPageId: undefined })];
+    renderComponent();
+
+    expect(screen.queryByRole('link', { name: /ads library/i })).not.toBeInTheDocument();
   });
 
   // ── Add button ─────────────────────────────────────────────────────────────

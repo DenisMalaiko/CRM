@@ -72,6 +72,7 @@ model FacebookReport {
   postsCarouselCount Int      @default(0)
   likes              Int      @default(0)
   activeAds          Int      @default(0)
+  activeAds30d       Int      @default(0)
   adsVideoCount      Int      @default(0)
   adsImageCount      Int      @default(0)
   adsCarouselCount   Int      @default(0)
@@ -285,8 +286,9 @@ model Competitor {
   businessId   String
   name         String
   facebookLink  String
-  instagramLink String           @default("")
-  isActive      Boolean          @default(true)
+  instagramLink   String           @default("")
+  facebookPageId  String           @default("")
+  isActive        Boolean          @default(true)
   createdAt    DateTime         @default(now())
   business          Business                    @relation(fields: [businessId], references: [id])
   ads               CompetitorAds[]
@@ -313,6 +315,7 @@ model CompetitorFacebookReport {
   followers     Int        @default(0)
   posts         Int        @default(0)
   ads           Int        @default(0)
+  ads30d        Int        @default(0)
   fetchedAt     DateTime   @default(now())
   competitor    Competitor @relation(fields: [competitorId], references: [id], onDelete: Cascade)
 }
