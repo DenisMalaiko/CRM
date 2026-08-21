@@ -165,7 +165,8 @@ export class BusinessService {
       this.facebookService.fetchAdsData(business.facebookLink),
     ]);
 
-    return this.upsertFacebookReport(businessId, { ...details, ...postsData, ...adsData });
+    const { pageAdLibraryId: _pageAdLibraryId, ...detailsData } = details;
+    return this.upsertFacebookReport(businessId, { ...detailsData, ...postsData, ...adsData });
   }
 
   async getInstagramReport(businessId: string): Promise<TInstagramReport | null> {

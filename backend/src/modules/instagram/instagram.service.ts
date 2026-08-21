@@ -15,7 +15,7 @@ export class InstagramService {
     const items = await this.apify.runActor<any>('apify~instagram-scraper', {
       addParentData: false,
       directUrls: [pageUrl],
-      resultsLimit: 200,
+      resultsLimit: 90,
       resultsType: 'posts',
       searchLimit: 10,
       searchType: 'hashtag',
@@ -56,7 +56,7 @@ export class InstagramService {
     const items = await this.apify.runActor<any>('apify~instagram-scraper', {
       addParentData: false,
       directUrls: [pageUrl],
-      resultsLimit: 50,
+      resultsLimit: 90,
       resultsType: 'reels',
       searchLimit: 10,
       searchType: 'hashtag',
@@ -75,7 +75,7 @@ export class InstagramService {
     const items = await this.apify.runActor<any>('apify~instagram-scraper', {
       addParentData: false,
       directUrls: [pageUrl],
-      resultsLimit: 200,
+      resultsLimit: 90,
       resultsType: 'posts',
       searchLimit: 10,
       searchType: 'hashtag',
@@ -105,7 +105,7 @@ export class InstagramService {
     const items = await this.apify.runActor<any>('apify~instagram-scraper', {
       addParentData: false,
       directUrls: [pageUrl],
-      resultsLimit: 200,
+      resultsLimit: 90,
       resultsType: 'reels',
       searchLimit: 10,
       searchType: 'hashtag',
@@ -122,7 +122,7 @@ export class InstagramService {
     const items = await this.apify.runActor<any>('apify~instagram-scraper', {
       addParentData: false,
       directUrls: [pageUrl],
-      resultsLimit: 200,
+      resultsLimit: 90,
       resultsType: 'stories',
       searchLimit: 10,
       searchType: 'hashtag',
