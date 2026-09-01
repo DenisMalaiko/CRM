@@ -332,6 +332,7 @@ export function BusinessDashboard() {
                     <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">Followers</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">Posts (90D)</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">Active Ads</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">Active Ads (30D)</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">Meta Ads Library</th>
                   </tr>
                 </thead>
@@ -356,6 +357,7 @@ export function BusinessDashboard() {
                       <td className="px-4 py-3 text-left font-medium text-slate-900">{(c.facebookReport?.followers ?? 0).toLocaleString('uk-UA')}</td>
                       <td className="px-4 py-3 text-left font-medium text-slate-900">{c.facebookReport?.posts != null ? (c.facebookReport.posts >= 90 ? '90+' : c.facebookReport.posts) : 0}</td>
                       <td className="px-4 py-3 text-left font-medium text-slate-900">{(c.facebookReport?.ads ?? 0).toLocaleString('uk-UA')}</td>
+                      <td className="px-4 py-3 text-left font-medium text-slate-900">{(c.facebookReport?.ads30d ?? 0).toLocaleString('uk-UA')}</td>
                       <td className="px-4 py-3 text-left">
                         {c.facebookPageId && (
                           <a

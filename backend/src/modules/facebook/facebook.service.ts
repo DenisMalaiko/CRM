@@ -145,7 +145,7 @@ export class FacebookService {
     console.log('[ADS] ===================================');
     console.log('[ADS] results:', { activeAds, adsVideoCount, adsImageCount, adsCarouselCount, adsDcoCount, adsCtaWebsite, adsCtaDirectMessage, adsCtaInstagramPage, adsCtaProduct, adsCtaMetaPage });
 
-    return { activeAds, adsVideoCount, adsImageCount, adsCarouselCount, adsDcoCount, adsCtaWebsite, adsCtaDirectMessage, adsCtaInstagramPage, adsCtaProduct, adsCtaMetaPage };
+    return { activeAds, activeAds30d, adsVideoCount, adsImageCount, adsCarouselCount, adsDcoCount, adsCtaWebsite, adsCtaDirectMessage, adsCtaInstagramPage, adsCtaProduct, adsCtaMetaPage };
   }
 
   async fetchAds(competitorId: string, pageUrl: string, body: TCompetitorAdsParams) {
