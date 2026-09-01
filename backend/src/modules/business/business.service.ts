@@ -140,7 +140,7 @@ export class BusinessService {
 
   async upsertFacebookReport(
     businessId: string,
-    data: { followers: number; posts: number; likes?: number; postsImageCount?: number; postsVideoCount?: number; postsCarouselCount?: number; activeAds?: number; adsVideoCount?: number; adsImageCount?: number; adsCarouselCount?: number; adsDcoCount?: number; adsCtaWebsite?: number; adsCtaDirectMessage?: number; adsCtaInstagramPage?: number; adsCtaProduct?: number; adsCtaMetaPage?: number },
+    data: { followers: number; posts: number; likes?: number; postsImageCount?: number; postsVideoCount?: number; postsCarouselCount?: number; activeAds?: number; activeAds30d?: number; adsVideoCount?: number; adsImageCount?: number; adsCarouselCount?: number; adsDcoCount?: number; adsCtaWebsite?: number; adsCtaDirectMessage?: number; adsCtaInstagramPage?: number; adsCtaProduct?: number; adsCtaMetaPage?: number },
   ): Promise<TFacebookReport> {
     return await this.prisma.facebookReport.upsert({
       where: { businessId },

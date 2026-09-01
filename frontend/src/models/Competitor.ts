@@ -32,6 +32,7 @@ export type TCompetitorFacebookReport = {
   followers: number;
   posts: number;
   ads: number;
+  ads30d: number;
   fetchedAt: string;
 }
 
