@@ -291,10 +291,11 @@ export function BusinessDashboard() {
               )}
             </button>
           </div>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-4 gap-4">
             <StatCard icon={Users} label="Followers" count={fbReport?.followers ?? 0} />
             <StatCard icon={FileText} label="Posts (90D)" count={fbReport?.posts != null ? (fbReport.posts >= 90 ? '90+' : fbReport.posts) : 0} />
             <StatCard icon={Megaphone} label="Ads" count={fbReport?.activeAds ?? 0} />
+            <StatCard icon={Megaphone} label="Ads (30D)" count={fbReport?.activeAds30d ?? 0} />
           </div>
           <div className="grid grid-cols-3 gap-4">
             <ContentTypeChart

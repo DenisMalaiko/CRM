@@ -21,7 +21,7 @@ export type TBusiness = TBaseModel & {
   agency?: TAgency;
   products?: TProduct[];
   businessProfiles?: TBusinessProfile[];
-}
+};
 
 export type TBusinessCreate = {
   name: string;
@@ -38,7 +38,7 @@ export type TBusinessCreate = {
   advantages: string[];
 
   agencyId: string;
-}
+};
 
 export type TFacebookReport = {
   id: string;
@@ -50,6 +50,7 @@ export type TFacebookReport = {
   postsCarouselCount: number;
   likes: number;
   activeAds: number;
+  activeAds30d: number;
   adsVideoCount: number;
   adsImageCount: number;
   adsCarouselCount: number;
@@ -60,7 +61,7 @@ export type TFacebookReport = {
   adsCtaProduct: number;
   adsCtaMetaPage: number;
   fetchedAt: string;
-}
+};
 
 export type TInstagramReport = {
   id: string;
@@ -75,4 +76,4 @@ export type TInstagramReport = {
   storiesImageCount: number;
   storiesVideoCount: number;
   fetchedAt: string;
-}
+};
