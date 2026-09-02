@@ -166,7 +166,9 @@ export class CompetitorService {
     });
 
     if (!competitor?.instagramLink) {
-      throw new BadRequestException('Competitor has no Instagram link configured');
+      throw new BadRequestException(
+        'Competitor has no Instagram link configured',
+      );
     }
 
     const [details, reelsCount, storiesCounts] = await Promise.all([
@@ -200,18 +202,49 @@ export class CompetitorService {
     const competitor = await this.prisma.competitor.findUnique({
       where: { id },
     });
-    console.log('[FB-BE] competitor found:', competitor?.name, 'facebookLink:', competitor?.facebookLink);
+    console.log(
+      '[FB-BE] competitor found:',
+      competitor?.name,
+      'facebookLink:',
+      competitor?.facebookLink,
+    );
 
     if (!competitor?.facebookLink) {
-      throw new BadRequestException('Competitor has no Facebook link configured');
+      throw new BadRequestException(
+        'Competitor has no Facebook link configured',
+      );
     }
 
     const [details, postsData, adsData] = await Promise.all([
-      this.facebookService.fetchDetails(competitor.facebookLink).catch(() => ({ followers: 0, likes: 0, pageAdLibraryId: null })),
-      this.facebookService.fetchPostsData(competitor.facebookLink).catch(() => ({ posts: 0, postsImageCount: 0, postsVideoCount: 0, postsCarouselCount: 0 })),
-      this.facebookService.fetchAdsData(competitor.facebookLink).catch(() => ({ activeAds: 0, adsVideoCount: 0, adsImageCount: 0, adsCarouselCount: 0, adsCtaWebsite: 0, adsCtaDirectMessage: 0, adsCtaInstagramPage: 0, adsCtaProduct: 0, adsCtaMetaPage: 0 })),
+      this.facebookService
+        .fetchDetails(competitor.facebookLink)
+        .catch(() => ({ followers: 0, likes: 0, pageAdLibraryId: null })),
+      this.facebookService
+        .fetchPostsData(competitor.facebookLink)
+        .catch(() => ({
+          posts: 0,
+          postsImageCount: 0,
+          postsVideoCount: 0,
+          postsCarouselCount: 0,
+        })),
+      this.facebookService.fetchAdsData(competitor.facebookLink).catch(() => ({
+        activeAds: 0,
+        activeAds30d: 0,
+        adsVideoCount: 0,
+        adsImageCount: 0,
+        adsCarouselCount: 0,
+        adsCtaWebsite: 0,
+        adsCtaDirectMessage: 0,
+        adsCtaInstagramPage: 0,
+        adsCtaProduct: 0,
+        adsCtaMetaPage: 0,
+      })),
     ]);
-    console.log('[FB-BE] fetched data:', { followers: details.followers, posts: postsData.posts, ads: adsData.activeAds });
+    console.log('[FB-BE] fetched data:', {
+      followers: details.followers,
+      posts: postsData.posts,
+      ads: adsData.activeAds,
+    });
 
     if (details.pageAdLibraryId) {
       await this.prisma.competitor.update({
@@ -226,6 +259,7 @@ export class CompetitorService {
         followers: details.followers,
         posts: postsData.posts,
         ads: adsData.activeAds,
+        ads30d: adsData.activeAds30d,
         fetchedAt: new Date(),
       },
       create: {
@@ -233,6 +267,7 @@ export class CompetitorService {
         followers: details.followers,
         posts: postsData.posts,
         ads: adsData.activeAds,
+        ads30d: adsData.activeAds30d,
       },
     });
   }
