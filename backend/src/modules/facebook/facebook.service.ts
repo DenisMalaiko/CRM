@@ -156,6 +156,7 @@ export class FacebookService {
     adsCtaInstagramPage: number;
     adsCtaProduct: number;
     adsCtaMetaPage: number;
+    topAdTexts: Array<{ text: string; collationCount: number; url: string | null }>;
   }> {
     const items = await this.apify.runActor<any>(
       'curious_coder~facebook-ads-library-scraper',
@@ -194,9 +195,10 @@ export class FacebookService {
       const endTs = item.end_date ?? nowTs;
       if (item.is_active) {
         activeCollations.add(collationKey);
-        if (endTs >= todayStart) {
-          activeCollations30d.add(collationKey);
-        }
+      }
+      const startTs = item.start_date ?? 0;
+      if (startTs >= thirtyDaysAgo) {
+        activeCollations30d.add(collationKey);
       }
 
       const format = item.snapshot?.display_format;
@@ -273,6 +275,30 @@ export class FacebookService {
       adsCtaMetaPage,
     });
 
+    const seenTexts = new Set<string>();
+    const topAdTexts: Array<{ text: string; collationCount: number; url: string | null }> = [];
+    for (const item of items) {
+      if (topAdTexts.length >= 6) break;
+      if (item.error) continue;
+
+      const bodyText = item.snapshot?.body?.text;
+      const cardText = item.snapshot?.cards?.[0]?.body;
+      const text =
+        bodyText && !bodyText.includes('{{product.brand}}')
+          ? bodyText
+          : cardText;
+
+      if (!text || text.trim().length === 0 || text.trim() === ' ') continue;
+      if (seenTexts.has(text)) continue;
+
+      seenTexts.add(text);
+      topAdTexts.push({
+        text,
+        collationCount: item.collation_count ?? 1,
+        url: item.ad_library_url ?? null,
+      });
+    }
+
     return {
       activeAds,
       activeAds30d,
@@ -285,6 +311,7 @@ export class FacebookService {
       adsCtaInstagramPage,
       adsCtaProduct,
       adsCtaMetaPage,
+      topAdTexts,
     };
   }
 

@@ -166,7 +166,8 @@ export class BusinessService {
     ]);
 
     const { pageAdLibraryId: _pageAdLibraryId, ...detailsData } = details;
-    return this.upsertFacebookReport(businessId, { ...detailsData, ...postsData, ...adsData });
+    const { topAdTexts: _topAdTexts, ...adsMetrics } = adsData;
+    return this.upsertFacebookReport(businessId, { ...detailsData, ...postsData, ...adsMetrics });
   }
 
   async getInstagramReport(businessId: string): Promise<TInstagramReport | null> {
