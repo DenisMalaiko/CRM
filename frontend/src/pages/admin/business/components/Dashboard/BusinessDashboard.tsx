@@ -31,6 +31,7 @@ import { ContentTypeChart } from "./ContentTypeChart"
 import { StoriesTypeChart } from "./StoriesTypeChart"
 import { AdsFormatChart } from "./AdsFormatChart"
 import { AdsCtaChart } from "./AdsCtaChart"
+import { TopAdTexts } from "./TopAdTexts"
 
 const tabs = [
   { key: "general" as const, label: "General" },
@@ -211,6 +212,20 @@ export function BusinessDashboard() {
       .slice(0, 10)
   }, [profiles, prompts, contentPlans, ideasAi])
 
+  const topAdTexts = useMemo(() => {
+    return competitors
+      .flatMap((c) =>
+        (c.facebookReport?.topAdTexts ?? []).map((ad) => ({
+          competitorName: c.name,
+          text: ad.text,
+          collationCount: ad.collationCount,
+          url: ad.url,
+        }))
+      )
+      .sort((a, b) => b.collationCount - a.collationCount)
+      .slice(0, 6)
+  }, [competitors])
+
   function handleOpenLink(url: string) {
     if (url) window.open(url, '_blank', 'noopener,noreferrer')
   }
@@ -295,7 +310,7 @@ export function BusinessDashboard() {
             <StatCard icon={Users} label="Followers" count={fbReport?.followers ?? 0} />
             <StatCard icon={FileText} label="Posts (90D)" count={fbReport?.posts != null ? (fbReport.posts >= 90 ? '90+' : fbReport.posts) : 0} />
             <StatCard icon={Megaphone} label="Ads" count={fbReport?.activeAds ?? 0} />
-            <StatCard icon={Megaphone} label="Ads (30D)" count={fbReport?.activeAds30d ?? 0} />
+            <StatCard icon={Megaphone} label="New Ads (30D)" count={fbReport?.activeAds30d ?? 0} />
           </div>
           <div className="grid grid-cols-3 gap-4">
             <ContentTypeChart
@@ -333,7 +348,7 @@ export function BusinessDashboard() {
                     <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">Followers</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">Posts (90D)</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">Active Ads</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">Active Ads (30D)</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">New Ads (30D)</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">Meta Ads Library</th>
                   </tr>
                 </thead>
@@ -380,6 +395,8 @@ export function BusinessDashboard() {
             )}
             </div>
           </div>
+
+          <TopAdTexts ads={topAdTexts} />
         </div>
       )}
 

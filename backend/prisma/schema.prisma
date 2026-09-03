@@ -316,6 +316,7 @@ model CompetitorFacebookReport {
   posts         Int        @default(0)
   ads           Int        @default(0)
   ads30d        Int        @default(0)
+  topAdTexts    Json       @default("[]")
   fetchedAt     DateTime   @default(now())
   competitor    Competitor @relation(fields: [competitorId], references: [id], onDelete: Cascade)
 }

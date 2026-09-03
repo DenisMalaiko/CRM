@@ -238,6 +238,7 @@ export class CompetitorService {
         adsCtaInstagramPage: 0,
         adsCtaProduct: 0,
         adsCtaMetaPage: 0,
+        topAdTexts: [],
       })),
     ]);
     console.log('[FB-BE] fetched data:', {
@@ -260,6 +261,7 @@ export class CompetitorService {
         posts: postsData.posts,
         ads: adsData.activeAds,
         ads30d: adsData.activeAds30d,
+        topAdTexts: adsData.topAdTexts,
         fetchedAt: new Date(),
       },
       create: {
@@ -268,6 +270,7 @@ export class CompetitorService {
         posts: postsData.posts,
         ads: adsData.activeAds,
         ads30d: adsData.activeAds30d,
+        topAdTexts: adsData.topAdTexts,
       },
     });
   }

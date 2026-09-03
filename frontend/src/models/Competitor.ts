@@ -26,6 +26,12 @@ export type TCompetitorInstagramReport = {
   fetchedAt: string;
 }
 
+export type TTopAdText = {
+  text: string;
+  collationCount: number;
+  url: string | null;
+}
+
 export type TCompetitorFacebookReport = {
   id: string;
   competitorId: string;
@@ -33,6 +39,7 @@ export type TCompetitorFacebookReport = {
   posts: number;
   ads: number;
   ads30d: number;
+  topAdTexts: TTopAdText[];
   fetchedAt: string;
 }
 
