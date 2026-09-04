@@ -32,6 +32,7 @@ import { StoriesTypeChart } from "./StoriesTypeChart"
 import { AdsFormatChart } from "./AdsFormatChart"
 import { AdsCtaChart } from "./AdsCtaChart"
 import { TopAdTexts } from "./TopAdTexts"
+import { CompetitorCtaBlock } from "./CompetitorCtaBlock"
 
 const tabs = [
   { key: "general" as const, label: "General" },
@@ -396,6 +397,7 @@ export function BusinessDashboard() {
             </div>
           </div>
 
+          <CompetitorCtaBlock competitors={competitors} />
           <TopAdTexts ads={topAdTexts} />
         </div>
       )}

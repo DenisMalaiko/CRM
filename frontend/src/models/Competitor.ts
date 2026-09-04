@@ -39,6 +39,15 @@ export type TCompetitorFacebookReport = {
   posts: number;
   ads: number;
   ads30d: number;
+  adsVideoCount: number;
+  adsImageCount: number;
+  adsCarouselCount: number;
+  adsDcoCount: number;
+  adsCtaWebsite: number;
+  adsCtaDirectMessage: number;
+  adsCtaInstagramPage: number;
+  adsCtaProduct: number;
+  adsCtaMetaPage: number;
   topAdTexts: TTopAdText[];
   fetchedAt: string;
 }
