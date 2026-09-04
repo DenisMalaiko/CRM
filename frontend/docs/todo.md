@@ -1,5 +1,48 @@
 # Task Log
 
+## CompetitorCtaBlock — Call To Actions блок на Facebook Dashboard — 2026-09-04
+
+### Plan
+- [x] Створити CompetitorCtaBlock компонент (агрегація CTA з усіх конкурентів)
+- [x] Інтегрувати в BusinessDashboard Facebook tab
+- [x] Quality gate: reviewer + tester
+
+### Review
+- [x] reviewer → PASS (1 suggestion: pre-existing unused `err` param — not introduced)
+- [x] tester → 8 tests pass
+- [x] tsc → 0 errors
+- [x] No regressions found
+- Summary: Новий компонент CompetitorCtaBlock агрегує 5 CTA категорій з усіх конкурентів у єдиний блок. Стилістика відповідає TopAdTexts, кольори — AdsCtaChart.
+
+### Notes
+- Агрегація через useMemo всередині компонента, не в батьківському BusinessDashboard
+- Кольорова схема: Website=#10b981, Direct Message=#fbbf24, Instagram Page=#3b82f6, Product=#8b5cf6, Meta Page=#6b7280
+
+---
+
+## Add CTA + format counts to CompetitorFacebookReport — 2026-09-04
+
+### Plan
+- [x] Prisma schema — додати 9 полів (5 CTA + 4 формати) до CompetitorFacebookReport
+- [x] Backend: competitor.service.ts — зберігати нові поля в upsert + fix catch block (adsDcoCount)
+- [x] Frontend: оновити TCompetitorFacebookReport модель
+- [x] Quality gate: reviewer + tester
+
+### Review
+- [x] reviewer → PASS (suggestion: ads/ads30d naming divergence from activeAds/activeAds30d — pre-existing, not introduced)
+- [x] tester → 319 pass, 60 pre-existing failures (unrelated: missing holidaysApi module, DatePicker mock, SidebarNav structure)
+- [x] tsc --noEmit → 0 errors
+- [x] No regressions found
+- Summary: Додано 9 полів (5 CTA категорій + 4 ad формати) до CompetitorFacebookReport. Дані вже рахувались у fetchAdsData() — тепер зберігаються в БД та повертаються на фронтенд.
+
+### Notes
+- fetchAdsData() вже рахувала ці дані — вони просто не зберігались
+- Паритет з бізнес FacebookReport моделлю
+- Prisma migrate applied, prisma generate потребує рестарту бекенду
+- Також виправлено відсутній adsDcoCount в catch block
+
+---
+
 ## Stories Formats (90D) — donut chart для Instagram tab — 2026-08-14
 
 ### Plan
