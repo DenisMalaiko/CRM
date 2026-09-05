@@ -1,7 +1,7 @@
 import React from 'react'
 import { render, screen } from '@testing-library/react'
 import { CompetitorCtaBlock } from './CompetitorCtaBlock'
-import { TCompetitorWithReport } from '../../../../../models/Competitor'
+import { TCompetitorWithReport } from '../../../models/Competitor'
 
 function makeCompetitor(overrides: Partial<TCompetitorWithReport> = {}): TCompetitorWithReport {
   return {
@@ -41,7 +41,11 @@ function makeFacebookReport(counts: {
     adsCtaInstagramPage: counts.adsCtaInstagramPage ?? 0,
     adsCtaProduct: counts.adsCtaProduct ?? 0,
     adsCtaMetaPage: counts.adsCtaMetaPage ?? 0,
+    postsImageCount: 0,
+    postsVideoCount: 0,
+    postsCarouselCount: 0,
     topAdTexts: [],
+    topAds: [],
     fetchedAt: '2024-01-01',
   }
 }

@@ -3,7 +3,6 @@ import { NavLink, useLocation } from "react-router-dom"
 import {
   Database,
   FileText,
-  CalendarRange,
   Layers,
   LayoutDashboard,
   Swords,
@@ -32,13 +31,21 @@ const sidebarGroups: SidebarGroup[] = [
       { id: "baseData", title: "Base Data" },
       { id: "products", title: "Products" },
       { id: "audiences", title: "Audiences" },
+      { id: "calendar", title: "Calendar" },
+    ],
+  },
+  {
+    label: "Competitors",
+    icon: Swords,
+    tabs: [
+      { id: "competitors/list", title: "List" },
+      { id: "competitors/dashboard", title: "Dashboard" },
     ],
   },
   {
     label: "Ideas",
     icon: Lightbulb,
     tabs: [
-      { id: "competitors", title: "Competitors" },
       { id: "ideas/facebook-posts", title: "Facebook Ideas" },
       { id: "ideas/instagram", title: "Instagram Ideas" },
       { id: "ideas/meta-ads", title: "Meta Ads Ideas" },
@@ -108,7 +115,7 @@ export function SidebarNav() {
       <NavLink
         to="dashboard"
         className={({ isActive }) =>
-          `flex items-center gap-3 px-3 py-2 rounded-lg font-medium border-b border-slate-100 ${
+          `flex items-center gap-3 px-3 py-2 rounded-lg font-medium ${
             isActive
               ? "bg-blue-100 text-blue-600"
               : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"
@@ -118,21 +125,6 @@ export function SidebarNav() {
         <LayoutDashboard size={18} />
         Dashboard
       </NavLink>
-
-      <NavLink
-        to="calendar"
-        className={({ isActive }) =>
-          `flex items-center gap-3 px-3 py-2 rounded-lg font-medium ${
-            isActive
-              ? "bg-blue-100 text-blue-600"
-              : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"
-          }`
-        }
-      >
-        <CalendarRange size={18} />
-        Calendar
-      </NavLink>
-
 
       <div className="border-b border-slate-100 my-1" />
       {sidebarGroups.map((group, index) => {

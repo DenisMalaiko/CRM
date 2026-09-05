@@ -32,11 +32,24 @@ export type TTopAdText = {
   url: string | null;
 }
 
+export type TTopAd = {
+  title: string | null;
+  adId: string;
+  format: string | null;
+  url: string | null;
+  image: string | null;
+  video: string | null;
+  activeDays: number | null;
+}
+
 export type TCompetitorFacebookReport = {
   id: string;
   competitorId: string;
   followers: number;
   posts: number;
+  postsImageCount: number;
+  postsVideoCount: number;
+  postsCarouselCount: number;
   ads: number;
   ads30d: number;
   adsVideoCount: number;
@@ -49,6 +62,7 @@ export type TCompetitorFacebookReport = {
   adsCtaProduct: number;
   adsCtaMetaPage: number;
   topAdTexts: TTopAdText[];
+  topAds: TTopAd[];
   fetchedAt: string;
 }
 

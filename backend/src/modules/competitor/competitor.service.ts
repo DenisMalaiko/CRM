@@ -240,6 +240,7 @@ export class CompetitorService {
         adsCtaProduct: 0,
         adsCtaMetaPage: 0,
         topAdTexts: [],
+        topAds: [],
       })),
     ]);
     console.log('[FB-BE] fetched data:', {
@@ -260,6 +261,9 @@ export class CompetitorService {
       update: {
         followers: details.followers,
         posts: postsData.posts,
+        postsImageCount: postsData.postsImageCount,
+        postsVideoCount: postsData.postsVideoCount,
+        postsCarouselCount: postsData.postsCarouselCount,
         ads: adsData.activeAds,
         ads30d: adsData.activeAds30d,
         adsVideoCount: adsData.adsVideoCount,
@@ -272,12 +276,16 @@ export class CompetitorService {
         adsCtaProduct: adsData.adsCtaProduct,
         adsCtaMetaPage: adsData.adsCtaMetaPage,
         topAdTexts: adsData.topAdTexts,
+        topAds: adsData.topAds,
         fetchedAt: new Date(),
       },
       create: {
         competitorId: id,
         followers: details.followers,
         posts: postsData.posts,
+        postsImageCount: postsData.postsImageCount,
+        postsVideoCount: postsData.postsVideoCount,
+        postsCarouselCount: postsData.postsCarouselCount,
         ads: adsData.activeAds,
         ads30d: adsData.activeAds30d,
         adsVideoCount: adsData.adsVideoCount,
@@ -290,6 +298,7 @@ export class CompetitorService {
         adsCtaProduct: adsData.adsCtaProduct,
         adsCtaMetaPage: adsData.adsCtaMetaPage,
         topAdTexts: adsData.topAdTexts,
+        topAds: adsData.topAds,
       },
     });
   }
