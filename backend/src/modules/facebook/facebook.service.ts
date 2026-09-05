@@ -157,6 +157,7 @@ export class FacebookService {
     adsCtaProduct: number;
     adsCtaMetaPage: number;
     topAdTexts: Array<{ text: string; collationCount: number; url: string | null }>;
+    topAds: Array<{ title: string | null; adId: string; format: string | null; url: string | null; image: string | null; video: string | null; activeDays: number | null }>;
   }> {
     const items = await this.apify.runActor<any>(
       'curious_coder~facebook-ads-library-scraper',
@@ -299,6 +300,32 @@ export class FacebookService {
       });
     }
 
+    const topAds = items
+      .filter((item) => !item.error)
+      .map((item) => {
+        const firstImage =
+          item.snapshot?.images?.[0]?.resized_image_url ??
+          item.snapshot?.cards?.[0]?.resized_image_url ??
+          item.snapshot?.videos?.[0]?.video_preview_image_url ??
+          item.snapshot?.cards?.[0]?.video_preview_image_url ??
+          null;
+        const firstVideo =
+          item.snapshot?.videos?.[0]?.video_sd_url ??
+          item.snapshot?.cards?.[0]?.video_sd_url ??
+          null;
+        return {
+          title: item.snapshot?.title ?? null,
+          adId: item.ad_archive_id ?? '',
+          format: item.snapshot?.display_format ?? null,
+          url: item.ad_library_url ?? null,
+          image: firstImage,
+          video: firstVideo,
+          activeDays: this._active_days(item.start_date, item.end_date),
+        };
+      })
+      .sort((a, b) => (b.activeDays ?? 0) - (a.activeDays ?? 0))
+      .slice(0, 10);
+
     return {
       activeAds,
       activeAds30d,
@@ -312,6 +339,7 @@ export class FacebookService {
       adsCtaProduct,
       adsCtaMetaPage,
       topAdTexts,
+      topAds,
     };
   }
 

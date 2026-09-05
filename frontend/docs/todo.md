@@ -1,5 +1,31 @@
 # Task Log
 
+## TopAdsBlock — Top Ads блок на Facebook Dashboard — 2026-09-04
+
+### Plan
+- [x] Prisma schema — додати `topAds Json @default("[]")` до CompetitorFacebookReport
+- [x] Backend: fetchAdsData() — зібрати topAds (title, adId, format, url, image, activeDays), sorted by activeDays desc, top 10
+- [x] Backend: competitor.service.ts — зберігати topAds в upsert + catch block
+- [x] Frontend: додати TTopAd тип + topAds до TCompetitorFacebookReport
+- [x] Frontend: створити TopAdsBlock компонент (grid 5 col, ad cards)
+- [x] Frontend: інтегрувати в BusinessDashboard Facebook tab
+- [x] Quality gate: reviewer + tester
+
+### Review
+- [x] reviewer → PASS (after fixes: compound key for ad cards, topAds field in test fixture)
+- [x] tester → 13 TopAdsBlock + 7 CompetitorCtaBlock tests pass (20 total)
+- [x] tsc → 0 errors
+- [x] No regressions found
+- Summary: Новий компонент TopAdsBlock агрегує top 10 реклам з усіх конкурентів, відсортованих по activeDays. Дані зберігаються як JSON в CompetitorFacebookReport — без додаткових API викликів.
+
+### Notes
+- topAds зберігається як JSON аналогічно topAdTexts — дані збираються під час fetchAdsData()
+- Зображення: перше image з snapshot, або video preview thumbnail
+- activeDays розраховується через існуючий _active_days() helper
+- Prisma migrate applied, prisma generate потребує рестарту бекенду
+
+---
+
 ## CompetitorCtaBlock — Call To Actions блок на Facebook Dashboard — 2026-09-04
 
 ### Plan

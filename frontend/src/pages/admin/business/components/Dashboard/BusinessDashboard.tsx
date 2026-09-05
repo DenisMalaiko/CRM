@@ -27,12 +27,14 @@ import { TPrompt } from "../../../../../models/Prompt"
 import { TContentPlan } from "../../../../../models/ContentPlan"
 import { TIdeaAI } from "../../../../../models/IdeaAI"
 import { showError } from "../../../../../utils/showError"
-import { ContentTypeChart } from "./ContentTypeChart"
+import { ContentTypeChart } from "../../../../../components/analytics/ContentTypeChart/ContentTypeChart"
 import { StoriesTypeChart } from "./StoriesTypeChart"
-import { AdsFormatChart } from "./AdsFormatChart"
-import { AdsCtaChart } from "./AdsCtaChart"
-import { TopAdTexts } from "./TopAdTexts"
-import { CompetitorCtaBlock } from "./CompetitorCtaBlock"
+import { AdsFormatChart } from "../../../../../components/analytics/AdsFormatChart/AdsFormatChart"
+import { AdsCtaChart } from "../../../../../components/analytics/AdsCtaChart/AdsCtaChart"
+import { TopAdTexts } from "../../../../../components/analytics/TopAdTexts/TopAdTexts"
+import { StrategicInsights } from "../../../../../components/analytics/StrategicInsights/StrategicInsights"
+import { CompetitorCtaBlock } from "../../../../../components/analytics/CompetitorCtaBlock/CompetitorCtaBlock"
+import { TopAdsBlock } from "../../../../../components/analytics/TopAdsBlock/TopAdsBlock"
 
 const tabs = [
   { key: "general" as const, label: "General" },
@@ -398,7 +400,9 @@ export function BusinessDashboard() {
           </div>
 
           <CompetitorCtaBlock competitors={competitors} />
+          <TopAdsBlock competitors={competitors} />
           <TopAdTexts ads={topAdTexts} />
+          <StrategicInsights />
         </div>
       )}
 

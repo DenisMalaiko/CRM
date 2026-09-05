@@ -42,6 +42,7 @@ import Prompts from "./pages/admin/business/components/Assets/Prompts/Prompts";
 import { BusinessDashboard } from "./pages/admin/business/components/Dashboard/BusinessDashboard";
 import Competitors from "./pages/admin/business/components/Competitors/List/Competitors";
 import Competitor from "./pages/admin/business/components/Competitors/List/:id/Competitor";
+import CompetitorsDashboard from "./pages/admin/business/components/Competitors/Dashboard/CompetitorsDashboard";
 import Gallery from "./pages/admin/business/components/Assets/Gallery/Gallery";
 import DesignSystem from "./pages/admin/business/components/Assets/Gallery/DesignSystem";
 import FacebookPostsIdeas from "./pages/admin/business/components/Competitors/Ideas/FacebookPostsIdeas";
@@ -141,7 +142,8 @@ function App() {
             <Route path="designSystem" element={<DesignSystem />} />
 
             {/*Competitors*/}
-            <Route path="competitors" element={<Competitors />}></Route>
+            <Route path="competitors/list" element={<Competitors />}></Route>
+            <Route path="competitors/dashboard" element={<CompetitorsDashboard />} />
             <Route path="competitors/:id" element={<Competitor/>} />
             <Route path="ideas/facebook-posts" element={<FacebookPostsIdeas />} />
             <Route path="ideas/instagram" element={<InstagramIdeas />} />

@@ -166,7 +166,7 @@ export class BusinessService {
     ]);
 
     const { pageAdLibraryId: _pageAdLibraryId, ...detailsData } = details;
-    const { topAdTexts: _topAdTexts, ...adsMetrics } = adsData;
+    const { topAdTexts: _topAdTexts, topAds: _topAds, ...adsMetrics } = adsData;
     return this.upsertFacebookReport(businessId, { ...detailsData, ...postsData, ...adsMetrics });
   }
 

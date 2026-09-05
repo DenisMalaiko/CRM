@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react'
-import { TCompetitorWithReport } from '../../../../../models/Competitor'
+import { TCompetitorWithReport } from '../../../models/Competitor'
 
 type Props = {
   competitors: TCompetitorWithReport[]

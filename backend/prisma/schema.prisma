@@ -314,6 +314,9 @@ model CompetitorFacebookReport {
   competitorId  String     @unique
   followers     Int        @default(0)
   posts         Int        @default(0)
+  postsImageCount    Int      @default(0)
+  postsVideoCount    Int      @default(0)
+  postsCarouselCount Int      @default(0)
   ads           Int        @default(0)
   ads30d        Int        @default(0)
   adsVideoCount      Int      @default(0)
@@ -326,6 +329,7 @@ model CompetitorFacebookReport {
   adsCtaProduct        Int      @default(0)
   adsCtaMetaPage       Int      @default(0)
   topAdTexts    Json       @default("[]")
+  topAds        Json       @default("[]")
   fetchedAt     DateTime   @default(now())
   competitor    Competitor @relation(fields: [competitorId], references: [id], onDelete: Cascade)
 }
