@@ -21,7 +21,7 @@ import { showError } from "../../../../../../utils/showError";
 
 // Models
 import { ApiResponse } from "../../../../../../models/ApiResponse";
-import { TCompetitor } from "../../../../../../models/Competitor";
+import { TCompetitor, TCompetitorWithReport } from "../../../../../../models/Competitor";
 
 function Competitors() {
   const navigate = useNavigate();
@@ -48,7 +48,7 @@ function Competitors() {
     const fetchData = async () => {
       try {
         if(businessId) {
-          const response: ApiResponse<TCompetitor[]> = await getCompetitors(businessId).unwrap();
+          const response: ApiResponse<TCompetitorWithReport[]> = await getCompetitors(businessId).unwrap();
 
           if(response && response.data) {
             dispatch(setCompetitors(response.data));
@@ -80,7 +80,7 @@ function Competitors() {
           if(responseDeleted && responseDeleted.message) toast.success(responseDeleted.message);
 
 
-          const response: ApiResponse<TCompetitor[]> = await getCompetitors(businessId).unwrap();
+          const response: ApiResponse<TCompetitorWithReport[]> = await getCompetitors(businessId).unwrap();
           if(response && response.data) {
             dispatch(setCompetitors(response.data));
           }
@@ -99,7 +99,7 @@ function Competitors() {
 
   // Open Competitor
   const openCompetitor = (id?: string) => {
-    navigate(`${id}`);
+    navigate(`/profile/businesses/${businessId}/competitors/${id}`);
   }
 
   return (

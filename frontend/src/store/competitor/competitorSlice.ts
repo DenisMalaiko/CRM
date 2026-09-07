@@ -1,8 +1,8 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { TCompetitor } from "../../models/Competitor";
+import { TCompetitor, TCompetitorWithReport } from "../../models/Competitor";
 
 type CompetitorState = {
-  competitors: TCompetitor[] | null
+  competitors: TCompetitorWithReport[] | null
   competitor: TCompetitor | null
   posts: any[] | null
   instagramPosts: any[] | null
@@ -23,7 +23,7 @@ const competitorSlice = createSlice({
   name: "competitor",
   initialState,
   reducers: {
-    setCompetitors: (state, action: PayloadAction<TCompetitor[]>) => {
+    setCompetitors: (state, action: PayloadAction<TCompetitorWithReport[]>) => {
       state.competitors = action.payload;
     },
     setCompetitor: (state, action: PayloadAction<TCompetitor>) => {
