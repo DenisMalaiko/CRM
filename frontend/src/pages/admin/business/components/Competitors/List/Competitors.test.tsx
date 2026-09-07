@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import Competitors from './Competitors';
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
@@ -8,10 +9,12 @@ jest.mock('react-toastify', () => ({
   toast: { success: jest.fn(), error: jest.fn() },
 }));
 
+const mockNavigate = jest.fn();
+
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useParams: () => ({ businessId: 'biz-1' }),
-  useNavigate: () => jest.fn(),
+  useNavigate: () => mockNavigate,
 }));
 
 const mockGetCompetitors = jest.fn();
@@ -24,11 +27,15 @@ jest.mock('../../../../../../store/competitor/competitorApi', () => ({
 
 const mockDispatch = jest.fn();
 
-jest.mock('../../../../../../store/hooks', () => ({
-  useAppDispatch: () => mockDispatch,
-}));
-
 let mockCompetitors: any[] = [];
+
+jest.mock('../../../../../../store/hooks', () => {
+  const { useSelector } = jest.requireMock('react-redux');
+  return {
+    useAppDispatch: () => mockDispatch,
+    useAppSelector: useSelector,
+  };
+});
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -91,6 +98,7 @@ describe('Competitors list', () => {
     mockGetCompetitors.mockReturnValue({
       unwrap: () => Promise.resolve({ data: [] }),
     });
+    mockNavigate.mockReset();
   });
 
   // ── Column headers ─────────────────────────────────────────────────────────
@@ -215,5 +223,16 @@ describe('Competitors list', () => {
   it('renders the "Add Competitors" button', () => {
     renderComponent();
     expect(screen.getByRole('button', { name: /add competitors/i })).toBeInTheDocument();
+  });
+
+  // ── Row navigation ─────────────────────────────────────────────────────────
+
+  it('navigates to the competitor detail page when a competitor row is clicked', async () => {
+    mockCompetitors = [makeCompetitor({ id: 'c-42', name: 'Rival Co' })];
+    renderComponent();
+
+    await userEvent.click(screen.getByText('Rival Co'));
+
+    expect(mockNavigate).toHaveBeenCalledWith('/profile/businesses/biz-1/competitors/c-42');
   });
 });

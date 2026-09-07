@@ -23,7 +23,7 @@ import { isBoolean, isRequired, minLength } from "../../../../../../../../../../
 
 // Models
 import { ApiResponse } from "../../../../../../../../../../models/ApiResponse";
-import { TCompetitor } from "../../../../../../../../../../models/Competitor";
+import { TCompetitorWithReport } from "../../../../../../../../../../models/Competitor";
 import { ChangeArg, isNativeEvent } from "../../../../../../../../../../utils/isNativeEvent";
 
 function CreateCompetitorDlg({ open, onClose, competitor }: any) {
@@ -90,7 +90,7 @@ function CreateCompetitorDlg({ open, onClose, competitor }: any) {
         if(response && response?.data) toast.success(response.message);
       }
 
-      const response: ApiResponse<TCompetitor[]> = await getCompetitors(businessId).unwrap();
+      const response: ApiResponse<TCompetitorWithReport[]> = await getCompetitors(businessId).unwrap();
       if(response && response?.data) {
         dispatch(setCompetitors(response.data));
         resetForm();
