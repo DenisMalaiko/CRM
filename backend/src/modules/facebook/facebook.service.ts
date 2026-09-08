@@ -76,6 +76,8 @@ export class FacebookService {
     postsImageCount: number;
     postsVideoCount: number;
     postsCarouselCount: number;
+    topPosts: Array<{ postId: string; format: string | null; url: string | null; image: string | null; video: string | null; reactions: number | null; comments: number | null; shares: number | null }>;
+    topPostTexts: Array<{ text: string; collationCount: number; url: string | null }>;
   }> {
     const ninetyDaysAgo = new Date();
     ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
@@ -129,18 +131,87 @@ export class FacebookService {
     }
 
     const total = postsImageCount + postsVideoCount + postsCarouselCount;
+
+    const topPosts = items
+      .filter((item) => !item.error)
+      .map((item) => {
+        const hasCarousel =
+          Array.isArray(item.media) && item.media[0]?.mediaset_token;
+        const hasVideo =
+          Array.isArray(item.media) &&
+          item.media.some((m: any) => m?.__typename === 'Video');
+        const format = hasCarousel ? 'carousel' : hasVideo ? 'video' : 'image';
+
+        const videoMedia = Array.isArray(item.media)
+          ? item.media.find((m: any) => m?.__typename === 'Video')
+          : null;
+        const image =
+          item.media?.[0]?.thumbnail ??
+          item.media?.[0]?.photo_image?.uri ??
+          null;
+        const video =
+          videoMedia?.videoDeliveryLegacyFields?.browser_native_sd_url ?? null;
+
+        const likes = item.likes ?? 0;
+        const comments = item.comments ?? 0;
+        const shares = item.shares ?? 0;
+        const engagement = likes + comments * 2 + shares * 3;
+
+        return {
+          postId: item.postId ?? '',
+          format,
+          url: item.topLevelUrl ?? item.url ?? null,
+          image,
+          video,
+          reactions: likes,
+          comments,
+          shares,
+          _engagement: engagement,
+        };
+      })
+      .sort((a, b) => b._engagement - a._engagement)
+      .slice(0, 10)
+      .map(({ _engagement, ...rest }) => rest);
+
+    const seenTexts = new Set<string>();
+    const topPostTexts: Array<{ text: string; collationCount: number; url: string | null }> = [];
+    const sortedByEngagement = [...items]
+      .filter((item) => !item.error)
+      .sort((a, b) => {
+        const engA = (a.likes ?? 0) + (a.comments ?? 0) * 2 + (a.shares ?? 0) * 3;
+        const engB = (b.likes ?? 0) + (b.comments ?? 0) * 2 + (b.shares ?? 0) * 3;
+        return engB - engA;
+      });
+    for (const item of sortedByEngagement) {
+      if (topPostTexts.length >= 6) break;
+      const text = item.text;
+      if (!text || text.trim().length === 0) continue;
+      if (seenTexts.has(text)) continue;
+      seenTexts.add(text);
+      const engagement = (item.likes ?? 0) + (item.comments ?? 0) * 2 + (item.shares ?? 0) * 3;
+      topPostTexts.push({
+        text,
+        collationCount: engagement,
+        url: item.topLevelUrl ?? item.url ?? null,
+      });
+    }
+
     console.log('[POSTS] results:', {
       total,
       skippedErrors,
       postsImageCount,
       postsVideoCount,
       postsCarouselCount,
+      topPostsCount: topPosts.length,
+      topPostTextsCount: topPostTexts.length,
     });
     return {
       posts: total,
       postsImageCount,
       postsVideoCount,
       postsCarouselCount,
+      topPosts,
+      topPostTexts,
     };
   }
 

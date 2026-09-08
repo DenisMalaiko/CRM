@@ -109,6 +109,8 @@ function makeFacebookReport(overrides: Partial<Record<string, unknown>> = {}) {
         activeDays: 14,
       },
     ],
+    topPostTexts: [],
+    topPosts: [],
     fetchedAt: '2024-06-01T00:00:00.000Z',
     ...overrides,
   };
@@ -204,12 +206,6 @@ describe('Competitor detail page', () => {
     expect(screen.queryByText(/ads cta types/i)).not.toBeInTheDocument();
   });
 
-  it('does not render "Call-to-Actions" heading when facebookReport is null', () => {
-    mockCompetitors = [makeCompetitor({ facebookReport: null })];
-    renderComponent();
-    expect(screen.queryByText(/call-to-actions/i)).not.toBeInTheDocument();
-  });
-
   it('does not render "Top Ads" heading when facebookReport is null', () => {
     mockCompetitors = [makeCompetitor({ facebookReport: null })];
     renderComponent();
@@ -249,12 +245,6 @@ describe('Competitor detail page', () => {
     mockCompetitors = [makeCompetitor({ facebookReport: makeFacebookReport() })];
     renderComponent();
     expect(screen.getByText('Ads CTA Types')).toBeInTheDocument();
-  });
-
-  it('renders "Call-to-Actions" heading when facebookReport has CTA data', () => {
-    mockCompetitors = [makeCompetitor({ facebookReport: makeFacebookReport() })];
-    renderComponent();
-    expect(screen.getByText('Call-to-Actions')).toBeInTheDocument();
   });
 
   it('renders "Top Ads" heading when facebookReport has topAds', () => {

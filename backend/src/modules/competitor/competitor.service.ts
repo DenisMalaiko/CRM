@@ -226,6 +226,8 @@ export class CompetitorService {
           postsImageCount: 0,
           postsVideoCount: 0,
           postsCarouselCount: 0,
+          topPosts: [],
+          topPostTexts: [],
         })),
       this.facebookService.fetchAdsData(competitor.facebookLink).catch(() => ({
         activeAds: 0,
@@ -277,6 +279,8 @@ export class CompetitorService {
         adsCtaMetaPage: adsData.adsCtaMetaPage,
         topAdTexts: adsData.topAdTexts,
         topAds: adsData.topAds,
+        topPosts: postsData.topPosts,
+        topPostTexts: postsData.topPostTexts,
         fetchedAt: new Date(),
       },
       create: {
@@ -299,6 +303,8 @@ export class CompetitorService {
         adsCtaMetaPage: adsData.adsCtaMetaPage,
         topAdTexts: adsData.topAdTexts,
         topAds: adsData.topAds,
+        topPosts: postsData.topPosts,
+        topPostTexts: postsData.topPostTexts,
       },
     });
   }
