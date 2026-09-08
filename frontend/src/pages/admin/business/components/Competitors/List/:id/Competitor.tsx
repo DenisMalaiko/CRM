@@ -26,7 +26,8 @@ import AdsTable from "./components/ads/table/Table";
 import { ContentTypeChart } from "../../../../../../../components/analytics/ContentTypeChart/ContentTypeChart";
 import { AdsFormatChart } from "../../../../../../../components/analytics/AdsFormatChart/AdsFormatChart";
 import { AdsCtaChart } from "../../../../../../../components/analytics/AdsCtaChart/AdsCtaChart";
-import { CompetitorCtaBlock } from "../../../../../../../components/analytics/CompetitorCtaBlock/CompetitorCtaBlock";
+import { TopPostsBlock } from "../../../../../../../components/analytics/TopPostsBlock/TopPostsBlock";
+import { TopPostTexts } from "../../../../../../../components/analytics/TopPostTexts/TopPostTexts";
 import { TopAdsBlock } from "../../../../../../../components/analytics/TopAdsBlock/TopAdsBlock";
 import { TopAdTexts } from "../../../../../../../components/analytics/TopAdTexts/TopAdTexts";
 
@@ -51,6 +52,19 @@ function Competitor() {
   );
 
   const report = competitorWithReport?.facebookReport;
+
+  const topPostTexts = useMemo(() => {
+    if (!competitorWithReport?.facebookReport?.topPostTexts) return [];
+    return competitorWithReport.facebookReport.topPostTexts
+      .map((post) => ({
+        competitorName: competitorWithReport.name,
+        text: post.text,
+        collationCount: post.collationCount,
+        url: post.url,
+      }))
+      .sort((a, b) => b.collationCount - a.collationCount)
+      .slice(0, 6);
+  }, [competitorWithReport]);
 
   const topAdTexts = useMemo(() => {
     if (!competitorWithReport?.facebookReport?.topAdTexts) return [];
@@ -151,7 +165,8 @@ function Competitor() {
             />
           </div>
 
-          <CompetitorCtaBlock competitors={[competitorWithReport]} />
+          <TopPostsBlock competitors={[competitorWithReport]} />
+          <TopPostTexts posts={topPostTexts} />
           <TopAdsBlock competitors={[competitorWithReport]} />
           <TopAdTexts ads={topAdTexts} />
         </>

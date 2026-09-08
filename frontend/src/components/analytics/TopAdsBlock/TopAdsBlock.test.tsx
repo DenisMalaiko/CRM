@@ -40,6 +40,8 @@ function makeFacebookReport(topAds: TTopAd[] = []) {
     postsCarouselCount: 0,
     topAdTexts: [],
     topAds,
+    topPostTexts: [],
+    topPosts: [],
     fetchedAt: '2024-01-01',
   }
 }
