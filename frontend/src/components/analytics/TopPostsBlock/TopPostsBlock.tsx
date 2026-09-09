@@ -120,12 +120,6 @@ export function TopPostsBlock({ competitors }: Props) {
                 {post.format && (
                   <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-600">{post.format}</span>
                 )}
-                {post.comments != null && (
-                  <span className="text-xs text-slate-400">{post.comments} comments</span>
-                )}
-                {post.shares != null && (
-                  <span className="text-xs text-slate-400">{post.shares} shares</span>
-                )}
               </div>
             </div>
           </div>

@@ -121,7 +121,7 @@ describe('TopPostsBlock', () => {
     expect(screen.queryByText(/reactions/)).not.toBeInTheDocument()
   })
 
-  it('renders comments count when provided', () => {
+  it('does not render comments count even when comments data is provided', () => {
     const competitors = [
       makeCompetitor({
         facebookReport: makeFacebookReport([makeTopPost({ comments: 88 })]),
@@ -129,35 +129,13 @@ describe('TopPostsBlock', () => {
     ]
     render(<TopPostsBlock competitors={competitors} />)
 
-    expect(screen.getByText('88 comments')).toBeInTheDocument()
-  })
-
-  it('does not render comments when comments is null', () => {
-    const competitors = [
-      makeCompetitor({
-        facebookReport: makeFacebookReport([makeTopPost({ comments: null })]),
-      }),
-    ]
-    render(<TopPostsBlock competitors={competitors} />)
-
     expect(screen.queryByText(/comments/)).not.toBeInTheDocument()
   })
 
-  it('renders shares count when provided', () => {
+  it('does not render shares count even when shares data is provided', () => {
     const competitors = [
       makeCompetitor({
         facebookReport: makeFacebookReport([makeTopPost({ shares: 33 })]),
-      }),
-    ]
-    render(<TopPostsBlock competitors={competitors} />)
-
-    expect(screen.getByText('33 shares')).toBeInTheDocument()
-  })
-
-  it('does not render shares when shares is null', () => {
-    const competitors = [
-      makeCompetitor({
-        facebookReport: makeFacebookReport([makeTopPost({ shares: null })]),
       }),
     ]
     render(<TopPostsBlock competitors={competitors} />)

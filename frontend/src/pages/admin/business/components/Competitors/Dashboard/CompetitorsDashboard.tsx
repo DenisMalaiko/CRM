@@ -8,7 +8,8 @@ import { showError } from "../../../../../../utils/showError"
 import { ContentTypeChart } from "../../../../../../components/analytics/ContentTypeChart/ContentTypeChart"
 import { AdsFormatChart } from "../../../../../../components/analytics/AdsFormatChart/AdsFormatChart"
 import { AdsCtaChart } from "../../../../../../components/analytics/AdsCtaChart/AdsCtaChart"
-import { CompetitorCtaBlock } from "../../../../../../components/analytics/CompetitorCtaBlock/CompetitorCtaBlock"
+import { TopPostsBlock } from "../../../../../../components/analytics/TopPostsBlock/TopPostsBlock"
+import { TopPostTexts } from "../../../../../../components/analytics/TopPostTexts/TopPostTexts"
 import { TopAdsBlock } from "../../../../../../components/analytics/TopAdsBlock/TopAdsBlock"
 import { TopAdTexts } from "../../../../../../components/analytics/TopAdTexts/TopAdTexts"
 import { StrategicInsights } from "../../../../../../components/analytics/StrategicInsights/StrategicInsights"
@@ -64,6 +65,20 @@ export default function CompetitorsDashboard() {
       adsVideoCount, adsImageCount, adsCarouselCount, adsDcoCount,
       adsCtaWebsite, adsCtaDirectMessage, adsCtaInstagramPage, adsCtaProduct, adsCtaMetaPage,
     }
+  }, [competitors])
+
+  const topPostTexts = useMemo(() => {
+    return competitors
+      .flatMap((c) =>
+        (c.facebookReport?.topPostTexts ?? []).map((post) => ({
+          competitorName: c.name,
+          text: post.text,
+          collationCount: post.collationCount,
+          url: post.url,
+        }))
+      )
+      .sort((a, b) => b.collationCount - a.collationCount)
+      .slice(0, 6)
   }, [competitors])
 
   const topAdTexts = useMemo(() => {
@@ -211,7 +226,8 @@ export default function CompetitorsDashboard() {
         </div>
       </div>
 
-      <CompetitorCtaBlock competitors={competitors} />
+      <TopPostsBlock competitors={competitors} />
+      <TopPostTexts posts={topPostTexts} />
       <TopAdsBlock competitors={competitors} />
       <TopAdTexts ads={topAdTexts} />
       <StrategicInsights />
