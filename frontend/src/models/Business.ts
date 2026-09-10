@@ -3,6 +3,7 @@ import { TAgency } from "./Agency";
 import { TProduct } from "./Product";
 import { TBusinessProfile } from "./BusinessProfile";
 import { BusinessStatus } from "../enum/BusinessStatus";
+import { TTopPost, TTopPostText, TTopAd, TTopAdText } from "./Competitor";
 
 export type TBusiness = TBaseModel & {
   name: string;
@@ -60,6 +61,10 @@ export type TFacebookReport = {
   adsCtaInstagramPage: number;
   adsCtaProduct: number;
   adsCtaMetaPage: number;
+  topPosts: TTopPost[];
+  topPostTexts: TTopPostText[];
+  topAds: TTopAd[];
+  topAdTexts: TTopAdText[];
   fetchedAt: string;
 };
 

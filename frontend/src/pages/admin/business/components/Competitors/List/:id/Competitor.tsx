@@ -165,9 +165,9 @@ function Competitor() {
             />
           </div>
 
-          <TopPostsBlock competitors={[competitorWithReport]} />
+          <TopPostsBlock posts={competitorWithReport.facebookReport?.topPosts ?? []} />
           <TopPostTexts posts={topPostTexts} />
-          <TopAdsBlock competitors={[competitorWithReport]} />
+          <TopAdsBlock ads={competitorWithReport.facebookReport?.topAds ?? []} />
           <TopAdTexts ads={topAdTexts} />
         </>
       )}

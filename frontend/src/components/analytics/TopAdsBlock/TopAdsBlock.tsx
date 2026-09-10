@@ -1,12 +1,10 @@
 import React, { useMemo, useRef, useState, useCallback } from 'react'
 import { ExternalLink } from 'lucide-react'
-import { TCompetitorWithReport, TTopAd } from '../../../models/Competitor'
+import { TTopAd } from '../../../models/Competitor'
 
 type Props = {
-  competitors: TCompetitorWithReport[]
+  ads: TTopAd[]
 }
-
-type TopAdWithCompetitor = TTopAd & { competitorName: string }
 
 function VideoPlayer({ src, poster }: { src: string; poster?: string }) {
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -51,15 +49,9 @@ function VideoPlayer({ src, poster }: { src: string; poster?: string }) {
   )
 }
 
-export function TopAdsBlock({ competitors }: Props) {
-  const topAds = useMemo<TopAdWithCompetitor[]>(() => {
-    return competitors
-      .flatMap((c) =>
-        (c.facebookReport?.topAds ?? []).map((ad) => ({
-          ...ad,
-          competitorName: c.name,
-        }))
-      )
+export function TopAdsBlock({ ads }: Props) {
+  const topAds = useMemo(() => {
+    return [...ads]
       .sort((a, b) => {
         if (a.activeDays == null && b.activeDays == null) return 0
         if (a.activeDays == null) return 1
@@ -67,7 +59,7 @@ export function TopAdsBlock({ competitors }: Props) {
         return b.activeDays - a.activeDays
       })
       .slice(0, 10)
-  }, [competitors])
+  }, [ads])
 
   if (topAds.length === 0) return null
 
@@ -79,7 +71,7 @@ export function TopAdsBlock({ competitors }: Props) {
       <div className="grid grid-cols-5 gap-4 p-4">
         {topAds.map((ad) => (
           <div
-            key={`${ad.competitorName}-${ad.adId}`}
+            key={ad.adId}
             className="rounded-xl border border-slate-200 overflow-hidden"
           >
             <div className="relative aspect-[3/4] bg-slate-100">
@@ -101,7 +93,6 @@ export function TopAdsBlock({ competitors }: Props) {
               )}
             </div>
             <div className="p-3 space-y-1">
-              <p className="text-sm font-semibold text-slate-800 truncate text-left">{ad.competitorName}</p>
               <p className="text-xs text-slate-400 truncate text-left">ad_id: {ad.adId}</p>
               <div className="flex items-center justify-between pt-1">
                 {ad.url && (

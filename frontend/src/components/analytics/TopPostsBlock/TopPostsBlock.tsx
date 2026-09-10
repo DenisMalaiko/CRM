@@ -1,12 +1,10 @@
 import React, { useMemo, useRef, useState, useCallback } from 'react'
 import { ExternalLink } from 'lucide-react'
-import { TCompetitorWithReport, TTopPost } from '../../../models/Competitor'
+import { TTopPost } from '../../../models/Competitor'
 
 type Props = {
-  competitors: TCompetitorWithReport[]
+  posts: TTopPost[]
 }
-
-type TopPostWithCompetitor = TTopPost & { competitorName: string }
 
 function VideoPlayer({ src, poster }: { src: string; poster?: string }) {
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -51,15 +49,9 @@ function VideoPlayer({ src, poster }: { src: string; poster?: string }) {
   )
 }
 
-export function TopPostsBlock({ competitors }: Props) {
-  const topPosts = useMemo<TopPostWithCompetitor[]>(() => {
-    return competitors
-      .flatMap((c) =>
-        (c.facebookReport?.topPosts ?? []).map((post) => ({
-          ...post,
-          competitorName: c.name,
-        }))
-      )
+export function TopPostsBlock({ posts }: Props) {
+  const topPosts = useMemo(() => {
+    return [...posts]
       .sort((a, b) => {
         if (a.reactions == null && b.reactions == null) return 0
         if (a.reactions == null) return 1
@@ -67,7 +59,7 @@ export function TopPostsBlock({ competitors }: Props) {
         return b.reactions - a.reactions
       })
       .slice(0, 10)
-  }, [competitors])
+  }, [posts])
 
   if (topPosts.length === 0) return null
 
@@ -79,7 +71,7 @@ export function TopPostsBlock({ competitors }: Props) {
       <div className="grid grid-cols-5 gap-4 p-4">
         {topPosts.map((post) => (
           <div
-            key={`${post.competitorName}-${post.postId}`}
+            key={post.postId}
             className="rounded-xl border border-slate-200 overflow-hidden"
           >
             <div className="relative aspect-[3/4] bg-slate-100">
@@ -101,7 +93,6 @@ export function TopPostsBlock({ competitors }: Props) {
               )}
             </div>
             <div className="p-3 space-y-1">
-              <p className="text-sm font-semibold text-slate-800 truncate text-left">{post.competitorName}</p>
               <p className="text-xs text-slate-400 truncate text-left">post_id: {post.postId}</p>
               <div className="flex items-center justify-between pt-1">
                 {post.url && (
