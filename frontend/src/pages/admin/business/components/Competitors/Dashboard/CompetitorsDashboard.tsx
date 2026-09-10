@@ -226,9 +226,9 @@ export default function CompetitorsDashboard() {
         </div>
       </div>
 
-      <TopPostsBlock competitors={competitors} />
+      <TopPostsBlock posts={competitors.flatMap((c) => c.facebookReport?.topPosts ?? [])} />
       <TopPostTexts posts={topPostTexts} />
-      <TopAdsBlock competitors={competitors} />
+      <TopAdsBlock ads={competitors.flatMap((c) => c.facebookReport?.topAds ?? [])} />
       <TopAdTexts ads={topAdTexts} />
       <StrategicInsights />
     </div>

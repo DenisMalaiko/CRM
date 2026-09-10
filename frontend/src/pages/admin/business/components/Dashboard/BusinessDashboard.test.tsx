@@ -192,8 +192,8 @@ describe("BusinessDashboard", () => {
       userEvent.click(screen.getByRole("button", { name: "Facebook" }))
 
       expect(screen.getByText("Followers")).toBeInTheDocument()
-      expect(screen.getByText("Posts")).toBeInTheDocument()
-      expect(screen.getByText("Active Ads")).toBeInTheDocument()
+      expect(screen.getByText("Posts (90D)")).toBeInTheDocument()
+      expect(screen.getByText("Ads")).toBeInTheDocument()
     })
 
     it("shows zero counts when there is no facebook report", () => {
@@ -313,7 +313,8 @@ describe("BusinessDashboard", () => {
       userEvent.click(screen.getByRole("button", { name: "Instagram" }))
 
       await screen.findByText("Acme Corp")
-      expect(screen.getByText("1200")).toBeInTheDocument()
+      // Numbers are formatted with uk-UA locale (e.g. 1200 → "1 200" with narrow no-break space)
+      expect(screen.getByText((_, el) => el?.tagName === "TD" && /1[\s\u00a0\u202f]?200/.test(el.textContent ?? ""))).toBeInTheDocument()
       expect(screen.getByText("30")).toBeInTheDocument()
       expect(screen.getByText("5")).toBeInTheDocument()
       expect(screen.getByText("10")).toBeInTheDocument()

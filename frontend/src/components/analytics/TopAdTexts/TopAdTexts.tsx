@@ -24,18 +24,32 @@ export function TopAdTexts({ ads }: Props) {
         {ads.map((ad, index) => (
           <div key={`${ad.competitorName}-${index}`} className="rounded-xl border border-slate-200 p-4">
             <div className="flex items-center justify-between">
-              {ad.url ? (
+              {ad.competitorName ? (
+                ad.url ? (
+                  <a
+                    href={ad.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                  >
+                    {ad.competitorName}
+                    <ExternalLink size={14} />
+                  </a>
+                ) : (
+                  <p className="text-sm font-semibold text-slate-800">{ad.competitorName}</p>
+                )
+              ) : ad.url ? (
                 <a
                   href={ad.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-sm font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                  className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800"
                 >
-                  {ad.competitorName}
+                  Open Ad
                   <ExternalLink size={14} />
                 </a>
               ) : (
-                <p className="text-sm font-semibold text-slate-800">{ad.competitorName}</p>
+                <span />
               )}
               <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-600">
                 {ad.collationCount} {ad.collationCount === 1 ? 'copy' : 'copies'}

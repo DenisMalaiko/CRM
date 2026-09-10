@@ -1,50 +1,7 @@
 import React from 'react'
-import { render, screen, within } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import { TopAdsBlock } from './TopAdsBlock'
-import { TCompetitorWithReport, TTopAd } from '../../../models/Competitor'
-
-function makeCompetitor(overrides: Partial<TCompetitorWithReport> = {}): TCompetitorWithReport {
-  return {
-    id: '1',
-    businessId: 'biz-1',
-    name: 'Competitor A',
-    facebookLink: '',
-    instagramLink: '',
-    isActive: true,
-    createdAt: new Date(),
-    instagramReport: null,
-    facebookReport: null,
-    ...overrides,
-  }
-}
-
-function makeFacebookReport(topAds: TTopAd[] = []) {
-  return {
-    id: 'rep-1',
-    competitorId: '1',
-    followers: 0,
-    posts: 0,
-    ads: 0,
-    ads30d: 0,
-    adsVideoCount: 0,
-    adsImageCount: 0,
-    adsCarouselCount: 0,
-    adsDcoCount: 0,
-    adsCtaWebsite: 0,
-    adsCtaDirectMessage: 0,
-    adsCtaInstagramPage: 0,
-    adsCtaProduct: 0,
-    adsCtaMetaPage: 0,
-    postsImageCount: 0,
-    postsVideoCount: 0,
-    postsCarouselCount: 0,
-    topAdTexts: [],
-    topAds,
-    topPostTexts: [],
-    topPosts: [],
-    fetchedAt: '2024-01-01',
-  }
-}
+import { TTopAd } from '../../../models/Competitor'
 
 function makeTopAd(overrides: Partial<TTopAd> = {}): TTopAd {
   return {
@@ -60,86 +17,45 @@ function makeTopAd(overrides: Partial<TTopAd> = {}): TTopAd {
 }
 
 describe('TopAdsBlock', () => {
-  it('returns null when competitors array is empty', () => {
-    const { container } = render(<TopAdsBlock competitors={[]} />)
-
-    expect(container.firstChild).toBeNull()
-  })
-
-  it('returns null when no competitor has topAds', () => {
-    const competitors = [
-      makeCompetitor({ facebookReport: null }),
-      makeCompetitor({ id: '2', facebookReport: makeFacebookReport([]) }),
-    ]
-    const { container } = render(<TopAdsBlock competitors={competitors} />)
+  it('returns null when ads array is empty', () => {
+    const { container } = render(<TopAdsBlock ads={[]} />)
 
     expect(container.firstChild).toBeNull()
   })
 
   it('renders "Top Ads" heading when ads exist', () => {
-    const competitors = [
-      makeCompetitor({ facebookReport: makeFacebookReport([makeTopAd()]) }),
-    ]
-    render(<TopAdsBlock competitors={competitors} />)
+    render(<TopAdsBlock ads={[makeTopAd()]} />)
 
     expect(screen.getByRole('heading', { name: 'Top Ads' })).toBeInTheDocument()
   })
 
-  it('renders correct competitor name and ad_id', () => {
-    const competitors = [
-      makeCompetitor({
-        name: 'Nike',
-        facebookReport: makeFacebookReport([makeTopAd({ adId: 'ad-xyz-999' })]),
-      }),
-    ]
-    render(<TopAdsBlock competitors={competitors} />)
+  it('renders ad_id for each ad', () => {
+    render(<TopAdsBlock ads={[makeTopAd({ adId: 'ad-xyz-999' })]} />)
 
-    expect(screen.getByText('Nike')).toBeInTheDocument()
     expect(screen.getByText('ad_id: ad-xyz-999')).toBeInTheDocument()
   })
 
   it('renders days badge with activeDays value', () => {
-    const competitors = [
-      makeCompetitor({
-        facebookReport: makeFacebookReport([makeTopAd({ activeDays: 42 })]),
-      }),
-    ]
-    render(<TopAdsBlock competitors={competitors} />)
+    render(<TopAdsBlock ads={[makeTopAd({ activeDays: 42 })]} />)
 
     expect(screen.getByText('42 days')).toBeInTheDocument()
   })
 
   it('does not render days badge when activeDays is null', () => {
-    const competitors = [
-      makeCompetitor({
-        facebookReport: makeFacebookReport([makeTopAd({ activeDays: null })]),
-      }),
-    ]
-    render(<TopAdsBlock competitors={competitors} />)
+    render(<TopAdsBlock ads={[makeTopAd({ activeDays: null })]} />)
 
     expect(screen.queryByText(/days/)).not.toBeInTheDocument()
   })
 
-  it('renders format label in uppercase', () => {
-    const competitors = [
-      makeCompetitor({
-        facebookReport: makeFacebookReport([makeTopAd({ format: 'video' })]),
-      }),
-    ]
-    render(<TopAdsBlock competitors={competitors} />)
+  it('renders format label when format is provided', () => {
+    render(<TopAdsBlock ads={[makeTopAd({ format: 'video' })]} />)
 
-    const formatLabel = screen.getByText('video')
-    expect(formatLabel).toBeInTheDocument()
+    expect(screen.getByText('video')).toBeInTheDocument()
   })
 
   it('renders "Open in Meta Ad Library" link with correct href', () => {
     const url = 'https://facebook.com/ads/library/?id=ad-1'
-    const competitors = [
-      makeCompetitor({
-        facebookReport: makeFacebookReport([makeTopAd({ url })]),
-      }),
-    ]
-    render(<TopAdsBlock competitors={competitors} />)
+    render(<TopAdsBlock ads={[makeTopAd({ url })]} />)
 
     const link = screen.getByRole('link', { name: /Open in Meta Ad Library/i })
     expect(link).toBeInTheDocument()
@@ -149,35 +65,18 @@ describe('TopAdsBlock', () => {
   })
 
   it('does not render link when url is null', () => {
-    const competitors = [
-      makeCompetitor({
-        facebookReport: makeFacebookReport([makeTopAd({ url: null })]),
-      }),
-    ]
-    render(<TopAdsBlock competitors={competitors} />)
+    render(<TopAdsBlock ads={[makeTopAd({ url: null })]} />)
 
     expect(screen.queryByRole('link', { name: /Open in Meta Ad Library/i })).not.toBeInTheDocument()
   })
 
-  it('aggregates ads from multiple competitors and sorts by activeDays desc', () => {
-    const competitors = [
-      makeCompetitor({
-        id: '1',
-        name: 'Competitor A',
-        facebookReport: makeFacebookReport([
-          makeTopAd({ adId: 'ad-low', activeDays: 5 }),
-          makeTopAd({ adId: 'ad-high', activeDays: 100 }),
-        ]),
-      }),
-      makeCompetitor({
-        id: '2',
-        name: 'Competitor B',
-        facebookReport: makeFacebookReport([
-          makeTopAd({ adId: 'ad-mid', activeDays: 50 }),
-        ]),
-      }),
+  it('sorts ads by activeDays desc', () => {
+    const ads = [
+      makeTopAd({ adId: 'ad-low', activeDays: 5 }),
+      makeTopAd({ adId: 'ad-high', activeDays: 100 }),
+      makeTopAd({ adId: 'ad-mid', activeDays: 50 }),
     ]
-    render(<TopAdsBlock competitors={competitors} />)
+    render(<TopAdsBlock ads={ads} />)
 
     const adIds = screen.getAllByText(/ad_id:/)
     expect(adIds[0]).toHaveTextContent('ad_id: ad-high')
@@ -189,39 +88,51 @@ describe('TopAdsBlock', () => {
     const ads = Array.from({ length: 15 }, (_, i) =>
       makeTopAd({ adId: `ad-${i}`, activeDays: i })
     )
-    const competitors = [
-      makeCompetitor({ facebookReport: makeFacebookReport(ads) }),
-    ]
-    render(<TopAdsBlock competitors={competitors} />)
+    render(<TopAdsBlock ads={ads} />)
 
     const adLabels = screen.getAllByText(/ad_id:/)
     expect(adLabels).toHaveLength(10)
   })
 
-  it('renders video placeholder when image is null', () => {
-    const competitors = [
-      makeCompetitor({
-        facebookReport: makeFacebookReport([makeTopAd({ image: null })]),
-      }),
+  it('places ads with null activeDays after ads with activeDays', () => {
+    const ads = [
+      makeTopAd({ adId: 'ad-null', activeDays: null }),
+      makeTopAd({ adId: 'ad-valued', activeDays: 1 }),
     ]
-    const { container } = render(<TopAdsBlock competitors={competitors} />)
+    render(<TopAdsBlock ads={ads} />)
 
-    expect(container.querySelector('img')).not.toBeInTheDocument()
-    expect(container.querySelector('.bg-slate-900')).toBeInTheDocument()
+    const adIds = screen.getAllByText(/ad_id:/)
+    expect(adIds[0]).toHaveTextContent('ad_id: ad-valued')
+    expect(adIds[1]).toHaveTextContent('ad_id: ad-null')
   })
 
   it('renders image when image url is provided', () => {
-    const competitors = [
-      makeCompetitor({
-        facebookReport: makeFacebookReport([
-          makeTopAd({ image: 'https://example.com/ad.jpg' }),
-        ]),
-      }),
-    ]
-    const { container } = render(<TopAdsBlock competitors={competitors} />)
+    const { container } = render(
+      <TopAdsBlock ads={[makeTopAd({ image: 'https://example.com/ad.jpg' })]} />
+    )
 
     const img = container.querySelector('img')
     expect(img).toBeInTheDocument()
     expect(img).toHaveAttribute('src', 'https://example.com/ad.jpg')
+  })
+
+  it('renders placeholder when image and video are both null', () => {
+    const { container } = render(
+      <TopAdsBlock ads={[makeTopAd({ image: null, video: null })]} />
+    )
+
+    expect(container.querySelector('img')).not.toBeInTheDocument()
+    expect(container.querySelector('video')).not.toBeInTheDocument()
+    expect(container.querySelector('.bg-slate-900')).toBeInTheDocument()
+  })
+
+  it('renders video element when video url is provided', () => {
+    const { container } = render(
+      <TopAdsBlock ads={[makeTopAd({ video: 'https://example.com/ad.mp4', image: null })]} />
+    )
+
+    const video = container.querySelector('video')
+    expect(video).toBeInTheDocument()
+    expect(video).toHaveAttribute('src', 'https://example.com/ad.mp4')
   })
 })

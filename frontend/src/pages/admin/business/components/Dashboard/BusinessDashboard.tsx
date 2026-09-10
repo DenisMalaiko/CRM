@@ -6,7 +6,7 @@ import { Package, Users, Lightbulb, Megaphone, FileText, Film, BookImage, Lucide
 import { useAppDispatch, useAppSelector } from "../../../../../store/hooks"
 import { useGetFacebookReportMutation, useGetInstagramReportMutation, useFetchInstagramReportMutation, useFetchFacebookReportMutation } from "../../../../../store/businesses/businessesApi"
 import { TFacebookReport, TInstagramReport } from "../../../../../models/Business"
-import { useGetCompetitorsMutation, useFetchCompetitorInstagramReportMutation, useFetchCompetitorFacebookReportMutation } from "../../../../../store/competitor/competitorApi"
+import { useGetCompetitorsMutation, useFetchCompetitorInstagramReportMutation } from "../../../../../store/competitor/competitorApi"
 import { TCompetitorWithReport } from "../../../../../models/Competitor"
 import { useGetProductsMutation } from "../../../../../store/products/productsApi"
 import { useGetAudiencesMutation } from "../../../../../store/audience/audienceApi"
@@ -31,10 +31,10 @@ import { ContentTypeChart } from "../../../../../components/analytics/ContentTyp
 import { StoriesTypeChart } from "./StoriesTypeChart"
 import { AdsFormatChart } from "../../../../../components/analytics/AdsFormatChart/AdsFormatChart"
 import { AdsCtaChart } from "../../../../../components/analytics/AdsCtaChart/AdsCtaChart"
-import { TopAdTexts } from "../../../../../components/analytics/TopAdTexts/TopAdTexts"
-import { StrategicInsights } from "../../../../../components/analytics/StrategicInsights/StrategicInsights"
-import { CompetitorCtaBlock } from "../../../../../components/analytics/CompetitorCtaBlock/CompetitorCtaBlock"
+import { TopPostsBlock } from "../../../../../components/analytics/TopPostsBlock/TopPostsBlock"
+import { TopPostTexts } from "../../../../../components/analytics/TopPostTexts/TopPostTexts"
 import { TopAdsBlock } from "../../../../../components/analytics/TopAdsBlock/TopAdsBlock"
+import { TopAdTexts } from "../../../../../components/analytics/TopAdTexts/TopAdTexts"
 
 const tabs = [
   { key: "general" as const, label: "General" },
@@ -86,7 +86,6 @@ export function BusinessDashboard() {
   const [getCompetitors] = useGetCompetitorsMutation()
   const [fetchCompetitorInstagramReport] = useFetchCompetitorInstagramReportMutation()
   const [fetchFacebookReport] = useFetchFacebookReportMutation()
-  const [fetchCompetitorFacebookReport] = useFetchCompetitorFacebookReportMutation()
 
   const [isFetchingIg, setIsFetchingIg] = useState(false)
   const [isFetchingFb, setIsFetchingFb] = useState(false)
@@ -173,20 +172,11 @@ export function BusinessDashboard() {
     if (!businessId) return
     setIsFetchingFb(true)
     try {
-      const [response] = await Promise.all([
-        fetchFacebookReport(businessId).unwrap(),
-        ...competitors.map((c) => {
-          return fetchCompetitorFacebookReport(c.id).unwrap().catch((err) => {
-            return null
-          })
-        }),
-      ])
+      const response = await fetchFacebookReport(businessId).unwrap()
       if (response?.data) {
         setFbReport(response.data)
         toast.success(response.message)
       }
-      const competitorsRes = await getCompetitors(businessId).unwrap().catch(() => null)
-      if (competitorsRes?.data) setCompetitors(competitorsRes.data as TCompetitorWithReport[])
     } catch (error) {
       showError(error)
     } finally {
@@ -215,19 +205,23 @@ export function BusinessDashboard() {
       .slice(0, 10)
   }, [profiles, prompts, contentPlans, ideasAi])
 
-  const topAdTexts = useMemo(() => {
-    return competitors
-      .flatMap((c) =>
-        (c.facebookReport?.topAdTexts ?? []).map((ad) => ({
-          competitorName: c.name,
-          text: ad.text,
-          collationCount: ad.collationCount,
-          url: ad.url,
-        }))
-      )
-      .sort((a, b) => b.collationCount - a.collationCount)
-      .slice(0, 6)
-  }, [competitors])
+  const businessTopPostTexts = useMemo(() => {
+    return (fbReport?.topPostTexts ?? []).map((post) => ({
+      competitorName: '',
+      text: post.text,
+      collationCount: post.collationCount,
+      url: post.url,
+    }))
+  }, [fbReport])
+
+  const businessTopAdTexts = useMemo(() => {
+    return (fbReport?.topAdTexts ?? []).map((ad) => ({
+      competitorName: '',
+      text: ad.text,
+      collationCount: ad.collationCount,
+      url: ad.url,
+    }))
+  }, [fbReport])
 
   function handleOpenLink(url: string) {
     if (url) window.open(url, '_blank', 'noopener,noreferrer')
@@ -336,73 +330,10 @@ export function BusinessDashboard() {
             />
           </div>
 
-          <div className="rounded-2xl bg-white shadow border border-slate-200">
-            <div className="border-b p-4">
-              <h2 className="text-lg text-left font-semibold text-slate-800">Competitors</h2>
-            </div>
-            <div className="p-4">
-            {competitors.length === 0 ? (
-              <p className="p-4 text-sm text-slate-400">No competitors added</p>
-            ) : (
-              <table className="min-w-full divide-y divide-slate-200 overflow-hidden rounded-xl border border-slate-200 shadow">
-                <thead className="bg-slate-50">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">Name</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">Followers</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">Posts (90D)</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">Active Ads</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">New Ads (30D)</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">Meta Ads Library</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {competitors.map((c) => (
-                    <tr
-                      key={c.id}
-                      role="link"
-                      tabIndex={0}
-                      className="cursor-pointer bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      onClick={() => handleOpenLink(c.facebookLink)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') handleOpenLink(c.facebookLink)
-                      }}
-                    >
-                      <td className="px-4 py-3 text-left font-medium text-slate-900">
-                        <span className="flex items-center gap-1.5">
-                          {c.name}
-                          <ExternalLink size={14} className="text-blue-500" />
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-left font-medium text-slate-900">{(c.facebookReport?.followers ?? 0).toLocaleString('uk-UA')}</td>
-                      <td className="px-4 py-3 text-left font-medium text-slate-900">{c.facebookReport?.posts != null ? (c.facebookReport.posts >= 90 ? '90+' : c.facebookReport.posts) : 0}</td>
-                      <td className="px-4 py-3 text-left font-medium text-slate-900">{(c.facebookReport?.ads ?? 0).toLocaleString('uk-UA')}</td>
-                      <td className="px-4 py-3 text-left font-medium text-slate-900">{(c.facebookReport?.ads30d ?? 0).toLocaleString('uk-UA')}</td>
-                      <td className="px-4 py-3 text-left">
-                        {c.facebookPageId && (
-                          <a
-                            href={`https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=UA&is_targeted_country=false&media_type=all&search_type=page&sort_data[mode]=total_impressions&sort_data[direction]=desc&view_all_page_id=${c.facebookPageId}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={(e) => e.stopPropagation()}
-                            className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-800"
-                          >
-                            Ads Library
-                            <ExternalLink size={14} />
-                          </a>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-            </div>
-          </div>
-
-          <CompetitorCtaBlock competitors={competitors} />
-          <TopAdsBlock competitors={competitors} />
-          <TopAdTexts ads={topAdTexts} />
-          <StrategicInsights />
+          <TopPostsBlock posts={fbReport?.topPosts ?? []} />
+          <TopPostTexts posts={businessTopPostTexts} />
+          <TopAdsBlock ads={fbReport?.topAds ?? []} />
+          <TopAdTexts ads={businessTopAdTexts} />
         </div>
       )}
 
