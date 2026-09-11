@@ -58,6 +58,7 @@ model Business {
   ideas            Idea[]
   ideasAI          IdeaAI[]
   contentPlans     ContentPlan[]
+  createdAt        DateTime          @default(now())
   facebookReport   FacebookReport?
   instagramReport  InstagramReport?
 }
@@ -82,6 +83,10 @@ model FacebookReport {
   adsCtaInstagramPage  Int      @default(0)
   adsCtaProduct        Int      @default(0)
   adsCtaMetaPage       Int      @default(0)
+  topPosts        Json     @default("[]")
+  topPostTexts    Json     @default("[]")
+  topAds          Json     @default("[]")
+  topAdTexts      Json     @default("[]")
   fetchedAt       DateTime @default(now())
   business        Business @relation(fields: [businessId], references: [id])
 }

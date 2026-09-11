@@ -145,9 +145,12 @@ export class FacebookService {
         const videoMedia = Array.isArray(item.media)
           ? item.media.find((m: any) => m?.__typename === 'Video')
           : null;
+        const firstVisualMedia = Array.isArray(item.media)
+          ? item.media.find((m: any) => m?.thumbnail || m?.image?.uri)
+          : null;
         const image =
-          item.media?.[0]?.thumbnail ??
-          item.media?.[0]?.photo_image?.uri ??
+          firstVisualMedia?.thumbnail ??
+          firstVisualMedia?.image?.uri ??
           null;
         const video =
           videoMedia?.videoDeliveryLegacyFields?.browser_native_sd_url ?? null;

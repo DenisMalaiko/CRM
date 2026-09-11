@@ -6,6 +6,7 @@ import { BusinessStatus } from "../enum/BusinessStatus";
 import { TTopPost, TTopPostText, TTopAd, TTopAdText } from "./Competitor";
 
 export type TBusiness = TBaseModel & {
+  createdAt: string;
   name: string;
   website: string;
   facebookLink?: string;
