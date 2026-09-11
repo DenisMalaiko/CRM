@@ -17,6 +17,7 @@ export type TBusinessBase = {
 }
 
 export type TBusiness = TBaseModel & TBusinessBase & {
+  createdAt: Date;
   agency?: TAgency;
 };
 
@@ -47,6 +48,10 @@ export type TFacebookReport = {
   adsCtaInstagramPage: number;
   adsCtaProduct: number;
   adsCtaMetaPage: number;
+  topPosts: any;
+  topPostTexts: any;
+  topAds: any;
+  topAdTexts: any;
   fetchedAt: Date;
 }
 

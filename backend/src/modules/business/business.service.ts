@@ -28,7 +28,8 @@ export class BusinessService {
         country: true,
         brand: true,
         advantages: true,
-        goals: true
+        goals: true,
+        createdAt: true
       }
     });
   }
@@ -50,7 +51,8 @@ export class BusinessService {
           country: true,
           brand: true,
           advantages: true,
-          goals: true
+          goals: true,
+          createdAt: true
         }
       });
     } catch (err: any) {
@@ -92,7 +94,8 @@ export class BusinessService {
           country: true,
           brand: true,
           advantages: true,
-          goals: true
+          goals: true,
+          createdAt: true
         },
       });
     } catch (err: any) {
@@ -120,7 +123,8 @@ export class BusinessService {
           country: true,
           brand: true,
           advantages: true,
-          goals: true
+          goals: true,
+          createdAt: true
         },
       });
     } catch (err: any) {
@@ -140,7 +144,7 @@ export class BusinessService {
 
   async upsertFacebookReport(
     businessId: string,
-    data: { followers: number; posts: number; likes?: number; postsImageCount?: number; postsVideoCount?: number; postsCarouselCount?: number; activeAds?: number; activeAds30d?: number; adsVideoCount?: number; adsImageCount?: number; adsCarouselCount?: number; adsDcoCount?: number; adsCtaWebsite?: number; adsCtaDirectMessage?: number; adsCtaInstagramPage?: number; adsCtaProduct?: number; adsCtaMetaPage?: number },
+    data: { followers: number; posts: number; likes?: number; postsImageCount?: number; postsVideoCount?: number; postsCarouselCount?: number; activeAds?: number; activeAds30d?: number; adsVideoCount?: number; adsImageCount?: number; adsCarouselCount?: number; adsDcoCount?: number; adsCtaWebsite?: number; adsCtaDirectMessage?: number; adsCtaInstagramPage?: number; adsCtaProduct?: number; adsCtaMetaPage?: number; topPosts?: any; topPostTexts?: any; topAds?: any; topAdTexts?: any },
   ): Promise<TFacebookReport> {
     return await this.prisma.facebookReport.upsert({
       where: { businessId },
@@ -160,14 +164,37 @@ export class BusinessService {
     }
 
     const [details, postsData, adsData] = await Promise.all([
-      this.facebookService.fetchDetails(business.facebookLink),
-      this.facebookService.fetchPostsData(business.facebookLink),
-      this.facebookService.fetchAdsData(business.facebookLink),
+      this.facebookService.fetchDetails(business.facebookLink)
+        .catch(() => ({ followers: 0, likes: 0, pageAdLibraryId: null })),
+      this.facebookService.fetchPostsData(business.facebookLink)
+        .catch(() => ({
+          posts: 0,
+          postsImageCount: 0,
+          postsVideoCount: 0,
+          postsCarouselCount: 0,
+          topPosts: [],
+          topPostTexts: [],
+        })),
+      this.facebookService.fetchAdsData(business.facebookLink)
+        .catch(() => ({
+          activeAds: 0,
+          activeAds30d: 0,
+          adsVideoCount: 0,
+          adsImageCount: 0,
+          adsCarouselCount: 0,
+          adsDcoCount: 0,
+          adsCtaWebsite: 0,
+          adsCtaDirectMessage: 0,
+          adsCtaInstagramPage: 0,
+          adsCtaProduct: 0,
+          adsCtaMetaPage: 0,
+          topAdTexts: [],
+          topAds: [],
+        })),
     ]);
 
     const { pageAdLibraryId: _pageAdLibraryId, ...detailsData } = details;
-    const { topAdTexts: _topAdTexts, topAds: _topAds, ...adsMetrics } = adsData;
-    return this.upsertFacebookReport(businessId, { ...detailsData, ...postsData, ...adsMetrics });
+    return this.upsertFacebookReport(businessId, { ...detailsData, ...postsData, ...adsData });
   }
 
   async getInstagramReport(businessId: string): Promise<TInstagramReport | null> {
