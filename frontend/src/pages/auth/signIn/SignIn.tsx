@@ -55,7 +55,7 @@ function SignIn() {
       dispatch(setUser(response.data.user));
       dispatch(setAccessToken(response.data.accessToken));
       toast.success(response.message);
-      navigate("/profile/businesses");
+      navigate("/profile/dashboard");
     } catch (error) {
       showError(error);
     }
