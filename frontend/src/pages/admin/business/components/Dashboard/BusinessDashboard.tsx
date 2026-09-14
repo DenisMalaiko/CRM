@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react"
 import { useParams } from "react-router-dom"
-import { formatDistanceToNow } from "date-fns"
 import { toast } from "react-toastify"
 import { Package, Users, Lightbulb, Megaphone, FileText, Film, BookImage, LucideIcon, ExternalLink } from "lucide-react"
 import { useAppDispatch, useAppSelector } from "../../../../../store/hooks"
@@ -35,6 +34,10 @@ import { TopPostsBlock } from "../../../../../components/analytics/TopPostsBlock
 import { TopPostTexts } from "../../../../../components/analytics/TopPostTexts/TopPostTexts"
 import { TopAdsBlock } from "../../../../../components/analytics/TopAdsBlock/TopAdsBlock"
 import { TopAdTexts } from "../../../../../components/analytics/TopAdTexts/TopAdTexts"
+import { NicheNewsBlock } from "../../../../../components/analytics/NicheNewsBlock/NicheNewsBlock"
+import { RecentActivityBlock, ActivityItem } from "../../../../../components/analytics/RecentActivityBlock/RecentActivityBlock"
+import { useGetNicheNewsByBusinessIdMutation } from "../../../../../store/nicheNews/nicheNewsApi"
+import { TNicheNews } from "../../../../../models/NicheNews"
 
 const tabs = [
   { key: "general" as const, label: "General" },
@@ -46,13 +49,6 @@ type StatCardProps = {
   icon: LucideIcon
   label: string
   count: number | string
-}
-
-type ActivityItem = {
-  id: string
-  label: string
-  type: string
-  createdAt: string | Date
 }
 
 function StatCard({ icon: Icon, label, count }: StatCardProps) {
@@ -86,12 +82,55 @@ export function BusinessDashboard() {
   const [getCompetitors] = useGetCompetitorsMutation()
   const [fetchCompetitorInstagramReport] = useFetchCompetitorInstagramReportMutation()
   const [fetchFacebookReport] = useFetchFacebookReportMutation()
+  const [getNicheNews] = useGetNicheNewsByBusinessIdMutation()
 
   const [isFetchingIg, setIsFetchingIg] = useState(false)
   const [isFetchingFb, setIsFetchingFb] = useState(false)
   const [fbReport, setFbReport] = useState<TFacebookReport | null>(null)
   const [igReport, setIgReport] = useState<TInstagramReport | null>(null)
   const [competitors, setCompetitors] = useState<TCompetitorWithReport[]>([])
+  const [nicheNews, setNicheNewsData] = useState<TNicheNews[]>([
+    {
+      id: "mock-1",
+      agencyId: "",
+      title: "How AI Is Reshaping Digital Marketing in 2026",
+      summary: "New research from McKinsey shows that brands using AI-driven content strategies see 3x higher engagement rates compared to traditional approaches.",
+      url: "https://example.com/ai-marketing-2026",
+      source: "TechCrunch",
+      industry: "Tech & Electronics",
+      publishedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+    },
+    {
+      id: "mock-2",
+      agencyId: "",
+      title: "Instagram Reels Algorithm Update: What Brands Need to Know",
+      summary: "Meta announced significant changes to how Reels are distributed. Longer-form content and original audio now receive priority in the feed.",
+      url: "https://example.com/reels-update",
+      source: "Social Media Today",
+      industry: "News & Entertainment",
+      publishedAt: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(),
+    },
+    {
+      id: "mock-3",
+      agencyId: "",
+      title: "E-commerce Conversion Rates Hit Record Highs With Personalization",
+      summary: "A new Shopify report reveals that stores implementing AI personalization see conversion rates up to 35% higher than industry averages.",
+      url: "https://example.com/ecommerce-personalization",
+      source: "Forbes",
+      industry: "Business Services",
+      publishedAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+    },
+    {
+      id: "mock-4",
+      agencyId: "",
+      title: "The Rise of Short-Form Video Ads Across All Industries",
+      summary: "Advertisers are shifting budgets to 15-second vertical video formats as attention spans shrink and mobile-first consumption dominates.",
+      url: "https://example.com/short-form-ads",
+      source: "AdWeek",
+      industry: "Beauty & Personal Care",
+      publishedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+    },
+  ])
 
   const products = useAppSelector((state) => state.productsModule.products)
   const audiences = useAppSelector((state) => state.audienceModule.audiences)
@@ -122,14 +161,16 @@ export function BusinessDashboard() {
         const ideasRes = await getIdeasAI(businessId!).unwrap()
         if (ideasRes?.data) dispatch(setIdeasAi(ideasRes.data as TIdeaAI[]))
 
-        const [fbRes, igRes, competitorsRes] = await Promise.all([
+        const [fbRes, igRes, competitorsRes, nicheNewsRes] = await Promise.all([
           getFacebookReport(businessId!).unwrap().catch(() => null),
           getInstagramReport(businessId!).unwrap().catch(() => null),
           getCompetitors(businessId!).unwrap().catch(() => null),
+          getNicheNews(businessId!).unwrap().catch(() => null),
         ])
         if (fbRes?.data) setFbReport(fbRes.data)
         if (igRes?.data) setIgReport(igRes.data)
         if (competitorsRes?.data) setCompetitors(competitorsRes.data as TCompetitorWithReport[])
+        if (nicheNewsRes?.data) setNicheNewsData(nicheNewsRes.data as TNicheNews[])
       } catch (error) {
         showError(error)
       }
@@ -256,30 +297,9 @@ export function BusinessDashboard() {
             ))}
           </div>
 
-          <div className="rounded-2xl bg-white shadow border border-slate-200">
-            <div className="border-b p-4 flex items-center justify-between">
-              <h2 className="text-lg text-left font-semibold text-slate-800">Recent Activity</h2>
-            </div>
-            {recentActivity.length === 0 ? (
-              <p className="text-sm text-slate-400">No recent activity</p>
-            ) : (
-              <div className="space-y-3">
-                {recentActivity.map((item) => (
-                  <div
-                    key={`${item.type}-${item.id}`}
-                    className="flex items-center justify-between px-5 py-3 border-b border-slate-50 last:border-0"
-                  >
-                    <div>
-                      <p className="text-sm font-medium text-slate-700 text-left">{item.label}</p>
-                      <p className="text-xs text-slate-400 text-left">{item.type}</p>
-                    </div>
-                    <p className="text-xs text-slate-400">
-                      {formatDistanceToNow(new Date(item.createdAt), { addSuffix: true })}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            )}
+          <div className="grid grid-cols-2 gap-4">
+            <RecentActivityBlock recentActivity={recentActivity} />
+            <NicheNewsBlock nicheNews={nicheNews} />
           </div>
         </div>
       )}
