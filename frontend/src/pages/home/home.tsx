@@ -1,18 +1,20 @@
 import React from "react";
 import { CheckCircle, Users, BarChart3, Database, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useTranslation } from 'react-i18next';
 
 function Home() {
+  const { t } = useTranslation();
+
   return (
     <section>
       {/* Hero Section */}
       <section className="flex flex-col items-center text-center py-24 px-6 bg-gradient-to-b from-blue-50 to-slate-50">
         <h2 className="text-4xl md:text-5xl font-bold mb-4 text-slate-900 max-w-3xl">
-          Hello World! Привіт Даша! Boost Campaign Performance with <span className="text-blue-600">NovaCRM</span>
+          {t('heroTitle')} <span className="text-blue-600">NovaCRM</span>
         </h2>
         <p className="text-slate-600 text-lg max-w-2xl mb-8">
-          Track leads, analyze customer behavior, automate follow-ups, and optimize marketing campaigns —
-          all in one workspace designed for data-driven marketers.
+          {t('heroSubtitle')}
         </p>
 
         <div className="flex gap-4">
@@ -20,11 +22,11 @@ function Home() {
             to="/signUp"
             className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 flex items-center gap-2"
           >
-            Start Free <ArrowRight size={18} />
+            {t('startFree')} <ArrowRight size={18} />
           </Link>
 
           <button className="px-6 py-3 bg-white border border-slate-300 rounded-lg text-slate-700 hover:bg-slate-100">
-            See How It Works
+            {t('seeHowItWorks')}
           </button>
         </div>
       </section>
@@ -32,36 +34,33 @@ function Home() {
       {/* Features Section */}
       <section id="features" className="py-24 bg-white">
         <div className="max-w-6xl mx-auto px-6">
-          <h3 className="text-3xl font-bold text-center mb-12">Tools Marketers Love</h3>
+          <h3 className="text-3xl font-bold text-center mb-12">{t('toolsTitle')}</h3>
 
           <div className="grid md:grid-cols-3 gap-8">
             {/* Feature 1 */}
             <div className="p-6 rounded-2xl border bg-slate-50 hover:shadow-lg transition flex flex-col items-center justify-center">
               <Users className="w-10 h-10 text-blue-600 mb-4" />
-              <h4 className="font-semibold text-lg mb-2">Lead Management & Segmentation</h4>
+              <h4 className="font-semibold text-lg mb-2">{t('feature1Title')}</h4>
               <p className="text-slate-600 text-sm">
-                Capture leads from multiple channels, enrich profiles automatically,
-                segment audiences, and run personalized campaigns with ease.
+                {t('feature1Desc')}
               </p>
             </div>
 
             {/* Feature 2 */}
             <div className="p-6 rounded-2xl border bg-slate-50 hover:shadow-lg transition flex flex-col items-center justify-center">
               <Database className="w-10 h-10 text-blue-600 mb-4" />
-              <h4 className="font-semibold text-lg mb-2">Automation That Saves Hours</h4>
+              <h4 className="font-semibold text-lg mb-2">{t('feature2Title')}</h4>
               <p className="text-slate-600 text-sm">
-                Build automated funnels, follow-ups, reminders, and customer journeys
-                to increase conversions without manual work.
+                {t('feature2Desc')}
               </p>
             </div>
 
             {/* Feature 3 */}
             <div className="p-6 rounded-2xl border bg-slate-50 hover:shadow-lg transition flex flex-col items-center justify-center">
               <BarChart3 className="w-10 h-10 text-blue-600 mb-4" />
-              <h4 className="font-semibold text-lg mb-2">Deep Analytics & Attribution</h4>
+              <h4 className="font-semibold text-lg mb-2">{t('feature3Title')}</h4>
               <p className="text-slate-600 text-sm">
-                Understand which campaigns bring revenue, track ROI, monitor engagement,
-                and make data-driven decisions with real-time dashboards.
+                {t('feature3Desc')}
               </p>
             </div>
           </div>
@@ -70,13 +69,12 @@ function Home() {
 
       {/* Call To Action */}
       <section className="py-24 bg-blue-600 text-white text-center">
-        <h3 className="text-3xl font-bold mb-4">Scale Your Marketing Smarter</h3>
+        <h3 className="text-3xl font-bold mb-4">{t('ctaTitle')}</h3>
         <p className="mb-8 text-blue-100">
-          Join teams who use NovaCRM to automate workflows, convert more leads,
-          and improve campaign performance from day one.
+          {t('ctaDesc')}
         </p>
         <button className="px-6 py-3 bg-white text-blue-600 font-semibold rounded-lg hover:bg-slate-100">
-          Try It Free
+          {t('tryItFree')}
         </button>
       </section>
 
