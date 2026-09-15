@@ -4,12 +4,14 @@ import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from '../../store';
 import { toast } from "react-toastify";
 import { ApiResponse } from "../../models/ApiResponse";
+import { useTranslation } from 'react-i18next';
 
 import { useAppDispatch } from "../../store/hooks";
 import { useSignOutAdminMutation } from "../../store/admin/adminApi";
 import { useSignOutUserMutation} from "../../store/auth/authApi";
 import { logout } from "../../store/auth/authSlice";
 import { logoutAdmin } from "../../store/admin/adminSlice";
+import LanguageSwitcher from './LanguageSwitcher';
 
 function Header() {
   const [ signOutUser ] = useSignOutUserMutation();
@@ -19,6 +21,7 @@ function Header() {
   const { user, isAuthenticatedUser } = useSelector((state: RootState) => state.authModule);
   const { admin, isAuthenticatedAdmin } = useSelector((state: RootState) => state.adminModule);
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const signOut = async () => {
     try {
@@ -50,32 +53,31 @@ function Header() {
         <nav className="hidden md:flex space-x-8 text-gray-700 font-medium">
         </nav>
 
+        <LanguageSwitcher />
+
         <nav>
           {isAuthenticatedAdmin && admin ? (
             <>
               <Link to="/admin/list" className="text-blue-600">
-                👑 Admin: {admin.name}
+                {t('adminLabel', { name: admin.name })}
               </Link> /
               <a onClick={signOut} className="ml-1 cursor-pointer">
-                Sign Out
+                {t('signOut')}
               </a>
             </>
           ) : isAuthenticatedUser && user ? (
             <>
               <Link to="/profile/dashboard" className="text-blue-600">
-                Welcome, {user.name}
+                {t('welcomeUser', { name: user.name })}
               </Link> /
               <a onClick={signOut} className="ml-1 cursor-pointer">
-                Sign Out
+                {t('signOut')}
               </a>
             </>
           ) : (
             <>
-{/*              <Link to="/admin/signIn">Sign In Admin</Link> /
-              <Link to="/admin/signUp" className="ml-1 mr-5">Sign Up Admin</Link>*/}
-
-              <Link className="ml-1" to="/signIn">Sign In</Link> /
-              <Link to="/signUp" className="ml-1">Sign Up</Link>
+              <Link className="ml-1" to="/signIn">{t('signIn')}</Link> /
+              <Link to="/signUp" className="ml-1">{t('signUp')}</Link>
             </>
           )}
         </nav>

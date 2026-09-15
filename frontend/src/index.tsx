@@ -4,6 +4,7 @@ import { Provider} from "react-redux";
 import { store } from "./store";
 import { BrowserRouter } from 'react-router-dom';
 import './index.css';
+import './i18n/i18n';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 import "./utils/global";

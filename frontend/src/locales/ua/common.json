@@ -1,0 +1,11 @@
+{
+  "signIn": "Увійти",
+  "signUp": "Зареєструватися",
+  "signOut": "Вийти",
+  "welcomeUser": "Вітаємо, {{name}}",
+  "adminLabel": "Адмін: {{name}}",
+  "allRightsReserved": "Усі права захищено.",
+  "privacyPolicy": "Політика конфіденційності",
+  "terms": "Умови",
+  "support": "Підтримка"
+}

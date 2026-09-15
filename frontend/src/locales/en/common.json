@@ -1,0 +1,11 @@
+{
+  "signIn": "Sign In",
+  "signUp": "Sign Up",
+  "signOut": "Sign Out",
+  "welcomeUser": "Welcome, {{name}}",
+  "adminLabel": "Admin: {{name}}",
+  "allRightsReserved": "All rights reserved.",
+  "privacyPolicy": "Privacy Policy",
+  "terms": "Terms",
+  "support": "Support"
+}

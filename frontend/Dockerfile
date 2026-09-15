@@ -8,7 +8,7 @@ COPY package*.json ./
 
 RUN npm cache clean --force
 
-RUN npm install
+RUN npm install --legacy-peer-deps
 
 # Копіюємо весь код
 COPY . .
