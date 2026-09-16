@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { TBusiness } from '../../../../../models/Business'
 
 type Props = {
@@ -17,6 +18,7 @@ const INDUSTRY_COLORS = [
 ]
 
 export function BusinessStatusChart({ businesses }: Props) {
+  const { t } = useTranslation()
   const total = businesses.length
 
   const { items, gradient } = useMemo(() => {
@@ -53,15 +55,15 @@ export function BusinessStatusChart({ businesses }: Props) {
   if (total === 0) {
     return (
       <div className="rounded-2xl bg-white shadow border border-slate-200 p-6">
-        <h3 className="text-lg font-semibold text-slate-800 mb-4 text-left">Industries</h3>
-        <p className="text-sm text-slate-400 text-center py-8">No data yet</p>
+        <h3 className="text-lg font-semibold text-slate-800 mb-4 text-left">{t('Dashboard.industries')}</h3>
+        <p className="text-sm text-slate-400 text-center py-8">{t('General.noDataYet')}</p>
       </div>
     )
   }
 
   return (
     <div className="rounded-2xl bg-white shadow border border-slate-200 p-6">
-      <h3 className="text-lg font-semibold text-slate-800 mb-4 text-left">Industries</h3>
+      <h3 className="text-lg font-semibold text-slate-800 mb-4 text-left">{t('Dashboard.industries')}</h3>
 
       <div className="flex flex-col items-center gap-4">
         <div className="relative flex-shrink-0">

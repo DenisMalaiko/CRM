@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import { ExternalLink } from "lucide-react";
 
@@ -24,6 +25,7 @@ import { ApiResponse } from "../../../models/ApiResponse";
 import { TBusiness } from "../../../models/Business";
 
 function Businesses() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
 
@@ -35,13 +37,13 @@ function Businesses() {
   const { businesses } = useSelector((state: RootState) => state.businessModule);
 
   const header = [
-    { name: "Name", key: "name" },
-    { name: "Website", key: "website" },
-    { name: "Facebook", key: "facebookLink" },
-    { name: "Instagram", key: "instagramLink" },
-    { name: "Industry", key: "industry" },
-    { name: "Status", key: "status" },
-    { name: "Actions", key: "actions" }
+    { name: t('General.name'), key: "name" },
+    { name: t('General.website'), key: "website" },
+    { name: t('General.facebook'), key: "facebookLink" },
+    { name: t('General.instagram'), key: "instagramLink" },
+    { name: t('Businesses.industry'), key: "industry" },
+    { name: t('General.status'), key: "status" },
+    { name: t('General.actions'), key: "actions" }
   ];
 
   // Get Data
@@ -63,8 +65,8 @@ function Businesses() {
     e.preventDefault();
 
     const ok = await confirm({
-      title: "Delete Business",
-      message: "Are you sure you want to delete this business?",
+      title: t('Businesses.deleteBusiness'),
+      message: t('Businesses.deleteConfirmMessage'),
     });
 
     if(ok) {
@@ -97,13 +99,13 @@ function Businesses() {
     <section>
       <div>
         <div className="container mx-auto flex items-center justify-between px-4 py-3">
-          <h1 className="text-3xl font-semibold">Businesses</h1>
+          <h1 className="text-3xl font-semibold">{t('Businesses.title')}</h1>
 
           <button
             onClick={() => setOpen(true)}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700"
           >
-            Add Business
+            {t('Businesses.addBusiness')}
           </button>
 
           <CreateBusinessDlg
@@ -141,7 +143,7 @@ function Businesses() {
                     colSpan={header.length}
                     className="py-6 text-center text-slate-400"
                   >
-                    No data
+                    {t('General.noData')}
                   </td>
                 </tr>
               ) : (
@@ -151,7 +153,7 @@ function Businesses() {
                     <td className="px-4 py-3 font-medium text-slate-900 text-left">
                       {item.website ? (
                         <a href={item.website} onClick={(e) => e.stopPropagation()} className="text-blue-600 underline" target="_blank" rel="noreferrer">
-                          Website
+                          {t('General.website')}
                         </a>
                       ) : (
                         <span className="text-slate-400">—</span>
@@ -160,7 +162,7 @@ function Businesses() {
                     <td className="px-4 py-3 font-medium text-slate-900 text-left">
                       {item.facebookLink ? (
                         <a href={item.facebookLink} onClick={(e) => e.stopPropagation()} className="text-blue-600 underline" target="_blank" rel="noreferrer">
-                          Facebook
+                          {t('General.facebook')}
                         </a>
                       ) : (
                         <span className="text-slate-400">—</span>
@@ -169,7 +171,7 @@ function Businesses() {
                     <td className="px-4 py-3 font-medium text-slate-900 text-left">
                       {item.instagramLink ? (
                         <a href={item.instagramLink} onClick={(e) => e.stopPropagation()} className="text-blue-600 underline" target="_blank" rel="noreferrer">
-                          Instagram
+                          {t('General.instagram')}
                         </a>
                       ) : (
                         <span className="text-slate-400">—</span>

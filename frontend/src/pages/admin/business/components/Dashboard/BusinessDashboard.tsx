@@ -38,12 +38,7 @@ import { NicheNewsBlock } from "../../../../../components/analytics/NicheNewsBlo
 import { RecentActivityBlock, ActivityItem } from "../../../../../components/analytics/RecentActivityBlock/RecentActivityBlock"
 import { useGetNicheNewsByBusinessIdMutation } from "../../../../../store/nicheNews/nicheNewsApi"
 import { TNicheNews } from "../../../../../models/NicheNews"
-
-const tabs = [
-  { key: "general" as const, label: "General" },
-  { key: "facebook" as const, label: "Facebook" },
-  { key: "instagram" as const, label: "Instagram" },
-]
+import { useTranslation } from 'react-i18next'
 
 type StatCardProps = {
   icon: LucideIcon
@@ -67,6 +62,14 @@ function StatCard({ icon: Icon, label, count }: StatCardProps) {
 
 export function BusinessDashboard() {
   const [activeTab, setActiveTab] = useState<"general" | "facebook" | "instagram">("general")
+  const { t } = useTranslation()
+
+  const tabs = [
+    { key: "general" as const, label: t('BusinessDashboard.general') },
+    { key: "facebook" as const, label: t('General.facebook') },
+    { key: "instagram" as const, label: t('General.instagram') },
+  ]
+
   const dispatch = useAppDispatch()
   const { businessId } = useParams<{ businessId: string }>()
 
@@ -181,9 +184,9 @@ export function BusinessDashboard() {
   }, [businessId, dispatch])
 
   const stats: StatCardProps[] = [
-    { icon: Package, label: "Products", count: products?.length ?? 0 },
-    { icon: Users, label: "Audiences", count: audiences?.length ?? 0 },
-    { icon: Lightbulb, label: "AI Ideas", count: ideasAi?.length ?? 0 },
+    { icon: Package, label: t('BusinessDashboard.products'), count: products?.length ?? 0 },
+    { icon: Users, label: t('BusinessDashboard.audiences'), count: audiences?.length ?? 0 },
+    { icon: Lightbulb, label: t('BusinessDashboard.aiIdeas'), count: ideasAi?.length ?? 0 },
   ]
 
   const handleFetchInstagram = async () => {
@@ -229,16 +232,16 @@ export function BusinessDashboard() {
     const items: ActivityItem[] = []
 
     profiles?.forEach((p) => {
-      if (p.createdAt) items.push({ id: p.id, label: p.name, type: "Profile created", createdAt: p.createdAt })
+      if (p.createdAt) items.push({ id: p.id, label: p.name, type: t('BusinessDashboard.profileCreated'), createdAt: p.createdAt })
     })
     prompts?.forEach((p) => {
-      if (p.createdAt) items.push({ id: p.id, label: p.name, type: "Prompt created", createdAt: p.createdAt })
+      if (p.createdAt) items.push({ id: p.id, label: p.name, type: t('BusinessDashboard.promptCreated'), createdAt: p.createdAt })
     })
     contentPlans?.forEach((p) => {
-      if (p.createdAt) items.push({ id: p.id, label: p.title, type: "Content plan created", createdAt: p.createdAt })
+      if (p.createdAt) items.push({ id: p.id, label: p.title, type: t('BusinessDashboard.contentPlanCreated'), createdAt: p.createdAt })
     })
     ideasAi?.forEach((p) => {
-      if (p.createdAt) items.push({ id: p.id, label: p.title, type: "AI idea generated", createdAt: p.createdAt })
+      if (p.createdAt) items.push({ id: p.id, label: p.title, type: t('BusinessDashboard.aiIdeaGenerated'), createdAt: p.createdAt })
     })
 
     return items
@@ -316,18 +319,18 @@ export function BusinessDashboard() {
               {isFetchingFb ? (
                 <>
                   <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                  Fetching...
+                  {t('BusinessDashboard.fetching')}
                 </>
               ) : (
-                "Fetch Facebook Data"
+                t('BusinessDashboard.fetchFacebookData')
               )}
             </button>
           </div>
           <div className="grid grid-cols-4 gap-4">
-            <StatCard icon={Users} label="Followers" count={fbReport?.followers ?? 0} />
-            <StatCard icon={FileText} label="Posts (90D)" count={fbReport?.posts != null ? (fbReport.posts >= 90 ? '90+' : fbReport.posts) : 0} />
-            <StatCard icon={Megaphone} label="Ads" count={fbReport?.activeAds ?? 0} />
-            <StatCard icon={Megaphone} label="New Ads (30D)" count={fbReport?.activeAds30d ?? 0} />
+            <StatCard icon={Users} label={t('BusinessDashboard.followers')} count={fbReport?.followers ?? 0} />
+            <StatCard icon={FileText} label={t('BusinessDashboard.posts90d')} count={fbReport?.posts != null ? (fbReport.posts >= 90 ? '90+' : fbReport.posts) : 0} />
+            <StatCard icon={Megaphone} label={t('BusinessDashboard.ads')} count={fbReport?.activeAds ?? 0} />
+            <StatCard icon={Megaphone} label={t('BusinessDashboard.newAds30d')} count={fbReport?.activeAds30d ?? 0} />
           </div>
           <div className="grid grid-cols-3 gap-4">
             <ContentTypeChart
@@ -369,18 +372,18 @@ export function BusinessDashboard() {
               {isFetchingIg ? (
                 <>
                   <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                  Fetching...
+                  {t('BusinessDashboard.fetching')}
                 </>
               ) : (
-                "Fetch Instagram Data"
+                t('BusinessDashboard.fetchInstagramData')
               )}
             </button>
           </div>
           <div className="grid grid-cols-4 gap-4">
-            <StatCard icon={Users} label="Followers" count={igReport?.followers ?? 0} />
-            <StatCard icon={FileText} label="Posts" count={igReport?.posts ?? 0} />
-            <StatCard icon={Film} label="Reels" count={igReport?.reels ?? 0} />
-            <StatCard icon={BookImage} label="Stories" count={igReport?.stories ?? 0} />
+            <StatCard icon={Users} label={t('BusinessDashboard.followers')} count={igReport?.followers ?? 0} />
+            <StatCard icon={FileText} label={t('BusinessDashboard.posts')} count={igReport?.posts ?? 0} />
+            <StatCard icon={Film} label={t('BusinessDashboard.reels')} count={igReport?.reels ?? 0} />
+            <StatCard icon={BookImage} label={t('BusinessDashboard.stories')} count={igReport?.stories ?? 0} />
           </div>
 
           <div className="grid grid-cols-3 gap-4">
@@ -397,20 +400,20 @@ export function BusinessDashboard() {
 
           <div className="rounded-2xl bg-white shadow border border-slate-200">
             <div className="border-b p-4">
-              <h2 className="text-lg text-left font-semibold text-slate-800">Competitors</h2>
+              <h2 className="text-lg text-left font-semibold text-slate-800">{t('BusinessDashboard.competitors')}</h2>
             </div>
             <div className="p-4">
             {competitors.length === 0 ? (
-              <p className="p-4 text-sm text-slate-400">No competitors added</p>
+              <p className="p-4 text-sm text-slate-400">{t('BusinessDashboard.noCompetitorsAdded')}</p>
             ) : (
               <table className="min-w-full divide-y divide-slate-200 overflow-hidden rounded-xl border border-slate-200 shadow">
                 <thead className="bg-slate-50">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">Name</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">Followers</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">Posts</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">Reels</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">Stories</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">{t('General.name')}</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">{t('BusinessDashboard.followers')}</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">{t('BusinessDashboard.posts')}</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">{t('BusinessDashboard.reels')}</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">{t('BusinessDashboard.stories')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -445,10 +448,10 @@ export function BusinessDashboard() {
 
           <div className="rounded-2xl bg-white shadow border border-slate-200">
             <div className="border-b p-4">
-              <h2 className="text-lg text-left font-semibold text-slate-800">Strategic Insights</h2>
+              <h2 className="text-lg text-left font-semibold text-slate-800">{t('BusinessDashboard.strategicInsights')}</h2>
             </div>
             <div className="p-4">
-              <p className="p-4 text-sm text-slate-400">No strategic insights yet</p>
+              <p className="p-4 text-sm text-slate-400">{t('BusinessDashboard.noStrategicInsightsYet')}</p>
             </div>
           </div>
         </div>

@@ -1,4 +1,5 @@
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 
 type Props = {
   postsImageCount: number
@@ -13,13 +14,14 @@ type LegendItem = {
 }
 
 export function ContentTypeChart({ postsImageCount, postsVideoCount, postsCarouselCount }: Props) {
+  const { t } = useTranslation()
   const total = postsImageCount + postsVideoCount + postsCarouselCount
 
   if (total === 0) {
     return (
       <div className="rounded-2xl bg-white shadow border border-slate-200 p-6">
-        <h3 className="text-lg font-semibold text-slate-800 mb-4 text-left">Posts Formats (90D)</h3>
-        <p className="text-sm text-slate-400 text-center py-8">No data yet</p>
+        <h3 className="text-lg font-semibold text-slate-800 mb-4 text-left">{t('BusinessDashboard.postsFormats90d')}</h3>
+        <p className="text-sm text-slate-400 text-center py-8">{t('General.noDataYet')}</p>
       </div>
     )
   }
@@ -33,14 +35,14 @@ export function ContentTypeChart({ postsImageCount, postsVideoCount, postsCarous
   const gradient = `conic-gradient(#3b82f6 0% ${imageStop}%, #8b5cf6 ${imageStop}% ${videoStop}%, #f59e0b ${videoStop}% 100%)`
 
   const items: LegendItem[] = [
-    { label: 'Image', count: postsImageCount, color: '#3b82f6' },
-    { label: 'Video', count: postsVideoCount, color: '#8b5cf6' },
-    { label: 'Carousel', count: postsCarouselCount, color: '#f59e0b' },
+    { label: t('BusinessDashboard.image'), count: postsImageCount, color: '#3b82f6' },
+    { label: t('BusinessDashboard.video'), count: postsVideoCount, color: '#8b5cf6' },
+    { label: t('BusinessDashboard.carousel'), count: postsCarouselCount, color: '#f59e0b' },
   ]
 
   return (
     <div className="rounded-2xl bg-white shadow border border-slate-200 p-6">
-      <h3 className="text-lg font-semibold text-slate-800 mb-4 text-left">Posts Formats (90D)</h3>
+      <h3 className="text-lg font-semibold text-slate-800 mb-4 text-left">{t('BusinessDashboard.postsFormats90d')}</h3>
 
       <div className="flex flex-col items-center gap-4">
         <div className="relative flex-shrink-0">

@@ -1,4 +1,5 @@
 import React, { useMemo, useRef, useState, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { ExternalLink } from 'lucide-react'
 import { TTopPost } from '../../../models/Competitor'
 
@@ -50,6 +51,7 @@ function VideoPlayer({ src, poster }: { src: string; poster?: string }) {
 }
 
 export function TopPostsBlock({ posts }: Props) {
+  const { t } = useTranslation()
   const topPosts = useMemo(() => {
     return [...posts]
       .sort((a, b) => {
@@ -66,7 +68,7 @@ export function TopPostsBlock({ posts }: Props) {
   return (
     <div className="rounded-2xl bg-white shadow border border-slate-200">
       <div className="border-b p-4">
-        <h2 className="text-lg text-left font-semibold text-slate-800">Top Posts</h2>
+        <h2 className="text-lg text-left font-semibold text-slate-800">{t('BusinessDashboard.topPosts')}</h2>
       </div>
       <div className="grid grid-cols-5 gap-4 p-4">
         {topPosts.map((post) => (
@@ -88,7 +90,7 @@ export function TopPostsBlock({ posts }: Props) {
               )}
               {post.reactions != null && (
                 <span className="absolute top-2 right-2 rounded bg-slate-800/80 px-2 py-0.5 text-xs font-medium text-white">
-                  {post.reactions} reactions
+                  {post.reactions} {t('BusinessDashboard.reactions')}
                 </span>
               )}
             </div>
@@ -102,7 +104,7 @@ export function TopPostsBlock({ posts }: Props) {
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800"
                   >
-                    Open Post
+                    {t('BusinessDashboard.openPost')}
                     <ExternalLink size={12} />
                   </a>
                 )}

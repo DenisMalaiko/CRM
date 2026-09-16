@@ -1,4 +1,5 @@
 import React from "react"
+import { useTranslation } from "react-i18next"
 import { formatDistanceToNow } from "date-fns"
 
 export type ActivityItem = {
@@ -13,13 +14,14 @@ type Props = {
 }
 
 export function RecentActivityBlock({ recentActivity }: Props) {
+  const { t } = useTranslation()
   return (
     <div className="rounded-2xl bg-white shadow border border-slate-200">
       <div className="border-b p-4 flex items-center justify-between">
-        <h2 className="text-lg text-left font-semibold text-slate-800">Recent Activity</h2>
+        <h2 className="text-lg text-left font-semibold text-slate-800">{t('BusinessDashboard.recentActivity')}</h2>
       </div>
       {recentActivity.length === 0 ? (
-        <p className="p-4 text-sm text-slate-400">No recent activity</p>
+        <p className="p-4 text-sm text-slate-400">{t('BusinessDashboard.noRecentActivity')}</p>
       ) : (
         <div>
           {recentActivity.map((item) => (

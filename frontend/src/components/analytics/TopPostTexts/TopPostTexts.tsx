@@ -1,4 +1,5 @@
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import { ExternalLink } from 'lucide-react'
 
 type TopPostItem = {
@@ -13,12 +14,13 @@ type Props = {
 }
 
 export function TopPostTexts({ posts }: Props) {
+  const { t } = useTranslation()
   if (posts.length === 0) return null
 
   return (
     <div className="rounded-2xl bg-white shadow border border-slate-200">
       <div className="border-b p-4">
-        <h2 className="text-lg text-left font-semibold text-slate-800">Top Post Texts</h2>
+        <h2 className="text-lg text-left font-semibold text-slate-800">{t('BusinessDashboard.topPostTexts')}</h2>
       </div>
       <div className="grid grid-cols-2 gap-4 p-4">
         {posts.map((post, index) => (
@@ -45,14 +47,14 @@ export function TopPostTexts({ posts }: Props) {
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800"
                 >
-                  Open Post
+                  {t('BusinessDashboard.openPost')}
                   <ExternalLink size={14} />
                 </a>
               ) : (
                 <span />
               )}
               <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-600">
-                {post.collationCount} {post.collationCount === 1 ? 'copy' : 'copies'}
+                {post.collationCount} {post.collationCount === 1 ? t('BusinessDashboard.copy') : t('BusinessDashboard.copies')}
               </span>
             </div>
             <p className="text-sm text-slate-600 mt-2 text-left whitespace-pre-line">{post.text}</p>

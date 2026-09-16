@@ -1,6 +1,8 @@
 import { Outlet, NavLink } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 function Profile() {
+  const { t } = useTranslation();
   return (
     <div className="flex wrapper bg-gray-100">
       {/* Sidebar */}
@@ -10,14 +12,14 @@ function Profile() {
             to="dashboard"
             className={({ isActive }) => `flex items-center gap-3 px-3 py-2 rounded-lg font-medium ${isActive ? "bg-blue-100 text-blue-600" : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"}`}
           >
-            Dashboard
+            {t('Sidebar.dashboard')}
           </NavLink>
 
           <NavLink
             to="businesses"
             className={({ isActive }) => `flex items-center gap-3 px-3 py-2 rounded-lg font-medium ${isActive ? "bg-blue-100 text-blue-600" : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"}`}
           >
-            Businesses
+            {t('Sidebar.businesses')}
           </NavLink>
         </nav>
       </aside>

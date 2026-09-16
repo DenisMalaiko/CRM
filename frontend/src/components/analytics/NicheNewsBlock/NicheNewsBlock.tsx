@@ -1,4 +1,5 @@
 import React from "react"
+import { useTranslation } from "react-i18next"
 import { formatDistanceToNow } from "date-fns"
 import { TNicheNews } from "../../../models/NicheNews"
 
@@ -7,13 +8,14 @@ type Props = {
 }
 
 export function NicheNewsBlock({ nicheNews }: Props) {
+  const { t } = useTranslation()
   return (
     <div className="rounded-2xl bg-white shadow border border-slate-200">
       <div className="border-b p-4 flex items-center justify-between">
-        <h2 className="text-lg text-left font-semibold text-slate-800">Niche News</h2>
+        <h2 className="text-lg text-left font-semibold text-slate-800">{t('BusinessDashboard.nicheNews')}</h2>
       </div>
       {nicheNews.length === 0 ? (
-        <p className="p-4 text-sm text-slate-400">No niche news yet</p>
+        <p className="p-4 text-sm text-slate-400">{t('BusinessDashboard.noNicheNewsYet')}</p>
       ) : (
         <div>
           {nicheNews.map((item) => (

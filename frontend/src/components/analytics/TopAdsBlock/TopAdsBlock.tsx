@@ -1,4 +1,5 @@
 import React, { useMemo, useRef, useState, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { ExternalLink } from 'lucide-react'
 import { TTopAd } from '../../../models/Competitor'
 
@@ -50,6 +51,7 @@ function VideoPlayer({ src, poster }: { src: string; poster?: string }) {
 }
 
 export function TopAdsBlock({ ads }: Props) {
+  const { t } = useTranslation()
   const topAds = useMemo(() => {
     return [...ads]
       .sort((a, b) => {
@@ -66,7 +68,7 @@ export function TopAdsBlock({ ads }: Props) {
   return (
     <div className="rounded-2xl bg-white shadow border border-slate-200">
       <div className="border-b p-4">
-        <h2 className="text-lg text-left font-semibold text-slate-800">Top Ads</h2>
+        <h2 className="text-lg text-left font-semibold text-slate-800">{t('BusinessDashboard.topAds')}</h2>
       </div>
       <div className="grid grid-cols-5 gap-4 p-4">
         {topAds.map((ad) => (
@@ -88,7 +90,7 @@ export function TopAdsBlock({ ads }: Props) {
               )}
               {ad.activeDays != null && (
                 <span className="absolute top-2 right-2 rounded bg-slate-800/80 px-2 py-0.5 text-xs font-medium text-white">
-                  {ad.activeDays} days
+                  {ad.activeDays} {t('BusinessDashboard.days')}
                 </span>
               )}
             </div>
@@ -102,7 +104,7 @@ export function TopAdsBlock({ ads }: Props) {
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800"
                   >
-                    Open in Meta Ad Library
+                    {t('BusinessDashboard.openInMetaAdLibrary')}
                     <ExternalLink size={12} />
                   </a>
                 )}

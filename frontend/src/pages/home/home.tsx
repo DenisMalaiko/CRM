@@ -11,10 +11,10 @@ function Home() {
       {/* Hero Section */}
       <section className="flex flex-col items-center text-center py-24 px-6 bg-gradient-to-b from-blue-50 to-slate-50">
         <h2 className="text-4xl md:text-5xl font-bold mb-4 text-slate-900 max-w-3xl">
-          {t('heroTitle')} <span className="text-blue-600">NovaCRM</span>
+          {t('Home.heroTitle')} <span className="text-blue-600">NovaCRM</span>
         </h2>
         <p className="text-slate-600 text-lg max-w-2xl mb-8">
-          {t('heroSubtitle')}
+          {t('Home.heroSubtitle')}
         </p>
 
         <div className="flex gap-4">
@@ -22,11 +22,11 @@ function Home() {
             to="/signUp"
             className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 flex items-center gap-2"
           >
-            {t('startFree')} <ArrowRight size={18} />
+            {t('Home.startFree')} <ArrowRight size={18} />
           </Link>
 
           <button className="px-6 py-3 bg-white border border-slate-300 rounded-lg text-slate-700 hover:bg-slate-100">
-            {t('seeHowItWorks')}
+            {t('Home.seeHowItWorks')}
           </button>
         </div>
       </section>
@@ -34,33 +34,33 @@ function Home() {
       {/* Features Section */}
       <section id="features" className="py-24 bg-white">
         <div className="max-w-6xl mx-auto px-6">
-          <h3 className="text-3xl font-bold text-center mb-12">{t('toolsTitle')}</h3>
+          <h3 className="text-3xl font-bold text-center mb-12">{t('Home.toolsTitle')}</h3>
 
           <div className="grid md:grid-cols-3 gap-8">
             {/* Feature 1 */}
             <div className="p-6 rounded-2xl border bg-slate-50 hover:shadow-lg transition flex flex-col items-center justify-center">
               <Users className="w-10 h-10 text-blue-600 mb-4" />
-              <h4 className="font-semibold text-lg mb-2">{t('feature1Title')}</h4>
+              <h4 className="font-semibold text-lg mb-2">{t('Home.feature1Title')}</h4>
               <p className="text-slate-600 text-sm">
-                {t('feature1Desc')}
+                {t('Home.feature1Desc')}
               </p>
             </div>
 
             {/* Feature 2 */}
             <div className="p-6 rounded-2xl border bg-slate-50 hover:shadow-lg transition flex flex-col items-center justify-center">
               <Database className="w-10 h-10 text-blue-600 mb-4" />
-              <h4 className="font-semibold text-lg mb-2">{t('feature2Title')}</h4>
+              <h4 className="font-semibold text-lg mb-2">{t('Home.feature2Title')}</h4>
               <p className="text-slate-600 text-sm">
-                {t('feature2Desc')}
+                {t('Home.feature2Desc')}
               </p>
             </div>
 
             {/* Feature 3 */}
             <div className="p-6 rounded-2xl border bg-slate-50 hover:shadow-lg transition flex flex-col items-center justify-center">
               <BarChart3 className="w-10 h-10 text-blue-600 mb-4" />
-              <h4 className="font-semibold text-lg mb-2">{t('feature3Title')}</h4>
+              <h4 className="font-semibold text-lg mb-2">{t('Home.feature3Title')}</h4>
               <p className="text-slate-600 text-sm">
-                {t('feature3Desc')}
+                {t('Home.feature3Desc')}
               </p>
             </div>
           </div>
@@ -69,23 +69,23 @@ function Home() {
 
       {/* Call To Action */}
       <section className="py-24 bg-blue-600 text-white text-center">
-        <h3 className="text-3xl font-bold mb-4">{t('ctaTitle')}</h3>
+        <h3 className="text-3xl font-bold mb-4">{t('Home.ctaTitle')}</h3>
         <p className="mb-8 text-blue-100">
-          {t('ctaDesc')}
+          {t('Home.ctaDesc')}
         </p>
         <button className="px-6 py-3 bg-white text-blue-600 font-semibold rounded-lg hover:bg-slate-100">
-          {t('tryItFree')}
+          {t('Home.tryItFree')}
         </button>
       </section>
 
       {/* Footer */}
       <footer className="bg-slate-900 text-slate-300 py-10 mt-auto">
         <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-sm">&copy; {new Date().getFullYear()} NovaCRM. All rights reserved.</p>
+          <p className="text-sm">&copy; {new Date().getFullYear()} NovaCRM. {t('Footer.allRightsReserved')}</p>
           <div className="flex gap-6 text-sm">
-            <a href="#" className="hover:text-white">Privacy Policy</a>
-            <a href="#" className="hover:text-white">Terms</a>
-            <a href="#" className="hover:text-white">Support</a>
+            <a href="#" className="hover:text-white">{t('Footer.privacyPolicy')}</a>
+            <a href="#" className="hover:text-white">{t('Footer.terms')}</a>
+            <a href="#" className="hover:text-white">{t('Footer.support')}</a>
           </div>
         </div>
       </footer>
