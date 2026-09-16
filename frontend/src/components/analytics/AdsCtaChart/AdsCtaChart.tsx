@@ -1,4 +1,5 @@
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 
 type Props = {
   adsCtaWebsite: number
@@ -16,23 +17,24 @@ type LegendItem = {
 }
 
 export function AdsCtaChart({ adsCtaWebsite, adsCtaDirectMessage, adsCtaInstagramPage, adsCtaProduct, adsCtaMetaPage }: Props) {
+  const { t } = useTranslation()
   const total = adsCtaWebsite + adsCtaDirectMessage + adsCtaInstagramPage + adsCtaProduct + adsCtaMetaPage
 
   if (total === 0) {
     return (
       <div className="rounded-2xl bg-white shadow border border-slate-200 p-6">
-        <h3 className="text-lg font-semibold text-slate-800 mb-4 text-left">Ads CTA Types</h3>
-        <p className="text-sm text-slate-400 text-center py-8">No data yet</p>
+        <h3 className="text-lg font-semibold text-slate-800 mb-4 text-left">{t('BusinessDashboard.adsCtaTypes')}</h3>
+        <p className="text-sm text-slate-400 text-center py-8">{t('General.noDataYet')}</p>
       </div>
     )
   }
 
   const items: LegendItem[] = [
-    { label: 'Website', count: adsCtaWebsite, bgClass: 'bg-emerald-500', color: '#10b981' },
-    { label: 'Direct Message', count: adsCtaDirectMessage, bgClass: 'bg-amber-400', color: '#fbbf24' },
-    { label: 'Instagram Page', count: adsCtaInstagramPage, bgClass: 'bg-blue-500', color: '#3b82f6' },
-    { label: 'Product', count: adsCtaProduct, bgClass: 'bg-violet-500', color: '#8b5cf6' },
-    { label: 'Meta Page', count: adsCtaMetaPage, bgClass: 'bg-gray-500', color: '#6b7280' },
+    { label: t('BusinessDashboard.ctaWebsite'), count: adsCtaWebsite, bgClass: 'bg-emerald-500', color: '#10b981' },
+    { label: t('BusinessDashboard.ctaDirectMessage'), count: adsCtaDirectMessage, bgClass: 'bg-amber-400', color: '#fbbf24' },
+    { label: t('BusinessDashboard.ctaInstagramPage'), count: adsCtaInstagramPage, bgClass: 'bg-blue-500', color: '#3b82f6' },
+    { label: t('BusinessDashboard.ctaProduct'), count: adsCtaProduct, bgClass: 'bg-violet-500', color: '#8b5cf6' },
+    { label: t('BusinessDashboard.ctaMetaPage'), count: adsCtaMetaPage, bgClass: 'bg-gray-500', color: '#6b7280' },
   ]
 
   const stops: string[] = []
@@ -47,7 +49,7 @@ export function AdsCtaChart({ adsCtaWebsite, adsCtaDirectMessage, adsCtaInstagra
 
   return (
     <div className="rounded-2xl bg-white shadow border border-slate-200 p-6">
-      <h3 className="text-lg font-semibold text-slate-800 mb-4 text-left">Ads CTA Types</h3>
+      <h3 className="text-lg font-semibold text-slate-800 mb-4 text-left">{t('BusinessDashboard.adsCtaTypes')}</h3>
 
       <div className="flex flex-col items-center gap-4">
         <div className="relative flex-shrink-0">

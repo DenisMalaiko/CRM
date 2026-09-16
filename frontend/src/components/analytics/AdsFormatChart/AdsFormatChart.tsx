@@ -1,4 +1,5 @@
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 
 type Props = {
   adsVideoCount: number
@@ -14,13 +15,14 @@ type LegendItem = {
 }
 
 export function AdsFormatChart({ adsVideoCount, adsImageCount, adsCarouselCount, adsDcoCount }: Props) {
+  const { t } = useTranslation()
   const total = adsVideoCount + adsImageCount + adsCarouselCount + adsDcoCount
 
   if (total === 0) {
     return (
       <div className="rounded-2xl bg-white shadow border border-slate-200 p-6">
-        <h3 className="text-lg font-semibold text-slate-800 mb-4 text-left">Ads Formats</h3>
-        <p className="text-sm text-slate-400 text-center py-8">No data yet</p>
+        <h3 className="text-lg font-semibold text-slate-800 mb-4 text-left">{t('BusinessDashboard.adsFormats')}</h3>
+        <p className="text-sm text-slate-400 text-center py-8">{t('General.noDataYet')}</p>
       </div>
     )
   }
@@ -36,15 +38,15 @@ export function AdsFormatChart({ adsVideoCount, adsImageCount, adsCarouselCount,
   const gradient = `conic-gradient(#3b82f6 0% ${imageStop}%, #8b5cf6 ${imageStop}% ${videoStop}%, #6b7280 ${videoStop}% ${carouselStop}%, #f59e0b ${carouselStop}% 100%)`
 
   const items: LegendItem[] = [
-    { label: 'Image', count: adsImageCount, bgClass: 'bg-blue-500' },
-    { label: 'Video', count: adsVideoCount, bgClass: 'bg-violet-500' },
-    { label: 'Carousel', count: adsCarouselCount, bgClass: 'bg-gray-500' },
-    { label: 'DCO', count: adsDcoCount, bgClass: 'bg-amber-500' },
+    { label: t('BusinessDashboard.image'), count: adsImageCount, bgClass: 'bg-blue-500' },
+    { label: t('BusinessDashboard.video'), count: adsVideoCount, bgClass: 'bg-violet-500' },
+    { label: t('BusinessDashboard.carousel'), count: adsCarouselCount, bgClass: 'bg-gray-500' },
+    { label: t('BusinessDashboard.dco'), count: adsDcoCount, bgClass: 'bg-amber-500' },
   ]
 
   return (
     <div className="rounded-2xl bg-white shadow border border-slate-200 p-6">
-      <h3 className="text-lg font-semibold text-slate-800 mb-4 text-left">Ads Formats</h3>
+      <h3 className="text-lg font-semibold text-slate-800 mb-4 text-left">{t('BusinessDashboard.adsFormats')}</h3>
 
       <div className="flex flex-col items-center gap-4">
         <div className="relative flex-shrink-0">

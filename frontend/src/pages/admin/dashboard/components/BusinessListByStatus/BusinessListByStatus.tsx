@@ -1,5 +1,6 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { TBusiness } from '../../../../../models/Business'
 import { BusinessStatus } from '../../../../../enum/BusinessStatus'
 
@@ -9,33 +10,34 @@ type Props = {
 
 type StatusConfig = {
   status: BusinessStatus
-  title: string
+  titleKey: string
   badge: string
-  emptyText: string
+  emptyTextKey: string
 }
 
 const STATUS_CONFIGS: StatusConfig[] = [
   {
     status: BusinessStatus.Active,
-    title: 'Active',
+    titleKey: 'Dashboard.statusActive',
     badge: 'bg-emerald-100 text-emerald-700',
-    emptyText: 'No active businesses',
+    emptyTextKey: 'Dashboard.noActiveBusinesses',
   },
   {
     status: BusinessStatus.Paused,
-    title: 'Paused',
+    titleKey: 'Dashboard.statusPaused',
     badge: 'bg-amber-100 text-amber-700',
-    emptyText: 'No paused businesses',
+    emptyTextKey: 'Dashboard.noPausedBusinesses',
   },
   {
     status: BusinessStatus.Archived,
-    title: 'Archived',
+    titleKey: 'Dashboard.statusArchived',
     badge: 'bg-slate-100 text-slate-500',
-    emptyText: 'No archived businesses',
+    emptyTextKey: 'Dashboard.noArchivedBusinesses',
   },
 ]
 
 export function BusinessListByStatus({ businesses }: Props) {
+  const { t } = useTranslation()
   const navigate = useNavigate()
 
   const grouped = new Map<BusinessStatus, TBusiness[]>()
@@ -51,14 +53,14 @@ export function BusinessListByStatus({ businesses }: Props) {
         return (
           <div key={config.status} className="rounded-2xl bg-white shadow border border-slate-200 p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-slate-800">{config.title}</h3>
+              <h3 className="text-lg font-semibold text-slate-800">{t(config.titleKey)}</h3>
               <span className={`text-xs font-medium px-2 py-1 rounded-full ${config.badge}`}>
                 {list.length}
               </span>
             </div>
 
             {list.length === 0 ? (
-              <p className="text-sm text-slate-400 text-center py-4">{config.emptyText}</p>
+              <p className="text-sm text-slate-400 text-center py-4">{t(config.emptyTextKey)}</p>
             ) : (
               <ul className="space-y-2">
                 {list.map((biz) => (

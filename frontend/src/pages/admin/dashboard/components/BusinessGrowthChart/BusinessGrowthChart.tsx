@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 import { format, parseISO } from 'date-fns'
 import { TBusiness } from '../../../../../models/Business'
@@ -51,20 +52,21 @@ function buildChartData(businesses: TBusiness[]): ChartDataPoint[] {
 }
 
 export function BusinessGrowthChart({ businesses }: Props) {
+  const { t } = useTranslation()
   const data = useMemo(() => buildChartData(businesses), [businesses])
 
   if (data.length === 0) {
     return (
       <div className="rounded-2xl bg-white shadow border border-slate-200 p-6">
-        <h3 className="text-lg font-semibold text-slate-800 mb-4 text-left">Business Growth</h3>
-        <p className="text-sm text-slate-400 text-center py-8">No data yet</p>
+        <h3 className="text-lg font-semibold text-slate-800 mb-4 text-left">{t('Dashboard.businessGrowth')}</h3>
+        <p className="text-sm text-slate-400 text-center py-8">{t('General.noDataYet')}</p>
       </div>
     )
   }
 
   return (
     <div className="rounded-2xl bg-white shadow border border-slate-200 p-6">
-      <h3 className="text-lg font-semibold text-slate-800 mb-4 text-left">Business Growth</h3>
+      <h3 className="text-lg font-semibold text-slate-800 mb-4 text-left">{t('Dashboard.businessGrowth')}</h3>
 
       <ResponsiveContainer width="100%" height={300}>
         <AreaChart data={data} margin={CHART_MARGIN}>
@@ -93,7 +95,7 @@ export function BusinessGrowthChart({ businesses }: Props) {
             stroke={CHART_COLOR}
             strokeWidth={2}
             fill="url(#colorTotal)"
-            name="Businesses"
+            name={t('Dashboard.businesses')}
           />
         </AreaChart>
       </ResponsiveContainer>

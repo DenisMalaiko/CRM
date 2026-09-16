@@ -53,34 +53,52 @@ function Header() {
         <nav className="hidden md:flex space-x-8 text-gray-700 font-medium">
         </nav>
 
-        <LanguageSwitcher />
+        <div className="flex items-center gap-3">
+          <LanguageSwitcher />
 
-        <nav>
-          {isAuthenticatedAdmin && admin ? (
-            <>
-              <Link to="/admin/list" className="text-blue-600">
-                {t('adminLabel', { name: admin.name })}
-              </Link> /
-              <a onClick={signOut} className="ml-1 cursor-pointer">
-                {t('signOut')}
-              </a>
-            </>
-          ) : isAuthenticatedUser && user ? (
-            <>
-              <Link to="/profile/dashboard" className="text-blue-600">
-                {t('welcomeUser', { name: user.name })}
-              </Link> /
-              <a onClick={signOut} className="ml-1 cursor-pointer">
-                {t('signOut')}
-              </a>
-            </>
-          ) : (
-            <>
-              <Link className="ml-1" to="/signIn">{t('signIn')}</Link> /
-              <Link to="/signUp" className="ml-1">{t('signUp')}</Link>
-            </>
-          )}
-        </nav>
+          <nav className="flex items-center gap-2">
+            {isAuthenticatedAdmin && admin ? (
+              <>
+                <Link to="/admin/list" className="text-sm font-medium text-blue-600 hover:text-blue-800">
+                  {t('Header.adminLabel', { name: admin.name })}
+                </Link>
+                <button
+                  onClick={signOut}
+                  className="px-3 py-1.5 text-sm font-medium rounded-lg border border-red-300 text-red-600 hover:bg-red-50 transition-colors"
+                >
+                  {t('Header.signOut')}
+                </button>
+              </>
+            ) : isAuthenticatedUser && user ? (
+              <>
+                <Link to="/profile/dashboard" className="text-sm font-medium text-blue-600 hover:text-blue-800">
+                  {t('Header.welcomeUser', { name: user.name })}
+                </Link>
+                <button
+                  onClick={signOut}
+                  className="px-3 py-1.5 text-sm font-medium rounded-lg border border-red-300 text-red-600 hover:bg-red-50 transition-colors"
+                >
+                  {t('Header.signOut')}
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  to="/signIn"
+                  className="px-3 py-1.5 text-sm font-medium rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  {t('Header.signIn')}
+                </Link>
+                <Link
+                  to="/signUp"
+                  className="px-3 py-1.5 text-sm font-medium rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                >
+                  {t('Header.signUp')}
+                </Link>
+              </>
+            )}
+          </nav>
+        </div>
       </div>
     </header>
   )

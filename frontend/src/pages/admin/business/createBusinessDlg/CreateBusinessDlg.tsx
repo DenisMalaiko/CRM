@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { toast } from "react-toastify";
 import {Plus, X} from "lucide-react";
 import Select from "react-select";
@@ -41,6 +42,7 @@ type Props = {
 };
 
 export function CreateBusinessDlg({ open, onClose, business }: Props) {
+  const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const [ getBusinesses ] = useGetBusinessesMutation();
   const [ createBusiness, { isLoading: isLoadingCreating } ] = useCreateBusinessMutation();
@@ -189,7 +191,7 @@ export function CreateBusinessDlg({ open, onClose, business }: Props) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50">
       <div className="w-full max-w-2xl rounded-2xl bg-white shadow-xl p-6 max-h-[90vh] overflow-auto">
         <div className="flex items-center justify-between mb-4 relative">
-          <h2 className="text-lg font-semibold">{ isEdit ? "Edit" : "Create"} Business</h2>
+          <h2 className="text-lg font-semibold">{isEdit ? t('Businesses.editBusiness') : t('Businesses.createBusiness')}</h2>
           <button
             onClick={onClose}
             className="absolute right-0 text-white text-xl z-10 bg-blue-600 rounded-full p-2 hover:bg-blue-700 cursor-pointer"
@@ -201,28 +203,28 @@ export function CreateBusinessDlg({ open, onClose, business }: Props) {
         <form className="space-y-4" onSubmit={create} action="">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 text-left">Name</label>
+              <label className="block text-sm font-medium text-slate-700 text-left">{t('General.name')}</label>
               <input
                 type="text"
                 name="name"
                 value={form.name}
                 onChange={onChange}
                 className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter name"
+                placeholder={t('Businesses.enterName')}
                 autoComplete="off"
               />
               {errors.name && <p className="text-red-500 text-sm mt-2 text-left">{errors.name}</p>}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 text-left">Website</label>
+              <label className="block text-sm font-medium text-slate-700 text-left">{t('General.website')}</label>
               <input
                 type="text"
                 name="website"
                 value={form.website}
                 onChange={onChange}
                 className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter website"
+                placeholder={t('Businesses.enterWebsite')}
                 autoComplete="off"
               />
               {errors.website && <p className="text-red-500 text-sm mt-2 text-left">{errors.website}</p>}
@@ -231,28 +233,28 @@ export function CreateBusinessDlg({ open, onClose, business }: Props) {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 text-left">Facebook</label>
+              <label className="block text-sm font-medium text-slate-700 text-left">{t('General.facebook')}</label>
               <input
                 type="text"
                 name="facebookLink"
                 value={form.facebookLink}
                 onChange={onChange}
                 className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter Facebook link"
+                placeholder={t('Businesses.enterFacebookLink')}
                 autoComplete="off"
               />
               {errors.facebookLink && <p className="text-red-500 text-sm mt-2 text-left">{errors.facebookLink}</p>}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 text-left">Instagram</label>
+              <label className="block text-sm font-medium text-slate-700 text-left">{t('General.instagram')}</label>
               <input
                 type="text"
                 name="instagramLink"
                 value={form.instagramLink}
                 onChange={onChange}
                 className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter Instagram link"
+                placeholder={t('Businesses.enterInstagramLink')}
                 autoComplete="off"
               />
               {errors.instagramLink && <p className="text-red-500 text-sm mt-2 text-left">{errors.instagramLink}</p>}
@@ -261,7 +263,7 @@ export function CreateBusinessDlg({ open, onClose, business }: Props) {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 text-left">Industry</label>
+              <label className="block text-sm font-medium text-slate-700 text-left">{t('Businesses.industry')}</label>
 
               <select
                 name="industry"
@@ -278,7 +280,7 @@ export function CreateBusinessDlg({ open, onClose, business }: Props) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 text-left">Status</label>
+              <label className="block text-sm font-medium text-slate-700 text-left">{t('General.status')}</label>
               <select
                 name="status"
                 value={form.status}
@@ -294,7 +296,7 @@ export function CreateBusinessDlg({ open, onClose, business }: Props) {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 text-left">Language</label>
+              <label className="block text-sm font-medium text-slate-700 text-left">{t('General.language')}</label>
               <Select
                 options={Languages}
                 value={Languages.find((option) => option.value === form.language) ?? null}
@@ -305,12 +307,12 @@ export function CreateBusinessDlg({ open, onClose, business }: Props) {
                   })
                 }
                 styles={centeredSelectStyles}
-                placeholder="Select Language"
+                placeholder={t('General.selectLanguage')}
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 text-left">Country</label>
+              <label className="block text-sm font-medium text-slate-700 text-left">{t('General.country')}</label>
               <Select
                 options={Countries}
                 value={Countries.find((option) => option.value === form.country) ?? null}
@@ -318,28 +320,28 @@ export function CreateBusinessDlg({ open, onClose, business }: Props) {
                   onChange({ name: "country", value: selected ? selected.value : "" })
                 }
                 styles={centeredSelectStyles}
-                placeholder="Select Country"
+                placeholder={t('General.selectCountry')}
               />
               {errors.country && <p className="text-red-500 text-sm mt-2 text-left">{errors.country}</p>}
             </div>
           </div>
 
           <div className="grid">
-            <label className="block text-sm font-medium text-slate-700 text-left">Brand</label>
+            <label className="block text-sm font-medium text-slate-700 text-left">{t('Businesses.brand')}</label>
             <textarea
               name="brand"
               value={form.brand}
               onChange={onChange}
               rows={8}
               className="mt-1 mb-2 flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
-              placeholder="Enter About Brand"
+              placeholder={t('Businesses.enterAboutBrand')}
             ></textarea>
           </div>
 
           <div className="flex flex-col items-start justify-start">
             <div className="flex w-full items-center justify-between gap-2">
               <label className="block text-sm font-medium text-slate-700">
-                Advantages
+                {t('Businesses.advantages')}
               </label>
             </div>
 
@@ -351,7 +353,7 @@ export function CreateBusinessDlg({ open, onClose, business }: Props) {
                     updateItem("advantages", index, e.target.value)
                   }
                   className="mt-1 mb-2 flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
-                  placeholder="Enter advantage"
+                  placeholder={t('Businesses.enterAdvantage')}
                   rows={3}
                 />
 
@@ -369,7 +371,7 @@ export function CreateBusinessDlg({ open, onClose, business }: Props) {
                       hover:bg-red-50
                     "
                   >
-                    Delete Advantage
+                    {t('Businesses.deleteAdvantage')}
                   </button>
                 )}
               </div>
@@ -395,14 +397,14 @@ export function CreateBusinessDlg({ open, onClose, business }: Props) {
               "
             >
               <Plus className="h-3 w-3" />
-              New Advantage
+              {t('Businesses.newAdvantage')}
             </button>
           </div>
 
           <div className="flex flex-col items-start justify-start">
             <div className="flex w-full items-center justify-between gap-2">
               <label className="block text-sm font-medium text-slate-700">
-                Goals
+                {t('Businesses.goals')}
               </label>
             </div>
 
@@ -414,7 +416,7 @@ export function CreateBusinessDlg({ open, onClose, business }: Props) {
                     updateItem("goals", index, e.target.value)
                   }
                   className="mt-1 mb-2 flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
-                  placeholder="Enter goal"
+                  placeholder={t('Businesses.enterGoal')}
                   rows={3}
                 />
 
@@ -432,7 +434,7 @@ export function CreateBusinessDlg({ open, onClose, business }: Props) {
                       hover:bg-red-50
                     "
                   >
-                    Delete Pain
+                    {t('Businesses.deleteGoal')}
                   </button>
                 )}
               </div>
@@ -458,7 +460,7 @@ export function CreateBusinessDlg({ open, onClose, business }: Props) {
               "
             >
               <Plus className="h-3 w-3" />
-              New Goal
+              {t('Businesses.newGoal')}
             </button>
           </div>
 
@@ -469,7 +471,7 @@ export function CreateBusinessDlg({ open, onClose, business }: Props) {
               onClick={onClose}
               className="px-4 py-2 rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-50"
             >
-              Cancel
+              {t('General.cancel')}
             </button>
             <button
               type="submit"
@@ -479,9 +481,9 @@ export function CreateBusinessDlg({ open, onClose, business }: Props) {
               { isLoadingCreating || isLoadingUpdating ? (
                 <>
                   <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"/>
-                  Saving...
+                  {t('General.saving')}
                 </>
-                ) : ("Save")
+                ) : (t('General.save'))
               }
             </button>
           </div>

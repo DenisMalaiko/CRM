@@ -1,4 +1,5 @@
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 
 type Props = {
   storiesImageCount: number
@@ -12,13 +13,14 @@ type LegendItem = {
 }
 
 export function StoriesTypeChart({ storiesImageCount, storiesVideoCount }: Props) {
+  const { t } = useTranslation()
   const total = storiesImageCount + storiesVideoCount
 
   if (total === 0) {
     return (
       <div className="rounded-2xl bg-white shadow border border-slate-200 p-6">
-        <h3 className="text-lg font-semibold text-slate-800 mb-4 text-left">Stories Formats (90D)</h3>
-        <p className="text-sm text-slate-400 text-center py-8">No data yet</p>
+        <h3 className="text-lg font-semibold text-slate-800 mb-4 text-left">{t('BusinessDashboard.storiesFormats90d')}</h3>
+        <p className="text-sm text-slate-400 text-center py-8">{t('General.noDataYet')}</p>
       </div>
     )
   }
@@ -28,13 +30,13 @@ export function StoriesTypeChart({ storiesImageCount, storiesVideoCount }: Props
   const gradient = `conic-gradient(#3b82f6 0% ${imagePct}%, #8b5cf6 ${imagePct}% 100%)`
 
   const items: LegendItem[] = [
-    { label: 'Image', count: storiesImageCount, color: '#3b82f6' },
-    { label: 'Video', count: storiesVideoCount, color: '#8b5cf6' },
+    { label: t('BusinessDashboard.image'), count: storiesImageCount, color: '#3b82f6' },
+    { label: t('BusinessDashboard.video'), count: storiesVideoCount, color: '#8b5cf6' },
   ]
 
   return (
     <div className="rounded-2xl bg-white shadow border border-slate-200 p-6">
-      <h3 className="text-lg font-semibold text-slate-800 mb-4 text-left">Stories Formats (90D)</h3>
+      <h3 className="text-lg font-semibold text-slate-800 mb-4 text-left">{t('BusinessDashboard.storiesFormats90d')}</h3>
 
       <div className="flex flex-col items-center gap-4">
         <div className="relative flex-shrink-0">
