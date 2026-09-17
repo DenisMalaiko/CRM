@@ -7,7 +7,8 @@ export type TUser = TBaseModel & {
   email: string;
   role: UserRole;
   status: UserStatus;
-}
+  language: string;
+};
 
 export type TUserCreate = {
   name: string;
@@ -15,6 +16,7 @@ export type TUserCreate = {
   password: string;
   role: UserRole;
   status: UserStatus;
+  language: string;
 }
 
 export type TUserSignIn = TUser & {

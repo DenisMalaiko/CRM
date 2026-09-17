@@ -23,6 +23,9 @@ import { Plans } from "../../../enum/Plans";
 import { UserRole } from "../../../enum/UserRole";
 import { UserStatus } from "../../../enum/UserStatus";
 
+// Const
+import { Languages } from "../../../const/Languages";
+
 function SignUp() {
   const navigate = useNavigate();
   const [ signUpUser, { isLoading } ] = useSignUpUserMutation();
@@ -38,6 +41,7 @@ function SignUp() {
     repeatPassword: "",
     agencyName: "",
     plan: Plans.Free,
+    language: Languages[0].value
   }), []);
 
   // Form Hook

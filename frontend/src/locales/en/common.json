@@ -146,5 +146,27 @@
     "promptCreated": "Prompt created",
     "contentPlanCreated": "Content plan created",
     "aiIdeaGenerated": "AI idea generated"
+  },
+  "BusinessSidebar": {
+    "Dashboard": "Dashboard",
+    "Info": "Info",
+    "BaseData": "Base Data",
+    "Products": "Products",
+    "Audiences":"Audiences",
+    "Calendar":"Calendar",
+    "Competitors": "Competitors",
+    "List": "List",
+    "Ideas": "Ideas",
+    "FacebookIdeas": "Facebook Ideas",
+    "InstagramIdeas": "Instagram Ideas",
+    "MetaAdsIdeas": "Meta Ads Ideas",
+    "AIIdeas": "AI Ideas",
+    "Content": "Content",
+    "ContentPlan": "Content Plan",
+    "Posts": "Posts",
+    "Stories": "Stories",
+    "Gallery": "Gallery",
+    "Design": "Design",
+    "AIPhoto": "AI Photo"
   }
 }

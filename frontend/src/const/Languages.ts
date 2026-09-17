@@ -1,4 +1,4 @@
 export const Languages = [
-  { value: "en", label: "English" },
-  { value: "ua", label: "Ukrainian" },
+  { value: "en", label: "English", code: "EN", flag: "🇺🇸" },
+  { value: "ua", label: "Ukrainian", code: "UA", flag: "🇺🇦" },
 ]

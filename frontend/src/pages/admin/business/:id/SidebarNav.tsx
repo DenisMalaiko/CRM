@@ -1,5 +1,6 @@
 import React, { useState } from "react"
 import { NavLink, useLocation } from "react-router-dom"
+import { useTranslation } from 'react-i18next'
 import {
   Database,
   FileText,
@@ -23,79 +24,12 @@ type SidebarGroup = {
   tabs: SidebarTab[]
 }
 
-const sidebarGroups: SidebarGroup[] = [
-  {
-    label: "Info",
-    icon: Database,
-    tabs: [
-      { id: "baseData", title: "Base Data" },
-      { id: "products", title: "Products" },
-      { id: "audiences", title: "Audiences" },
-      { id: "calendar", title: "Calendar" },
-    ],
-  },
-  {
-    label: "Competitors",
-    icon: Swords,
-    tabs: [
-      { id: "competitors/list", title: "List" },
-      { id: "competitors/dashboard", title: "Dashboard" },
-    ],
-  },
-  {
-    label: "Ideas",
-    icon: Lightbulb,
-    tabs: [
-      { id: "ideas/facebook-posts", title: "Facebook Ideas" },
-      { id: "ideas/instagram", title: "Instagram Ideas" },
-      { id: "ideas/meta-ads", title: "Meta Ads Ideas" },
-      { id: "ideasAI", title: "AI Ideas" },
-    ],
-  },
-  {
-    label: "Content",
-    icon: FileText,
-    tabs: [
-      { id: "contentPlan", title: "Content Plan" },
-      { id: "posts", title: "Posts" },
-      { id: "stories", title: "Stories" },
-    ],
-  },
-  {
-    label: "Gallery",
-    icon: Layers,
-    tabs: [
-      { id: "gallery", title: "Gallery" },
-      { id: "designSystem", title: "Design" },
-      { id: "aiPhoto", title: "AI Photo" },
-    ],
-  },
-
-
-  /*{
-    label: "Others",
-    icon: TrendingUp,
-    tabs: [
-      { id: "trends", title: "Tiktok" },
-      { id: "profiles", title: "Context" },
-      { id: "prompts", title: "Prompts" },
-    ],
-  },*/
-]
-
-function findActiveGroupIndex(pathname: string): number | null {
-  for (let i = 0; i < sidebarGroups.length; i++) {
-    for (const tab of sidebarGroups[i].tabs) {
-      if (pathname.includes(`/${tab.id}`)) {
-        return i
-      }
-    }
-  }
-  return null
-}
-
 export function SidebarNav() {
   const { pathname } = useLocation()
+  const { t } = useTranslation()
+
+  let sidebarGroups: SidebarGroup[] = []
+
   const [openGroupIndex, setOpenGroupIndex] = useState<number | null>(
     () => findActiveGroupIndex(pathname)
   )
@@ -104,6 +38,77 @@ export function SidebarNav() {
   if (pathname !== prevPathname) {
     setPrevPathname(pathname)
     setOpenGroupIndex(findActiveGroupIndex(pathname))
+  }
+
+  sidebarGroups = [
+    {
+      label: t('BusinessSidebar.Info'),
+      icon: Database,
+      tabs: [
+        { id: "baseData", title: t('BusinessSidebar.BaseData') },
+        { id: "products", title: t('BusinessSidebar.Products') },
+        { id: "audiences", title: t('BusinessSidebar.Audiences') },
+        { id: "calendar", title: t('BusinessSidebar.Calendar') },
+      ],
+    },
+    {
+      label: t('BusinessSidebar.Competitors'),
+      icon: Swords,
+      tabs: [
+        { id: "competitors/list", title: t('BusinessSidebar.List') },
+        { id: "competitors/dashboard", title: t('BusinessSidebar.Dashboard') },
+      ],
+    },
+    {
+      label: t('BusinessSidebar.Ideas'),
+      icon: Lightbulb,
+      tabs: [
+        { id: "ideas/facebook-posts", title: t('BusinessSidebar.FacebookIdeas') },
+        { id: "ideas/instagram", title: t('BusinessSidebar.InstagramIdeas') },
+        { id: "ideas/meta-ads", title: t('BusinessSidebar.MetaAdsIdeas') },
+        { id: "ideasAI", title: t('BusinessSidebar.AIIdeas') },
+      ],
+    },
+    {
+      label: t('BusinessSidebar.Content'),
+      icon: FileText,
+      tabs: [
+        { id: "contentPlan", title: t('BusinessSidebar.ContentPlan') },
+        { id: "posts", title: t('BusinessSidebar.Posts') },
+        { id: "stories", title: t('BusinessSidebar.Stories') },
+      ],
+    },
+    {
+      label: t('BusinessSidebar.Gallery'),
+      icon: Layers,
+      tabs: [
+        { id: "gallery", title: t('BusinessSidebar.Gallery') },
+        { id: "designSystem", title: t('BusinessSidebar.Design') },
+        { id: "aiPhoto", title: t('BusinessSidebar.AIPhoto') },
+      ],
+    },
+
+
+    /*{
+      label: "Others",
+      icon: TrendingUp,
+      tabs: [
+        { id: "trends", title: "Tiktok" },
+        { id: "profiles", title: "Context" },
+        { id: "prompts", title: "Prompts" },
+      ],
+    },*/
+  ]
+
+  function findActiveGroupIndex(pathname: string): number | null {
+    for (let i = 0; i < sidebarGroups.length; i++) {
+      for (const tab of sidebarGroups[i].tabs) {
+        if (pathname.includes(`/${tab.id}`)) {
+          return i
+        }
+      }
+    }
+    return null
   }
 
   function handleToggle(index: number) {

@@ -22,6 +22,9 @@ export class UserSignUpDto {
 
   @IsEnum(UserStatusUI)
   status: UserStatusUI = UserStatusUI.Active;
+
+  @IsString()
+  language: string;
 }
 
 export class SignUpDto {

@@ -146,5 +146,27 @@
     "promptCreated": "Промпт створено",
     "contentPlanCreated": "Контент-план створено",
     "aiIdeaGenerated": "AI ідею згенеровано"
+  },
+  "BusinessSidebar": {
+    "Dashboard": "Панель керування",
+    "Info": "Інформація",
+    "BaseData": "Базові дані",
+    "Products": "Продукти",
+    "Audiences": "Аудиторії",
+    "Calendar": "Календар",
+    "Competitors": "Конкуренти",
+    "List": "Список",
+    "Ideas": "Ідеї",
+    "FacebookIdeas": "Ідеї для Facebook",
+    "InstagramIdeas": "Ідеї для Instagram",
+    "MetaAdsIdeas": "Ідеї для Meta Ads",
+    "AIIdeas": "Ідеї від AI",
+    "Content": "Контент",
+    "ContentPlan": "Контент-план",
+    "Posts": "Дописи",
+    "Stories": "Історії",
+    "Gallery": "Галерея",
+    "Design": "Дизайн",
+    "AIPhoto": "AI-фото"
   }
 }
