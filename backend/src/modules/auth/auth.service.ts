@@ -38,6 +38,7 @@ export class AuthService {
             password: hashedPassword,
             role: body.user.role,
             status: body.user.status,
+            language: body.user.language,
             agencyId: agency.id,
           },
           select: {
@@ -46,8 +47,9 @@ export class AuthService {
             name: true,
             email: true,
             role: true,
-            status: true
-          }
+            status: true,
+            language: true,
+          },
         });
 
         return user;
@@ -66,7 +68,16 @@ export class AuthService {
 
     const response: TUserSignIn | null = await this.prisma.user.findUnique({
       where: { email: body.email },
-      select: { id: true, agencyId: true, name: true, email: true, password: true, role: true, status: true, }
+      select: {
+        id: true,
+        agencyId: true,
+        name: true,
+        email: true,
+        password: true,
+        role: true,
+        status: true,
+        language: true,
+      },
     });
     if (!response) throw new UnauthorizedException('Invalid credentials!');
 
@@ -79,7 +90,8 @@ export class AuthService {
       email: response.email,
       name: response.name,
       role: response.role,
-      status: response.status
+      status: response.status,
+      language: response.language,
     };
 
     return await this._generateToken(user);
@@ -89,7 +101,7 @@ export class AuthService {
     try {
       const response: TUser | null = await this.prisma.user.findUnique({
         where: { email: body.email },
-        select: { id: true, agencyId: true, email: true, name: true, password: true, role: true, status: true }
+        select: { id: true, agencyId: true, email: true, name: true, password: true, role: true, status: true, language: true },
       });
       if (!response) throw new UnauthorizedException('Invalid credentials!');
 
@@ -99,7 +111,8 @@ export class AuthService {
         name: response.name,
         agencyId: response.agencyId,
         role: response.role,
-        status: response.status
+        status: response.status,
+        language: response.language,
       };
 
       return await this._generateToken(user);
