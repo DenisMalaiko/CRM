@@ -10,8 +10,14 @@ export const nicheNewsApi = api.injectEndpoints({
         method: "GET",
       }),
     }),
+    fetchNicheNews: builder.mutation<ApiResponse<TNicheNews[]>, string>({
+      query: (businessId) => ({
+        url: `/niche-news/fetch/${businessId}`,
+        method: "POST",
+      }),
+    }),
   }),
   overrideExisting: false,
 })
 
-export const { useGetNicheNewsByBusinessIdMutation } = nicheNewsApi
+export const { useGetNicheNewsByBusinessIdMutation, useFetchNicheNewsMutation } = nicheNewsApi

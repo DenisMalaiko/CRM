@@ -2,8 +2,8 @@ import React, { useState, useMemo } from "react";
 import { toast } from "react-toastify";
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff } from "lucide-react";
-
 // Hooks
+import { useTranslation } from "react-i18next";
 import { useForm } from "../../../hooks/useForm";
 import { useValidation } from "../../../hooks/useValidation";
 
@@ -19,6 +19,7 @@ import { isEmail, isPassword } from "../../../utils/validations";
 function SignIn() {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
+  const { i18n } = useTranslation();
   const [ signInUser, { isLoading } ] = useSignInUserMutation();
   const [ showPassword, setShowPassword ] = useState(false);
 
@@ -54,6 +55,10 @@ function SignIn() {
       const response = await signInUser({ email, password }).unwrap();
       dispatch(setUser(response.data.user));
       dispatch(setAccessToken(response.data.accessToken));
+      if (response.data.user.language) {
+        i18n.changeLanguage(response.data.user.language);
+        localStorage.setItem('language', response.data.user.language);
+      }
       toast.success(response.message);
       navigate("/profile/dashboard");
     } catch (error) {

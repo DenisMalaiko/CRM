@@ -47,3 +47,8 @@ export class SignInDto {
   @MinLength(8)
   password: string;
 }
+
+export class UpdateLanguageDto {
+  @IsString()
+  language: string;
+}

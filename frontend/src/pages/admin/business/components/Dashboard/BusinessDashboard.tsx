@@ -36,7 +36,7 @@ import { TopAdsBlock } from "../../../../../components/analytics/TopAdsBlock/Top
 import { TopAdTexts } from "../../../../../components/analytics/TopAdTexts/TopAdTexts"
 import { NicheNewsBlock } from "../../../../../components/analytics/NicheNewsBlock/NicheNewsBlock"
 import { RecentActivityBlock, ActivityItem } from "../../../../../components/analytics/RecentActivityBlock/RecentActivityBlock"
-import { useGetNicheNewsByBusinessIdMutation } from "../../../../../store/nicheNews/nicheNewsApi"
+import { useGetNicheNewsByBusinessIdMutation, useFetchNicheNewsMutation } from "../../../../../store/nicheNews/nicheNewsApi"
 import { TNicheNews } from "../../../../../models/NicheNews"
 import { useTranslation } from 'react-i18next'
 
@@ -86,54 +86,15 @@ export function BusinessDashboard() {
   const [fetchCompetitorInstagramReport] = useFetchCompetitorInstagramReportMutation()
   const [fetchFacebookReport] = useFetchFacebookReportMutation()
   const [getNicheNews] = useGetNicheNewsByBusinessIdMutation()
+  const [fetchNicheNews] = useFetchNicheNewsMutation()
 
   const [isFetchingIg, setIsFetchingIg] = useState(false)
   const [isFetchingFb, setIsFetchingFb] = useState(false)
   const [fbReport, setFbReport] = useState<TFacebookReport | null>(null)
   const [igReport, setIgReport] = useState<TInstagramReport | null>(null)
   const [competitors, setCompetitors] = useState<TCompetitorWithReport[]>([])
-  const [nicheNews, setNicheNewsData] = useState<TNicheNews[]>([
-    {
-      id: "mock-1",
-      agencyId: "",
-      title: "How AI Is Reshaping Digital Marketing in 2026",
-      summary: "New research from McKinsey shows that brands using AI-driven content strategies see 3x higher engagement rates compared to traditional approaches.",
-      url: "https://example.com/ai-marketing-2026",
-      source: "TechCrunch",
-      industry: "Tech & Electronics",
-      publishedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-    },
-    {
-      id: "mock-2",
-      agencyId: "",
-      title: "Instagram Reels Algorithm Update: What Brands Need to Know",
-      summary: "Meta announced significant changes to how Reels are distributed. Longer-form content and original audio now receive priority in the feed.",
-      url: "https://example.com/reels-update",
-      source: "Social Media Today",
-      industry: "News & Entertainment",
-      publishedAt: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(),
-    },
-    {
-      id: "mock-3",
-      agencyId: "",
-      title: "E-commerce Conversion Rates Hit Record Highs With Personalization",
-      summary: "A new Shopify report reveals that stores implementing AI personalization see conversion rates up to 35% higher than industry averages.",
-      url: "https://example.com/ecommerce-personalization",
-      source: "Forbes",
-      industry: "Business Services",
-      publishedAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-    },
-    {
-      id: "mock-4",
-      agencyId: "",
-      title: "The Rise of Short-Form Video Ads Across All Industries",
-      summary: "Advertisers are shifting budgets to 15-second vertical video formats as attention spans shrink and mobile-first consumption dominates.",
-      url: "https://example.com/short-form-ads",
-      source: "AdWeek",
-      industry: "Beauty & Personal Care",
-      publishedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-    },
-  ])
+  const [nicheNews, setNicheNewsData] = useState<TNicheNews[]>([])
+  const [isFetchingNews, setIsFetchingNews] = useState(false)
 
   const products = useAppSelector((state) => state.productsModule.products)
   const audiences = useAppSelector((state) => state.audienceModule.audiences)
@@ -228,6 +189,22 @@ export function BusinessDashboard() {
     }
   }
 
+  const handleFetchNews = async () => {
+    if (!businessId) return
+    setIsFetchingNews(true)
+    try {
+      const response = await fetchNicheNews(businessId).unwrap()
+      if (response?.data) {
+        setNicheNewsData(response.data as TNicheNews[])
+        toast.success(response.message)
+      }
+    } catch (error) {
+      showError(error)
+    } finally {
+      setIsFetchingNews(false)
+    }
+  }
+
   const recentActivity = useMemo(() => {
     const items: ActivityItem[] = []
 
@@ -302,7 +279,7 @@ export function BusinessDashboard() {
 
           <div className="grid grid-cols-2 gap-4">
             <RecentActivityBlock recentActivity={recentActivity} />
-            <NicheNewsBlock nicheNews={nicheNews} />
+            <NicheNewsBlock nicheNews={nicheNews} onFetch={handleFetchNews} isFetching={isFetchingNews} />
           </div>
         </div>
       )}
