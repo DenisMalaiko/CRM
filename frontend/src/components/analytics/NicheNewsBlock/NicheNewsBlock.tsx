@@ -5,14 +5,33 @@ import { TNicheNews } from "../../../models/NicheNews"
 
 type Props = {
   nicheNews: TNicheNews[]
+  onFetch?: () => void
+  isFetching?: boolean
 }
 
-export function NicheNewsBlock({ nicheNews }: Props) {
+export function NicheNewsBlock({ nicheNews, onFetch, isFetching }: Props) {
   const { t } = useTranslation()
   return (
     <div className="rounded-2xl bg-white shadow border border-slate-200">
       <div className="border-b p-4 flex items-center justify-between">
         <h2 className="text-lg text-left font-semibold text-slate-800">{t('BusinessDashboard.nicheNews')}</h2>
+        {onFetch && (
+          <button
+            type="button"
+            onClick={onFetch}
+            disabled={isFetching}
+            className="px-3 py-1.5 rounded-lg bg-blue-600 text-white text-xs font-medium hover:bg-blue-700 disabled:opacity-50 flex items-center gap-1.5"
+          >
+            {isFetching ? (
+              <>
+                <span className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                {t('BusinessDashboard.fetching')}
+              </>
+            ) : (
+              t('BusinessDashboard.fetchNews')
+            )}
+          </button>
+        )}
       </div>
       {nicheNews.length === 0 ? (
         <p className="p-4 text-sm text-slate-400">{t('BusinessDashboard.noNicheNewsYet')}</p>
@@ -30,7 +49,9 @@ export function NicheNewsBlock({ nicheNews }: Props) {
               <p className="text-xs text-slate-400 text-left mt-0.5">
                 {item.source} · {item.industry}{item.publishedAt ? ` · ${formatDistanceToNow(new Date(item.publishedAt), { addSuffix: true })}` : ""}
               </p>
-              <p className="text-xs text-slate-500 text-left mt-1 line-clamp-2">{item.summary}</p>
+              {item.summary && (
+                <p className="text-xs text-slate-500 text-left mt-1 line-clamp-2">{item.summary}</p>
+              )}
             </a>
           ))}
         </div>

@@ -15,6 +15,7 @@ export type TUserCreate = {
   role: UserRole;
   status: UserStatus;
   agency?: TAgency;
+  language?: string;
 }
 
 export type TSignUpPayload = {

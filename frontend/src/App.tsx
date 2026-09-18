@@ -62,9 +62,11 @@ import { useSignInByTokenMutation } from "./store/auth/authApi";
 import { setUser, setAccessToken, logout, setAuthInitialized } from "./store/auth/authSlice";
 import { TUser } from "./models/User";
 import { useTokenExpiration } from "./hooks/useTokenExpiration";
+import { useTranslation } from "react-i18next";
 
 function App() {
   const ConfirmDialog = useConfirmDialog();
+  const { i18n } = useTranslation();
   const [ signInByToken ] = useSignInByTokenMutation();
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
@@ -85,6 +87,10 @@ function App() {
         const response: { accessToken: string, refreshToken: string, user: TUser } = await signInByToken(token).unwrap();
         dispatch(setUser(response.user));
         dispatch(setAccessToken(response.accessToken));
+        if (response.user.language) {
+          i18n.changeLanguage(response.user.language);
+          localStorage.setItem('language', response.user.language);
+        }
       } catch {
         dispatch(logout());
       } finally {

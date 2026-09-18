@@ -139,6 +139,22 @@ export class AuthService {
     }
   }
 
+  async updateLanguage(userId: string, language: string): Promise<TUser> {
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: { language },
+      select: {
+        id: true,
+        agencyId: true,
+        name: true,
+        email: true,
+        role: true,
+        status: true,
+        language: true,
+      },
+    });
+  }
+
   private async _checkExistingUser(email: string): Promise<void> {
     const user: TUser | null = await this.prisma.user.findUnique({ where: { email: email } });
 

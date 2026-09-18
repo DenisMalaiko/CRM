@@ -32,7 +32,14 @@ export const authApi = api.injectEndpoints({
           Authorization: `Bearer ${token}`
         }
       })
-    })
+    }),
+    updateLanguage: builder.mutation<ApiResponse<null>, { language: string }>({
+      query: (body) => ({
+        url: '/auth/users/language',
+        method: 'PATCH',
+        body,
+      }),
+    }),
   }),
   overrideExisting: false,
 });
@@ -41,5 +48,6 @@ export const {
   useSignUpUserMutation,
   useSignInUserMutation,
   useSignOutUserMutation,
-  useSignInByTokenMutation
+  useSignInByTokenMutation,
+  useUpdateLanguageMutation
 } = authApi;

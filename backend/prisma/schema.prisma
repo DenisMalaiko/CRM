@@ -15,6 +15,7 @@ model Agency {
   createdAt  DateTime   @default(now())
   businesses Business[]
   users      User[]
+  nicheNews  NicheNews[]
 }
 
 model Admin {
@@ -711,6 +712,21 @@ model CalendarificHoliday {
 
   @@unique([year, countryCode])
   @@index([year, countryCode])
+}
+
+model NicheNews {
+  id          String   @id @default(uuid())
+  agencyId    String
+  title       String
+  summary     String   @default("")
+  url         String   @unique
+  source      String
+  industry    String
+  publishedAt DateTime
+  createdAt   DateTime @default(now())
+  agency      Agency   @relation(fields: [agencyId], references: [id])
+
+  @@index([agencyId, industry])
 }
 
 enum ContentPlanStatus {

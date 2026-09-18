@@ -31,6 +31,7 @@ import { IdeaAIModule } from './modules/ideaAI/ideaAI.module';
 import { TrendsModule } from './modules/trends/trends.module';
 import { ContentPlanModule } from './modules/contentPlan/contentPlan.module';
 import { CalendarificModule } from './modules/calendarific/calendarific.module';
+import { NicheNewsModule } from './modules/nicheNews/nicheNews.module';
 
 @Module({
   imports: [
@@ -79,6 +80,7 @@ import { CalendarificModule } from './modules/calendarific/calendarific.module';
     TrendsModule,
     ContentPlanModule,
     CalendarificModule,
+    NicheNewsModule,
   ],
   controllers: [AppController],
   providers: [

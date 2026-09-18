@@ -1,9 +1,9 @@
-import { Controller, Post, Get, Req, Body, Headers, Res, UnauthorizedException, UseGuards } from '@nestjs/common';
+import { Controller, Post, Get, Patch, Req, Body, Headers, Res, UnauthorizedException, UseGuards } from '@nestjs/common';
 import type { Request as ExpressRequest, Response} from 'express';
 import * as process from "node:process";
 
 import { AuthService } from './auth.service';
-import { SignUpDto, SignInDto } from "./dto/user.dto";
+import { SignUpDto, SignInDto, UpdateLanguageDto } from "./dto/user.dto";
 import { JwtAuthGuard } from "../../core/guards/jwt-auth.guard";
 import { ResponseMessage } from "../../core/decorators/response-message.decorator";
 
@@ -70,6 +70,13 @@ export class AuthController {
     return res.json({
       ...response
     });
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('/users/language')
+  @ResponseMessage('Language has been updated!')
+  updateLanguage(@Req() request: any, @Body() body: UpdateLanguageDto) {
+    return this.authService.updateLanguage(request.user.id, body.language);
   }
 
   @UseGuards(JwtAuthGuard)
