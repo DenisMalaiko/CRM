@@ -1,7 +1,22 @@
 import React from "react"
 import { render, screen } from "@testing-library/react"
+import userEvent from "@testing-library/user-event"
 import { NicheNewsBlock } from "./NicheNewsBlock"
 import { TNicheNews } from "../../../models/NicheNews"
+
+jest.mock("react-i18next", () => ({
+  useTranslation: () => ({
+    t: (key: string) => {
+      const translations: Record<string, string> = {
+        "BusinessDashboard.nicheNews": "Niche News",
+        "BusinessDashboard.noNicheNewsYet": "No niche news yet",
+        "BusinessDashboard.fetching": "Fetching...",
+        "BusinessDashboard.fetchNews": "Fetch News",
+      }
+      return translations[key] ?? key
+    },
+  }),
+}))
 
 const baseItem: TNicheNews = {
   id: "1",
@@ -133,6 +148,117 @@ describe("NicheNewsBlock", () => {
 
       expect(screen.getAllByRole("link")).toHaveLength(1)
       expect(screen.getByText("AI Takes Over Marketing")).toBeInTheDocument()
+    })
+  })
+
+  describe("sorting", () => {
+    it("renders the newest item first regardless of input order", () => {
+      const oldest: TNicheNews = {
+        id: "old",
+        agencyId: "agency-1",
+        title: "Oldest Article",
+        summary: "This is the oldest.",
+        url: "https://example.com/oldest",
+        source: "OldSource",
+        industry: "Tech",
+        publishedAt: new Date("2024-01-01T00:00:00Z").toISOString(),
+      }
+      const middle: TNicheNews = {
+        id: "mid",
+        agencyId: "agency-1",
+        title: "Middle Article",
+        summary: "This is in the middle.",
+        url: "https://example.com/middle",
+        source: "MidSource",
+        industry: "Tech",
+        publishedAt: new Date("2025-01-01T00:00:00Z").toISOString(),
+      }
+      const newest: TNicheNews = {
+        id: "new",
+        agencyId: "agency-1",
+        title: "Newest Article",
+        summary: "This is the newest.",
+        url: "https://example.com/newest",
+        source: "NewSource",
+        industry: "Tech",
+        publishedAt: new Date("2026-01-01T00:00:00Z").toISOString(),
+      }
+
+      // intentionally pass in oldest-first order
+      render(<NicheNewsBlock nicheNews={[oldest, middle, newest]} />)
+
+      const links = screen.getAllByRole("link")
+      expect(links[0]).toHaveTextContent("Newest Article")
+    })
+  })
+
+  describe("pagination", () => {
+    function make7Items(): TNicheNews[] {
+      return Array.from({ length: 7 }, (_, i) => ({
+        id: String(i + 1),
+        agencyId: "agency-1",
+        title: `Article ${i + 1}`,
+        summary: `Summary ${i + 1}`,
+        url: `https://example.com/article-${i + 1}`,
+        source: "Source",
+        industry: "Tech",
+        publishedAt: new Date(2026, 0, i + 1).toISOString(),
+      }))
+    }
+
+    it("shows only 5 items on the first page when there are 7 items", () => {
+      render(<NicheNewsBlock nicheNews={make7Items()} />)
+
+      expect(screen.getAllByRole("link")).toHaveLength(5)
+    })
+
+    it("displays 'Page 1 of 2' when there are 7 items", () => {
+      render(<NicheNewsBlock nicheNews={make7Items()} />)
+
+      expect(screen.getByText("Page 1 of 2")).toBeInTheDocument()
+    })
+
+    it("disables Prev button on page 1", () => {
+      render(<NicheNewsBlock nicheNews={make7Items()} />)
+
+      expect(screen.getByRole("button", { name: "Prev" })).toBeDisabled()
+    })
+
+    it("shows 2 items and 'Page 2 of 2' after clicking Next", () => {
+      render(<NicheNewsBlock nicheNews={make7Items()} />)
+
+      userEvent.click(screen.getByRole("button", { name: "Next" }))
+
+      expect(screen.getAllByRole("link")).toHaveLength(2)
+      expect(screen.getByText("Page 2 of 2")).toBeInTheDocument()
+    })
+
+    it("disables Next button on the last page", () => {
+      render(<NicheNewsBlock nicheNews={make7Items()} />)
+
+      userEvent.click(screen.getByRole("button", { name: "Next" }))
+
+      expect(screen.getByRole("button", { name: "Next" })).toBeDisabled()
+    })
+  })
+
+  describe("pagination hidden when not needed", () => {
+    it("does not render Prev or Next buttons when items fit on one page", () => {
+      const threeItems: TNicheNews[] = Array.from({ length: 3 }, (_, i) => ({
+        id: String(i + 1),
+        agencyId: "agency-1",
+        title: `Article ${i + 1}`,
+        summary: `Summary ${i + 1}`,
+        url: `https://example.com/article-${i + 1}`,
+        source: "Source",
+        industry: "Tech",
+        publishedAt: new Date(2026, 0, i + 1).toISOString(),
+      }))
+
+      render(<NicheNewsBlock nicheNews={threeItems} />)
+
+      expect(screen.queryByRole("button", { name: "Prev" })).not.toBeInTheDocument()
+      expect(screen.queryByRole("button", { name: "Next" })).not.toBeInTheDocument()
     })
   })
 })
