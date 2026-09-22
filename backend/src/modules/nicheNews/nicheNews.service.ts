@@ -3,7 +3,7 @@ import { PrismaService } from '../../core/prisma/prisma.service';
 import { IndustryCategoryMap } from '../../shared/const/IndustryCategoryMap';
 import { type NicheNews } from '@prisma/client';
 
-type NewsItem = {
+export type NewsItem = {
   title: string;
   url: string;
   summary: string;
@@ -69,19 +69,38 @@ export class NicheNewsService {
     const lang = business.language === 'ua' ? 'ua' : 'en';
     const items = await this.fetchFromNewsdata(category, lang);
     const topItems = this.selectTopItems(items, 10);
+
+    const saved = await this.saveNewsForIndustry(
+      business.agencyId,
+      industry,
+      topItems,
+    );
+
+    this.logger.log(
+      `Fetched ${saved.length} news items for business ${businessId} (industry: ${industry}, lang: ${lang})`,
+    );
+
+    return saved;
+  }
+
+  async saveNewsForIndustry(
+    agencyId: string,
+    industry: string,
+    items: NewsItem[],
+  ): Promise<NicheNews[]> {
     const startOfToday = this.getStartOfTodayUTC();
 
-    const saved = await this.prisma.$transaction(async (tx) => {
+    return this.prisma.$transaction(async (tx) => {
       await tx.nicheNews.deleteMany({
         where: {
-          agencyId: business.agencyId,
+          agencyId,
           industry,
           createdAt: { gte: startOfToday },
         },
       });
 
       const results: NicheNews[] = [];
-      for (const item of topItems) {
+      for (const item of items) {
         try {
           const record = await tx.nicheNews.upsert({
             where: { url: item.url },
@@ -92,7 +111,7 @@ export class NicheNewsService {
               publishedAt: item.publishedAt,
             },
             create: {
-              agencyId: business.agencyId,
+              agencyId,
               title: item.title,
               summary: item.summary,
               url: item.url,
@@ -110,18 +129,9 @@ export class NicheNewsService {
       }
       return results;
     });
-
-    this.logger.log(
-      `Fetched ${saved.length} news items for business ${businessId} (industry: ${industry}, lang: ${lang})`,
-    );
-
-    return saved;
   }
 
-  private async fetchFromNewsdata(
-    category: string,
-    lang: string,
-  ): Promise<NewsItem[]> {
+  async fetchFromNewsdata(category: string, lang: string): Promise<NewsItem[]> {
     const apiKey = process.env.NEWSDATA_API_KEY;
     if (!apiKey) {
       this.logger.error('NEWSDATA_API_KEY is not set');
@@ -181,30 +191,7 @@ export class NicheNewsService {
     }
   }
 
-  // --- Google News RSS (disabled, kept for reference) ---
-
-  // private fetchFromGoogleRss(keywords: string[], lang: string): Promise<NewsItem[]> {
-  //   const now = new Date();
-  //   const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-  //   const afterDate = weekAgo.toISOString().split('T')[0];
-  //   const beforeDate = now.toISOString().split('T')[0];
-  //
-  //   const hlMap: Record<string, string> = { en: 'en', ua: 'uk' };
-  //   const glMap: Record<string, string> = { en: 'US', ua: 'UA' };
-  //   const ceidMap: Record<string, string> = { en: 'US:en', ua: 'UA:uk' };
-  //
-  //   const allItems: NewsItem[] = [];
-  //
-  //   for (const keyword of keywords) {
-  //     const q = `intitle:${encodeURIComponent(keyword)}+after:${afterDate}+before:${beforeDate}`;
-  //     const url = `https://news.google.com/rss/search?q=${q}&hl=${hlMap[lang]}&gl=${glMap[lang]}&ceid=${ceidMap[lang]}`;
-  //     // ... RSS parsing logic
-  //   }
-  //
-  //   return this.deduplicateByUrl(allItems);
-  // }
-
-  private selectTopItems(items: NewsItem[], count: number): NewsItem[] {
+  selectTopItems(items: NewsItem[], count: number): NewsItem[] {
     return [...items]
       .sort((a, b) => b.publishedAt.getTime() - a.publishedAt.getTime())
       .slice(0, count);
