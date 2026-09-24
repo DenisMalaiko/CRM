@@ -423,14 +423,6 @@ export function BusinessDashboard() {
             </div>
           </div>
 
-          <div className="rounded-2xl bg-white shadow border border-slate-200">
-            <div className="border-b p-4">
-              <h2 className="text-lg text-left font-semibold text-slate-800">{t('BusinessDashboard.strategicInsights')}</h2>
-            </div>
-            <div className="p-4">
-              <p className="p-4 text-sm text-slate-400">{t('BusinessDashboard.noStrategicInsightsYet')}</p>
-            </div>
-          </div>
         </div>
       )}
     </div>
