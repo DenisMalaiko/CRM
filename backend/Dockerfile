@@ -2,8 +2,8 @@ FROM node:20-bookworm
 
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+# Copy package files and registry config
+COPY package*.json .npmrc ./
 
 RUN npm install
 

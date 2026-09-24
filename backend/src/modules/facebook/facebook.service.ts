@@ -87,7 +87,7 @@ export class FacebookService {
       {
         captionText: false,
         onlyPostsNewerThan: ninetyDaysAgo.toISOString().split('T')[0],
-        resultsLimit: 10,
+        resultsLimit: 90,
         startUrls: [{ url: pageUrl }],
       },
     );
@@ -236,7 +236,7 @@ export class FacebookService {
     const items = await this.apify.runActor<any>(
       'curious_coder~facebook-ads-library-scraper',
       {
-        count: 10,
+        count: 90,
         scrapeAdDetails: true,
         'scrapePageAds.activeStatus': 'active',
         'scrapePageAds.countryCode': 'ALL',
