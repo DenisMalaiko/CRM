@@ -95,7 +95,6 @@ export function TopAdsBlock({ ads }: Props) {
               )}
             </div>
             <div className="p-3 space-y-1">
-              <p className="text-xs text-slate-400 truncate text-left">ad_id: {ad.adId}</p>
               <div className="flex items-center justify-between pt-1">
                 {ad.url && (
                   <a
