@@ -128,7 +128,7 @@ export function SidebarNav() {
         }
       >
         <LayoutDashboard size={18} />
-        Dashboard
+        {t('BusinessSidebar.Dashboard')}
       </NavLink>
 
       <div className="border-b border-slate-100 my-1" />

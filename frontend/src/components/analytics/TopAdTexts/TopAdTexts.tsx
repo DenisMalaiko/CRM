@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ExternalLink } from 'lucide-react'
 
@@ -15,6 +15,7 @@ type Props = {
 
 export function TopAdTexts({ ads }: Props) {
   const { t } = useTranslation()
+  const sorted = useMemo(() => [...ads].sort((a, b) => b.collationCount - a.collationCount), [ads])
   if (ads.length === 0) return null
 
   return (
@@ -23,7 +24,7 @@ export function TopAdTexts({ ads }: Props) {
         <h2 className="text-lg text-left font-semibold text-slate-800">{t('BusinessDashboard.topAdTexts')}</h2>
       </div>
       <div className="grid grid-cols-2 gap-4 p-4">
-        {ads.map((ad, index) => (
+        {sorted.map((ad, index) => (
           <div key={`${ad.competitorName}-${index}`} className="rounded-xl border border-slate-200 p-4">
             <div className="flex items-center justify-between">
               {ad.competitorName ? (

@@ -9,8 +9,8 @@ type Props = {
 }
 
 type ChartDataPoint = {
-  month: string
-  total: number
+  date: string
+  count: number
 }
 
 const CHART_COLOR = '#3b82f6' // tailwind blue-500
@@ -25,26 +25,22 @@ const TOOLTIP_STYLE = {
 function buildChartData(businesses: TBusiness[]): ChartDataPoint[] {
   if (businesses.length === 0) return []
 
-  const sorted = [...businesses].sort(
-    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-  )
+  const dayCounts = new Map<string, number>()
 
-  const monthCounts = new Map<string, number>()
-
-  for (const biz of sorted) {
-    const month = format(parseISO(biz.createdAt), 'yyyy-MM')
-    monthCounts.set(month, (monthCounts.get(month) ?? 0) + 1)
+  for (const biz of businesses) {
+    const day = format(parseISO(biz.createdAt), 'yyyy-MM-dd')
+    dayCounts.set(day, (dayCounts.get(day) ?? 0) + 1)
   }
 
-  const months = Array.from(monthCounts.keys()).sort()
+  const days = Array.from(dayCounts.keys()).sort()
   const data: ChartDataPoint[] = []
   let cumulative = 0
 
-  for (const month of months) {
-    cumulative += monthCounts.get(month) ?? 0
+  for (const day of days) {
+    cumulative += dayCounts.get(day) ?? 0
     data.push({
-      month: format(parseISO(`${month}-01`), 'MMM yyyy'),
-      total: cumulative,
+      date: format(parseISO(day), 'dd MMM'),
+      count: cumulative,
     })
   }
 
@@ -71,13 +67,13 @@ export function BusinessGrowthChart({ businesses }: Props) {
       <ResponsiveContainer width="100%" height={300}>
         <AreaChart data={data} margin={CHART_MARGIN}>
           <defs>
-            <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
+            <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%" stopColor={CHART_COLOR} stopOpacity={0.3} />
               <stop offset="95%" stopColor={CHART_COLOR} stopOpacity={0} />
             </linearGradient>
           </defs>
           <XAxis
-            dataKey="month"
+            dataKey="date"
             tick={AXIS_TICK_STYLE}
             axisLine={false}
             tickLine={false}
@@ -91,10 +87,10 @@ export function BusinessGrowthChart({ businesses }: Props) {
           <Tooltip contentStyle={TOOLTIP_STYLE} />
           <Area
             type="monotone"
-            dataKey="total"
+            dataKey="count"
             stroke={CHART_COLOR}
             strokeWidth={2}
-            fill="url(#colorTotal)"
+            fill="url(#colorCount)"
             name={t('Dashboard.businesses')}
           />
         </AreaChart>

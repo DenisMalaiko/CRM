@@ -40,13 +40,13 @@ describe('BusinessGrowthChart', () => {
     it('renders the heading when no businesses are provided', () => {
       render(<BusinessGrowthChart businesses={[]} />)
 
-      expect(screen.getByText('Business Growth')).toBeInTheDocument()
+      expect(screen.getByText('Dashboard.businessGrowth')).toBeInTheDocument()
     })
 
     it('shows "No data yet" when the businesses array is empty', () => {
       render(<BusinessGrowthChart businesses={[]} />)
 
-      expect(screen.getByText('No data yet')).toBeInTheDocument()
+      expect(screen.getByText('General.noDataYet')).toBeInTheDocument()
     })
 
     it('does not render the chart when there are no businesses', () => {
@@ -62,7 +62,7 @@ describe('BusinessGrowthChart', () => {
 
       render(<BusinessGrowthChart businesses={businesses} />)
 
-      expect(screen.getByText('Business Growth')).toBeInTheDocument()
+      expect(screen.getByText('Dashboard.businessGrowth')).toBeInTheDocument()
     })
 
     it('does not show "No data yet" when businesses are present', () => {
@@ -70,7 +70,7 @@ describe('BusinessGrowthChart', () => {
 
       render(<BusinessGrowthChart businesses={businesses} />)
 
-      expect(screen.queryByText('No data yet')).not.toBeInTheDocument()
+      expect(screen.queryByText('General.noDataYet')).not.toBeInTheDocument()
     })
 
     it('renders the chart container when businesses are present', () => {
@@ -83,24 +83,22 @@ describe('BusinessGrowthChart', () => {
   })
 
   describe('buildChartData logic', () => {
-    it('groups businesses from the same month into a single data point', () => {
+    it('groups businesses from the same day into a single data point', () => {
       const businesses = [
-        makeBusiness({ id: 'biz-1', createdAt: '2024-03-05T00:00:00Z' }),
-        makeBusiness({ id: 'biz-2', createdAt: '2024-03-20T00:00:00Z' }),
+        makeBusiness({ id: 'biz-1', createdAt: '2024-03-05T10:00:00Z' }),
+        makeBusiness({ id: 'biz-2', createdAt: '2024-03-05T15:00:00Z' }),
       ]
 
       render(<BusinessGrowthChart businesses={businesses} />)
 
-      // Both businesses are in Mar 2024 — the chart should render (not show empty state)
-      expect(screen.queryByText('No data yet')).not.toBeInTheDocument()
+      expect(screen.queryByText('General.noDataYet')).not.toBeInTheDocument()
       expect(screen.getByTestId('responsive-container')).toBeInTheDocument()
     })
 
-    it('produces one data point per distinct month', () => {
-      // Two businesses in different months — chart should have data and not be empty
+    it('produces separate data points for different days', () => {
       const businesses = [
         makeBusiness({ id: 'biz-1', createdAt: '2024-01-10T00:00:00Z' }),
-        makeBusiness({ id: 'biz-2', createdAt: '2024-02-15T00:00:00Z' }),
+        makeBusiness({ id: 'biz-2', createdAt: '2024-01-15T00:00:00Z' }),
       ]
 
       render(<BusinessGrowthChart businesses={businesses} />)
@@ -109,7 +107,6 @@ describe('BusinessGrowthChart', () => {
     })
 
     it('handles businesses with unordered createdAt dates by sorting them', () => {
-      // Businesses supplied out of chronological order — component should not crash
       const businesses = [
         makeBusiness({ id: 'biz-3', createdAt: '2024-06-01T00:00:00Z' }),
         makeBusiness({ id: 'biz-1', createdAt: '2024-01-01T00:00:00Z' }),
@@ -118,18 +115,15 @@ describe('BusinessGrowthChart', () => {
 
       render(<BusinessGrowthChart businesses={businesses} />)
 
-      expect(screen.getByText('Business Growth')).toBeInTheDocument()
-      expect(screen.queryByText('No data yet')).not.toBeInTheDocument()
+      expect(screen.getByText('Dashboard.businessGrowth')).toBeInTheDocument()
+      expect(screen.queryByText('General.noDataYet')).not.toBeInTheDocument()
     })
 
-    it('accumulates total cumulatively across months', () => {
-      // 1 business in Jan, 2 in Feb → cumulative: Jan=1, Feb=3
-      // The Recharts Tooltip content reflects the computed data — we verify the chart renders
-      // without crashing and is not in empty state, which confirms buildChartData ran correctly
+    it('accumulates total cumulatively across days', () => {
       const businesses = [
         makeBusiness({ id: 'biz-1', createdAt: '2024-01-10T00:00:00Z' }),
         makeBusiness({ id: 'biz-2', createdAt: '2024-02-05T00:00:00Z' }),
-        makeBusiness({ id: 'biz-3', createdAt: '2024-02-20T00:00:00Z' }),
+        makeBusiness({ id: 'biz-3', createdAt: '2024-02-05T00:00:00Z' }),
       ]
 
       render(<BusinessGrowthChart businesses={businesses} />)
@@ -142,7 +136,7 @@ describe('BusinessGrowthChart', () => {
 
       render(<BusinessGrowthChart businesses={businesses} />)
 
-      expect(screen.getByText('Business Growth')).toBeInTheDocument()
+      expect(screen.getByText('Dashboard.businessGrowth')).toBeInTheDocument()
       expect(screen.getByTestId('responsive-container')).toBeInTheDocument()
     })
   })
