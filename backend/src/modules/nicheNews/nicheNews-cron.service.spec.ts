@@ -29,12 +29,27 @@ const makeNicheNewsRecord = (
   ...overrides,
 });
 
+const makeBusiness = (overrides: Record<string, unknown> = {}) => ({
+  id: 'biz-1',
+  agencyId: 'agency-1',
+  industry: 'Health',
+  language: 'en',
+  name: 'Test Business',
+  goals: ['grow'],
+  advantages: ['quality'],
+  ...overrides,
+});
+
 describe('NicheNewsCronService', () => {
   let service: NicheNewsCronService;
-  let prisma: { business: { findMany: jest.Mock } };
+  let prisma: {
+    business: { findMany: jest.Mock };
+    nicheNews: { deleteMany: jest.Mock };
+  };
   let nicheNewsService: {
     fetchFromNewsdata: jest.Mock;
     selectTopItems: jest.Mock;
+    filterNewsByRelevance: jest.Mock;
     saveNewsForIndustry: jest.Mock;
   };
   let loggerWarnSpy: jest.SpyInstance;
@@ -44,11 +59,15 @@ describe('NicheNewsCronService', () => {
   beforeEach(async () => {
     prisma = {
       business: { findMany: jest.fn().mockResolvedValue([]) },
+      nicheNews: { deleteMany: jest.fn().mockResolvedValue({ count: 0 }) },
     };
 
     nicheNewsService = {
       fetchFromNewsdata: jest.fn().mockResolvedValue([]),
       selectTopItems: jest.fn().mockReturnValue([]),
+      filterNewsByRelevance: jest
+        .fn()
+        .mockImplementation((_biz, items) => Promise.resolve(items)),
       saveNewsForIndustry: jest.fn().mockResolvedValue([]),
     };
 
@@ -119,18 +138,8 @@ describe('NicheNewsCronService', () => {
     it('makes one API call per unique (category, language) group', async () => {
       // Two businesses share the same industry+language → one API call
       prisma.business.findMany.mockResolvedValue([
-        {
-          id: 'biz-1',
-          agencyId: 'agency-1',
-          industry: 'Health',
-          language: 'en',
-        },
-        {
-          id: 'biz-2',
-          agencyId: 'agency-2',
-          industry: 'Health',
-          language: 'en',
-        },
+        makeBusiness(),
+        makeBusiness({ id: 'biz-2', agencyId: 'agency-2' }),
       ]);
 
       const items = [makeNewsItem()];
@@ -151,18 +160,12 @@ describe('NicheNewsCronService', () => {
 
     it('makes separate API calls for different industries', async () => {
       prisma.business.findMany.mockResolvedValue([
-        {
-          id: 'biz-1',
-          agencyId: 'agency-1',
-          industry: 'Health',
-          language: 'en',
-        },
-        {
+        makeBusiness(),
+        makeBusiness({
           id: 'biz-2',
           agencyId: 'agency-2',
           industry: 'Education',
-          language: 'en',
-        },
+        }),
       ]);
 
       const items = [makeNewsItem()];
@@ -179,18 +182,8 @@ describe('NicheNewsCronService', () => {
 
     it('makes separate API calls for same industry in different languages', async () => {
       prisma.business.findMany.mockResolvedValue([
-        {
-          id: 'biz-1',
-          agencyId: 'agency-1',
-          industry: 'Health',
-          language: 'en',
-        },
-        {
-          id: 'biz-2',
-          agencyId: 'agency-2',
-          industry: 'Health',
-          language: 'ua',
-        },
+        makeBusiness(),
+        makeBusiness({ id: 'biz-2', agencyId: 'agency-2', language: 'ua' }),
       ]);
 
       const items = [makeNewsItem()];
@@ -215,18 +208,8 @@ describe('NicheNewsCronService', () => {
 
     it('calls saveNewsForIndustry for each unique (agencyId, industry) pair in the group', async () => {
       prisma.business.findMany.mockResolvedValue([
-        {
-          id: 'biz-1',
-          agencyId: 'agency-1',
-          industry: 'Health',
-          language: 'en',
-        },
-        {
-          id: 'biz-2',
-          agencyId: 'agency-2',
-          industry: 'Health',
-          language: 'en',
-        },
+        makeBusiness(),
+        makeBusiness({ id: 'biz-2', agencyId: 'agency-2' }),
       ]);
 
       const items = [makeNewsItem()];
@@ -254,18 +237,8 @@ describe('NicheNewsCronService', () => {
     it('deduplicates save calls when the same agency appears twice with the same industry', async () => {
       // Same agencyId + industry via two different businesses (e.g. two profiles)
       prisma.business.findMany.mockResolvedValue([
-        {
-          id: 'biz-1',
-          agencyId: 'agency-1',
-          industry: 'Health',
-          language: 'en',
-        },
-        {
-          id: 'biz-2',
-          agencyId: 'agency-1',
-          industry: 'Health',
-          language: 'en',
-        },
+        makeBusiness(),
+        makeBusiness({ id: 'biz-2' }),
       ]);
 
       const items = [makeNewsItem()];
@@ -282,14 +255,7 @@ describe('NicheNewsCronService', () => {
     });
 
     it('logs success count in the final summary', async () => {
-      prisma.business.findMany.mockResolvedValue([
-        {
-          id: 'biz-1',
-          agencyId: 'agency-1',
-          industry: 'Health',
-          language: 'en',
-        },
-      ]);
+      prisma.business.findMany.mockResolvedValue([makeBusiness()]);
 
       const items = [makeNewsItem()];
       nicheNewsService.fetchFromNewsdata.mockResolvedValue(items);
@@ -316,12 +282,7 @@ describe('NicheNewsCronService', () => {
   describe('handleNicheNewsCron — unknown industry', () => {
     it('logs a warning and skips businesses with unmapped industry', async () => {
       prisma.business.findMany.mockResolvedValue([
-        {
-          id: 'biz-1',
-          agencyId: 'agency-1',
-          industry: 'UnknownIndustry',
-          language: 'en',
-        },
+        makeBusiness({ industry: 'UnknownIndustry' }),
       ]);
 
       await service.handleNicheNewsCron();
@@ -334,18 +295,8 @@ describe('NicheNewsCronService', () => {
 
     it('still processes valid businesses when another has an unmapped industry', async () => {
       prisma.business.findMany.mockResolvedValue([
-        {
-          id: 'biz-1',
-          agencyId: 'agency-1',
-          industry: 'UnknownIndustry',
-          language: 'en',
-        },
-        {
-          id: 'biz-2',
-          agencyId: 'agency-2',
-          industry: 'Health',
-          language: 'en',
-        },
+        makeBusiness({ industry: 'UnknownIndustry' }),
+        makeBusiness({ id: 'biz-2', agencyId: 'agency-2' }),
       ]);
 
       const items = [makeNewsItem()];
@@ -371,14 +322,7 @@ describe('NicheNewsCronService', () => {
   // ─────────────────────────────────────────────────────────────
   describe('handleNicheNewsCron — empty API response', () => {
     it('logs a warning and skips saveNewsForIndustry when fetchFromNewsdata returns no items', async () => {
-      prisma.business.findMany.mockResolvedValue([
-        {
-          id: 'biz-1',
-          agencyId: 'agency-1',
-          industry: 'Health',
-          language: 'en',
-        },
-      ]);
+      prisma.business.findMany.mockResolvedValue([makeBusiness()]);
 
       nicheNewsService.fetchFromNewsdata.mockResolvedValue([]);
       nicheNewsService.selectTopItems.mockReturnValue([]);
@@ -393,18 +337,12 @@ describe('NicheNewsCronService', () => {
 
     it('continues processing other groups after one returns empty results', async () => {
       prisma.business.findMany.mockResolvedValue([
-        {
-          id: 'biz-1',
-          agencyId: 'agency-1',
-          industry: 'Health',
-          language: 'en',
-        },
-        {
+        makeBusiness(),
+        makeBusiness({
           id: 'biz-2',
           agencyId: 'agency-2',
           industry: 'Education',
-          language: 'en',
-        },
+        }),
       ]);
 
       const items = [makeNewsItem()];
@@ -435,18 +373,8 @@ describe('NicheNewsCronService', () => {
   describe('handleNicheNewsCron — partial save failure', () => {
     it('continues processing other agencies when saveNewsForIndustry throws for one', async () => {
       prisma.business.findMany.mockResolvedValue([
-        {
-          id: 'biz-1',
-          agencyId: 'agency-1',
-          industry: 'Health',
-          language: 'en',
-        },
-        {
-          id: 'biz-2',
-          agencyId: 'agency-2',
-          industry: 'Health',
-          language: 'en',
-        },
+        makeBusiness(),
+        makeBusiness({ id: 'biz-2', agencyId: 'agency-2' }),
       ]);
 
       const items = [makeNewsItem()];
@@ -463,18 +391,8 @@ describe('NicheNewsCronService', () => {
 
     it('increments failCount for each save that throws', async () => {
       prisma.business.findMany.mockResolvedValue([
-        {
-          id: 'biz-1',
-          agencyId: 'agency-1',
-          industry: 'Health',
-          language: 'en',
-        },
-        {
-          id: 'biz-2',
-          agencyId: 'agency-2',
-          industry: 'Health',
-          language: 'en',
-        },
+        makeBusiness(),
+        makeBusiness({ id: 'biz-2', agencyId: 'agency-2' }),
       ]);
 
       const items = [makeNewsItem()];
@@ -496,14 +414,7 @@ describe('NicheNewsCronService', () => {
     });
 
     it('logs an error with agency and industry details when save fails', async () => {
-      prisma.business.findMany.mockResolvedValue([
-        {
-          id: 'biz-1',
-          agencyId: 'agency-1',
-          industry: 'Health',
-          language: 'en',
-        },
-      ]);
+      prisma.business.findMany.mockResolvedValue([makeBusiness()]);
 
       const items = [makeNewsItem()];
       nicheNewsService.fetchFromNewsdata.mockResolvedValue(items);
@@ -523,14 +434,7 @@ describe('NicheNewsCronService', () => {
     });
 
     it('handles non-Error thrown values from saveNewsForIndustry without crashing', async () => {
-      prisma.business.findMany.mockResolvedValue([
-        {
-          id: 'biz-1',
-          agencyId: 'agency-1',
-          industry: 'Health',
-          language: 'en',
-        },
-      ]);
+      prisma.business.findMany.mockResolvedValue([makeBusiness()]);
 
       const items = [makeNewsItem()];
       nicheNewsService.fetchFromNewsdata.mockResolvedValue(items);

@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { Logger, NotFoundException } from '@nestjs/common';
 import { NicheNewsService, NewsItem } from './nicheNews.service';
 import { PrismaService } from '../../core/prisma/prisma.service';
+import { AiBaseService, AiModel } from '../ai/services/ai-base.service';
 import { type NicheNews } from '@prisma/client';
 
 const makeNewsItem = (overrides: Partial<NewsItem> = {}): NewsItem => ({
@@ -39,6 +40,12 @@ describe('NicheNewsService', () => {
     };
     $transaction: jest.Mock;
   };
+  let mockModel: { invoke: jest.Mock };
+  let aiBase: {
+    getModel: jest.Mock;
+    safeParseJson: jest.Mock;
+    extractTextContent: jest.Mock;
+  };
   let loggerWarnSpy: jest.SpyInstance;
 
   beforeEach(async () => {
@@ -52,10 +59,19 @@ describe('NicheNewsService', () => {
       $transaction: jest.fn(),
     };
 
+    mockModel = { invoke: jest.fn() };
+
+    aiBase = {
+      getModel: jest.fn().mockReturnValue(mockModel),
+      safeParseJson: jest.fn(),
+      extractTextContent: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         NicheNewsService,
         { provide: PrismaService, useValue: prisma },
+        { provide: AiBaseService, useValue: aiBase },
       ],
     }).compile();
 
@@ -194,6 +210,174 @@ describe('NicheNewsService', () => {
       await service.fetchByBusinessId('biz-uuid-1');
 
       expect(service.fetchFromNewsdata).toHaveBeenCalledWith('health', 'ua');
+    });
+
+    it('passes filtered items from filterNewsByRelevance to saveNewsForIndustry', async () => {
+      prisma.business.findUnique.mockResolvedValue({
+        agencyId: 'agency-uuid-1',
+        industry: 'Health',
+        language: 'en',
+        name: 'Test Biz',
+        goals: ['grow'],
+        advantages: ['fast'],
+      });
+
+      const allItems = [
+        makeNewsItem({ url: 'https://example.com/a' }),
+        makeNewsItem({ url: 'https://example.com/b' }),
+      ];
+      const filteredItems = [allItems[0]];
+
+      jest.spyOn(service, 'fetchFromNewsdata').mockResolvedValue(allItems);
+      jest
+        .spyOn(service, 'filterNewsByRelevance')
+        .mockResolvedValue(filteredItems);
+      jest.spyOn(service, 'saveNewsForIndustry').mockResolvedValue([]);
+
+      await service.fetchByBusinessId('biz-uuid-1');
+
+      expect(service.filterNewsByRelevance).toHaveBeenCalled();
+      expect(service.saveNewsForIndustry).toHaveBeenCalledWith(
+        'agency-uuid-1',
+        'Health',
+        filteredItems,
+      );
+    });
+  });
+
+  // ─────────────────────────────────────────────────────────────
+  // filterNewsByRelevance
+  // ─────────────────────────────────────────────────────────────
+  describe('filterNewsByRelevance', () => {
+    const business = {
+      name: 'Acme Health',
+      industry: 'Health',
+      goals: ['increase revenue'],
+      advantages: ['fast delivery'],
+    };
+
+    it('returns only items at the relevant indexes returned by AI', async () => {
+      const items = [
+        makeNewsItem({ url: 'https://example.com/0' }),
+        makeNewsItem({ url: 'https://example.com/1' }),
+        makeNewsItem({ url: 'https://example.com/2' }),
+      ];
+
+      mockModel.invoke.mockResolvedValue({
+        content: '{"relevantIndexes":[0,2]}',
+      });
+      aiBase.extractTextContent.mockReturnValue('{"relevantIndexes":[0,2]}');
+      aiBase.safeParseJson.mockReturnValue({ relevantIndexes: [0, 2] });
+
+      const result = await service.filterNewsByRelevance(business, items);
+
+      expect(result).toHaveLength(2);
+      expect(result[0].url).toBe('https://example.com/0');
+      expect(result[1].url).toBe('https://example.com/2');
+    });
+
+    it('returns empty array immediately when items list is empty', async () => {
+      const result = await service.filterNewsByRelevance(business, []);
+
+      expect(result).toEqual([]);
+      expect(aiBase.getModel).not.toHaveBeenCalled();
+    });
+
+    it('returns all items unchanged when AI model throws', async () => {
+      const items = [
+        makeNewsItem({ url: 'https://example.com/0' }),
+        makeNewsItem({ url: 'https://example.com/1' }),
+      ];
+
+      mockModel.invoke.mockRejectedValue(new Error('OpenAI timeout'));
+
+      const result = await service.filterNewsByRelevance(business, items);
+
+      expect(result).toEqual(items);
+      expect(loggerWarnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('OpenAI timeout'),
+      );
+    });
+
+    it('returns empty array when AI returns empty relevantIndexes', async () => {
+      const items = [
+        makeNewsItem({ url: 'https://example.com/0' }),
+        makeNewsItem({ url: 'https://example.com/1' }),
+      ];
+
+      mockModel.invoke.mockResolvedValue({ content: '{"relevantIndexes":[]}' });
+      aiBase.extractTextContent.mockReturnValue('{"relevantIndexes":[]}');
+      aiBase.safeParseJson.mockReturnValue({ relevantIndexes: [] });
+
+      const result = await service.filterNewsByRelevance(business, items);
+
+      expect(result).toEqual([]);
+    });
+
+    it('filters out out-of-bounds indexes from AI response', async () => {
+      const items = [
+        makeNewsItem({ url: 'https://example.com/0' }),
+        makeNewsItem({ url: 'https://example.com/1' }),
+      ];
+
+      // AI returns index 5 and 99 which are both out of bounds for a 2-item array
+      mockModel.invoke.mockResolvedValue({
+        content: '{"relevantIndexes":[0,5,99]}',
+      });
+      aiBase.extractTextContent.mockReturnValue('{"relevantIndexes":[0,5,99]}');
+      aiBase.safeParseJson.mockReturnValue({ relevantIndexes: [0, 5, 99] });
+
+      const result = await service.filterNewsByRelevance(business, items);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].url).toBe('https://example.com/0');
+    });
+
+    it('returns all items when safeParseJson throws (malformed AI output)', async () => {
+      const items = [
+        makeNewsItem(),
+        makeNewsItem({ url: 'https://example.com/2' }),
+      ];
+
+      mockModel.invoke.mockResolvedValue({ content: 'not valid json at all' });
+      aiBase.extractTextContent.mockReturnValue('not valid json at all');
+      aiBase.safeParseJson.mockImplementation(() => {
+        throw new SyntaxError('Unexpected token');
+      });
+
+      const result = await service.filterNewsByRelevance(business, items);
+
+      expect(result).toEqual(items);
+      expect(loggerWarnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Unexpected token'),
+      );
+    });
+
+    it('returns all items when Zod schema validation fails', async () => {
+      const items = [makeNewsItem()];
+
+      mockModel.invoke.mockResolvedValue({ content: '{"wrong":"schema"}' });
+      aiBase.extractTextContent.mockReturnValue('{"wrong":"schema"}');
+      aiBase.safeParseJson.mockReturnValue({ wrong: 'schema' });
+
+      const result = await service.filterNewsByRelevance(business, items);
+
+      expect(result).toEqual(items);
+      expect(loggerWarnSpy).toHaveBeenCalled();
+    });
+
+    it('calls getModel with AiModel.Fast', async () => {
+      const items = [makeNewsItem()];
+
+      mockModel.invoke.mockResolvedValue({
+        content: '{"relevantIndexes":[0]}',
+      });
+      aiBase.extractTextContent.mockReturnValue('{"relevantIndexes":[0]}');
+      aiBase.safeParseJson.mockReturnValue({ relevantIndexes: [0] });
+
+      await service.filterNewsByRelevance(business, items);
+
+      expect(aiBase.getModel).toHaveBeenCalledWith(AiModel.Fast);
     });
   });
 

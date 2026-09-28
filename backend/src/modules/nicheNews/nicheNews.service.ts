@@ -2,6 +2,15 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../core/prisma/prisma.service';
 import { IndustryCategoryMap } from '../../shared/const/IndustryCategoryMap';
 import { type NicheNews } from '@prisma/client';
+import { AiBaseService, AiModel } from '../ai/services/ai-base.service';
+import { NewsRelevanceSchema } from './schema/news-relevance.schema';
+import {
+  newsFilterRoleBlock,
+  newsFilterContextBlock,
+  newsFilterArticlesBlock,
+  newsFilterTaskBlock,
+  newsFilterOutputBlock,
+} from '../ai/prompts/nicheNews/news-relevance';
 
 export type NewsItem = {
   title: string;
@@ -29,7 +38,10 @@ type NewsdataResponse = {
 export class NicheNewsService {
   private readonly logger = new Logger(NicheNewsService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly aiBase: AiBaseService,
+  ) {}
 
   async getByBusinessId(businessId: string): Promise<NicheNews[]> {
     const business = await this.prisma.business.findUnique({
@@ -52,7 +64,14 @@ export class NicheNewsService {
   async fetchByBusinessId(businessId: string): Promise<NicheNews[]> {
     const business = await this.prisma.business.findUnique({
       where: { id: businessId },
-      select: { agencyId: true, industry: true, language: true },
+      select: {
+        agencyId: true,
+        industry: true,
+        language: true,
+        name: true,
+        goals: true,
+        advantages: true,
+      },
     });
 
     if (!business) throw new NotFoundException('Business not found');
@@ -69,11 +88,20 @@ export class NicheNewsService {
     const lang = business.language === 'ua' ? 'ua' : 'en';
     const items = await this.fetchFromNewsdata(category, lang);
     const topItems = this.selectTopItems(items, 10);
+    const relevantItems = await this.filterNewsByRelevance(
+      {
+        name: business.name,
+        industry,
+        goals: business.goals,
+        advantages: business.advantages,
+      },
+      topItems,
+    );
 
     const saved = await this.saveNewsForIndustry(
       business.agencyId,
       industry,
-      topItems,
+      relevantItems,
     );
 
     this.logger.log(
@@ -81,6 +109,53 @@ export class NicheNewsService {
     );
 
     return saved;
+  }
+
+  async filterNewsByRelevance(
+    business: {
+      name: string;
+      industry: string;
+      goals: string[];
+      advantages: string[];
+    },
+    items: NewsItem[],
+  ): Promise<NewsItem[]> {
+    if (items.length === 0) return [];
+
+    try {
+      const model = this.aiBase.getModel(AiModel.Fast);
+      const prompt = [
+        newsFilterRoleBlock(),
+        newsFilterContextBlock(
+          business.industry,
+          business.name,
+          business.goals,
+          business.advantages,
+        ),
+        newsFilterArticlesBlock(items),
+        newsFilterTaskBlock(),
+        newsFilterOutputBlock(),
+      ].join('\n\n');
+
+      const response = await model.invoke(prompt);
+      const rawText = this.aiBase.extractTextContent(response.content);
+      const parsed = NewsRelevanceSchema.parse(
+        this.aiBase.safeParseJson(rawText),
+      );
+
+      const filtered = parsed.relevantIndexes
+        .filter((i) => i >= 0 && i < items.length)
+        .map((i) => items[i]);
+
+      this.logger.log(
+        `AI filter: ${items.length} → ${filtered.length} relevant`,
+      );
+      return filtered;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.warn(`AI news filter failed, keeping all items: ${message}`);
+      return items;
+    }
   }
 
   async saveNewsForIndustry(

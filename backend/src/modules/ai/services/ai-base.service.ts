@@ -40,17 +40,17 @@ export class AiBaseService {
   private readonly models = new Map<AiModel, BaseChatModel>();
   readonly logger = new Logger(AiBaseService.name);
 
-  constructor() {
-    for (const [role, config] of Object.entries(MODEL_CONFIG)) {
-      this.models.set(role as AiModel, this.createModel(config));
-    }
-  }
-
   getModel(role: AiModel): BaseChatModel {
-    const model = this.models.get(role);
-    if (!model) {
+    const cached = this.models.get(role);
+    if (cached) return cached;
+
+    const config = MODEL_CONFIG[role];
+    if (!config) {
       throw new Error(`AI model not configured for role: ${role}`);
     }
+
+    const model = this.createModel(config);
+    this.models.set(role, model);
     return model;
   }
 

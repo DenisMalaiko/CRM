@@ -5,6 +5,14 @@ import { PrismaService } from '../../core/prisma/prisma.service';
 import { NicheNewsService } from './nicheNews.service';
 import { IndustryCategoryMap } from '../../shared/const/IndustryCategoryMap';
 
+type BusinessEntry = {
+  agencyId: string;
+  industry: string;
+  name: string;
+  goals: string[];
+  advantages: string[];
+};
+
 @Injectable()
 export class NicheNewsCronService {
   private readonly logger = new Logger(NicheNewsCronService.name);
@@ -39,6 +47,9 @@ export class NicheNewsCronService {
         agencyId: true,
         industry: true,
         language: true,
+        name: true,
+        goals: true,
+        advantages: true,
       },
     });
 
@@ -47,8 +58,10 @@ export class NicheNewsCronService {
     if (businesses.length === 0) return;
 
     // Group by (category, language) to minimize API calls.
-    // Each group maps to a set of unique (agencyId, industry) pairs to save news for.
-    const groupMap = new Map<string, Set<string>>();
+    // Each group holds unique business objects (deduped by agencyId+industry)
+    // so AI filtering can run per-business.
+    const groupMap = new Map<string, BusinessEntry[]>();
+    const seen = new Set<string>();
 
     for (const biz of businesses) {
       const category = IndustryCategoryMap[biz.industry!];
@@ -59,18 +72,27 @@ export class NicheNewsCronService {
 
       const lang = biz.language === 'ua' ? 'ua' : 'en';
       const fetchKey = `${category}::${lang}`;
-      const saveKey = `${biz.agencyId}::${biz.industry!}`;
+      const dedupeKey = `${biz.agencyId}::${biz.industry!}`;
+
+      if (seen.has(dedupeKey)) continue;
+      seen.add(dedupeKey);
 
       if (!groupMap.has(fetchKey)) {
-        groupMap.set(fetchKey, new Set());
+        groupMap.set(fetchKey, []);
       }
-      groupMap.get(fetchKey)!.add(saveKey);
+      groupMap.get(fetchKey)!.push({
+        agencyId: biz.agencyId,
+        industry: biz.industry!,
+        name: biz.name,
+        goals: biz.goals,
+        advantages: biz.advantages,
+      });
     }
 
     let successCount = 0;
     let failCount = 0;
 
-    for (const [fetchKey, saveKeys] of groupMap) {
+    for (const [fetchKey, bizEntries] of groupMap) {
       const [category, lang] = fetchKey.split('::');
 
       const items = await this.nicheNewsService.fetchFromNewsdata(
@@ -84,27 +106,33 @@ export class NicheNewsCronService {
         continue;
       }
 
-      for (const saveKey of saveKeys) {
-        const separatorIndex = saveKey.indexOf('::');
-        const agencyId = saveKey.slice(0, separatorIndex);
-        const industry = saveKey.slice(separatorIndex + 2);
-
+      for (const biz of bizEntries) {
         try {
+          const relevantItems =
+            await this.nicheNewsService.filterNewsByRelevance(
+              {
+                name: biz.name,
+                industry: biz.industry,
+                goals: biz.goals,
+                advantages: biz.advantages,
+              },
+              topItems,
+            );
           await this.nicheNewsService.saveNewsForIndustry(
-            agencyId,
-            industry,
-            topItems,
+            biz.agencyId,
+            biz.industry,
+            relevantItems,
           );
           successCount++;
           this.logger.log(
-            `Saved ${topItems.length} news for agency ${agencyId}, industry "${industry}"`,
+            `Saved ${relevantItems.length} news for agency ${biz.agencyId}, industry "${biz.industry}"`,
           );
         } catch (error) {
           failCount++;
           const message =
             error instanceof Error ? error.message : String(error);
           this.logger.error(
-            `Failed to save news for agency ${agencyId}, industry "${industry}": ${message}`,
+            `Failed to save news for agency ${biz.agencyId}, industry "${biz.industry}": ${message}`,
           );
         }
       }
