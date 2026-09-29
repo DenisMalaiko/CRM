@@ -32,6 +32,7 @@ type NewsdataResponse = {
   status: string;
   totalResults: number;
   results: NewsdataArticle[] | null;
+  nextPage: string | null;
 };
 
 @Injectable()
@@ -87,7 +88,6 @@ export class NicheNewsService {
 
     const lang = business.language === 'ua' ? 'ua' : 'en';
     const items = await this.fetchFromNewsdata(category, lang);
-    const topItems = this.selectTopItems(items, 10);
     const relevantItems = await this.filterNewsByRelevance(
       {
         name: business.name,
@@ -95,7 +95,7 @@ export class NicheNewsService {
         goals: business.goals,
         advantages: business.advantages,
       },
-      topItems,
+      items,
     );
 
     const saved = await this.saveNewsForIndustry(
@@ -163,14 +163,14 @@ export class NicheNewsService {
     industry: string,
     items: NewsItem[],
   ): Promise<NicheNews[]> {
-    const startOfToday = this.getStartOfTodayUTC();
+    const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
 
     return this.prisma.$transaction(async (tx) => {
       await tx.nicheNews.deleteMany({
         where: {
           agencyId,
           industry,
-          createdAt: { gte: startOfToday },
+          createdAt: { lt: threeDaysAgo },
         },
       });
 
@@ -206,7 +206,11 @@ export class NicheNewsService {
     });
   }
 
-  async fetchFromNewsdata(category: string, lang: string): Promise<NewsItem[]> {
+  async fetchFromNewsdata(
+    category: string,
+    lang: string,
+    maxPages = 5,
+  ): Promise<NewsItem[]> {
     const apiKey = process.env.NEWSDATA_API_KEY;
     if (!apiKey) {
       this.logger.error('NEWSDATA_API_KEY is not set');
@@ -216,66 +220,83 @@ export class NicheNewsService {
     const languageMap: Record<string, string> = { en: 'en', ua: 'uk' };
     const countryMap: Record<string, string> = { en: 'us', ua: 'ua' };
 
-    const params = new URLSearchParams({
-      apikey: apiKey,
-      language: languageMap[lang],
-      country: countryMap[lang],
-      category,
-      size: '10',
-      removeduplicate: '1',
-    });
+    const allItems: NewsItem[] = [];
+    let nextPage: string | null = null;
+    let pagesVisited = 0;
 
-    try {
-      const response = await fetch(
-        `https://newsdata.io/api/1/latest?${params.toString()}`,
-      );
+    for (let page = 1; page <= maxPages; page++) {
+      try {
+        const params = new URLSearchParams({
+          apikey: apiKey,
+          language: languageMap[lang],
+          country: countryMap[lang],
+          category,
+          size: '10',
+          removeduplicate: '1',
+        });
 
-      if (!response.ok) {
-        const errorBody = await response.text();
-        this.logger.warn(
-          `Newsdata API returned ${response.status}: ${errorBody}`,
+        if (nextPage) {
+          params.set('page', nextPage);
+        }
+
+        const response = await fetch(
+          `https://newsdata.io/api/1/latest?${params.toString()}`,
         );
-        return [];
+
+        if (!response.ok) {
+          const errorBody = await response.text();
+          this.logger.warn(
+            `Newsdata API returned ${response.status}: ${errorBody}`,
+          );
+          break;
+        }
+
+        const data: NewsdataResponse = await response.json();
+
+        if (data.status !== 'success' || !data.results) {
+          this.logger.warn(`Newsdata API returned status: ${data.status}`);
+          break;
+        }
+
+        const items = data.results
+          .filter(
+            (
+              article,
+            ): article is NewsdataArticle & { title: string; link: string } =>
+              !!article.title && !!article.link,
+          )
+          .map((article) => ({
+            title: article.title,
+            url: article.link,
+            summary: article.description ?? '',
+            source: article.source_name ?? 'Unknown',
+            publishedAt: article.pubDate
+              ? new Date(article.pubDate)
+              : new Date(),
+          }));
+
+        allItems.push(...items);
+        pagesVisited++;
+        nextPage = data.nextPage;
+
+        if (!nextPage) break;
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        this.logger.warn(`Failed to fetch from Newsdata: ${message}`);
+        break;
       }
-
-      const data: NewsdataResponse = await response.json();
-
-      if (data.status !== 'success' || !data.results) {
-        this.logger.warn(`Newsdata API returned status: ${data.status}`);
-        return [];
-      }
-
-      return data.results
-        .filter(
-          (
-            article,
-          ): article is NewsdataArticle & { title: string; link: string } =>
-            !!article.title && !!article.link,
-        )
-        .map((article) => ({
-          title: article.title,
-          url: article.link,
-          summary: article.description ?? '',
-          source: article.source_name ?? 'Unknown',
-          publishedAt: article.pubDate ? new Date(article.pubDate) : new Date(),
-        }));
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      this.logger.warn(`Failed to fetch from Newsdata: ${message}`);
-      return [];
     }
+
+    this.logger.log(
+      `Newsdata: fetched ${allItems.length} articles across ${pagesVisited} page(s) for ${category}/${lang}`,
+    );
+
+    return allItems;
   }
 
   selectTopItems(items: NewsItem[], count: number): NewsItem[] {
     return [...items]
       .sort((a, b) => b.publishedAt.getTime() - a.publishedAt.getTime())
       .slice(0, count);
-  }
-
-  private getStartOfTodayUTC(): Date {
-    const now = new Date();
-    return new Date(
-      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
-    );
   }
 }

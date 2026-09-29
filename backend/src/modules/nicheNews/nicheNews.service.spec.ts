@@ -552,6 +552,257 @@ describe('NicheNewsService', () => {
   });
 
   // ─────────────────────────────────────────────────────────────
+  // fetchFromNewsdata
+  // ─────────────────────────────────────────────────────────────
+  describe('fetchFromNewsdata', () => {
+    const makeArticle = (
+      overrides: Partial<{
+        title: string | null;
+        link: string | null;
+        description: string | null;
+        source_name: string | null;
+        pubDate: string | null;
+      }> = {},
+    ) => ({
+      title: 'Article title',
+      link: 'https://news.example.com/1',
+      description: 'Article summary',
+      source_name: 'Example News',
+      pubDate: '2026-09-22 10:00:00',
+      ...overrides,
+    });
+
+    const makeNewsdataResponse = (
+      articles: ReturnType<typeof makeArticle>[],
+      nextPage: string | null = null,
+    ) => ({
+      status: 'success',
+      totalResults: articles.length,
+      results: articles,
+      nextPage,
+    });
+
+    const mockFetch = (responses: object[]) => {
+      let callIndex = 0;
+      jest.spyOn(global, 'fetch').mockImplementation(() => {
+        const body = responses[callIndex] ?? responses[responses.length - 1];
+        callIndex++;
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve(body),
+          text: () => Promise.resolve(JSON.stringify(body)),
+        } as unknown as Response);
+      });
+    };
+
+    beforeEach(() => {
+      process.env.NEWSDATA_API_KEY = 'test-api-key';
+    });
+
+    afterEach(() => {
+      delete process.env.NEWSDATA_API_KEY;
+      jest.restoreAllMocks();
+    });
+
+    it('returns empty array when NEWSDATA_API_KEY is not set', async () => {
+      delete process.env.NEWSDATA_API_KEY;
+
+      const result = await service.fetchFromNewsdata('health', 'en');
+
+      expect(result).toEqual([]);
+    });
+
+    it('fetches a single page and returns mapped items when nextPage is null', async () => {
+      mockFetch([makeNewsdataResponse([makeArticle()], null)]);
+
+      const result = await service.fetchFromNewsdata('health', 'en');
+
+      expect(result).toHaveLength(1);
+      expect(result[0].title).toBe('Article title');
+      expect(result[0].url).toBe('https://news.example.com/1');
+      expect(result[0].summary).toBe('Article summary');
+      expect(result[0].source).toBe('Example News');
+    });
+
+    it('fetches multiple pages when nextPage is present', async () => {
+      const page1Article = makeArticle({
+        link: 'https://news.example.com/page1',
+      });
+      const page2Article = makeArticle({
+        link: 'https://news.example.com/page2',
+      });
+
+      mockFetch([
+        makeNewsdataResponse([page1Article], 'cursor-page-2'),
+        makeNewsdataResponse([page2Article], null),
+      ]);
+
+      const result = await service.fetchFromNewsdata('health', 'en');
+
+      expect(result).toHaveLength(2);
+      expect(result[0].url).toBe('https://news.example.com/page1');
+      expect(result[1].url).toBe('https://news.example.com/page2');
+    });
+
+    it('passes nextPage cursor as page param on subsequent requests', async () => {
+      const fetchSpy = jest
+        .spyOn(global, 'fetch')
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () =>
+            Promise.resolve(
+              makeNewsdataResponse(
+                [makeArticle({ link: 'https://news.example.com/a' })],
+                'cursor-abc',
+              ),
+            ),
+        } as unknown as Response)
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () =>
+            Promise.resolve(
+              makeNewsdataResponse(
+                [makeArticle({ link: 'https://news.example.com/b' })],
+                null,
+              ),
+            ),
+        } as unknown as Response);
+
+      await service.fetchFromNewsdata('health', 'en');
+
+      const secondCallUrl = String(fetchSpy.mock.calls[1][0]);
+      expect(secondCallUrl).toContain('page=cursor-abc');
+    });
+
+    it('stops at maxPages limit even when nextPage is still present', async () => {
+      const fetchSpy = jest.spyOn(global, 'fetch').mockResolvedValue({
+        ok: true,
+        json: () =>
+          Promise.resolve(
+            makeNewsdataResponse([makeArticle()], 'cursor-always-present'),
+          ),
+      } as unknown as Response);
+
+      const result = await service.fetchFromNewsdata('health', 'en', 3);
+
+      expect(fetchSpy).toHaveBeenCalledTimes(3);
+      expect(result).toHaveLength(3);
+    });
+
+    it('stops and returns items from previous pages when an API error occurs on a subsequent page', async () => {
+      jest
+        .spyOn(global, 'fetch')
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () =>
+            Promise.resolve(
+              makeNewsdataResponse(
+                [makeArticle({ link: 'https://news.example.com/good' })],
+                'cursor-page-2',
+              ),
+            ),
+        } as unknown as Response)
+        .mockResolvedValueOnce({
+          ok: false,
+          status: 429,
+          text: () => Promise.resolve('Rate limit exceeded'),
+        } as unknown as Response);
+
+      const result = await service.fetchFromNewsdata('health', 'en');
+
+      expect(result).toHaveLength(1);
+      expect(result[0].url).toBe('https://news.example.com/good');
+      expect(loggerWarnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('429'),
+      );
+    });
+
+    it('stops and returns items from previous pages when fetch throws a network error', async () => {
+      jest
+        .spyOn(global, 'fetch')
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () =>
+            Promise.resolve(
+              makeNewsdataResponse(
+                [makeArticle({ link: 'https://news.example.com/good' })],
+                'cursor-page-2',
+              ),
+            ),
+        } as unknown as Response)
+        .mockRejectedValueOnce(new Error('Network failure'));
+
+      const result = await service.fetchFromNewsdata('health', 'en');
+
+      expect(result).toHaveLength(1);
+      expect(result[0].url).toBe('https://news.example.com/good');
+      expect(loggerWarnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Network failure'),
+      );
+    });
+
+    it('stops when API returns non-success status in body', async () => {
+      mockFetch([
+        { status: 'error', totalResults: 0, results: null, nextPage: null },
+      ]);
+
+      const result = await service.fetchFromNewsdata('health', 'en');
+
+      expect(result).toEqual([]);
+      expect(loggerWarnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('error'),
+      );
+    });
+
+    it('filters out articles missing title or link', async () => {
+      mockFetch([
+        makeNewsdataResponse(
+          [
+            makeArticle({ title: null }),
+            makeArticle({ link: null }),
+            makeArticle({
+              title: 'Valid',
+              link: 'https://news.example.com/valid',
+            }),
+          ],
+          null,
+        ),
+      ]);
+
+      const result = await service.fetchFromNewsdata('health', 'en');
+
+      expect(result).toHaveLength(1);
+      expect(result[0].url).toBe('https://news.example.com/valid');
+    });
+
+    it('uses current date for articles with null pubDate', async () => {
+      const before = new Date();
+      mockFetch([makeNewsdataResponse([makeArticle({ pubDate: null })], null)]);
+
+      const result = await service.fetchFromNewsdata('health', 'en');
+
+      const after = new Date();
+      expect(result).toHaveLength(1);
+      expect(result[0].publishedAt.getTime()).toBeGreaterThanOrEqual(
+        before.getTime(),
+      );
+      expect(result[0].publishedAt.getTime()).toBeLessThanOrEqual(
+        after.getTime(),
+      );
+    });
+
+    it('returns empty array when results is null', async () => {
+      mockFetch([
+        { status: 'success', totalResults: 0, results: null, nextPage: null },
+      ]);
+
+      const result = await service.fetchFromNewsdata('health', 'en');
+
+      expect(result).toEqual([]);
+    });
+  });
+
+  // ─────────────────────────────────────────────────────────────
   // selectTopItems
   // ─────────────────────────────────────────────────────────────
   describe('selectTopItems', () => {
