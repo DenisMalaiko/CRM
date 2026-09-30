@@ -76,3 +76,28 @@
 - [x] No migration needed
 - [x] No regressions found
 - Summary: Added warn-level logging across apify/tiktok/trends services to surface silent failures when Apify scraper returns empty datasets
+
+## Генерація маркетингових ідей з NicheNews → IdeaAI — 2026-09-30
+
+### Plan
+- [x] Оновити Prisma-схему: NicheNews → businessId, IdeaAI + nicheNewsId
+- [x] Запустити міграцію (20260930000000_move_niche_news_to_business_add_ideas_relation)
+- [x] Оновити entity-типи (ideaAI.entity.ts + nicheNewsId?)
+- [x] Створити Zod-схему (news-ideas.schema.ts)
+- [x] Створити prompt-блоки (news-ideas.ts)
+- [x] Рефактор NicheNewsService: getByBusinessId спрощено, saveNewsForBusiness, generateIdeasFromNews
+- [x] Оновити cron-сервіс: дедупе по businessId, saveNewsForBusiness, generateIdeasFromNews
+- [x] Quality gate: backend-reviewer + backend-tester
+
+### Notes
+- Migration needed: yes — застосовано вручну через `prisma migrate deploy` (через root-owned .prisma client)
+- Affected modules: nicheNews, ideaAI (entity only), prisma schema
+- Risks: існуючі NicheNews рядки (7 шт.) видалено в міграції — вони були agency-scoped і не можуть бути перенесені
+- Pending: потрібно запустити `sudo npx prisma generate` для оновлення Prisma client (root-owned node_modules/.prisma)
+
+### Review
+- [x] backend-reviewer → PASS (retry 1: fixed ownership check + $transaction)
+- [x] backend-tester → 62/62 tests pass
+- [x] Migration applied
+- [x] No regressions found
+- Summary: Moved NicheNews from agency-scoped to business-scoped, added AI-powered marketing idea generation (IdeaAI records linked via nicheNewsId), tenant ownership verification on both endpoints

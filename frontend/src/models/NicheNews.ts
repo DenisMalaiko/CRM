@@ -1,10 +1,16 @@
-import { TBaseModel } from "./BaseModel"
+import { TBaseModel } from "./BaseModel";
+
+export type TNicheNewsIdea = {
+  id: string;
+  title: string;
+};
 
 export type TNicheNews = TBaseModel & {
-  title: string
-  summary: string
-  url: string
-  source: string
-  industry: string
-  publishedAt: string
-}
+  title: string;
+  summary: string;
+  url: string;
+  source: string;
+  industry: string;
+  publishedAt: string;
+  ideasAI?: TNicheNewsIdea[];
+};

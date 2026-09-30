@@ -6,7 +6,7 @@ import { NicheNewsService } from './nicheNews.service';
 import { IndustryCategoryMap } from '../../shared/const/IndustryCategoryMap';
 
 type BusinessEntry = {
-  agencyId: string;
+  id: string;
   industry: string;
   name: string;
   goals: string[];
@@ -26,7 +26,7 @@ export class NicheNewsCronService {
   async handleNicheNewsCron(): Promise<void> {
     this.logger.log('Starting daily niche news fetch...');
 
-    // Remove news older than 3 days
+    // Intentionally unscoped — cron purges expired news across all tenants
     const threeDaysAgo = new Date();
     threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
     const { count: deletedCount } = await this.prisma.nicheNews.deleteMany({
@@ -44,7 +44,6 @@ export class NicheNewsCronService {
       },
       select: {
         id: true,
-        agencyId: true,
         industry: true,
         language: true,
         name: true,
@@ -58,8 +57,8 @@ export class NicheNewsCronService {
     if (businesses.length === 0) return;
 
     // Group by (category, language) to minimize API calls.
-    // Each group holds unique business objects (deduped by agencyId+industry)
-    // so AI filtering can run per-business.
+    // Each group holds unique business objects (deduped by businessId)
+    // so AI filtering and idea generation run per-business.
     const groupMap = new Map<string, BusinessEntry[]>();
     const seen = new Set<string>();
 
@@ -72,16 +71,15 @@ export class NicheNewsCronService {
 
       const lang = biz.language === 'ua' ? 'ua' : 'en';
       const fetchKey = `${category}::${lang}`;
-      const dedupeKey = `${biz.agencyId}::${biz.industry!}`;
 
-      if (seen.has(dedupeKey)) continue;
-      seen.add(dedupeKey);
+      if (seen.has(biz.id)) continue;
+      seen.add(biz.id);
 
       if (!groupMap.has(fetchKey)) {
         groupMap.set(fetchKey, []);
       }
       groupMap.get(fetchKey)!.push({
-        agencyId: biz.agencyId,
+        id: biz.id,
         industry: biz.industry!,
         name: biz.name,
         goals: biz.goals,
@@ -118,21 +116,31 @@ export class NicheNewsCronService {
               },
               topItems,
             );
-          await this.nicheNewsService.saveNewsForIndustry(
-            biz.agencyId,
+          const saved = await this.nicheNewsService.saveNewsForBusiness(
+            biz.id,
             biz.industry,
             relevantItems,
           );
+          await this.nicheNewsService.generateIdeasFromNews(
+            {
+              name: biz.name,
+              industry: biz.industry,
+              goals: biz.goals,
+              advantages: biz.advantages,
+            },
+            biz.id,
+            saved,
+          );
           successCount++;
           this.logger.log(
-            `Saved ${relevantItems.length} news for agency ${biz.agencyId}, industry "${biz.industry}"`,
+            `Saved ${relevantItems.length} news for business ${biz.id}, industry "${biz.industry}"`,
           );
         } catch (error) {
           failCount++;
           const message =
             error instanceof Error ? error.message : String(error);
           this.logger.error(
-            `Failed to save news for agency ${biz.agencyId}, industry "${biz.industry}": ${message}`,
+            `Failed to save news for business ${biz.id}, industry "${biz.industry}": ${message}`,
           );
         }
       }

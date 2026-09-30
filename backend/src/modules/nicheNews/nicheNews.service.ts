@@ -4,6 +4,7 @@ import { IndustryCategoryMap } from '../../shared/const/IndustryCategoryMap';
 import { type NicheNews } from '@prisma/client';
 import { AiBaseService, AiModel } from '../ai/services/ai-base.service';
 import { NewsRelevanceSchema } from './schema/news-relevance.schema';
+import { NewsIdeasSchema } from './schema/news-ideas.schema';
 import {
   newsFilterRoleBlock,
   newsFilterContextBlock,
@@ -11,6 +12,13 @@ import {
   newsFilterTaskBlock,
   newsFilterOutputBlock,
 } from '../ai/prompts/nicheNews/news-relevance';
+import {
+  newsIdeasRoleBlock,
+  newsIdeasContextBlock,
+  newsIdeasArticlesBlock,
+  newsIdeasTaskBlock,
+  newsIdeasOutputBlock,
+} from '../ai/prompts/nicheNews/news-ideas';
 
 export type NewsItem = {
   title: string;
@@ -44,25 +52,34 @@ export class NicheNewsService {
     private readonly aiBase: AiBaseService,
   ) {}
 
-  async getByBusinessId(businessId: string): Promise<NicheNews[]> {
+  async getByBusinessId(
+    businessId: string,
+    agencyId: string,
+  ): Promise<NicheNews[]> {
     const business = await this.prisma.business.findUnique({
       where: { id: businessId },
-      select: { agencyId: true, industry: true },
+      select: { agencyId: true },
     });
 
-    if (!business) throw new NotFoundException('Business not found');
+    if (!business || business.agencyId !== agencyId)
+      throw new NotFoundException('Business not found');
 
     return this.prisma.nicheNews.findMany({
-      where: {
-        agencyId: business.agencyId,
-        industry: business.industry ?? undefined,
+      where: { businessId },
+      include: {
+        ideasAI: {
+          select: { id: true, title: true },
+        },
       },
       orderBy: { publishedAt: 'desc' },
       take: 20,
     });
   }
 
-  async fetchByBusinessId(businessId: string): Promise<NicheNews[]> {
+  async fetchByBusinessId(
+    businessId: string,
+    agencyId: string,
+  ): Promise<NicheNews[]> {
     const business = await this.prisma.business.findUnique({
       where: { id: businessId },
       select: {
@@ -75,7 +92,8 @@ export class NicheNewsService {
       },
     });
 
-    if (!business) throw new NotFoundException('Business not found');
+    if (!business || business.agencyId !== agencyId)
+      throw new NotFoundException('Business not found');
     if (!business.industry)
       throw new NotFoundException('Business has no industry set');
 
@@ -98,8 +116,8 @@ export class NicheNewsService {
       items,
     );
 
-    const saved = await this.saveNewsForIndustry(
-      business.agencyId,
+    const saved = await this.saveNewsForBusiness(
+      businessId,
       industry,
       relevantItems,
     );
@@ -108,7 +126,18 @@ export class NicheNewsService {
       `Fetched ${saved.length} news items for business ${businessId} (industry: ${industry}, lang: ${lang})`,
     );
 
-    return saved;
+    await this.generateIdeasFromNews(
+      {
+        name: business.name,
+        industry,
+        goals: business.goals,
+        advantages: business.advantages,
+      },
+      businessId,
+      saved,
+    );
+
+    return this.getByBusinessId(businessId, agencyId);
   }
 
   async filterNewsByRelevance(
@@ -158,8 +187,8 @@ export class NicheNewsService {
     }
   }
 
-  async saveNewsForIndustry(
-    agencyId: string,
+  async saveNewsForBusiness(
+    businessId: string,
     industry: string,
     items: NewsItem[],
   ): Promise<NicheNews[]> {
@@ -168,7 +197,7 @@ export class NicheNewsService {
     return this.prisma.$transaction(async (tx) => {
       await tx.nicheNews.deleteMany({
         where: {
-          agencyId,
+          businessId,
           industry,
           createdAt: { lt: threeDaysAgo },
         },
@@ -178,7 +207,7 @@ export class NicheNewsService {
       for (const item of items) {
         try {
           const record = await tx.nicheNews.upsert({
-            where: { url: item.url },
+            where: { businessId_url: { businessId, url: item.url } },
             update: {
               title: item.title,
               summary: item.summary,
@@ -186,7 +215,7 @@ export class NicheNewsService {
               publishedAt: item.publishedAt,
             },
             create: {
-              agencyId,
+              businessId,
               title: item.title,
               summary: item.summary,
               url: item.url,
@@ -204,6 +233,70 @@ export class NicheNewsService {
       }
       return results;
     });
+  }
+
+  async generateIdeasFromNews(
+    business: {
+      name: string;
+      industry: string;
+      goals: string[];
+      advantages: string[];
+    },
+    businessId: string,
+    savedNews: NicheNews[],
+  ): Promise<void> {
+    if (savedNews.length === 0) return;
+
+    try {
+      const model = this.aiBase.getModel(AiModel.Creative);
+      const prompt = [
+        newsIdeasRoleBlock(),
+        newsIdeasContextBlock(
+          business.industry,
+          business.name,
+          business.goals,
+          business.advantages,
+        ),
+        newsIdeasArticlesBlock(
+          savedNews.map((n) => ({ title: n.title, summary: n.summary })),
+        ),
+        newsIdeasTaskBlock(),
+        newsIdeasOutputBlock(),
+      ].join('\n\n');
+
+      const response = await model.invoke(prompt);
+      const rawText = this.aiBase.extractTextContent(response.content);
+      const parsed = NewsIdeasSchema.parse(this.aiBase.safeParseJson(rawText));
+
+      const validIdeas = parsed.ideas.filter(
+        (idea) => idea.newsIndex >= 0 && idea.newsIndex < savedNews.length,
+      );
+
+      const created = await this.prisma.$transaction(
+        validIdeas.map((idea) =>
+          this.prisma.ideaAI.create({
+            data: {
+              businessId,
+              nicheNewsId: savedNews[idea.newsIndex].id,
+              title: idea.title,
+              description: idea.description,
+              who: idea.who,
+              what: idea.what,
+              why: idea.why,
+              how: idea.how,
+              feeling: idea.feeling,
+            },
+          }),
+        ),
+      );
+
+      this.logger.log(
+        `Generated ${created.length} ideas from ${savedNews.length} news articles`,
+      );
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.warn(`Failed to generate ideas from news: ${message}`);
+    }
   }
 
   async fetchFromNewsdata(

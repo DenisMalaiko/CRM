@@ -3,7 +3,20 @@ import { Logger, NotFoundException } from '@nestjs/common';
 import { NicheNewsService, NewsItem } from './nicheNews.service';
 import { PrismaService } from '../../core/prisma/prisma.service';
 import { AiBaseService, AiModel } from '../ai/services/ai-base.service';
-import { type NicheNews } from '@prisma/client';
+
+// Local type mirrors the current schema — agencyId was replaced by businessId.
+// Using a local type avoids coupling to the stale generated Prisma client.
+type NicheNewsRecord = {
+  id: string;
+  businessId: string;
+  title: string;
+  summary: string;
+  url: string;
+  source: string;
+  industry: string;
+  publishedAt: Date;
+  createdAt: Date;
+};
 
 const makeNewsItem = (overrides: Partial<NewsItem> = {}): NewsItem => ({
   title: 'Test headline',
@@ -15,10 +28,10 @@ const makeNewsItem = (overrides: Partial<NewsItem> = {}): NewsItem => ({
 });
 
 const makeNicheNewsRecord = (
-  overrides: Partial<NicheNews> = {},
-): NicheNews => ({
+  overrides: Partial<NicheNewsRecord> = {},
+): NicheNewsRecord => ({
   id: 'news-uuid-1',
-  agencyId: 'agency-uuid-1',
+  businessId: 'biz-uuid-1',
   title: 'Test headline',
   summary: 'Test summary',
   url: 'https://example.com/article-1',
@@ -38,6 +51,7 @@ describe('NicheNewsService', () => {
       deleteMany: jest.Mock;
       upsert: jest.Mock;
     };
+    ideaAI: { create: jest.Mock };
     $transaction: jest.Mock;
   };
   let mockModel: { invoke: jest.Mock };
@@ -56,7 +70,11 @@ describe('NicheNewsService', () => {
         deleteMany: jest.fn().mockResolvedValue({ count: 0 }),
         upsert: jest.fn(),
       },
-      $transaction: jest.fn(),
+      ideaAI: { create: jest.fn() },
+      $transaction: jest.fn().mockImplementation((input) => {
+        if (typeof input === 'function') return input(prisma);
+        return Promise.resolve(input);
+      }),
     };
 
     mockModel = { invoke: jest.fn() };
@@ -92,20 +110,22 @@ describe('NicheNewsService', () => {
   // getByBusinessId
   // ─────────────────────────────────────────────────────────────
   describe('getByBusinessId', () => {
-    it('returns news records for the business agency and industry', async () => {
+    it('returns news records for the given businessId', async () => {
       const records = [makeNicheNewsRecord()];
       prisma.business.findUnique.mockResolvedValue({
         agencyId: 'agency-uuid-1',
-        industry: 'Health',
       });
       prisma.nicheNews.findMany.mockResolvedValue(records);
 
-      const result = await service.getByBusinessId('biz-uuid-1');
+      const result = await service.getByBusinessId(
+        'biz-uuid-1',
+        'agency-uuid-1',
+      );
 
       expect(result).toEqual(records);
       expect(prisma.nicheNews.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: { agencyId: 'agency-uuid-1', industry: 'Health' },
+          where: { businessId: 'biz-uuid-1' },
           orderBy: { publishedAt: 'desc' },
           take: 20,
         }),
@@ -116,24 +136,18 @@ describe('NicheNewsService', () => {
       prisma.business.findUnique.mockResolvedValue(null);
 
       await expect(
-        service.getByBusinessId('non-existent-uuid'),
+        service.getByBusinessId('non-existent-uuid', 'agency-uuid-1'),
       ).rejects.toThrow(NotFoundException);
     });
 
-    it('queries without industry filter when business has no industry set', async () => {
+    it('throws NotFoundException when agencyId does not match', async () => {
       prisma.business.findUnique.mockResolvedValue({
-        agencyId: 'agency-uuid-1',
-        industry: null,
+        agencyId: 'other-agency',
       });
-      prisma.nicheNews.findMany.mockResolvedValue([]);
 
-      await service.getByBusinessId('biz-uuid-1');
-
-      expect(prisma.nicheNews.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: { agencyId: 'agency-uuid-1', industry: undefined },
-        }),
-      );
+      await expect(
+        service.getByBusinessId('biz-uuid-1', 'agency-uuid-1'),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -144,9 +158,24 @@ describe('NicheNewsService', () => {
     it('throws NotFoundException when business does not exist', async () => {
       prisma.business.findUnique.mockResolvedValue(null);
 
-      await expect(service.fetchByBusinessId('non-existent')).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        service.fetchByBusinessId('non-existent', 'agency-uuid-1'),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('throws NotFoundException when agencyId does not match', async () => {
+      prisma.business.findUnique.mockResolvedValue({
+        agencyId: 'other-agency',
+        industry: 'Health',
+        language: 'en',
+        name: 'Test',
+        goals: [],
+        advantages: [],
+      });
+
+      await expect(
+        service.fetchByBusinessId('biz-uuid-1', 'agency-uuid-1'),
+      ).rejects.toThrow(NotFoundException);
     });
 
     it('throws NotFoundException when business has no industry set', async () => {
@@ -154,11 +183,14 @@ describe('NicheNewsService', () => {
         agencyId: 'agency-uuid-1',
         industry: null,
         language: 'en',
+        name: 'Test',
+        goals: [],
+        advantages: [],
       });
 
-      await expect(service.fetchByBusinessId('biz-uuid-1')).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        service.fetchByBusinessId('biz-uuid-1', 'agency-uuid-1'),
+      ).rejects.toThrow(NotFoundException);
     });
 
     it('throws NotFoundException when industry has no category mapping', async () => {
@@ -166,32 +198,42 @@ describe('NicheNewsService', () => {
         agencyId: 'agency-uuid-1',
         industry: 'UnknownIndustry',
         language: 'en',
+        name: 'Test',
+        goals: [],
+        advantages: [],
       });
 
-      await expect(service.fetchByBusinessId('biz-uuid-1')).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        service.fetchByBusinessId('biz-uuid-1', 'agency-uuid-1'),
+      ).rejects.toThrow(NotFoundException);
     });
 
-    it('fetches news and saves via saveNewsForIndustry', async () => {
+    it('fetches news and saves via saveNewsForBusiness', async () => {
       prisma.business.findUnique.mockResolvedValue({
         agencyId: 'agency-uuid-1',
         industry: 'Health',
         language: 'en',
+        name: 'Test Biz',
+        goals: [],
+        advantages: [],
       });
 
       const items = [makeNewsItem()];
       const saved = [makeNicheNewsRecord()];
 
       jest.spyOn(service, 'fetchFromNewsdata').mockResolvedValue(items);
-      jest.spyOn(service, 'saveNewsForIndustry').mockResolvedValue(saved);
+      jest.spyOn(service, 'saveNewsForBusiness').mockResolvedValue(saved);
+      jest.spyOn(service, 'generateIdeasFromNews').mockResolvedValue();
 
-      const result = await service.fetchByBusinessId('biz-uuid-1');
+      const result = await service.fetchByBusinessId(
+        'biz-uuid-1',
+        'agency-uuid-1',
+      );
 
       expect(result).toEqual(saved);
       expect(service.fetchFromNewsdata).toHaveBeenCalledWith('health', 'en');
-      expect(service.saveNewsForIndustry).toHaveBeenCalledWith(
-        'agency-uuid-1',
+      expect(service.saveNewsForBusiness).toHaveBeenCalledWith(
+        'biz-uuid-1',
         'Health',
         expect.any(Array),
       );
@@ -202,17 +244,21 @@ describe('NicheNewsService', () => {
         agencyId: 'agency-uuid-1',
         industry: 'Health',
         language: 'ua',
+        name: 'Test Biz',
+        goals: [],
+        advantages: [],
       });
 
       jest.spyOn(service, 'fetchFromNewsdata').mockResolvedValue([]);
-      jest.spyOn(service, 'saveNewsForIndustry').mockResolvedValue([]);
+      jest.spyOn(service, 'saveNewsForBusiness').mockResolvedValue([]);
+      jest.spyOn(service, 'generateIdeasFromNews').mockResolvedValue();
 
-      await service.fetchByBusinessId('biz-uuid-1');
+      await service.fetchByBusinessId('biz-uuid-1', 'agency-uuid-1');
 
       expect(service.fetchFromNewsdata).toHaveBeenCalledWith('health', 'ua');
     });
 
-    it('passes filtered items from filterNewsByRelevance to saveNewsForIndustry', async () => {
+    it('passes filtered items from filterNewsByRelevance to saveNewsForBusiness', async () => {
       prisma.business.findUnique.mockResolvedValue({
         agencyId: 'agency-uuid-1',
         industry: 'Health',
@@ -232,15 +278,44 @@ describe('NicheNewsService', () => {
       jest
         .spyOn(service, 'filterNewsByRelevance')
         .mockResolvedValue(filteredItems);
-      jest.spyOn(service, 'saveNewsForIndustry').mockResolvedValue([]);
+      jest.spyOn(service, 'saveNewsForBusiness').mockResolvedValue([]);
+      jest.spyOn(service, 'generateIdeasFromNews').mockResolvedValue();
 
-      await service.fetchByBusinessId('biz-uuid-1');
+      await service.fetchByBusinessId('biz-uuid-1', 'agency-uuid-1');
 
       expect(service.filterNewsByRelevance).toHaveBeenCalled();
-      expect(service.saveNewsForIndustry).toHaveBeenCalledWith(
-        'agency-uuid-1',
+      expect(service.saveNewsForBusiness).toHaveBeenCalledWith(
+        'biz-uuid-1',
         'Health',
         filteredItems,
+      );
+    });
+
+    it('calls generateIdeasFromNews after saveNewsForBusiness', async () => {
+      prisma.business.findUnique.mockResolvedValue({
+        agencyId: 'agency-uuid-1',
+        industry: 'Health',
+        language: 'en',
+        name: 'Test Biz',
+        goals: ['grow'],
+        advantages: ['fast'],
+      });
+
+      const saved = [makeNicheNewsRecord()];
+      jest
+        .spyOn(service, 'fetchFromNewsdata')
+        .mockResolvedValue([makeNewsItem()]);
+      jest.spyOn(service, 'saveNewsForBusiness').mockResolvedValue(saved);
+      const generateSpy = jest
+        .spyOn(service, 'generateIdeasFromNews')
+        .mockResolvedValue();
+
+      await service.fetchByBusinessId('biz-uuid-1', 'agency-uuid-1');
+
+      expect(generateSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ industry: 'Health' }),
+        'biz-uuid-1',
+        saved,
       );
     });
   });
@@ -320,7 +395,6 @@ describe('NicheNewsService', () => {
         makeNewsItem({ url: 'https://example.com/1' }),
       ];
 
-      // AI returns index 5 and 99 which are both out of bounds for a 2-item array
       mockModel.invoke.mockResolvedValue({
         content: '{"relevantIndexes":[0,5,99]}',
       });
@@ -382,9 +456,9 @@ describe('NicheNewsService', () => {
   });
 
   // ─────────────────────────────────────────────────────────────
-  // saveNewsForIndustry
+  // saveNewsForBusiness
   // ─────────────────────────────────────────────────────────────
-  describe('saveNewsForIndustry', () => {
+  describe('saveNewsForBusiness', () => {
     it('happy path — upserts each item and returns saved records', async () => {
       const items = [
         makeNewsItem({ url: 'https://example.com/a1' }),
@@ -401,9 +475,8 @@ describe('NicheNewsService', () => {
         }),
       );
 
-      // Simulate transaction calling the callback with a transaction proxy
       prisma.$transaction.mockImplementation(
-        async (callback: (tx: typeof prisma) => Promise<NicheNews[]>) => {
+        async (callback: (tx: typeof prisma) => Promise<NicheNewsRecord[]>) => {
           const tx = {
             nicheNews: {
               deleteMany: jest.fn().mockResolvedValue({ count: 0 }),
@@ -417,8 +490,8 @@ describe('NicheNewsService', () => {
         },
       );
 
-      const result = await service.saveNewsForIndustry(
-        'agency-uuid-1',
+      const result = await service.saveNewsForBusiness(
+        'biz-uuid-1',
         'Health',
         items,
       );
@@ -428,12 +501,12 @@ describe('NicheNewsService', () => {
       expect(result[1].url).toBe('https://example.com/a2');
     });
 
-    it('deletes today news for the given agencyId and industry before upserting', async () => {
+    it('deletes old news for the given businessId and industry before upserting', async () => {
       const deleteManyMock = jest.fn().mockResolvedValue({ count: 1 });
       const upsertMock = jest.fn().mockResolvedValue(makeNicheNewsRecord());
 
       prisma.$transaction.mockImplementation(
-        async (callback: (tx: typeof prisma) => Promise<NicheNews[]>) => {
+        async (callback: (tx: typeof prisma) => Promise<NicheNewsRecord[]>) => {
           const tx = {
             nicheNews: { deleteMany: deleteManyMock, upsert: upsertMock },
           };
@@ -441,27 +514,27 @@ describe('NicheNewsService', () => {
         },
       );
 
-      await service.saveNewsForIndustry('agency-uuid-1', 'Health', [
+      await service.saveNewsForBusiness('biz-uuid-1', 'Health', [
         makeNewsItem(),
       ]);
 
       expect(deleteManyMock).toHaveBeenCalledWith(
         expect.objectContaining({
           where: expect.objectContaining({
-            agencyId: 'agency-uuid-1',
+            businessId: 'biz-uuid-1',
             industry: 'Health',
           }),
         }),
       );
     });
 
-    it('upsert uses url as unique key — update fields do not include agencyId', async () => {
+    it('upsert uses businessId_url composite as unique key', async () => {
       const item = makeNewsItem({ url: 'https://example.com/dupe' });
       const record = makeNicheNewsRecord({ url: item.url });
       const upsertMock = jest.fn().mockResolvedValue(record);
 
       prisma.$transaction.mockImplementation(
-        async (callback: (tx: typeof prisma) => Promise<NicheNews[]>) => {
+        async (callback: (tx: typeof prisma) => Promise<NicheNewsRecord[]>) => {
           const tx = {
             nicheNews: {
               deleteMany: jest.fn().mockResolvedValue({ count: 0 }),
@@ -472,21 +545,20 @@ describe('NicheNewsService', () => {
         },
       );
 
-      await service.saveNewsForIndustry('agency-uuid-1', 'Health', [item]);
+      await service.saveNewsForBusiness('biz-uuid-1', 'Health', [item]);
 
       expect(upsertMock).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: { url: item.url },
+          where: {
+            businessId_url: { businessId: 'biz-uuid-1', url: item.url },
+          },
           update: expect.objectContaining({ title: item.title }),
           create: expect.objectContaining({
-            agencyId: 'agency-uuid-1',
+            businessId: 'biz-uuid-1',
             industry: 'Health',
           }),
         }),
       );
-      // update block must NOT re-set agencyId (avoid multi-tenant leak on conflict)
-      const updateArg = upsertMock.mock.calls[0][0].update;
-      expect(updateArg).not.toHaveProperty('agencyId');
     });
 
     it('skips a failing upsert and continues with remaining items', async () => {
@@ -504,7 +576,7 @@ describe('NicheNewsService', () => {
         .mockResolvedValueOnce(goodRecord);
 
       prisma.$transaction.mockImplementation(
-        async (callback: (tx: typeof prisma) => Promise<NicheNews[]>) => {
+        async (callback: (tx: typeof prisma) => Promise<NicheNewsRecord[]>) => {
           const tx = {
             nicheNews: {
               deleteMany: jest.fn().mockResolvedValue({ count: 0 }),
@@ -515,8 +587,8 @@ describe('NicheNewsService', () => {
         },
       );
 
-      const result = await service.saveNewsForIndustry(
-        'agency-uuid-1',
+      const result = await service.saveNewsForBusiness(
+        'biz-uuid-1',
         'Health',
         items,
       );
@@ -530,7 +602,7 @@ describe('NicheNewsService', () => {
 
     it('returns empty array when items list is empty', async () => {
       prisma.$transaction.mockImplementation(
-        async (callback: (tx: typeof prisma) => Promise<NicheNews[]>) => {
+        async (callback: (tx: typeof prisma) => Promise<NicheNewsRecord[]>) => {
           const tx = {
             nicheNews: {
               deleteMany: jest.fn().mockResolvedValue({ count: 0 }),
@@ -541,13 +613,151 @@ describe('NicheNewsService', () => {
         },
       );
 
-      const result = await service.saveNewsForIndustry(
-        'agency-uuid-1',
+      const result = await service.saveNewsForBusiness(
+        'biz-uuid-1',
         'Health',
         [],
       );
 
       expect(result).toEqual([]);
+    });
+  });
+
+  // ─────────────────────────────────────────────────────────────
+  // generateIdeasFromNews
+  // ─────────────────────────────────────────────────────────────
+  describe('generateIdeasFromNews', () => {
+    const business = {
+      name: 'Acme Health',
+      industry: 'Health',
+      goals: ['increase revenue'],
+      advantages: ['fast delivery'],
+    };
+
+    const makeValidIdeasResponse = () => ({
+      ideas: [
+        {
+          newsIndex: 0,
+          title: 'Idea title',
+          description: 'Idea description',
+          who: 'Person',
+          what: 'Story',
+          why: 'Inform',
+          how: 'Storytelling',
+          feeling: 'Trust',
+        },
+      ],
+    });
+
+    it('returns immediately without AI call when savedNews is empty', async () => {
+      await service.generateIdeasFromNews(business, 'biz-uuid-1', []);
+
+      expect(aiBase.getModel).not.toHaveBeenCalled();
+    });
+
+    it('creates IdeaAI records via $transaction array form', async () => {
+      const news = [makeNicheNewsRecord({ id: 'news-1' })];
+      const createdIdea = { id: 'idea-1' };
+
+      mockModel.invoke.mockResolvedValue({ content: '{"ideas":[...]}' });
+      aiBase.extractTextContent.mockReturnValue('{"ideas":[...]}');
+      aiBase.safeParseJson.mockReturnValue(makeValidIdeasResponse());
+      prisma.ideaAI.create.mockResolvedValue(createdIdea);
+
+      prisma.$transaction.mockImplementation((input) => {
+        if (typeof input === 'function') return input(prisma);
+        return Promise.resolve(input);
+      });
+
+      await service.generateIdeasFromNews(business, 'biz-uuid-1', news);
+
+      expect(prisma.ideaAI.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            businessId: 'biz-uuid-1',
+            nicheNewsId: 'news-1',
+          }),
+        }),
+      );
+    });
+
+    it('calls getModel with AiModel.Creative', async () => {
+      const news = [makeNicheNewsRecord()];
+
+      mockModel.invoke.mockResolvedValue({ content: '{}' });
+      aiBase.extractTextContent.mockReturnValue('{}');
+      aiBase.safeParseJson.mockReturnValue({ ideas: [] });
+
+      await service.generateIdeasFromNews(business, 'biz-uuid-1', news);
+
+      expect(aiBase.getModel).toHaveBeenCalledWith(AiModel.Creative);
+    });
+
+    it('filters out ideas with out-of-bounds newsIndex', async () => {
+      const news = [makeNicheNewsRecord({ id: 'news-0' })];
+
+      mockModel.invoke.mockResolvedValue({ content: '{}' });
+      aiBase.extractTextContent.mockReturnValue('{}');
+      aiBase.safeParseJson.mockReturnValue({
+        ideas: [
+          { ...makeValidIdeasResponse().ideas[0], newsIndex: 0 },
+          { ...makeValidIdeasResponse().ideas[0], newsIndex: 99 },
+        ],
+      });
+      prisma.ideaAI.create.mockResolvedValue({ id: 'idea-1' });
+      prisma.$transaction.mockImplementation((input) => {
+        if (typeof input === 'function') return input(prisma);
+        return Promise.resolve(input);
+      });
+
+      await service.generateIdeasFromNews(business, 'biz-uuid-1', news);
+
+      // Only idea at index 0 should be created; index 99 is filtered out
+      expect(prisma.ideaAI.create).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not throw when AI call fails (graceful degradation)', async () => {
+      const news = [makeNicheNewsRecord()];
+
+      mockModel.invoke.mockRejectedValue(new Error('AI timeout'));
+
+      await expect(
+        service.generateIdeasFromNews(business, 'biz-uuid-1', news),
+      ).resolves.toBeUndefined();
+
+      expect(loggerWarnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('AI timeout'),
+      );
+    });
+
+    it('does not throw when safeParseJson returns malformed JSON', async () => {
+      const news = [makeNicheNewsRecord()];
+
+      mockModel.invoke.mockResolvedValue({ content: 'not json' });
+      aiBase.extractTextContent.mockReturnValue('not json');
+      aiBase.safeParseJson.mockImplementation(() => {
+        throw new SyntaxError('Unexpected token');
+      });
+
+      await expect(
+        service.generateIdeasFromNews(business, 'biz-uuid-1', news),
+      ).resolves.toBeUndefined();
+
+      expect(loggerWarnSpy).toHaveBeenCalled();
+    });
+
+    it('does not throw when Zod validation fails', async () => {
+      const news = [makeNicheNewsRecord()];
+
+      mockModel.invoke.mockResolvedValue({ content: '{"wrong":"schema"}' });
+      aiBase.extractTextContent.mockReturnValue('{"wrong":"schema"}');
+      aiBase.safeParseJson.mockReturnValue({ wrong: 'schema' });
+
+      await expect(
+        service.generateIdeasFromNews(business, 'biz-uuid-1', news),
+      ).resolves.toBeUndefined();
+
+      expect(loggerWarnSpy).toHaveBeenCalled();
     });
   });
 

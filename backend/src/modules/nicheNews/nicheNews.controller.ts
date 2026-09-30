@@ -1,4 +1,11 @@
-import { Controller, Get, Post, Param, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Param,
+  UseGuards,
+  Request,
+} from '@nestjs/common';
 import { JwtAuthGuard } from '../../core/guards/jwt-auth.guard';
 import { ResponseMessage } from '../../core/decorators/response-message.decorator';
 import { NicheNewsService } from './nicheNews.service';
@@ -11,13 +18,19 @@ export class NicheNewsController {
 
   @Get('/business/:businessId')
   @ResponseMessage('Niche news retrieved!')
-  getByBusinessId(@Param() { businessId }: BusinessIdParamDto) {
-    return this.nicheNewsService.getByBusinessId(businessId);
+  getByBusinessId(@Param() { businessId }: BusinessIdParamDto, @Request() req) {
+    return this.nicheNewsService.getByBusinessId(businessId, req.user.agencyId);
   }
 
   @Post('/fetch/:businessId')
   @ResponseMessage('Niche news fetched!')
-  fetchByBusinessId(@Param() { businessId }: BusinessIdParamDto) {
-    return this.nicheNewsService.fetchByBusinessId(businessId);
+  fetchByBusinessId(
+    @Param() { businessId }: BusinessIdParamDto,
+    @Request() req,
+  ) {
+    return this.nicheNewsService.fetchByBusinessId(
+      businessId,
+      req.user.agencyId,
+    );
   }
 }

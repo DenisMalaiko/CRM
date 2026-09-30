@@ -68,6 +68,11 @@ export function NicheNewsBlock({ nicheNews, onFetch, isFetching }: Props) {
               {item.summary && (
                 <p className="text-xs text-slate-500 text-left mt-1 line-clamp-2">{item.summary}</p>
               )}
+              {item.ideasAI?.[0] && (
+                <p className="text-xs text-blue-600 text-left mt-1.5 font-medium">
+                  💡 {item.ideasAI[0].title}
+                </p>
+              )}
             </a>
           ))}
         </div>
