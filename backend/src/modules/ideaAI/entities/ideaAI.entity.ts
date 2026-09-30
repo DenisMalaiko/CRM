@@ -1,4 +1,11 @@
-import { IdeaWho, IdeaWhat, IdeaWhy, IdeaHow, IdeaFeeling, IdeaStatus } from "@prisma/client";
+import {
+  IdeaWho,
+  IdeaWhat,
+  IdeaWhy,
+  IdeaHow,
+  IdeaFeeling,
+  IdeaStatus,
+} from '@prisma/client';
 
 export type TIdeaAI = {
   id: string;
@@ -12,8 +19,9 @@ export type TIdeaAI = {
   feeling: IdeaFeeling;
   createdAt: Date;
   status: IdeaStatus;
-}
+  nicheNewsId?: string | null;
+};
 
 export type TIdeaAIUpdate = {
   status: IdeaStatus;
-}
+};

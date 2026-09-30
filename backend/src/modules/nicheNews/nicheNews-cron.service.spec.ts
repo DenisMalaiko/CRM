@@ -3,7 +3,20 @@ import { Logger } from '@nestjs/common';
 import { NicheNewsCronService } from './nicheNews-cron.service';
 import { NicheNewsService, NewsItem } from './nicheNews.service';
 import { PrismaService } from '../../core/prisma/prisma.service';
-import { BusinessStatus, type NicheNews } from '@prisma/client';
+import { BusinessStatus } from '@prisma/client';
+
+// Local type mirrors the current schema — agencyId was replaced by businessId.
+type NicheNewsRecord = {
+  id: string;
+  businessId: string;
+  title: string;
+  summary: string;
+  url: string;
+  source: string;
+  industry: string;
+  publishedAt: Date;
+  createdAt: Date;
+};
 
 const makeNewsItem = (overrides: Partial<NewsItem> = {}): NewsItem => ({
   title: 'Test headline',
@@ -15,10 +28,10 @@ const makeNewsItem = (overrides: Partial<NewsItem> = {}): NewsItem => ({
 });
 
 const makeNicheNewsRecord = (
-  overrides: Partial<NicheNews> = {},
-): NicheNews => ({
+  overrides: Partial<NicheNewsRecord> = {},
+): NicheNewsRecord => ({
   id: 'news-uuid-1',
-  agencyId: 'agency-uuid-1',
+  businessId: 'biz-1',
   title: 'Test headline',
   summary: 'Test summary',
   url: 'https://example.com/article-1',
@@ -31,7 +44,6 @@ const makeNicheNewsRecord = (
 
 const makeBusiness = (overrides: Record<string, unknown> = {}) => ({
   id: 'biz-1',
-  agencyId: 'agency-1',
   industry: 'Health',
   language: 'en',
   name: 'Test Business',
@@ -50,7 +62,8 @@ describe('NicheNewsCronService', () => {
     fetchFromNewsdata: jest.Mock;
     selectTopItems: jest.Mock;
     filterNewsByRelevance: jest.Mock;
-    saveNewsForIndustry: jest.Mock;
+    saveNewsForBusiness: jest.Mock;
+    generateIdeasFromNews: jest.Mock;
   };
   let loggerWarnSpy: jest.SpyInstance;
   let loggerLogSpy: jest.SpyInstance;
@@ -68,7 +81,8 @@ describe('NicheNewsCronService', () => {
       filterNewsByRelevance: jest
         .fn()
         .mockImplementation((_biz, items) => Promise.resolve(items)),
-      saveNewsForIndustry: jest.fn().mockResolvedValue([]),
+      saveNewsForBusiness: jest.fn().mockResolvedValue([]),
+      generateIdeasFromNews: jest.fn().mockResolvedValue(undefined),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -112,7 +126,7 @@ describe('NicheNewsCronService', () => {
       await service.handleNicheNewsCron();
 
       expect(nicheNewsService.fetchFromNewsdata).not.toHaveBeenCalled();
-      expect(nicheNewsService.saveNewsForIndustry).not.toHaveBeenCalled();
+      expect(nicheNewsService.saveNewsForBusiness).not.toHaveBeenCalled();
     });
 
     it('queries only Active businesses with industry set', async () => {
@@ -139,13 +153,13 @@ describe('NicheNewsCronService', () => {
       // Two businesses share the same industry+language → one API call
       prisma.business.findMany.mockResolvedValue([
         makeBusiness(),
-        makeBusiness({ id: 'biz-2', agencyId: 'agency-2' }),
+        makeBusiness({ id: 'biz-2' }),
       ]);
 
       const items = [makeNewsItem()];
       nicheNewsService.fetchFromNewsdata.mockResolvedValue(items);
       nicheNewsService.selectTopItems.mockReturnValue(items);
-      nicheNewsService.saveNewsForIndustry.mockResolvedValue([
+      nicheNewsService.saveNewsForBusiness.mockResolvedValue([
         makeNicheNewsRecord(),
       ]);
 
@@ -163,7 +177,6 @@ describe('NicheNewsCronService', () => {
         makeBusiness(),
         makeBusiness({
           id: 'biz-2',
-          agencyId: 'agency-2',
           industry: 'Education',
         }),
       ]);
@@ -171,7 +184,7 @@ describe('NicheNewsCronService', () => {
       const items = [makeNewsItem()];
       nicheNewsService.fetchFromNewsdata.mockResolvedValue(items);
       nicheNewsService.selectTopItems.mockReturnValue(items);
-      nicheNewsService.saveNewsForIndustry.mockResolvedValue([
+      nicheNewsService.saveNewsForBusiness.mockResolvedValue([
         makeNicheNewsRecord(),
       ]);
 
@@ -183,13 +196,13 @@ describe('NicheNewsCronService', () => {
     it('makes separate API calls for same industry in different languages', async () => {
       prisma.business.findMany.mockResolvedValue([
         makeBusiness(),
-        makeBusiness({ id: 'biz-2', agencyId: 'agency-2', language: 'ua' }),
+        makeBusiness({ id: 'biz-2', language: 'ua' }),
       ]);
 
       const items = [makeNewsItem()];
       nicheNewsService.fetchFromNewsdata.mockResolvedValue(items);
       nicheNewsService.selectTopItems.mockReturnValue(items);
-      nicheNewsService.saveNewsForIndustry.mockResolvedValue([
+      nicheNewsService.saveNewsForBusiness.mockResolvedValue([
         makeNicheNewsRecord(),
       ]);
 
@@ -206,36 +219,7 @@ describe('NicheNewsCronService', () => {
       );
     });
 
-    it('calls saveNewsForIndustry for each unique (agencyId, industry) pair in the group', async () => {
-      prisma.business.findMany.mockResolvedValue([
-        makeBusiness(),
-        makeBusiness({ id: 'biz-2', agencyId: 'agency-2' }),
-      ]);
-
-      const items = [makeNewsItem()];
-      nicheNewsService.fetchFromNewsdata.mockResolvedValue(items);
-      nicheNewsService.selectTopItems.mockReturnValue(items);
-      nicheNewsService.saveNewsForIndustry
-        .mockResolvedValueOnce([makeNicheNewsRecord({ agencyId: 'agency-1' })])
-        .mockResolvedValueOnce([makeNicheNewsRecord({ agencyId: 'agency-2' })]);
-
-      await service.handleNicheNewsCron();
-
-      expect(nicheNewsService.saveNewsForIndustry).toHaveBeenCalledTimes(2);
-      expect(nicheNewsService.saveNewsForIndustry).toHaveBeenCalledWith(
-        'agency-1',
-        'Health',
-        items,
-      );
-      expect(nicheNewsService.saveNewsForIndustry).toHaveBeenCalledWith(
-        'agency-2',
-        'Health',
-        items,
-      );
-    });
-
-    it('deduplicates save calls when the same agency appears twice with the same industry', async () => {
-      // Same agencyId + industry via two different businesses (e.g. two profiles)
+    it('calls saveNewsForBusiness for each unique business in the group', async () => {
       prisma.business.findMany.mockResolvedValue([
         makeBusiness(),
         makeBusiness({ id: 'biz-2' }),
@@ -244,14 +228,42 @@ describe('NicheNewsCronService', () => {
       const items = [makeNewsItem()];
       nicheNewsService.fetchFromNewsdata.mockResolvedValue(items);
       nicheNewsService.selectTopItems.mockReturnValue(items);
-      nicheNewsService.saveNewsForIndustry.mockResolvedValue([
+      nicheNewsService.saveNewsForBusiness
+        .mockResolvedValueOnce([makeNicheNewsRecord({ businessId: 'biz-1' })])
+        .mockResolvedValueOnce([makeNicheNewsRecord({ businessId: 'biz-2' })]);
+
+      await service.handleNicheNewsCron();
+
+      expect(nicheNewsService.saveNewsForBusiness).toHaveBeenCalledTimes(2);
+      expect(nicheNewsService.saveNewsForBusiness).toHaveBeenCalledWith(
+        'biz-1',
+        'Health',
+        items,
+      );
+      expect(nicheNewsService.saveNewsForBusiness).toHaveBeenCalledWith(
+        'biz-2',
+        'Health',
+        items,
+      );
+    });
+
+    it('deduplicates save calls when the same businessId appears twice', async () => {
+      // Same businessId via duplicate entry — should only be processed once
+      prisma.business.findMany.mockResolvedValue([
+        makeBusiness(),
+        makeBusiness(), // same id: 'biz-1'
+      ]);
+
+      const items = [makeNewsItem()];
+      nicheNewsService.fetchFromNewsdata.mockResolvedValue(items);
+      nicheNewsService.selectTopItems.mockReturnValue(items);
+      nicheNewsService.saveNewsForBusiness.mockResolvedValue([
         makeNicheNewsRecord(),
       ]);
 
       await service.handleNicheNewsCron();
 
-      // Same agencyId::industry pair → saved only once
-      expect(nicheNewsService.saveNewsForIndustry).toHaveBeenCalledTimes(1);
+      expect(nicheNewsService.saveNewsForBusiness).toHaveBeenCalledTimes(1);
     });
 
     it('logs success count in the final summary', async () => {
@@ -260,7 +272,7 @@ describe('NicheNewsCronService', () => {
       const items = [makeNewsItem()];
       nicheNewsService.fetchFromNewsdata.mockResolvedValue(items);
       nicheNewsService.selectTopItems.mockReturnValue(items);
-      nicheNewsService.saveNewsForIndustry.mockResolvedValue([
+      nicheNewsService.saveNewsForBusiness.mockResolvedValue([
         makeNicheNewsRecord(),
       ]);
 
@@ -273,6 +285,24 @@ describe('NicheNewsCronService', () => {
       expect(summary).toBeDefined();
       expect(summary).toMatch(/1 succeeded/);
       expect(summary).toMatch(/0 failed/);
+    });
+
+    it('calls generateIdeasFromNews after successful saveNewsForBusiness', async () => {
+      prisma.business.findMany.mockResolvedValue([makeBusiness()]);
+
+      const items = [makeNewsItem()];
+      const saved = [makeNicheNewsRecord()];
+      nicheNewsService.fetchFromNewsdata.mockResolvedValue(items);
+      nicheNewsService.selectTopItems.mockReturnValue(items);
+      nicheNewsService.saveNewsForBusiness.mockResolvedValue(saved);
+
+      await service.handleNicheNewsCron();
+
+      expect(nicheNewsService.generateIdeasFromNews).toHaveBeenCalledWith(
+        expect.objectContaining({ industry: 'Health' }),
+        'biz-1',
+        saved,
+      );
     });
   });
 
@@ -296,21 +326,21 @@ describe('NicheNewsCronService', () => {
     it('still processes valid businesses when another has an unmapped industry', async () => {
       prisma.business.findMany.mockResolvedValue([
         makeBusiness({ industry: 'UnknownIndustry' }),
-        makeBusiness({ id: 'biz-2', agencyId: 'agency-2' }),
+        makeBusiness({ id: 'biz-2' }),
       ]);
 
       const items = [makeNewsItem()];
       nicheNewsService.fetchFromNewsdata.mockResolvedValue(items);
       nicheNewsService.selectTopItems.mockReturnValue(items);
-      nicheNewsService.saveNewsForIndustry.mockResolvedValue([
+      nicheNewsService.saveNewsForBusiness.mockResolvedValue([
         makeNicheNewsRecord(),
       ]);
 
       await service.handleNicheNewsCron();
 
       expect(nicheNewsService.fetchFromNewsdata).toHaveBeenCalledTimes(1);
-      expect(nicheNewsService.saveNewsForIndustry).toHaveBeenCalledWith(
-        'agency-2',
+      expect(nicheNewsService.saveNewsForBusiness).toHaveBeenCalledWith(
+        'biz-2',
         'Health',
         items,
       );
@@ -321,7 +351,7 @@ describe('NicheNewsCronService', () => {
   // API returns empty results
   // ─────────────────────────────────────────────────────────────
   describe('handleNicheNewsCron — empty API response', () => {
-    it('logs a warning and skips saveNewsForIndustry when fetchFromNewsdata returns no items', async () => {
+    it('logs a warning and skips saveNewsForBusiness when fetchFromNewsdata returns no items', async () => {
       prisma.business.findMany.mockResolvedValue([makeBusiness()]);
 
       nicheNewsService.fetchFromNewsdata.mockResolvedValue([]);
@@ -329,7 +359,7 @@ describe('NicheNewsCronService', () => {
 
       await service.handleNicheNewsCron();
 
-      expect(nicheNewsService.saveNewsForIndustry).not.toHaveBeenCalled();
+      expect(nicheNewsService.saveNewsForBusiness).not.toHaveBeenCalled();
       expect(loggerWarnSpy).toHaveBeenCalledWith(
         expect.stringContaining('health::en'),
       );
@@ -340,7 +370,6 @@ describe('NicheNewsCronService', () => {
         makeBusiness(),
         makeBusiness({
           id: 'biz-2',
-          agencyId: 'agency-2',
           industry: 'Education',
         }),
       ]);
@@ -352,15 +381,15 @@ describe('NicheNewsCronService', () => {
       nicheNewsService.selectTopItems
         .mockReturnValueOnce([])
         .mockReturnValueOnce(items);
-      nicheNewsService.saveNewsForIndustry.mockResolvedValue([
+      nicheNewsService.saveNewsForBusiness.mockResolvedValue([
         makeNicheNewsRecord(),
       ]);
 
       await service.handleNicheNewsCron();
 
-      expect(nicheNewsService.saveNewsForIndustry).toHaveBeenCalledTimes(1);
-      expect(nicheNewsService.saveNewsForIndustry).toHaveBeenCalledWith(
-        'agency-2',
+      expect(nicheNewsService.saveNewsForBusiness).toHaveBeenCalledTimes(1);
+      expect(nicheNewsService.saveNewsForBusiness).toHaveBeenCalledWith(
+        'biz-2',
         'Education',
         items,
       );
@@ -368,37 +397,37 @@ describe('NicheNewsCronService', () => {
   });
 
   // ─────────────────────────────────────────────────────────────
-  // Save failure for one agency
+  // Save failure for one business
   // ─────────────────────────────────────────────────────────────
   describe('handleNicheNewsCron — partial save failure', () => {
-    it('continues processing other agencies when saveNewsForIndustry throws for one', async () => {
+    it('continues processing other businesses when saveNewsForBusiness throws for one', async () => {
       prisma.business.findMany.mockResolvedValue([
         makeBusiness(),
-        makeBusiness({ id: 'biz-2', agencyId: 'agency-2' }),
+        makeBusiness({ id: 'biz-2' }),
       ]);
 
       const items = [makeNewsItem()];
       nicheNewsService.fetchFromNewsdata.mockResolvedValue(items);
       nicheNewsService.selectTopItems.mockReturnValue(items);
-      nicheNewsService.saveNewsForIndustry
+      nicheNewsService.saveNewsForBusiness
         .mockRejectedValueOnce(new Error('Prisma transaction failed'))
         .mockResolvedValueOnce([makeNicheNewsRecord()]);
 
       await expect(service.handleNicheNewsCron()).resolves.toBeUndefined();
 
-      expect(nicheNewsService.saveNewsForIndustry).toHaveBeenCalledTimes(2);
+      expect(nicheNewsService.saveNewsForBusiness).toHaveBeenCalledTimes(2);
     });
 
     it('increments failCount for each save that throws', async () => {
       prisma.business.findMany.mockResolvedValue([
         makeBusiness(),
-        makeBusiness({ id: 'biz-2', agencyId: 'agency-2' }),
+        makeBusiness({ id: 'biz-2' }),
       ]);
 
       const items = [makeNewsItem()];
       nicheNewsService.fetchFromNewsdata.mockResolvedValue(items);
       nicheNewsService.selectTopItems.mockReturnValue(items);
-      nicheNewsService.saveNewsForIndustry.mockRejectedValue(
+      nicheNewsService.saveNewsForBusiness.mockRejectedValue(
         new Error('DB error'),
       );
 
@@ -413,33 +442,33 @@ describe('NicheNewsCronService', () => {
       expect(summary).toMatch(/2 failed/);
     });
 
-    it('logs an error with agency and industry details when save fails', async () => {
+    it('logs an error with business id and industry details when save fails', async () => {
       prisma.business.findMany.mockResolvedValue([makeBusiness()]);
 
       const items = [makeNewsItem()];
       nicheNewsService.fetchFromNewsdata.mockResolvedValue(items);
       nicheNewsService.selectTopItems.mockReturnValue(items);
-      nicheNewsService.saveNewsForIndustry.mockRejectedValue(
+      nicheNewsService.saveNewsForBusiness.mockRejectedValue(
         new Error('Timeout'),
       );
 
       await service.handleNicheNewsCron();
 
       expect(loggerErrorSpy).toHaveBeenCalledWith(
-        expect.stringContaining('agency-1'),
+        expect.stringContaining('biz-1'),
       );
       expect(loggerErrorSpy).toHaveBeenCalledWith(
         expect.stringContaining('Health'),
       );
     });
 
-    it('handles non-Error thrown values from saveNewsForIndustry without crashing', async () => {
+    it('handles non-Error thrown values from saveNewsForBusiness without crashing', async () => {
       prisma.business.findMany.mockResolvedValue([makeBusiness()]);
 
       const items = [makeNewsItem()];
       nicheNewsService.fetchFromNewsdata.mockResolvedValue(items);
       nicheNewsService.selectTopItems.mockReturnValue(items);
-      nicheNewsService.saveNewsForIndustry.mockRejectedValue('string error');
+      nicheNewsService.saveNewsForBusiness.mockRejectedValue('string error');
 
       await expect(service.handleNicheNewsCron()).resolves.toBeUndefined();
     });

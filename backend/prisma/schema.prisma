@@ -15,7 +15,6 @@ model Agency {
   createdAt  DateTime   @default(now())
   businesses Business[]
   users      User[]
-  nicheNews  NicheNews[]
 }
 
 model Admin {
@@ -59,6 +58,7 @@ model Business {
   prompts          Prompt[]
   ideas            Idea[]
   ideasAI          IdeaAI[]
+  nicheNews        NicheNews[]
   contentPlans     ContentPlan[]
   createdAt        DateTime          @default(now())
   facebookReport   FacebookReport?
@@ -510,6 +510,9 @@ model IdeaAI {
   createdAt   DateTime    @default(now())
   status      IdeaStatus  @default(New)
 
+  nicheNewsId String?
+  nicheNews   NicheNews? @relation(fields: [nicheNewsId], references: [id], onDelete: SetNull)
+
   profiles BusinessProfileIdeaAI[]
   business Business                @relation(fields: [businessId], references: [id])
 }
@@ -716,17 +719,19 @@ model CalendarificHoliday {
 
 model NicheNews {
   id          String   @id @default(uuid())
-  agencyId    String
+  businessId  String
   title       String
   summary     String   @default("")
-  url         String   @unique
+  url         String
   source      String
   industry    String
   publishedAt DateTime
   createdAt   DateTime @default(now())
-  agency      Agency   @relation(fields: [agencyId], references: [id])
+  business    Business @relation(fields: [businessId], references: [id])
+  ideasAI     IdeaAI[]
 
-  @@index([agencyId, industry])
+  @@unique([businessId, url])
+  @@index([businessId, industry])
 }
 
 enum ContentPlanStatus {
