@@ -1,8 +1,10 @@
-import React, { useMemo } from "react"
+import React, { useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { formatDistanceToNow } from "date-fns"
 import { TNicheNews } from "../../../models/NicheNews"
 import { usePagination } from "../../../hooks/usePagination"
+import { TIdeaAI } from "../../../models/IdeaAI"
+import { IdeaDetailDlg } from "./components/ideaDetailDlg/IdeaDetailDlg"
 
 type Props = {
   nicheNews: TNicheNews[]
@@ -12,6 +14,8 @@ type Props = {
 
 export function NicheNewsBlock({ nicheNews, onFetch, isFetching }: Props) {
   const { t } = useTranslation()
+
+  const [selectedIdea, setSelectedIdea] = useState<TIdeaAI | null>(null)
 
   const sortedNews = useMemo(
     () =>
@@ -26,6 +30,11 @@ export function NicheNewsBlock({ nicheNews, onFetch, isFetching }: Props) {
     pageSize: 5,
     resetDeps: [nicheNews],
   })
+
+  function handleIdeaClick(e: React.MouseEvent, idea: TIdeaAI) {
+    e.stopPropagation()
+    setSelectedIdea(idea)
+  }
 
   return (
     <div className="rounded-2xl bg-white shadow border border-slate-200 flex flex-col">
@@ -54,12 +63,10 @@ export function NicheNewsBlock({ nicheNews, onFetch, isFetching }: Props) {
       ) : (
         <div>
           {paginatedItems.map((item) => (
-            <a
+            <div
               key={item.id}
-              href={item.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex flex-col px-5 py-3 border-b border-slate-50 last:border-0 hover:bg-slate-50 transition-colors"
+              onClick={() => window.open(item.url, '_blank', 'noopener,noreferrer')}
+              className="flex flex-col px-5 py-3 border-b border-slate-50 last:border-0 hover:bg-slate-50 transition-colors cursor-pointer"
             >
               <p className="text-sm font-medium text-slate-700 text-left">{item.title}</p>
               <p className="text-xs text-slate-400 text-left mt-0.5">
@@ -69,11 +76,15 @@ export function NicheNewsBlock({ nicheNews, onFetch, isFetching }: Props) {
                 <p className="text-xs text-slate-500 text-left mt-1 line-clamp-2">{item.summary}</p>
               )}
               {item.ideasAI?.[0] && (
-                <p className="text-xs text-blue-600 text-left mt-1.5 font-medium">
-                  💡 {item.ideasAI[0].title}
-                </p>
+                <button
+                  type="button"
+                  onClick={(e) => handleIdeaClick(e, item.ideasAI![0])}
+                  className="text-xs text-blue-600 text-left mt-1.5 font-medium hover:underline cursor-pointer w-fit"
+                >
+                  💡 {item.ideasAI![0].title}
+                </button>
               )}
-            </a>
+            </div>
           ))}
         </div>
       )}
@@ -100,6 +111,11 @@ export function NicheNewsBlock({ nicheNews, onFetch, isFetching }: Props) {
           </div>
         </div>
       )}
+
+      <IdeaDetailDlg
+        idea={selectedIdea}
+        onClose={() => setSelectedIdea(null)}
+      />
     </div>
   )
 }

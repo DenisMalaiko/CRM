@@ -67,9 +67,7 @@ export class NicheNewsService {
     return this.prisma.nicheNews.findMany({
       where: { businessId },
       include: {
-        ideasAI: {
-          select: { id: true, title: true },
-        },
+        ideasAI: true,
       },
       orderBy: { publishedAt: 'desc' },
       take: 20,

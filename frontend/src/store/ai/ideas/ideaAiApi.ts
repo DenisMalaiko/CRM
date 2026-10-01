@@ -43,7 +43,7 @@ export const ideaAiApi = api.injectEndpoints({
         url: `/ideaAI/${id}`,
         method: "DELETE",
       })
-    })
+    }),
   }),
   overrideExisting: false,
 });
