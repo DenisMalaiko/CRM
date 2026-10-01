@@ -1,9 +1,5 @@
 import { TBaseModel } from "./BaseModel";
-
-export type TNicheNewsIdea = {
-  id: string;
-  title: string;
-};
+import { TIdeaAI } from "./IdeaAI";
 
 export type TNicheNews = TBaseModel & {
   title: string;
@@ -12,5 +8,5 @@ export type TNicheNews = TBaseModel & {
   source: string;
   industry: string;
   publishedAt: string;
-  ideasAI?: TNicheNewsIdea[];
+  ideasAI?: TIdeaAI[];
 };
