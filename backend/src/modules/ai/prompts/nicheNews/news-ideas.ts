@@ -1,19 +1,58 @@
 export function newsIdeasRoleBlock(): string {
-  return `You are a creative social media strategist. Generate actionable content ideas for posts and stories based on trending news articles.`;
+  return `You are a creative social media strategist. Generate actionable content ideas for posts and stories based on trending news articles. Your ideas must be deeply tied to the business's specific products/services and resonate with their target audience.`;
 }
 
-export function newsIdeasContextBlock(
-  industry: string,
-  businessName: string,
-  goals: string[],
-  advantages: string[],
-): string {
-  return `## BUSINESS CONTEXT
+export type NewsIdeasBusinessContext = {
+  name: string;
+  industry: string;
+  goals: string[];
+  advantages: string[];
+  brand?: string;
+  products?: Array<{ name: string; description: string; type: string }>;
+  audiences?: Array<{
+    name: string;
+    pains: string[];
+    desires: string[];
+    interests: string[];
+  }>;
+};
 
-- Business name: ${businessName}
-- Industry: ${industry}
-- Goals: ${goals.join(', ')}
-- Competitive advantages: ${advantages.join(', ')}`;
+export function newsIdeasContextBlock(
+  business: NewsIdeasBusinessContext,
+): string {
+  const lines = [
+    `## BUSINESS CONTEXT`,
+    ``,
+    `- Business name: ${business.name}`,
+    `- Industry: ${business.industry}`,
+    `- Goals: ${business.goals.join(', ')}`,
+    `- Competitive advantages: ${business.advantages.join(', ')}`,
+  ];
+
+  if (business.brand) {
+    lines.push(`- Brand voice: ${business.brand}`);
+  }
+
+  if (business.products?.length) {
+    lines.push(``, `### Products / Services`);
+    for (const p of business.products) {
+      lines.push(`- **${p.name}** (${p.type}): ${p.description}`);
+    }
+  }
+
+  if (business.audiences?.length) {
+    lines.push(``, `### Target Audience`);
+    for (const a of business.audiences) {
+      const parts = [`**${a.name}**`];
+      if (a.pains.length) parts.push(`Pains: ${a.pains.join(', ')}`);
+      if (a.desires.length) parts.push(`Desires: ${a.desires.join(', ')}`);
+      if (a.interests.length)
+        parts.push(`Interests: ${a.interests.join(', ')}`);
+      lines.push(`- ${parts.join(' | ')}`);
+    }
+  }
+
+  return lines.join('\n');
 }
 
 export function newsIdeasArticlesBlock(
@@ -38,6 +77,9 @@ Rules:
 - Each idea must be directly inspired by the corresponding article (use newsIndex to reference it).
 - title: short, catchy headline for the content piece (1 sentence).
 - description: 2–3 actionable sentences explaining what the post/story would cover and why it resonates.
+- Where relevant, tie the idea to a specific product or service the business offers — don't just comment on the news generically.
+- Consider the target audience's pains, desires, and interests when framing the idea.
+- If brand voice is provided, the tone of title and description should reflect it.
 - Classify the idea using the who/what/why/how/feeling enums.
 - Write title and description in the same language as the article.`;
 }

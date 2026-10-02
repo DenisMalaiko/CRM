@@ -62,7 +62,7 @@ export function IdeaDetailDlg({ idea, onClose }: Props) {
             <p className="text-sm text-slate-600 text-left whitespace-pre-wrap">{idea.description}</p>
           )}
 
-          <div className="grid grid-cols-1 gap-3">
+          <div className="grid grid-cols-3 gap-3">
             {(['who', 'what', 'why', 'how', 'feeling'] as const).map((field) =>
               idea[field] ? (
                 <div key={field}>

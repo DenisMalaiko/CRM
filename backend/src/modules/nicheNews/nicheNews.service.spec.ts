@@ -171,6 +171,9 @@ describe('NicheNewsService', () => {
         name: 'Test',
         goals: [],
         advantages: [],
+        brand: null,
+        products: [],
+        businessProfiles: [],
       });
 
       await expect(
@@ -186,6 +189,9 @@ describe('NicheNewsService', () => {
         name: 'Test',
         goals: [],
         advantages: [],
+        brand: null,
+        products: [],
+        businessProfiles: [],
       });
 
       await expect(
@@ -201,6 +207,9 @@ describe('NicheNewsService', () => {
         name: 'Test',
         goals: [],
         advantages: [],
+        brand: null,
+        products: [],
+        businessProfiles: [],
       });
 
       await expect(
@@ -216,6 +225,9 @@ describe('NicheNewsService', () => {
         name: 'Test Biz',
         goals: [],
         advantages: [],
+        brand: null,
+        products: [],
+        businessProfiles: [],
       });
 
       const items = [makeNewsItem()];
@@ -224,6 +236,8 @@ describe('NicheNewsService', () => {
       jest.spyOn(service, 'fetchFromNewsdata').mockResolvedValue(items);
       jest.spyOn(service, 'saveNewsForBusiness').mockResolvedValue(saved);
       jest.spyOn(service, 'generateIdeasFromNews').mockResolvedValue();
+      // fetchByBusinessId ends by delegating to getByBusinessId which reads findMany
+      prisma.nicheNews.findMany.mockResolvedValue(saved);
 
       const result = await service.fetchByBusinessId(
         'biz-uuid-1',
@@ -247,6 +261,9 @@ describe('NicheNewsService', () => {
         name: 'Test Biz',
         goals: [],
         advantages: [],
+        brand: null,
+        products: [],
+        businessProfiles: [],
       });
 
       jest.spyOn(service, 'fetchFromNewsdata').mockResolvedValue([]);
@@ -266,6 +283,9 @@ describe('NicheNewsService', () => {
         name: 'Test Biz',
         goals: ['grow'],
         advantages: ['fast'],
+        brand: null,
+        products: [],
+        businessProfiles: [],
       });
 
       const allItems = [
@@ -299,6 +319,9 @@ describe('NicheNewsService', () => {
         name: 'Test Biz',
         goals: ['grow'],
         advantages: ['fast'],
+        brand: null,
+        products: [],
+        businessProfiles: [],
       });
 
       const saved = [makeNicheNewsRecord()];
@@ -317,6 +340,177 @@ describe('NicheNewsService', () => {
         'biz-uuid-1',
         saved,
       );
+    });
+
+    it('passes products to filterContext with only name and type fields', async () => {
+      prisma.business.findUnique.mockResolvedValue({
+        agencyId: 'agency-uuid-1',
+        industry: 'Health',
+        language: 'en',
+        name: 'Test Biz',
+        goals: ['grow'],
+        advantages: ['fast'],
+        brand: null,
+        products: [
+          {
+            name: 'Supplement A',
+            description: 'Great supplement',
+            type: 'Physical',
+          },
+          { name: 'App B', description: 'Mobile app', type: 'Digital' },
+        ],
+        businessProfiles: [],
+      });
+
+      jest.spyOn(service, 'fetchFromNewsdata').mockResolvedValue([]);
+      const filterSpy = jest
+        .spyOn(service, 'filterNewsByRelevance')
+        .mockResolvedValue([]);
+      jest.spyOn(service, 'saveNewsForBusiness').mockResolvedValue([]);
+      jest.spyOn(service, 'generateIdeasFromNews').mockResolvedValue();
+
+      await service.fetchByBusinessId('biz-uuid-1', 'agency-uuid-1');
+
+      expect(filterSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          products: [
+            { name: 'Supplement A', type: 'Physical' },
+            { name: 'App B', type: 'Digital' },
+          ],
+        }),
+        expect.any(Array),
+      );
+    });
+
+    it('passes full product objects (with description) to ideasContext', async () => {
+      prisma.business.findUnique.mockResolvedValue({
+        agencyId: 'agency-uuid-1',
+        industry: 'Health',
+        language: 'en',
+        name: 'Test Biz',
+        goals: ['grow'],
+        advantages: ['fast'],
+        brand: 'Friendly and expert',
+        products: [
+          {
+            name: 'Supplement A',
+            description: 'Great supplement',
+            type: 'Physical',
+          },
+        ],
+        businessProfiles: [],
+      });
+
+      jest
+        .spyOn(service, 'fetchFromNewsdata')
+        .mockResolvedValue([makeNewsItem()]);
+      jest
+        .spyOn(service, 'filterNewsByRelevance')
+        .mockResolvedValue([makeNewsItem()]);
+      jest
+        .spyOn(service, 'saveNewsForBusiness')
+        .mockResolvedValue([makeNicheNewsRecord()]);
+      const generateSpy = jest
+        .spyOn(service, 'generateIdeasFromNews')
+        .mockResolvedValue();
+
+      await service.fetchByBusinessId('biz-uuid-1', 'agency-uuid-1');
+
+      expect(generateSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          brand: 'Friendly and expert',
+          products: [
+            {
+              name: 'Supplement A',
+              description: 'Great supplement',
+              type: 'Physical',
+            },
+          ],
+        }),
+        'biz-uuid-1',
+        expect.any(Array),
+      );
+    });
+
+    it('deduplicates audiences from multiple active profiles by audience name', async () => {
+      const sharedAudience = {
+        targetAudience: {
+          name: 'Fitness Enthusiast',
+          pains: ['lack of energy'],
+          desires: ['feel stronger'],
+          interests: ['gym'],
+        },
+      };
+
+      prisma.business.findUnique.mockResolvedValue({
+        agencyId: 'agency-uuid-1',
+        industry: 'Health',
+        language: 'en',
+        name: 'Test Biz',
+        goals: ['grow'],
+        advantages: ['fast'],
+        brand: null,
+        products: [],
+        businessProfiles: [
+          { audiences: [sharedAudience] },
+          { audiences: [sharedAudience] },
+        ],
+      });
+
+      jest
+        .spyOn(service, 'fetchFromNewsdata')
+        .mockResolvedValue([makeNewsItem()]);
+      jest
+        .spyOn(service, 'filterNewsByRelevance')
+        .mockResolvedValue([makeNewsItem()]);
+      jest
+        .spyOn(service, 'saveNewsForBusiness')
+        .mockResolvedValue([makeNicheNewsRecord()]);
+      const generateSpy = jest
+        .spyOn(service, 'generateIdeasFromNews')
+        .mockResolvedValue();
+
+      await service.fetchByBusinessId('biz-uuid-1', 'agency-uuid-1');
+
+      expect(generateSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          audiences: [expect.objectContaining({ name: 'Fitness Enthusiast' })],
+        }),
+        'biz-uuid-1',
+        expect.any(Array),
+      );
+    });
+
+    it('passes undefined brand to ideasContext when business.brand is null', async () => {
+      prisma.business.findUnique.mockResolvedValue({
+        agencyId: 'agency-uuid-1',
+        industry: 'Health',
+        language: 'en',
+        name: 'Test Biz',
+        goals: [],
+        advantages: [],
+        brand: null,
+        products: [],
+        businessProfiles: [],
+      });
+
+      jest
+        .spyOn(service, 'fetchFromNewsdata')
+        .mockResolvedValue([makeNewsItem()]);
+      jest
+        .spyOn(service, 'filterNewsByRelevance')
+        .mockResolvedValue([makeNewsItem()]);
+      jest
+        .spyOn(service, 'saveNewsForBusiness')
+        .mockResolvedValue([makeNicheNewsRecord()]);
+      const generateSpy = jest
+        .spyOn(service, 'generateIdeasFromNews')
+        .mockResolvedValue();
+
+      await service.fetchByBusinessId('biz-uuid-1', 'agency-uuid-1');
+
+      const calledWith = generateSpy.mock.calls[0][0] as { brand?: string };
+      expect(calledWith.brand).toBeUndefined();
     });
   });
 

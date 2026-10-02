@@ -11,6 +11,7 @@ import {
   newsFilterArticlesBlock,
   newsFilterTaskBlock,
   newsFilterOutputBlock,
+  type NewsFilterBusinessContext,
 } from '../ai/prompts/nicheNews/news-relevance';
 import {
   newsIdeasRoleBlock,
@@ -18,6 +19,7 @@ import {
   newsIdeasArticlesBlock,
   newsIdeasTaskBlock,
   newsIdeasOutputBlock,
+  type NewsIdeasBusinessContext,
 } from '../ai/prompts/nicheNews/news-ideas';
 
 export type NewsItem = {
@@ -87,6 +89,28 @@ export class NicheNewsService {
         name: true,
         goals: true,
         advantages: true,
+        brand: true,
+        products: {
+          where: { isActive: true },
+          select: { name: true, description: true, type: true },
+        },
+        businessProfiles: {
+          where: { isActive: true },
+          select: {
+            audiences: {
+              select: {
+                targetAudience: {
+                  select: {
+                    name: true,
+                    pains: true,
+                    desires: true,
+                    interests: true,
+                  },
+                },
+              },
+            },
+          },
+        },
       },
     });
 
@@ -102,15 +126,32 @@ export class NicheNewsService {
         `No category mapping for industry: ${business.industry}`,
       );
 
+    const audiences = business.businessProfiles
+      .flatMap((p) => p.audiences.map((a) => a.targetAudience))
+      .filter((a, i, arr) => arr.findIndex((x) => x.name === a.name) === i);
+
+    const filterContext: NewsFilterBusinessContext = {
+      name: business.name,
+      industry,
+      goals: business.goals,
+      advantages: business.advantages,
+      products: business.products.map((p) => ({ name: p.name, type: p.type })),
+    };
+
+    const ideasContext: NewsIdeasBusinessContext = {
+      name: business.name,
+      industry,
+      goals: business.goals,
+      advantages: business.advantages,
+      brand: business.brand || undefined,
+      products: business.products,
+      audiences,
+    };
+
     const lang = business.language === 'ua' ? 'ua' : 'en';
     const items = await this.fetchFromNewsdata(category, lang);
     const relevantItems = await this.filterNewsByRelevance(
-      {
-        name: business.name,
-        industry,
-        goals: business.goals,
-        advantages: business.advantages,
-      },
+      filterContext,
       items,
     );
 
@@ -124,27 +165,13 @@ export class NicheNewsService {
       `Fetched ${saved.length} news items for business ${businessId} (industry: ${industry}, lang: ${lang})`,
     );
 
-    await this.generateIdeasFromNews(
-      {
-        name: business.name,
-        industry,
-        goals: business.goals,
-        advantages: business.advantages,
-      },
-      businessId,
-      saved,
-    );
+    await this.generateIdeasFromNews(ideasContext, businessId, saved);
 
     return this.getByBusinessId(businessId, agencyId);
   }
 
   async filterNewsByRelevance(
-    business: {
-      name: string;
-      industry: string;
-      goals: string[];
-      advantages: string[];
-    },
+    business: NewsFilterBusinessContext,
     items: NewsItem[],
   ): Promise<NewsItem[]> {
     if (items.length === 0) return [];
@@ -153,12 +180,7 @@ export class NicheNewsService {
       const model = this.aiBase.getModel(AiModel.Fast);
       const prompt = [
         newsFilterRoleBlock(),
-        newsFilterContextBlock(
-          business.industry,
-          business.name,
-          business.goals,
-          business.advantages,
-        ),
+        newsFilterContextBlock(business),
         newsFilterArticlesBlock(items),
         newsFilterTaskBlock(),
         newsFilterOutputBlock(),
@@ -234,12 +256,7 @@ export class NicheNewsService {
   }
 
   async generateIdeasFromNews(
-    business: {
-      name: string;
-      industry: string;
-      goals: string[];
-      advantages: string[];
-    },
+    business: NewsIdeasBusinessContext,
     businessId: string,
     savedNews: NicheNews[],
   ): Promise<void> {
@@ -249,12 +266,7 @@ export class NicheNewsService {
       const model = this.aiBase.getModel(AiModel.Creative);
       const prompt = [
         newsIdeasRoleBlock(),
-        newsIdeasContextBlock(
-          business.industry,
-          business.name,
-          business.goals,
-          business.advantages,
-        ),
+        newsIdeasContextBlock(business),
         newsIdeasArticlesBlock(
           savedNews.map((n) => ({ title: n.title, summary: n.summary })),
         ),
