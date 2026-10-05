@@ -188,6 +188,7 @@ export class NicheNewsService {
 
       const response = await model.invoke(prompt);
       const rawText = this.aiBase.extractTextContent(response.content);
+
       const parsed = NewsRelevanceSchema.parse(
         this.aiBase.safeParseJson(rawText),
       );

@@ -195,7 +195,9 @@
     "ideaFeelingValue_Curiosity": "Curiosity",
     "ideaFeelingValue_Anticipation": "Anticipation",
     "ideaFeelingValue_Authority": "Authority",
-    "ideaFeelingValue_Empathy": "Empathy"
+    "ideaFeelingValue_Empathy": "Empathy",
+    "generatePost": "Generate Post",
+    "generateStory": "Generate Story"
   },
   "BusinessSidebar": {
     "Dashboard": "Dashboard",
