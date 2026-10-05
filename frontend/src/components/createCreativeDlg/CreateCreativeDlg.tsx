@@ -162,14 +162,14 @@ function CreateCreativeDlg({ open, onClose, focus }: Props) {
   const allIdeasOptions = useMemo(() => {
     return [
       ...(ideas ?? [])
-        .filter((idea: TIdea) => idea.status === IdeaStatus.Used)
+        .filter((idea: TIdea) => idea.status === IdeaStatus.Used || idea.status === IdeaStatus.Planned)
         .map((idea: TIdea) => ({
           label: `${idea.title}`,
           value: idea.id,
           type: "manual" as const,
       })),
       ...(ideasAi ?? [])
-        .filter((idea: TIdeaAI) => idea.status === IdeaStatus.Used)
+        .filter((idea: TIdeaAI) => idea.status === IdeaStatus.Used || idea.status === IdeaStatus.Planned)
         .map((idea: TIdeaAI) => ({
         label: `${idea.title}`,
         value: idea.id,

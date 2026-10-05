@@ -1,8 +1,11 @@
 import React, { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { X } from 'lucide-react'
+import { useNavigate, useParams } from 'react-router-dom'
+import { X, FileText, Film } from 'lucide-react'
 import { TIdeaAI } from '../../../../../models/IdeaAI'
 import { getStatusClass } from '../../../../../utils/getStatusClass'
+import { useUpdateIdeaAIMutation } from '../../../../../store/ai/ideas/ideaAiApi'
+import { IdeaStatus } from '../../../../../enum/IdeaStatus'
 
 type Props = {
   idea: TIdeaAI | null
@@ -29,6 +32,16 @@ const VALUE_PREFIX: Record<IdeaField, string> = {
 
 export function IdeaDetailDlg({ idea, onClose }: Props) {
   const { t } = useTranslation()
+  const navigate = useNavigate()
+  const { businessId } = useParams<{ businessId: string }>()
+  const [updateIdeaAI] = useUpdateIdeaAIMutation()
+
+  async function handleGenerate(type: 'posts' | 'stories') {
+    if (!idea || !businessId) return
+    await updateIdeaAI({ id: idea.id, form: { status: IdeaStatus.Planned } })
+    onClose()
+    navigate(`/profile/businesses/${businessId}/${type}`)
+  }
 
   useEffect(() => {
     if (!idea) return
@@ -75,6 +88,25 @@ export function IdeaDetailDlg({ idea, onClose }: Props) {
                 </div>
               ) : null
             )}
+          </div>
+
+          <div className="flex gap-3 mt-2">
+            <button
+              type="button"
+              onClick={() => handleGenerate('posts')}
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 cursor-pointer"
+            >
+              <FileText size={16} />
+              {t('BusinessDashboard.generatePost')}
+            </button>
+            <button
+              type="button"
+              onClick={() => handleGenerate('stories')}
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 cursor-pointer"
+            >
+              <Film size={16} />
+              {t('BusinessDashboard.generateStory')}
+            </button>
           </div>
         </div>
       </div>

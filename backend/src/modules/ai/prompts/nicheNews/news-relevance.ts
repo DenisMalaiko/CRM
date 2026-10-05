@@ -47,12 +47,12 @@ export function newsFilterArticlesBlock(items: NewsItem[]): string {
 export function newsFilterTaskBlock(): string {
   return `## TASK
 
-Analyze each news article above and determine if it is directly relevant to the specific business niche described.
+Analyze each news article above and determine if it is relevant to the business niche described.
 
 Rules:
-- Be strict — only include articles that are truly relevant to THIS specific niche, not just the broad category.
-- An article is relevant if it covers topics that the business, its products/services, or its customers would directly care about.
-- Exclude generic news, unrelated industries, or articles that only loosely relate to the category.`;
+- Include articles that cover topics the business, its products/services, or its target customers would find useful or interesting.
+- Include articles about trends, events, or developments in the broader industry — not just the exact sub-niche.
+- Exclude only articles that are clearly unrelated to the industry (e.g. politics, celebrity gossip, unrelated sports for a non-sports business).`;
 }
 
 export function newsFilterOutputBlock(): string {

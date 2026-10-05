@@ -195,7 +195,9 @@
     "ideaFeelingValue_Curiosity": "Цікавість",
     "ideaFeelingValue_Anticipation": "Передчуття",
     "ideaFeelingValue_Authority": "Авторитет",
-    "ideaFeelingValue_Empathy": "Емпатія"
+    "ideaFeelingValue_Empathy": "Емпатія",
+    "generatePost": "Згенерувати пост",
+    "generateStory": "Згенерувати сторіс"
   },
   "BusinessSidebar": {
     "Dashboard": "Панель керування",
