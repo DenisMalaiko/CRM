@@ -69,6 +69,12 @@ export type TFacebookReport = {
   fetchedAt: string;
 };
 
+export type TStrategicInsight = {
+  type: "strength" | "improvement" | "opportunity";
+  title: string;
+  description: string;
+};
+
 export type TInstagramReport = {
   id: string;
   businessId: string;

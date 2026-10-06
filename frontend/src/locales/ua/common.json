@@ -115,6 +115,8 @@
     "noCompetitorsAdded": "Конкурентів не додано",
     "strategicInsights": "Стратегічні інсайти",
     "noStrategicInsightsYet": "Стратегічних інсайтів поки немає",
+    "generateInsights": "Згенерувати інсайти",
+    "generating": "Генерація...",
     "postsFormats90d": "Формати постів (90Д)",
     "storiesFormats90d": "Формати Stories (90Д)",
     "adsFormats": "Формати реклами",

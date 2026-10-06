@@ -115,6 +115,8 @@
     "noCompetitorsAdded": "No competitors added",
     "strategicInsights": "Strategic Insights",
     "noStrategicInsightsYet": "No strategic insights yet",
+    "generateInsights": "Generate Insights",
+    "generating": "Generating...",
     "postsFormats90d": "Posts Formats (90D)",
     "storiesFormats90d": "Stories Formats (90D)",
     "adsFormats": "Ads Formats",

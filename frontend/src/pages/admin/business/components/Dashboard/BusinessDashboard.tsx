@@ -17,6 +17,7 @@ import { setProducts } from "../../../../../store/products/productsSlice"
 import { setAudiences } from "../../../../../store/audience/audienceSlice"
 import { setProfiles } from "../../../../../store/profile/profileSlice"
 import { setPrompts } from "../../../../../store/prompts/promptSlice"
+
 import { setContentPlans } from "../../../../../store/contentPlan/contentPlanSlice"
 import { setIdeasAi } from "../../../../../store/ai/ideas/ideaAiSlice"
 import { TProduct } from "../../../../../models/Product"
@@ -40,6 +41,9 @@ import { CompetitorInstagramTable } from "../../../../../components/analytics/Co
 import { useGetNicheNewsByBusinessIdMutation, useFetchNicheNewsMutation } from "../../../../../store/nicheNews/nicheNewsApi"
 import { TNicheNews } from "../../../../../models/NicheNews"
 import { useTranslation } from 'react-i18next'
+import { useGenerateFacebookInsightsMutation } from "../../../../../store/businesses/businessesApi"
+import { TStrategicInsight } from "../../../../../models/Business"
+import { StrategicInsights } from "../../../../../components/analytics/StrategicInsights/StrategicInsights"
 
 type StatCardProps = {
   icon: LucideIcon
@@ -88,6 +92,7 @@ export function BusinessDashboard() {
   const [fetchFacebookReport] = useFetchFacebookReportMutation()
   const [getNicheNews] = useGetNicheNewsByBusinessIdMutation()
   const [fetchNicheNews] = useFetchNicheNewsMutation()
+  const [generateFacebookInsights] = useGenerateFacebookInsightsMutation()
 
   const [isFetchingIg, setIsFetchingIg] = useState(false)
   const [isFetchingFb, setIsFetchingFb] = useState(false)
@@ -95,6 +100,8 @@ export function BusinessDashboard() {
   const [igReport, setIgReport] = useState<TInstagramReport | null>(null)
   const [competitors, setCompetitors] = useState<TCompetitorWithReport[]>([])
   const [nicheNews, setNicheNewsData] = useState<TNicheNews[]>([])
+  const [fbInsights, setFbInsights] = useState<TStrategicInsight[]>([])
+  const [isGeneratingInsights, setIsGeneratingInsights] = useState(false)
   const [isFetchingNews, setIsFetchingNews] = useState(false)
 
   const products = useAppSelector((state) => state.productsModule.products)
@@ -203,6 +210,22 @@ export function BusinessDashboard() {
       showError(error)
     } finally {
       setIsFetchingNews(false)
+    }
+  }
+
+  const handleGenerateInsights = async () => {
+    if (!businessId) return
+    setIsGeneratingInsights(true)
+    try {
+      const response = await generateFacebookInsights(businessId).unwrap()
+      if (response?.data) {
+        setFbInsights(response.data as TStrategicInsight[])
+        toast.success(response.message)
+      }
+    } catch (error) {
+      showError(error)
+    } finally {
+      setIsGeneratingInsights(false)
     }
   }
 
@@ -332,6 +355,11 @@ export function BusinessDashboard() {
           <TopPostTexts posts={businessTopPostTexts} />
           <TopAdsBlock ads={fbReport?.topAds ?? []} />
           <TopAdTexts ads={businessTopAdTexts} />
+          <StrategicInsights
+            insights={fbInsights}
+            onGenerate={handleGenerateInsights}
+            isGenerating={isGeneratingInsights}
+          />
         </div>
       )}
 

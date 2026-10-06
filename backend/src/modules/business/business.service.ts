@@ -1,8 +1,22 @@
-import { Injectable, InternalServerErrorException, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
-import { PrismaService } from "../../core/prisma/prisma.service";
-import { InstagramService } from "../instagram/instagram.service";
-import { FacebookService } from "../facebook/facebook.service";
-import { TBusiness, TBusinessCreate, TBusinessUpdate, TFacebookReport, TInstagramReport } from "./entities/business.entity";
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+  ConflictException,
+  BadRequestException,
+} from '@nestjs/common';
+import { PrismaService } from '../../core/prisma/prisma.service';
+import { InstagramService } from '../instagram/instagram.service';
+import { FacebookService } from '../facebook/facebook.service';
+import { AiService } from '../ai/ai.service';
+import {
+  TBusiness,
+  TBusinessCreate,
+  TBusinessUpdate,
+  TFacebookReport,
+  TInstagramReport,
+} from './entities/business.entity';
+import { TStrategicInsight } from '../ai/schema/strategic-insights.schema';
 
 @Injectable()
 export class BusinessService {
@@ -10,6 +24,7 @@ export class BusinessService {
     private readonly prisma: PrismaService,
     private readonly instagramService: InstagramService,
     private readonly facebookService: FacebookService,
+    private readonly aiService: AiService,
   ) {}
 
   async getBusinesses(agencyId: string): Promise<TBusiness[]> {
@@ -29,8 +44,8 @@ export class BusinessService {
         brand: true,
         advantages: true,
         goals: true,
-        createdAt: true
-      }
+        createdAt: true,
+      },
     });
   }
 
@@ -52,8 +67,8 @@ export class BusinessService {
           brand: true,
           advantages: true,
           goals: true,
-          createdAt: true
-        }
+          createdAt: true,
+        },
       });
     } catch (err: any) {
       if (err.code === 'P2025') {
@@ -95,7 +110,7 @@ export class BusinessService {
           brand: true,
           advantages: true,
           goals: true,
-          createdAt: true
+          createdAt: true,
         },
       });
     } catch (err: any) {
@@ -124,7 +139,7 @@ export class BusinessService {
           brand: true,
           advantages: true,
           goals: true,
-          createdAt: true
+          createdAt: true,
         },
       });
     } catch (err: any) {
@@ -144,7 +159,29 @@ export class BusinessService {
 
   async upsertFacebookReport(
     businessId: string,
-    data: { followers: number; posts: number; likes?: number; postsImageCount?: number; postsVideoCount?: number; postsCarouselCount?: number; activeAds?: number; activeAds30d?: number; adsVideoCount?: number; adsImageCount?: number; adsCarouselCount?: number; adsDcoCount?: number; adsCtaWebsite?: number; adsCtaDirectMessage?: number; adsCtaInstagramPage?: number; adsCtaProduct?: number; adsCtaMetaPage?: number; topPosts?: any; topPostTexts?: any; topAds?: any; topAdTexts?: any },
+    data: {
+      followers: number;
+      posts: number;
+      likes?: number;
+      postsImageCount?: number;
+      postsVideoCount?: number;
+      postsCarouselCount?: number;
+      activeAds?: number;
+      activeAds30d?: number;
+      adsVideoCount?: number;
+      adsImageCount?: number;
+      adsCarouselCount?: number;
+      adsDcoCount?: number;
+      adsCtaWebsite?: number;
+      adsCtaDirectMessage?: number;
+      adsCtaInstagramPage?: number;
+      adsCtaProduct?: number;
+      adsCtaMetaPage?: number;
+      topPosts?: any;
+      topPostTexts?: any;
+      topAds?: any;
+      topAdTexts?: any;
+    },
   ): Promise<TFacebookReport> {
     return await this.prisma.facebookReport.upsert({
       where: { businessId },
@@ -164,40 +201,45 @@ export class BusinessService {
     }
 
     const [details, postsData, adsData] = await Promise.all([
-      this.facebookService.fetchDetails(business.facebookLink)
+      this.facebookService
+        .fetchDetails(business.facebookLink)
         .catch(() => ({ followers: 0, likes: 0, pageAdLibraryId: null })),
-      this.facebookService.fetchPostsData(business.facebookLink)
-        .catch(() => ({
-          posts: 0,
-          postsImageCount: 0,
-          postsVideoCount: 0,
-          postsCarouselCount: 0,
-          topPosts: [],
-          topPostTexts: [],
-        })),
-      this.facebookService.fetchAdsData(business.facebookLink)
-        .catch(() => ({
-          activeAds: 0,
-          activeAds30d: 0,
-          adsVideoCount: 0,
-          adsImageCount: 0,
-          adsCarouselCount: 0,
-          adsDcoCount: 0,
-          adsCtaWebsite: 0,
-          adsCtaDirectMessage: 0,
-          adsCtaInstagramPage: 0,
-          adsCtaProduct: 0,
-          adsCtaMetaPage: 0,
-          topAdTexts: [],
-          topAds: [],
-        })),
+      this.facebookService.fetchPostsData(business.facebookLink).catch(() => ({
+        posts: 0,
+        postsImageCount: 0,
+        postsVideoCount: 0,
+        postsCarouselCount: 0,
+        topPosts: [],
+        topPostTexts: [],
+      })),
+      this.facebookService.fetchAdsData(business.facebookLink).catch(() => ({
+        activeAds: 0,
+        activeAds30d: 0,
+        adsVideoCount: 0,
+        adsImageCount: 0,
+        adsCarouselCount: 0,
+        adsDcoCount: 0,
+        adsCtaWebsite: 0,
+        adsCtaDirectMessage: 0,
+        adsCtaInstagramPage: 0,
+        adsCtaProduct: 0,
+        adsCtaMetaPage: 0,
+        topAdTexts: [],
+        topAds: [],
+      })),
     ]);
 
     const { pageAdLibraryId: _pageAdLibraryId, ...detailsData } = details;
-    return this.upsertFacebookReport(businessId, { ...detailsData, ...postsData, ...adsData });
+    return this.upsertFacebookReport(businessId, {
+      ...detailsData,
+      ...postsData,
+      ...adsData,
+    });
   }
 
-  async getInstagramReport(businessId: string): Promise<TInstagramReport | null> {
+  async getInstagramReport(
+    businessId: string,
+  ): Promise<TInstagramReport | null> {
     return await this.prisma.instagramReport.findUnique({
       where: { businessId },
     });
@@ -210,22 +252,40 @@ export class BusinessService {
     });
 
     if (!business?.instagramLink) {
-      throw new BadRequestException('Business has no Instagram link configured');
+      throw new BadRequestException(
+        'Business has no Instagram link configured',
+      );
     }
 
-    const [details, contentCounts, reelsCount, storiesCounts] = await Promise.all([
-      this.instagramService.fetchDetails(business.instagramLink),
-      this.instagramService.fetchContentTypeCounts(business.instagramLink),
-      this.instagramService.fetchReelsCount(business.instagramLink),
-      this.instagramService.fetchStoriesTypeCounts(business.instagramLink),
-    ]);
+    const [details, contentCounts, reelsCount, storiesCounts] =
+      await Promise.all([
+        this.instagramService.fetchDetails(business.instagramLink),
+        this.instagramService.fetchContentTypeCounts(business.instagramLink),
+        this.instagramService.fetchReelsCount(business.instagramLink),
+        this.instagramService.fetchStoriesTypeCounts(business.instagramLink),
+      ]);
 
-    return this.upsertInstagramReport(businessId, { ...details, ...contentCounts, reels: reelsCount, ...storiesCounts });
+    return this.upsertInstagramReport(businessId, {
+      ...details,
+      ...contentCounts,
+      reels: reelsCount,
+      ...storiesCounts,
+    });
   }
 
   async upsertInstagramReport(
     businessId: string,
-    data: { followers: number; posts: number; postsImageCount?: number; postsVideoCount?: number; postsCarouselCount?: number; reels?: number; stories?: number; storiesImageCount?: number; storiesVideoCount?: number },
+    data: {
+      followers: number;
+      posts: number;
+      postsImageCount?: number;
+      postsVideoCount?: number;
+      postsCarouselCount?: number;
+      reels?: number;
+      stories?: number;
+      storiesImageCount?: number;
+      storiesVideoCount?: number;
+    },
   ): Promise<TInstagramReport> {
     return await this.prisma.instagramReport.upsert({
       where: { businessId },
@@ -243,5 +303,40 @@ export class BusinessService {
       }
       throw err;
     }
+  }
+
+  async generateFacebookInsights(
+    businessId: string,
+    agencyId: string,
+  ): Promise<TStrategicInsight[]> {
+    const business = await this.prisma.business.findUnique({
+      where: { id: businessId, agencyId },
+      select: {
+        name: true,
+        industry: true,
+        goals: true,
+        advantages: true,
+        language: true,
+      },
+    });
+
+    if (!business) {
+      throw new NotFoundException(`Business with ID ${businessId} not found`);
+    }
+
+    const fbReport = await this.prisma.facebookReport.findUnique({
+      where: { businessId },
+    });
+
+    if (!fbReport) {
+      throw new BadRequestException(
+        'No Facebook report found. Fetch Facebook data first.',
+      );
+    }
+
+    return this.aiService.generateStrategicInsights(
+      business,
+      fbReport as TFacebookReport,
+    );
   }
 }

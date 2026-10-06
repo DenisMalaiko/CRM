@@ -1,11 +1,17 @@
 import { api } from "../api/api";
 import { ApiResponse } from "../../models/ApiResponse";
-import { TBusiness, TBusinessCreate, TFacebookReport, TInstagramReport } from "../../models/Business";
+import {
+  TBusiness,
+  TBusinessCreate,
+  TFacebookReport,
+  TInstagramReport,
+  TStrategicInsight,
+} from "../../models/Business";
 import { RootState } from "../index";
 import { TUser } from "../../models/User";
 
 export const businessesApi = api.injectEndpoints({
-  endpoints: builder => ({
+  endpoints: (builder) => ({
     getBusinesses: builder.mutation<ApiResponse<TBusiness[]>, string | void>({
       queryFn: async (agencyId, api, _extraOptions, baseQuery) => {
         const state = api.getState() as RootState;
@@ -13,12 +19,12 @@ export const businessesApi = api.injectEndpoints({
         const id = user?.agencyId ?? agencyId;
 
         if (!id) {
-          return { error: { status: 400, data: 'Missing businessId' } as any };
+          return { error: { status: 400, data: "Missing businessId" } as any };
         }
 
         const result = await baseQuery({
           url: `/business/list/${id}`,
-          method: 'GET',
+          method: "GET",
         });
 
         if (result.error) {
@@ -26,16 +32,16 @@ export const businessesApi = api.injectEndpoints({
         }
 
         return {
-          data: result.data as ApiResponse<TBusiness[]>
+          data: result.data as ApiResponse<TBusiness[]>,
         };
-      }
+      },
     }),
 
     getBusiness: builder.mutation<ApiResponse<TBusiness>, string>({
       query: (id: string) => ({
         url: `/business/${id}`,
         method: "GET",
-      })
+      }),
     }),
 
     createBusiness: builder.mutation<ApiResponse<TBusiness>, TBusinessCreate>({
@@ -43,50 +49,70 @@ export const businessesApi = api.injectEndpoints({
         url: `/business`,
         method: "POST",
         body: form,
-      })
+      }),
     }),
 
-    updateBusiness: builder.mutation<ApiResponse<TBusiness>, { id: string, form: TBusinessCreate, }>({
+    updateBusiness: builder.mutation<
+      ApiResponse<TBusiness>,
+      { id: string; form: TBusinessCreate }
+    >({
       query: ({ id, form }) => ({
         url: `/business/${id}`,
         method: "PATCH",
         body: form,
-      })
+      }),
     }),
 
     deleteBusiness: builder.mutation<ApiResponse<TBusiness>, string>({
       query: (id: string) => ({
         url: `/business/${id}`,
         method: "DELETE",
-      })
+      }),
     }),
 
     getFacebookReport: builder.mutation<ApiResponse<TFacebookReport>, string>({
       query: (businessId: string) => ({
         url: `/business/${businessId}/facebook-report`,
         method: "GET",
-      })
+      }),
     }),
 
-    getInstagramReport: builder.mutation<ApiResponse<TInstagramReport>, string>({
-      query: (businessId: string) => ({
-        url: `/business/${businessId}/instagram-report`,
-        method: "GET",
-      })
-    }),
+    getInstagramReport: builder.mutation<ApiResponse<TInstagramReport>, string>(
+      {
+        query: (businessId: string) => ({
+          url: `/business/${businessId}/instagram-report`,
+          method: "GET",
+        }),
+      },
+    ),
 
-    fetchInstagramReport: builder.mutation<ApiResponse<TInstagramReport>, string>({
+    fetchInstagramReport: builder.mutation<
+      ApiResponse<TInstagramReport>,
+      string
+    >({
       query: (businessId: string) => ({
         url: `/business/${businessId}/instagram-report/fetch`,
         method: "POST",
-      })
+      }),
     }),
 
-    fetchFacebookReport: builder.mutation<ApiResponse<TFacebookReport>, string>({
+    fetchFacebookReport: builder.mutation<ApiResponse<TFacebookReport>, string>(
+      {
+        query: (businessId: string) => ({
+          url: `/business/${businessId}/facebook-report/fetch`,
+          method: "POST",
+        }),
+      },
+    ),
+
+    generateFacebookInsights: builder.mutation<
+      ApiResponse<TStrategicInsight[]>,
+      string
+    >({
       query: (businessId: string) => ({
-        url: `/business/${businessId}/facebook-report/fetch`,
+        url: `/business/${businessId}/facebook-insights/generate`,
         method: "POST",
-      })
+      }),
     }),
   }),
   overrideExisting: false,
@@ -102,4 +128,5 @@ export const {
   useGetInstagramReportMutation,
   useFetchInstagramReportMutation,
   useFetchFacebookReportMutation,
+  useGenerateFacebookInsightsMutation,
 } = businessesApi;
