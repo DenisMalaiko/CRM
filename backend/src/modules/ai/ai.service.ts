@@ -1,4 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { ChatOpenAI } from '@langchain/openai';
 import { TProfile } from '../profiles/entities/profile.entity';
 import { AiPost } from './entities/aiPost.entity';
@@ -25,6 +29,12 @@ import {
   ContentPlanResponseSchema,
   ContentPlanPostSchema,
 } from './schema/ai-content-plan.schema';
+import {
+  StrategicInsightsResponseSchema,
+  TStrategicInsight,
+} from './schema/strategic-insights.schema';
+import { strategicInsightsPrompt } from './prompts/strategicInsights/strategicInsights';
+import { TFacebookReport } from '../business/entities/business.entity';
 import { z } from 'zod';
 
 import {
@@ -228,6 +238,31 @@ export class AiService {
     const result = await structuredModel.invoke(prompt);
 
     return result.ideas;
+  }
+
+  async generateStrategicInsights(
+    business: {
+      name: string;
+      industry?: string | null;
+      goals: string[];
+      advantages: string[];
+      language: string;
+    },
+    fbReport: TFacebookReport,
+  ): Promise<TStrategicInsight[]> {
+    try {
+      const structuredModel = this.model.withStructuredOutput(
+        StrategicInsightsResponseSchema,
+      );
+      const prompt = strategicInsightsPrompt(business, fbReport);
+      const result = await structuredModel.invoke(prompt);
+      return result.insights;
+    } catch (e) {
+      this.logger.error('generateStrategicInsights failed', e);
+      throw new InternalServerErrorException(
+        'Failed to generate strategic insights',
+      );
+    }
   }
 
   async generateIdeas(

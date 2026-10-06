@@ -1,20 +1,35 @@
-import {Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
-import { CreateBusinessDto, UpdateBusinessDto, BusinessIdParamDto, ReportDto } from "./dto/business.dto";
-import { JwtAuthGuard } from "../../core/guards/jwt-auth.guard";
-import { BusinessService } from "./business.service";
-import { ResponseMessage } from "../../core/decorators/response-message.decorator";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
+import {
+  CreateBusinessDto,
+  UpdateBusinessDto,
+  BusinessIdParamDto,
+  ReportDto,
+} from './dto/business.dto';
+import { JwtAuthGuard } from '../../core/guards/jwt-auth.guard';
+import { BusinessService } from './business.service';
+import { ResponseMessage } from '../../core/decorators/response-message.decorator';
 
 @UseGuards(JwtAuthGuard)
 @Controller('business')
 export class BusinessController {
   constructor(private readonly businessService: BusinessService) {}
 
-  @Get("/list/:id")
+  @Get('/list/:id')
   async getBusinesses(@Param() { id }: BusinessIdParamDto) {
     return await this.businessService.getBusinesses(id);
   }
 
-  @Get("/:id")
+  @Get('/:id')
   getBusinessById(@Param() { id }: BusinessIdParamDto) {
     return this.businessService.getBusiness(id);
   }
@@ -25,47 +40,65 @@ export class BusinessController {
     return this.businessService.createBusiness(body);
   }
 
-  @Patch("/:id")
+  @Patch('/:id')
   @ResponseMessage('Business has been updated!')
-  updateBusiness(@Param() { id }: BusinessIdParamDto, @Body() body: UpdateBusinessDto) {
+  updateBusiness(
+    @Param() { id }: BusinessIdParamDto,
+    @Body() body: UpdateBusinessDto,
+  ) {
     return this.businessService.updateBusiness(id, body);
   }
 
-  @Get("/:id/facebook-report")
+  @Get('/:id/facebook-report')
   getFacebookReport(@Param() { id }: BusinessIdParamDto) {
     return this.businessService.getFacebookReport(id);
   }
 
-  @Post("/:id/facebook-report")
+  @Post('/:id/facebook-report')
   @ResponseMessage('Facebook report updated!')
-  upsertFacebookReport(@Param() { id }: BusinessIdParamDto, @Body() body: ReportDto) {
+  upsertFacebookReport(
+    @Param() { id }: BusinessIdParamDto,
+    @Body() body: ReportDto,
+  ) {
     return this.businessService.upsertFacebookReport(id, body);
   }
 
-  @Post("/:id/facebook-report/fetch")
+  @Post('/:id/facebook-report/fetch')
   @ResponseMessage('Facebook report fetched!')
   fetchFacebookReport(@Param() { id }: BusinessIdParamDto) {
     return this.businessService.fetchFacebookReport(id);
   }
 
-  @Get("/:id/instagram-report")
+  @Get('/:id/instagram-report')
   getInstagramReport(@Param() { id }: BusinessIdParamDto) {
     return this.businessService.getInstagramReport(id);
   }
 
-  @Post("/:id/instagram-report")
+  @Post('/:id/instagram-report')
   @ResponseMessage('Instagram report updated!')
-  upsertInstagramReport(@Param() { id }: BusinessIdParamDto, @Body() body: ReportDto) {
+  upsertInstagramReport(
+    @Param() { id }: BusinessIdParamDto,
+    @Body() body: ReportDto,
+  ) {
     return this.businessService.upsertInstagramReport(id, body);
   }
 
-  @Post("/:id/instagram-report/fetch")
+  @Post('/:id/instagram-report/fetch')
   @ResponseMessage('Instagram report fetched!')
   fetchInstagramReport(@Param() { id }: BusinessIdParamDto) {
     return this.businessService.fetchInstagramReport(id);
   }
 
-  @Delete("/:id")
+  @Post('/:id/facebook-insights/generate')
+  @ResponseMessage('Facebook insights generated!')
+  generateFacebookInsights(
+    @Param() { id }: BusinessIdParamDto,
+    @Request() req,
+  ) {
+    return this.businessService.generateFacebookInsights(id, req.user.agencyId);
+  }
+
+  @Delete('/:id')
   @ResponseMessage('Business has been deleted!')
   deleteBusiness(@Param() { id }: BusinessIdParamDto) {
     return this.businessService.deleteBusiness(id);

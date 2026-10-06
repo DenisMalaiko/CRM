@@ -1,6 +1,6 @@
-import { TBaseModel } from "../../../shared/entities/BaseEntity";
-import { TAgency } from "../../agency/entities/agency.entity";
-import { BusinessStatus } from "@prisma/client";
+import { TBaseModel } from '../../../shared/entities/BaseEntity';
+import { TAgency } from '../../agency/entities/agency.entity';
+import { BusinessStatus } from '@prisma/client';
 
 export type TBusinessBase = {
   name: string;
@@ -14,20 +14,21 @@ export type TBusinessBase = {
   brand: string;
   advantages: string[];
   goals: string[];
-}
-
-export type TBusiness = TBaseModel & TBusinessBase & {
-  createdAt: Date;
-  agency?: TAgency;
 };
+
+export type TBusiness = TBaseModel &
+  TBusinessBase & {
+    createdAt: Date;
+    agency?: TAgency;
+  };
 
 export type TBusinessCreate = TBusinessBase & {
   agencyId: string;
-}
+};
 
 export type TBusinessUpdate = TBusinessBase & {
   agencyId: string;
-}
+};
 
 export type TFacebookReport = {
   id: string;
@@ -39,6 +40,7 @@ export type TFacebookReport = {
   postsCarouselCount: number;
   likes: number;
   activeAds: number;
+  activeAds30d: number;
   adsVideoCount: number;
   adsImageCount: number;
   adsCarouselCount: number;
@@ -53,7 +55,7 @@ export type TFacebookReport = {
   topAds: any;
   topAdTexts: any;
   fetchedAt: Date;
-}
+};
 
 export type TInstagramReport = {
   id: string;
@@ -68,4 +70,4 @@ export type TInstagramReport = {
   storiesImageCount: number;
   storiesVideoCount: number;
   fetchedAt: Date;
-}
+};
