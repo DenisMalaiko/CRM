@@ -101,3 +101,27 @@
 - [x] Migration applied
 - [x] No regressions found
 - Summary: Moved NicheNews from agency-scoped to business-scoped, added AI-powered marketing idea generation (IdeaAI records linked via nicheNewsId), tenant ownership verification on both endpoints
+
+## Збереження стратегічних інсайтів — 2026-10-07
+
+### Plan
+- [x] Прочитати affected files (schema.prisma, business.service.ts, business.controller.ts)
+- [x] Додати `strategicInsights Json @default("[]")` до 4 моделей у schema.prisma
+- [x] Створити міграцію: `20261007000000_add_strategic_insights_to_reports`
+- [x] Застосувати міграцію через `prisma migrate resolve --applied` + `prisma db execute`
+- [x] Оновити `generateFacebookInsights` — зберігати інсайти після генерації
+- [x] Додати `getFacebookInsights` у сервіс
+- [x] Додати GET `/:id/facebook-insights` у контролер
+
+### Notes
+- Migration needed: yes — застосовано вручну (root-owned .prisma client)
+- Affected models: FacebookReport, InstagramReport, CompetitorFacebookReport, CompetitorInstagramReport
+- Affected modules: business
+- Pending: потрібно запустити `sudo npx prisma generate` для оновлення Prisma client
+
+### Review
+- [x] backend-reviewer → PASS (retry 1: виправлено TFacebookReport entity + прибрано `as any`)
+- [x] backend-tester → 20/20 tests pass
+- [x] Migration applied
+- [x] No regressions found (12 pre-existing failures в aiArtifact — не пов'язані з цією задачею)
+- Summary: Додано JSON-поле `strategicInsights` до 4 Report-моделей, інсайти зберігаються після генерації, новий GET ендпоінт для отримання збережених інсайтів

@@ -84,14 +84,14 @@ describe('BusinessService — generateFacebookInsights', () => {
   let service: BusinessService;
   let prisma: {
     business: { findUnique: jest.Mock };
-    facebookReport: { findUnique: jest.Mock };
+    facebookReport: { findUnique: jest.Mock; update: jest.Mock };
   };
   let aiService: { generateStrategicInsights: jest.Mock };
 
   beforeEach(async () => {
     prisma = {
       business: { findUnique: jest.fn() },
-      facebookReport: { findUnique: jest.fn() },
+      facebookReport: { findUnique: jest.fn(), update: jest.fn() },
     };
 
     aiService = {
@@ -193,6 +193,42 @@ describe('BusinessService — generateFacebookInsights', () => {
       expect(types).toContain('improvement');
       expect(types).toContain('opportunity');
     });
+
+    it('persists insights to facebookReport after generation', async () => {
+      const insights = makeInsights();
+      prisma.business.findUnique.mockResolvedValue(makeBusiness());
+      prisma.facebookReport.findUnique.mockResolvedValue(makeFbReport());
+      aiService.generateStrategicInsights.mockResolvedValue(insights);
+      prisma.facebookReport.update.mockResolvedValue(
+        makeFbReport({ strategicInsights: insights }),
+      );
+
+      await service.generateFacebookInsights('biz-uuid-1', 'agency-uuid-1');
+
+      expect(prisma.facebookReport.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { businessId: 'biz-uuid-1' },
+          data: expect.objectContaining({ strategicInsights: insights }),
+        }),
+      );
+    });
+
+    it('returns insights from AI even after persisting them', async () => {
+      const insights = makeInsights();
+      prisma.business.findUnique.mockResolvedValue(makeBusiness());
+      prisma.facebookReport.findUnique.mockResolvedValue(makeFbReport());
+      aiService.generateStrategicInsights.mockResolvedValue(insights);
+      prisma.facebookReport.update.mockResolvedValue(
+        makeFbReport({ strategicInsights: insights }),
+      );
+
+      const result = await service.generateFacebookInsights(
+        'biz-uuid-1',
+        'agency-uuid-1',
+      );
+
+      expect(result).toEqual(insights);
+    });
   });
 
   describe('business not found', () => {
@@ -253,6 +289,125 @@ describe('BusinessService — generateFacebookInsights', () => {
       ).rejects.toThrow(BadRequestException);
 
       expect(aiService.generateStrategicInsights).not.toHaveBeenCalled();
+    });
+  });
+});
+
+describe('BusinessService — getFacebookInsights', () => {
+  let service: BusinessService;
+  let prisma: {
+    business: { findUnique: jest.Mock };
+    facebookReport: { findUnique: jest.Mock };
+  };
+
+  beforeEach(async () => {
+    prisma = {
+      business: { findUnique: jest.fn() },
+      facebookReport: { findUnique: jest.fn() },
+    };
+
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        BusinessService,
+        { provide: PrismaService, useValue: prisma },
+        { provide: AiService, useValue: {} },
+        { provide: InstagramService, useValue: {} },
+        { provide: FacebookService, useValue: {} },
+        { provide: AiReplicateService, useValue: {} },
+      ],
+    }).compile();
+
+    service = module.get<BusinessService>(BusinessService);
+  });
+
+  afterEach(() => {
+    jest.resetAllMocks();
+  });
+
+  describe('happy path', () => {
+    it('returns saved insights from the facebook report', async () => {
+      const insights = makeInsights();
+      prisma.business.findUnique.mockResolvedValue({ id: 'biz-uuid-1' });
+      prisma.facebookReport.findUnique.mockResolvedValue({
+        strategicInsights: insights,
+      });
+
+      const result = await service.getFacebookInsights(
+        'biz-uuid-1',
+        'agency-uuid-1',
+      );
+
+      expect(result).toEqual(insights);
+    });
+
+    it('returns empty array when no insights have been generated yet', async () => {
+      prisma.business.findUnique.mockResolvedValue({ id: 'biz-uuid-1' });
+      prisma.facebookReport.findUnique.mockResolvedValue({
+        strategicInsights: [],
+      });
+
+      const result = await service.getFacebookInsights(
+        'biz-uuid-1',
+        'agency-uuid-1',
+      );
+
+      expect(result).toEqual([]);
+    });
+
+    it('queries facebookReport by businessId selecting only strategicInsights', async () => {
+      prisma.business.findUnique.mockResolvedValue({ id: 'biz-uuid-1' });
+      prisma.facebookReport.findUnique.mockResolvedValue({
+        strategicInsights: [],
+      });
+
+      await service.getFacebookInsights('biz-uuid-1', 'agency-uuid-1');
+
+      expect(prisma.facebookReport.findUnique).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { businessId: 'biz-uuid-1' },
+          select: { strategicInsights: true },
+        }),
+      );
+    });
+  });
+
+  describe('business not found', () => {
+    it('throws NotFoundException when business does not belong to the agency', async () => {
+      prisma.business.findUnique.mockResolvedValue(null);
+
+      await expect(
+        service.getFacebookInsights('biz-uuid-1', 'other-agency-uuid'),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('does not query facebookReport when business is not found', async () => {
+      prisma.business.findUnique.mockResolvedValue(null);
+
+      await expect(
+        service.getFacebookInsights('biz-uuid-1', 'other-agency-uuid'),
+      ).rejects.toThrow(NotFoundException);
+
+      expect(prisma.facebookReport.findUnique).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('no facebook report', () => {
+    it('throws BadRequestException when no facebook report exists for the business', async () => {
+      prisma.business.findUnique.mockResolvedValue({ id: 'biz-uuid-1' });
+      prisma.facebookReport.findUnique.mockResolvedValue(null);
+
+      await expect(
+        service.getFacebookInsights('biz-uuid-1', 'agency-uuid-1'),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('throws BadRequestException with the expected message', async () => {
+      prisma.business.findUnique.mockResolvedValue({ id: 'biz-uuid-1' });
+      prisma.facebookReport.findUnique.mockResolvedValue(null);
+
+      await expect(
+        service.getFacebookInsights('biz-uuid-1', 'agency-uuid-1'),
+      ).rejects.toThrow('No Facebook report found. Fetch Facebook data first.');
     });
   });
 });
