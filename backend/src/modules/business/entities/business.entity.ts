@@ -1,6 +1,6 @@
 import { TBaseModel } from '../../../shared/entities/BaseEntity';
 import { TAgency } from '../../agency/entities/agency.entity';
-import { BusinessStatus } from '@prisma/client';
+import { BusinessStatus, Prisma } from '@prisma/client';
 
 export type TBusinessBase = {
   name: string;
@@ -54,6 +54,7 @@ export type TFacebookReport = {
   topPostTexts: any;
   topAds: any;
   topAdTexts: any;
+  strategicInsights: Prisma.JsonValue;
   fetchedAt: Date;
 };
 

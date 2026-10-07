@@ -41,7 +41,7 @@ import { CompetitorInstagramTable } from "../../../../../components/analytics/Co
 import { useGetNicheNewsByBusinessIdMutation, useFetchNicheNewsMutation } from "../../../../../store/nicheNews/nicheNewsApi"
 import { TNicheNews } from "../../../../../models/NicheNews"
 import { useTranslation } from 'react-i18next'
-import { useGenerateFacebookInsightsMutation } from "../../../../../store/businesses/businessesApi"
+import { useGetFacebookInsightsMutation, useGenerateFacebookInsightsMutation } from "../../../../../store/businesses/businessesApi"
 import { TStrategicInsight } from "../../../../../models/Business"
 import { StrategicInsights } from "../../../../../components/analytics/StrategicInsights/StrategicInsights"
 
@@ -92,6 +92,7 @@ export function BusinessDashboard() {
   const [fetchFacebookReport] = useFetchFacebookReportMutation()
   const [getNicheNews] = useGetNicheNewsByBusinessIdMutation()
   const [fetchNicheNews] = useFetchNicheNewsMutation()
+  const [getFacebookInsights] = useGetFacebookInsightsMutation()
   const [generateFacebookInsights] = useGenerateFacebookInsightsMutation()
 
   const [isFetchingIg, setIsFetchingIg] = useState(false)
@@ -133,16 +134,18 @@ export function BusinessDashboard() {
         const ideasRes = await getIdeasAI(businessId!).unwrap()
         if (ideasRes?.data) dispatch(setIdeasAi(ideasRes.data as TIdeaAI[]))
 
-        const [fbRes, igRes, competitorsRes, nicheNewsRes] = await Promise.all([
+        const [fbRes, igRes, competitorsRes, nicheNewsRes, fbInsightsRes] = await Promise.all([
           getFacebookReport(businessId!).unwrap().catch(() => null),
           getInstagramReport(businessId!).unwrap().catch(() => null),
           getCompetitors(businessId!).unwrap().catch(() => null),
           getNicheNews(businessId!).unwrap().catch(() => null),
+          getFacebookInsights(businessId!).unwrap().catch(() => null),
         ])
         if (fbRes?.data) setFbReport(fbRes.data)
         if (igRes?.data) setIgReport(igRes.data)
         if (competitorsRes?.data) setCompetitors(competitorsRes.data as TCompetitorWithReport[])
         if (nicheNewsRes?.data) setNicheNewsData(nicheNewsRes.data as TNicheNews[])
+        if (fbInsightsRes?.data) setFbInsights(fbInsightsRes.data as TStrategicInsight[])
       } catch (error) {
         showError(error)
       }

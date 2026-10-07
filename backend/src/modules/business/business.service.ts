@@ -334,9 +334,43 @@ export class BusinessService {
       );
     }
 
-    return this.aiService.generateStrategicInsights(
+    const insights = await this.aiService.generateStrategicInsights(
       business,
       fbReport as TFacebookReport,
     );
+
+    await this.prisma.facebookReport.update({
+      where: { businessId },
+      data: { strategicInsights: insights },
+    });
+
+    return insights;
+  }
+
+  async getFacebookInsights(
+    businessId: string,
+    agencyId: string,
+  ): Promise<TStrategicInsight[]> {
+    const business = await this.prisma.business.findUnique({
+      where: { id: businessId, agencyId },
+      select: { id: true },
+    });
+
+    if (!business) {
+      throw new NotFoundException(`Business with ID ${businessId} not found`);
+    }
+
+    const fbReport = await this.prisma.facebookReport.findUnique({
+      where: { businessId },
+      select: { strategicInsights: true },
+    });
+
+    if (!fbReport) {
+      throw new BadRequestException(
+        'No Facebook report found. Fetch Facebook data first.',
+      );
+    }
+
+    return fbReport.strategicInsights as TStrategicInsight[];
   }
 }

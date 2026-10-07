@@ -89,6 +89,7 @@ model FacebookReport {
   topPostTexts    Json     @default("[]")
   topAds          Json     @default("[]")
   topAdTexts      Json     @default("[]")
+  strategicInsights Json   @default("[]")
   fetchedAt       DateTime @default(now())
   business        Business @relation(fields: [businessId], references: [id])
 }
@@ -105,6 +106,7 @@ model InstagramReport {
   stories            Int      @default(0)
   storiesImageCount  Int      @default(0)
   storiesVideoCount  Int      @default(0)
+  strategicInsights Json     @default("[]")
   fetchedAt     DateTime @default(now())
   business      Business @relation(fields: [businessId], references: [id])
 }
@@ -312,6 +314,7 @@ model CompetitorInstagramReport {
   posts         Int        @default(0)
   reels         Int        @default(0)
   stories       Int        @default(0)
+  strategicInsights Json   @default("[]")
   fetchedAt     DateTime   @default(now())
   competitor    Competitor @relation(fields: [competitorId], references: [id], onDelete: Cascade)
 }
@@ -339,6 +342,7 @@ model CompetitorFacebookReport {
   topAds        Json       @default("[]")
   topPostTexts  Json       @default("[]")
   topPosts      Json       @default("[]")
+  strategicInsights Json   @default("[]")
   fetchedAt     DateTime   @default(now())
   competitor    Competitor @relation(fields: [competitorId], references: [id], onDelete: Cascade)
 }

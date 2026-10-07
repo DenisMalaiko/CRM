@@ -89,6 +89,12 @@ export class BusinessController {
     return this.businessService.fetchInstagramReport(id);
   }
 
+  @Get('/:id/facebook-insights')
+  @ResponseMessage('Facebook insights retrieved!')
+  getFacebookInsights(@Param() { id }: BusinessIdParamDto, @Request() req) {
+    return this.businessService.getFacebookInsights(id, req.user.agencyId);
+  }
+
   @Post('/:id/facebook-insights/generate')
   @ResponseMessage('Facebook insights generated!')
   generateFacebookInsights(

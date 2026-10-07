@@ -105,6 +105,16 @@ export const businessesApi = api.injectEndpoints({
       },
     ),
 
+    getFacebookInsights: builder.mutation<
+      ApiResponse<TStrategicInsight[]>,
+      string
+    >({
+      query: (businessId: string) => ({
+        url: `/business/${businessId}/facebook-insights`,
+        method: "GET",
+      }),
+    }),
+
     generateFacebookInsights: builder.mutation<
       ApiResponse<TStrategicInsight[]>,
       string
@@ -128,5 +138,6 @@ export const {
   useGetInstagramReportMutation,
   useFetchInstagramReportMutation,
   useFetchFacebookReportMutation,
+  useGetFacebookInsightsMutation,
   useGenerateFacebookInsightsMutation,
 } = businessesApi;
