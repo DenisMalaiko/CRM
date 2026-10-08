@@ -34,7 +34,11 @@ import {
   TStrategicInsight,
 } from './schema/strategic-insights.schema';
 import { strategicInsightsPrompt } from './prompts/strategicInsights/strategicInsights';
-import { TFacebookReport } from '../business/entities/business.entity';
+import { instagramStrategicInsightsPrompt } from './prompts/strategicInsights/instagramStrategicInsights';
+import {
+  TFacebookReport,
+  TInstagramReport,
+} from '../business/entities/business.entity';
 import { z } from 'zod';
 
 import {
@@ -261,6 +265,31 @@ export class AiService {
       this.logger.error('generateStrategicInsights failed', e);
       throw new InternalServerErrorException(
         'Failed to generate strategic insights',
+      );
+    }
+  }
+
+  async generateInstagramInsights(
+    business: {
+      name: string;
+      industry?: string | null;
+      goals: string[];
+      advantages: string[];
+      language: string;
+    },
+    igReport: TInstagramReport,
+  ): Promise<TStrategicInsight[]> {
+    try {
+      const structuredModel = this.model.withStructuredOutput(
+        StrategicInsightsResponseSchema,
+      );
+      const prompt = instagramStrategicInsightsPrompt(business, igReport);
+      const result = await structuredModel.invoke(prompt);
+      return result.insights;
+    } catch (e) {
+      this.logger.error('generateInstagramInsights failed', e);
+      throw new InternalServerErrorException(
+        'Failed to generate Instagram strategic insights',
       );
     }
   }

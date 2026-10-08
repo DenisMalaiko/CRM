@@ -41,7 +41,7 @@ import { CompetitorInstagramTable } from "../../../../../components/analytics/Co
 import { useGetNicheNewsByBusinessIdMutation, useFetchNicheNewsMutation } from "../../../../../store/nicheNews/nicheNewsApi"
 import { TNicheNews } from "../../../../../models/NicheNews"
 import { useTranslation } from 'react-i18next'
-import { useGetFacebookInsightsMutation, useGenerateFacebookInsightsMutation } from "../../../../../store/businesses/businessesApi"
+import { useGetFacebookInsightsMutation, useGenerateFacebookInsightsMutation, useGetInstagramInsightsMutation, useGenerateInstagramInsightsMutation } from "../../../../../store/businesses/businessesApi"
 import { TStrategicInsight } from "../../../../../models/Business"
 import { StrategicInsights } from "../../../../../components/analytics/StrategicInsights/StrategicInsights"
 
@@ -94,6 +94,8 @@ export function BusinessDashboard() {
   const [fetchNicheNews] = useFetchNicheNewsMutation()
   const [getFacebookInsights] = useGetFacebookInsightsMutation()
   const [generateFacebookInsights] = useGenerateFacebookInsightsMutation()
+  const [getInstagramInsights] = useGetInstagramInsightsMutation()
+  const [generateInstagramInsights] = useGenerateInstagramInsightsMutation()
 
   const [isFetchingIg, setIsFetchingIg] = useState(false)
   const [isFetchingFb, setIsFetchingFb] = useState(false)
@@ -102,7 +104,9 @@ export function BusinessDashboard() {
   const [competitors, setCompetitors] = useState<TCompetitorWithReport[]>([])
   const [nicheNews, setNicheNewsData] = useState<TNicheNews[]>([])
   const [fbInsights, setFbInsights] = useState<TStrategicInsight[]>([])
+  const [igInsights, setIgInsights] = useState<TStrategicInsight[]>([])
   const [isGeneratingInsights, setIsGeneratingInsights] = useState(false)
+  const [isGeneratingIgInsights, setIsGeneratingIgInsights] = useState(false)
   const [isFetchingNews, setIsFetchingNews] = useState(false)
 
   const products = useAppSelector((state) => state.productsModule.products)
@@ -134,18 +138,20 @@ export function BusinessDashboard() {
         const ideasRes = await getIdeasAI(businessId!).unwrap()
         if (ideasRes?.data) dispatch(setIdeasAi(ideasRes.data as TIdeaAI[]))
 
-        const [fbRes, igRes, competitorsRes, nicheNewsRes, fbInsightsRes] = await Promise.all([
+        const [fbRes, igRes, competitorsRes, nicheNewsRes, fbInsightsRes, igInsightsRes] = await Promise.all([
           getFacebookReport(businessId!).unwrap().catch(() => null),
           getInstagramReport(businessId!).unwrap().catch(() => null),
           getCompetitors(businessId!).unwrap().catch(() => null),
           getNicheNews(businessId!).unwrap().catch(() => null),
           getFacebookInsights(businessId!).unwrap().catch(() => null),
+          getInstagramInsights(businessId!).unwrap().catch(() => null),
         ])
         if (fbRes?.data) setFbReport(fbRes.data)
         if (igRes?.data) setIgReport(igRes.data)
         if (competitorsRes?.data) setCompetitors(competitorsRes.data as TCompetitorWithReport[])
         if (nicheNewsRes?.data) setNicheNewsData(nicheNewsRes.data as TNicheNews[])
         if (fbInsightsRes?.data) setFbInsights(fbInsightsRes.data as TStrategicInsight[])
+        if (igInsightsRes?.data) setIgInsights(igInsightsRes.data as TStrategicInsight[])
       } catch (error) {
         showError(error)
       }
@@ -229,6 +235,22 @@ export function BusinessDashboard() {
       showError(error)
     } finally {
       setIsGeneratingInsights(false)
+    }
+  }
+
+  const handleGenerateIgInsights = async () => {
+    if (!businessId) return
+    setIsGeneratingIgInsights(true)
+    try {
+      const response = await generateInstagramInsights(businessId).unwrap()
+      if (response?.data) {
+        setIgInsights(response.data as TStrategicInsight[])
+        toast.success(response.message)
+      }
+    } catch (error) {
+      showError(error)
+    } finally {
+      setIsGeneratingIgInsights(false)
     }
   }
 
@@ -406,6 +428,11 @@ export function BusinessDashboard() {
 
           <CompetitorInstagramTable competitors={competitors} />
 
+          <StrategicInsights
+            insights={igInsights}
+            onGenerate={handleGenerateIgInsights}
+            isGenerating={isGeneratingIgInsights}
+          />
         </div>
       )}
     </div>
