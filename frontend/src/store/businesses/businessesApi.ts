@@ -124,6 +124,26 @@ export const businessesApi = api.injectEndpoints({
         method: "POST",
       }),
     }),
+
+    getInstagramInsights: builder.mutation<
+      ApiResponse<TStrategicInsight[]>,
+      string
+    >({
+      query: (businessId: string) => ({
+        url: `/business/${businessId}/instagram-insights`,
+        method: "GET",
+      }),
+    }),
+
+    generateInstagramInsights: builder.mutation<
+      ApiResponse<TStrategicInsight[]>,
+      string
+    >({
+      query: (businessId: string) => ({
+        url: `/business/${businessId}/instagram-insights/generate`,
+        method: "POST",
+      }),
+    }),
   }),
   overrideExisting: false,
 });
@@ -140,4 +160,6 @@ export const {
   useFetchFacebookReportMutation,
   useGetFacebookInsightsMutation,
   useGenerateFacebookInsightsMutation,
+  useGetInstagramInsightsMutation,
+  useGenerateInstagramInsightsMutation,
 } = businessesApi;

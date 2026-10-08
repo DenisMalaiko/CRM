@@ -104,6 +104,24 @@ export class BusinessController {
     return this.businessService.generateFacebookInsights(id, req.user.agencyId);
   }
 
+  @Get('/:id/instagram-insights')
+  @ResponseMessage('Instagram insights retrieved!')
+  getInstagramInsights(@Param() { id }: BusinessIdParamDto, @Request() req) {
+    return this.businessService.getInstagramInsights(id, req.user.agencyId);
+  }
+
+  @Post('/:id/instagram-insights/generate')
+  @ResponseMessage('Instagram insights generated!')
+  generateInstagramInsights(
+    @Param() { id }: BusinessIdParamDto,
+    @Request() req,
+  ) {
+    return this.businessService.generateInstagramInsights(
+      id,
+      req.user.agencyId,
+    );
+  }
+
   @Delete('/:id')
   @ResponseMessage('Business has been deleted!')
   deleteBusiness(@Param() { id }: BusinessIdParamDto) {

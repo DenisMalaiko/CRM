@@ -373,4 +373,73 @@ export class BusinessService {
 
     return fbReport.strategicInsights as TStrategicInsight[];
   }
+
+  async generateInstagramInsights(
+    businessId: string,
+    agencyId: string,
+  ): Promise<TStrategicInsight[]> {
+    const business = await this.prisma.business.findUnique({
+      where: { id: businessId, agencyId },
+      select: {
+        name: true,
+        industry: true,
+        goals: true,
+        advantages: true,
+        language: true,
+      },
+    });
+
+    if (!business) {
+      throw new NotFoundException(`Business with ID ${businessId} not found`);
+    }
+
+    const igReport = await this.prisma.instagramReport.findUnique({
+      where: { businessId },
+    });
+
+    if (!igReport) {
+      throw new BadRequestException(
+        'No Instagram report found. Fetch Instagram data first.',
+      );
+    }
+
+    const insights = await this.aiService.generateInstagramInsights(
+      business,
+      igReport as TInstagramReport,
+    );
+
+    await this.prisma.instagramReport.update({
+      where: { businessId },
+      data: { strategicInsights: insights },
+    });
+
+    return insights;
+  }
+
+  async getInstagramInsights(
+    businessId: string,
+    agencyId: string,
+  ): Promise<TStrategicInsight[]> {
+    const business = await this.prisma.business.findUnique({
+      where: { id: businessId, agencyId },
+      select: { id: true },
+    });
+
+    if (!business) {
+      throw new NotFoundException(`Business with ID ${businessId} not found`);
+    }
+
+    const igReport = await this.prisma.instagramReport.findUnique({
+      where: { businessId },
+      select: { strategicInsights: true },
+    });
+
+    if (!igReport) {
+      throw new BadRequestException(
+        'No Instagram report found. Fetch Instagram data first.',
+      );
+    }
+
+    return igReport.strategicInsights as TStrategicInsight[];
+  }
 }

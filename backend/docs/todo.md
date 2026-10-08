@@ -1,3 +1,22 @@
+## Strategic Insights для Instagram — 2026-10-08
+
+### Plan
+- [x] Додати `strategicInsights` до типу `TInstagramReport`
+- [x] Створити Instagram-специфічний AI промпт
+- [x] Додати `generateInstagramInsights` метод в AI Service
+- [x] Додати `generateInstagramInsights` та `getInstagramInsights` в Business Service
+- [x] Додати `GET /:id/instagram-insights` та `POST /:id/instagram-insights/generate` ендпоінти
+- [x] Quality gate: backend-reviewer + backend-tester
+
+### Review
+- [x] backend-reviewer → PASS (0 critical, 0 important)
+- [x] backend-tester → 21/21 тестів пройшли
+- [x] Міграція не потрібна (поле вже існує в Prisma-схемі)
+- [x] Регресій не знайдено
+- Summary: Додано Strategic Insights для Instagram табу — промпт, AI метод, сервісні методи, ендпоінти, тести
+
+---
+
 ## Higgsfield Video Generation — 2026-05-18
 
 ### Plan

@@ -70,5 +70,6 @@ export type TInstagramReport = {
   stories: number;
   storiesImageCount: number;
   storiesVideoCount: number;
+  strategicInsights: Prisma.JsonValue;
   fetchedAt: Date;
 };
