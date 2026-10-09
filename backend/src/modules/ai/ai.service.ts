@@ -35,10 +35,12 @@ import {
 } from './schema/strategic-insights.schema';
 import { strategicInsightsPrompt } from './prompts/strategicInsights/strategicInsights';
 import { instagramStrategicInsightsPrompt } from './prompts/strategicInsights/instagramStrategicInsights';
+import { competitorStrategicInsightsPrompt } from './prompts/strategicInsights/competitorStrategicInsights';
 import {
   TFacebookReport,
   TInstagramReport,
 } from '../business/entities/business.entity';
+import { TCompetitorFacebookReport } from '../competitor/entities/competitor.entity';
 import { z } from 'zod';
 
 import {
@@ -290,6 +292,36 @@ export class AiService {
       this.logger.error('generateInstagramInsights failed', e);
       throw new InternalServerErrorException(
         'Failed to generate Instagram strategic insights',
+      );
+    }
+  }
+
+  async generateCompetitorFacebookInsights(
+    business: {
+      name: string;
+      industry?: string | null;
+      goals: string[];
+      advantages: string[];
+      language: string;
+    },
+    competitorName: string,
+    report: TCompetitorFacebookReport,
+  ): Promise<TStrategicInsight[]> {
+    try {
+      const structuredModel = this.model.withStructuredOutput(
+        StrategicInsightsResponseSchema,
+      );
+      const prompt = competitorStrategicInsightsPrompt(
+        business,
+        competitorName,
+        report,
+      );
+      const result = await structuredModel.invoke(prompt);
+      return result.insights;
+    } catch (e) {
+      this.logger.error('generateCompetitorFacebookInsights failed', e);
+      throw new InternalServerErrorException(
+        'Failed to generate competitor Facebook insights',
       );
     }
   }

@@ -15,7 +15,10 @@ import {
   TCompetitorUpdate,
   TCompetitorPostParams,
   TCompetitorAdsParams,
+  TCompetitorFacebookReport,
 } from './entities/competitor.entity';
+import { AiService } from '../ai/ai.service';
+import { TStrategicInsight } from '../ai/schema/strategic-insights.schema';
 import { PlatformList } from '@prisma/client';
 
 @Injectable()
@@ -25,6 +28,7 @@ export class CompetitorService {
     private readonly facebookService: FacebookService,
     private readonly instagramService: InstagramService,
     private readonly competitorMediaService: CompetitorMediaService,
+    private readonly aiService: AiService,
   ) {}
 
   async getCompetitors(businessId: string) {
@@ -198,16 +202,9 @@ export class CompetitorService {
 
   // Facebook Report
   async fetchCompetitorFacebookReport(id: string) {
-    console.log('[FB-BE] fetchCompetitorFacebookReport called with id:', id);
     const competitor = await this.prisma.competitor.findUnique({
       where: { id },
     });
-    console.log(
-      '[FB-BE] competitor found:',
-      competitor?.name,
-      'facebookLink:',
-      competitor?.facebookLink,
-    );
 
     if (!competitor?.facebookLink) {
       throw new BadRequestException(
@@ -245,12 +242,6 @@ export class CompetitorService {
         topAds: [],
       })),
     ]);
-    console.log('[FB-BE] fetched data:', {
-      followers: details.followers,
-      posts: postsData.posts,
-      ads: adsData.activeAds,
-    });
-
     if (details.pageAdLibraryId) {
       await this.prisma.competitor.update({
         where: { id },
@@ -441,10 +432,6 @@ export class CompetitorService {
               competitorId,
               post.media,
             );
-
-        console.log('-------------');
-        console.log('Media ', media);
-        console.log('-------------');
 
         return this.prisma.competitorPost.upsert({
           where: {
@@ -654,5 +641,88 @@ export class CompetitorService {
         }),
       ),
     );
+  }
+
+  // Facebook Insights
+  async generateCompetitorFacebookInsights(
+    competitorId: string,
+    agencyId: string,
+  ): Promise<TStrategicInsight[]> {
+    const competitor = await this.prisma.competitor.findUnique({
+      where: { id: competitorId },
+      select: {
+        name: true,
+        business: {
+          select: {
+            agencyId: true,
+            name: true,
+            industry: true,
+            goals: true,
+            advantages: true,
+            language: true,
+          },
+        },
+      },
+    });
+
+    if (!competitor || competitor.business.agencyId !== agencyId) {
+      throw new NotFoundException(
+        `Competitor with ID ${competitorId} not found`,
+      );
+    }
+
+    const fbReport = await this.prisma.competitorFacebookReport.findUnique({
+      where: { competitorId },
+    });
+
+    if (!fbReport) {
+      throw new BadRequestException(
+        'No Facebook report found for this competitor. Fetch Facebook data first.',
+      );
+    }
+
+    const insights = await this.aiService.generateCompetitorFacebookInsights(
+      competitor.business,
+      competitor.name,
+      fbReport as TCompetitorFacebookReport,
+    );
+
+    await this.prisma.competitorFacebookReport.update({
+      where: { competitorId },
+      data: { strategicInsights: insights },
+    });
+
+    return insights;
+  }
+
+  async getCompetitorFacebookInsights(
+    competitorId: string,
+    agencyId: string,
+  ): Promise<TStrategicInsight[]> {
+    const competitor = await this.prisma.competitor.findUnique({
+      where: { id: competitorId },
+      select: {
+        business: { select: { agencyId: true } },
+      },
+    });
+
+    if (!competitor || competitor.business.agencyId !== agencyId) {
+      throw new NotFoundException(
+        `Competitor with ID ${competitorId} not found`,
+      );
+    }
+
+    const fbReport = await this.prisma.competitorFacebookReport.findUnique({
+      where: { competitorId },
+      select: { strategicInsights: true },
+    });
+
+    if (!fbReport) {
+      throw new BadRequestException(
+        'No Facebook report found for this competitor. Fetch Facebook data first.',
+      );
+    }
+
+    return fbReport.strategicInsights as TStrategicInsight[];
   }
 }
