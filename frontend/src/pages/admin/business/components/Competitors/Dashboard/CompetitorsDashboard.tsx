@@ -2,8 +2,9 @@ import React, { useEffect, useMemo, useState } from "react"
 import { useParams } from "react-router-dom"
 import { toast } from "react-toastify"
 import { ExternalLink } from "lucide-react"
-import { useGetCompetitorsMutation, useFetchCompetitorFacebookReportMutation } from "../../../../../../store/competitor/competitorApi"
+import { useGetCompetitorsMutation, useFetchCompetitorFacebookReportMutation, useGetCompetitorFacebookInsightsMutation, useGenerateCompetitorFacebookInsightsMutation } from "../../../../../../store/competitor/competitorApi"
 import { TCompetitorWithReport } from "../../../../../../models/Competitor"
+import { TStrategicInsight } from "../../../../../../models/Business"
 import { showError } from "../../../../../../utils/showError"
 import { ContentTypeChart } from "../../../../../../components/analytics/ContentTypeChart/ContentTypeChart"
 import { AdsFormatChart } from "../../../../../../components/analytics/AdsFormatChart/AdsFormatChart"
@@ -18,9 +19,13 @@ export default function CompetitorsDashboard() {
   const { businessId } = useParams<{ businessId: string }>()
   const [competitors, setCompetitors] = useState<TCompetitorWithReport[]>([])
   const [isFetching, setIsFetching] = useState(false)
+  const [fbInsights, setFbInsights] = useState<TStrategicInsight[]>([])
+  const [isGeneratingInsights, setIsGeneratingInsights] = useState(false)
 
   const [getCompetitors] = useGetCompetitorsMutation()
   const [fetchCompetitorFacebookReport] = useFetchCompetitorFacebookReportMutation()
+  const [getCompetitorFacebookInsights] = useGetCompetitorFacebookInsightsMutation()
+  const [generateCompetitorFacebookInsights] = useGenerateCompetitorFacebookInsightsMutation()
 
   useEffect(() => {
     if (!businessId) return
@@ -28,7 +33,20 @@ export default function CompetitorsDashboard() {
     async function loadCompetitors() {
       try {
         const res = await getCompetitors(businessId!).unwrap()
-        if (res?.data) setCompetitors(res.data as TCompetitorWithReport[])
+        if (res?.data) {
+          const loaded = res.data as TCompetitorWithReport[]
+          setCompetitors(loaded)
+
+          const insightsResults = await Promise.all(
+            loaded.map((c) =>
+              getCompetitorFacebookInsights(c.id).unwrap().catch(() => null)
+            )
+          )
+          const allInsights = insightsResults.flatMap(
+            (r) => (r?.data as TStrategicInsight[]) ?? []
+          )
+          setFbInsights(allInsights)
+        }
       } catch (error) {
         showError(error)
       }
@@ -118,6 +136,29 @@ export default function CompetitorsDashboard() {
 
   function handleOpenLink(url: string) {
     if (url) window.open(url, "_blank", "noopener,noreferrer")
+  }
+
+  const handleGenerateInsights = async () => {
+    if (!competitors.length) return
+    setIsGeneratingInsights(true)
+    try {
+      const results = await Promise.all(
+        competitors
+          .filter((c) => c.facebookReport)
+          .map((c) =>
+            generateCompetitorFacebookInsights(c.id).unwrap().catch(() => null)
+          )
+      )
+      const allInsights = results.flatMap(
+        (r) => (r?.data as TStrategicInsight[]) ?? []
+      )
+      setFbInsights(allInsights)
+      toast.success("Strategic insights generated!")
+    } catch (error) {
+      showError(error)
+    } finally {
+      setIsGeneratingInsights(false)
+    }
   }
 
   if (!businessId) return null
@@ -230,7 +271,11 @@ export default function CompetitorsDashboard() {
       <TopPostTexts posts={topPostTexts} />
       <TopAdsBlock ads={competitors.flatMap((c) => c.facebookReport?.topAds ?? [])} />
       <TopAdTexts ads={topAdTexts} />
-      <StrategicInsights />
+      <StrategicInsights
+        insights={fbInsights}
+        onGenerate={handleGenerateInsights}
+        isGenerating={isGeneratingInsights}
+      />
     </div>
   )
 }

@@ -4,6 +4,7 @@ import { FacebookModule } from '../facebook/facebook.module';
 import { InstagramModule } from '../instagram/instagram.module';
 import { S3Module } from '../../core/s3/s3.module';
 import { StorageModule } from '../../core/storage/storage.module';
+import { AiModule } from '../ai/ai.module';
 import { CompetitorController } from './competitor.controller';
 import { CompetitorService } from './competitor.service';
 import { CompetitorMediaService } from './competitor-media.service';
@@ -16,6 +17,7 @@ import { CompetitorCronService } from './competitor-cron.service';
     InstagramModule,
     S3Module,
     StorageModule,
+    AiModule,
   ],
   controllers: [CompetitorController],
   providers: [CompetitorService, CompetitorMediaService, CompetitorCronService],

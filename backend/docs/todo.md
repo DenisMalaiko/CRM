@@ -1,3 +1,28 @@
+## Strategic Insights для CompetitorFacebookReport — 2026-10-09
+
+### Plan
+- [x] Створити промпт `competitorStrategicInsights.ts` для аналізу конкурента
+- [x] Додати `TCompetitorFacebookReport` тип в entity
+- [x] Додати `generateCompetitorFacebookInsights` в AiService
+- [x] Імпортувати AiModule в CompetitorModule
+- [x] Додати `generateCompetitorFacebookInsights` та `getCompetitorFacebookInsights` в CompetitorService
+- [x] Додати `POST /:id/facebook-insights/generate` та `GET /:id/facebook-insights` ендпоінти
+- [x] Quality gate: backend-reviewer + backend-tester
+
+### Notes
+- Migration needed: no (поле `strategicInsights` вже існує в CompetitorFacebookReport)
+- Affected modules: competitor, ai
+- Tenant scoping: перевірка `agencyId` через `competitor.business.agencyId`
+
+### Review
+- [x] backend-reviewer → PASS (retry 1: виправлено tenant scoping, прибрано console.log, типізовано entity)
+- [x] backend-tester → 21/21 тестів пройшли
+- [x] Міграція не потрібна
+- [x] Регресій не знайдено
+- Summary: Додано Strategic Insights для CompetitorFacebookReport — промпт, AI метод, сервісні методи з tenant scoping, ендпоінти, тести
+
+---
+
 ## Strategic Insights для Instagram — 2026-10-08
 
 ### Plan

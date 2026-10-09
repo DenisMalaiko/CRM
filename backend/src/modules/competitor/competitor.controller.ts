@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Request,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -133,5 +134,30 @@ export class CompetitorController {
   @ResponseMessage('Ads have been got!')
   async getAds(@Param() { id }: CompetitorIdParamDto) {
     return this.competitorService.getAds(id);
+  }
+
+  // Facebook Insights
+  @Post('/:id/facebook-insights/generate')
+  @ResponseMessage('Competitor Facebook insights generated!')
+  async generateCompetitorFacebookInsights(
+    @Param() { id }: CompetitorIdParamDto,
+    @Request() req,
+  ) {
+    return await this.competitorService.generateCompetitorFacebookInsights(
+      id,
+      req.user.agencyId,
+    );
+  }
+
+  @Get('/:id/facebook-insights')
+  @ResponseMessage('Competitor Facebook insights retrieved!')
+  async getCompetitorFacebookInsights(
+    @Param() { id }: CompetitorIdParamDto,
+    @Request() req,
+  ) {
+    return await this.competitorService.getCompetitorFacebookInsights(
+      id,
+      req.user.agencyId,
+    );
   }
 }
