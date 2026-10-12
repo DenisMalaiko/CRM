@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -11,11 +11,14 @@ import {
   useGetInstagramPostsMutation,
   useGetInstagramReelsMutation,
   useGetAdsMutation,
+  useGetCompetitorFacebookInsightsMutation,
+  useGenerateCompetitorFacebookInsightsMutation,
 } from "../../../../../../../store/competitor/competitorApi";
 import { setCompetitors, setPosts, setInstagramPosts, setInstagramReels, setAds } from "../../../../../../../store/competitor/competitorSlice";
 
 // Models
 import { TCompetitorWithReport } from "../../../../../../../models/Competitor";
+import { TStrategicInsight } from "../../../../../../../models/Business";
 
 // Components
 import BaseData from "./components/base/Base";
@@ -30,12 +33,15 @@ import { TopPostsBlock } from "../../../../../../../components/analytics/TopPost
 import { TopPostTexts } from "../../../../../../../components/analytics/TopPostTexts/TopPostTexts";
 import { TopAdsBlock } from "../../../../../../../components/analytics/TopAdsBlock/TopAdsBlock";
 import { TopAdTexts } from "../../../../../../../components/analytics/TopAdTexts/TopAdTexts";
+import { StrategicInsights } from "../../../../../../../components/analytics/StrategicInsights/StrategicInsights";
 
 function Competitor() {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { id, businessId } = useParams<{ id: string; businessId: string }>();
   const [isFetching, setIsFetching] = useState(false);
+  const [fbInsights, setFbInsights] = useState<TStrategicInsight[]>([]);
+  const [isGeneratingInsights, setIsGeneratingInsights] = useState(false);
 
   const [fetchCompetitorFacebookReport] = useFetchCompetitorFacebookReportMutation();
   const [getCompetitors] = useGetCompetitorsMutation();
@@ -43,6 +49,8 @@ function Competitor() {
   const [getInstagramPosts] = useGetInstagramPostsMutation();
   const [getInstagramReels] = useGetInstagramReelsMutation();
   const [getAds] = useGetAdsMutation();
+  const [getCompetitorFacebookInsights] = useGetCompetitorFacebookInsightsMutation();
+  const [generateCompetitorFacebookInsights] = useGenerateCompetitorFacebookInsightsMutation();
 
   const { competitors } = useAppSelector((state) => state.competitorModule);
 
@@ -52,6 +60,30 @@ function Competitor() {
   );
 
   const report = competitorWithReport?.facebookReport;
+
+  useEffect(() => {
+    if (!id) return;
+    getCompetitorFacebookInsights(id)
+      .unwrap()
+      .then((res) => {
+        if (res?.data) setFbInsights(res.data as TStrategicInsight[]);
+      })
+      .catch(() => {});
+  }, [id]);
+
+  const handleGenerateInsights = async () => {
+    if (!id) return;
+    setIsGeneratingInsights(true);
+    try {
+      const res = await generateCompetitorFacebookInsights(id).unwrap();
+      if (res?.data) setFbInsights(res.data as TStrategicInsight[]);
+      toast.success("Strategic insights generated!");
+    } catch (error) {
+      toast.error("Failed to generate insights");
+    } finally {
+      setIsGeneratingInsights(false);
+    }
+  };
 
   const topPostTexts = useMemo(() => {
     if (!competitorWithReport?.facebookReport?.topPostTexts) return [];
@@ -164,6 +196,12 @@ function Competitor() {
               adsCtaMetaPage={report.adsCtaMetaPage}
             />
           </div>
+
+          <StrategicInsights
+            insights={fbInsights}
+            onGenerate={handleGenerateInsights}
+            isGenerating={isGeneratingInsights}
+          />
 
           <TopPostsBlock posts={competitorWithReport.facebookReport?.topPosts ?? []} />
           <TopPostTexts posts={topPostTexts} />
