@@ -7,7 +7,7 @@ import {
   IdeaAI,
 } from '@prisma/client';
 import { PrismaService } from '../../core/prisma/prisma.service';
-import { AiService } from '../ai/ai.service';
+import { AiContentPlanService } from '../ai/services/ai-content-plan.service';
 import {
   GenerateContentPlanDto,
   UpdateContentPlanDto,
@@ -27,7 +27,7 @@ const CONTENT_PLAN_LIST_SELECT = {
 export class ContentPlanService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly aiService: AiService,
+    private readonly aiContentPlanService: AiContentPlanService,
   ) {}
 
   async getContentPlans(businessId: string) {
@@ -84,7 +84,7 @@ export class ContentPlanService {
       }
     }
 
-    const result = await this.aiService.generateContentPlan({
+    const result = await this.aiContentPlanService.generateContentPlan({
       business,
       audiences,
       products,
