@@ -10,7 +10,7 @@ import { ConfigModule } from '@nestjs/config';
 import { ContentPlanService } from './contentPlan.service';
 import { ContentPlanController } from './contentPlan.controller';
 import { PrismaService } from '../../core/prisma/prisma.service';
-import { AiService } from '../ai/ai.service';
+import { AiContentPlanService } from '../ai/services/ai-content-plan.service';
 import { JwtAuthGuard } from '../../core/guards/jwt-auth.guard';
 
 const PLAN_UUID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
@@ -50,7 +50,9 @@ describe('ContentPlanService', () => {
     idea: jest.Mocked<{ findMany: jest.Mock }>;
     ideaAI: jest.Mocked<{ findMany: jest.Mock }>;
   };
-  let mockAiService: jest.Mocked<Pick<AiService, 'generateContentPlan'>>;
+  let mockAiService: jest.Mocked<
+    Pick<AiContentPlanService, 'generateContentPlan'>
+  >;
 
   const fakeAiResult = {
     title: 'AI Generated Plan',
@@ -83,7 +85,7 @@ describe('ContentPlanService', () => {
       providers: [
         ContentPlanService,
         { provide: PrismaService, useValue: mockPrisma },
-        { provide: AiService, useValue: mockAiService },
+        { provide: AiContentPlanService, useValue: mockAiService },
       ],
     }).compile();
 
