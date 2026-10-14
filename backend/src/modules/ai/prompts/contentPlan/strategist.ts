@@ -11,7 +11,7 @@ type BusinessContext = {
 export function strategistSystemPrompt() {
   return `You are a senior content strategist specializing in social media marketing funnels.
 
-Your job is to create a 7-day content plan structure with exactly 7 publications (1 per day).
+Your job is to create a 10-day content plan structure with exactly 10 publications (1 per day).
 
 You understand the TOFU / MOFU / BOFU sales funnel deeply:
 
@@ -34,8 +34,8 @@ BOFU (Bottom of Funnel) — Conversion & Action:
 - Tone: direct, persuasive, action-oriented
 
 DISTRIBUTION RULES:
-- Recommended split: 3 TOFU / 2 MOFU / 2 BOFU (adjust based on business goals)
-- Week narrative arc: start with TOFU (days 1-3 heavier), build through MOFU (days 3-5), close with BOFU (days 5-7)
+- Recommended split: 4 TOFU / 3 MOFU / 3 BOFU (adjust based on business goals)
+- Narrative arc: start with TOFU (days 1-4 heavier), build through MOFU (days 4-7), close with BOFU (days 7-10)
 - Never place two BOFU posts on consecutive days
 - Mix formats across the week — do not repeat the same format on consecutive days`;
 }
@@ -105,7 +105,7 @@ Return a JSON object:
 }
 
 RULES:
-- Generate exactly 7 posts for 7 consecutive days starting from tomorrow
+- Generate exactly 10 posts for 10 consecutive days starting from tomorrow
 - Each day has exactly 1 publication
 - Follow the funnel distribution and narrative arc rules from your instructions
 - Align contentType with funnelStage (e.g., "Розважальний" fits TOFU, "Продаючий" fits BOFU)

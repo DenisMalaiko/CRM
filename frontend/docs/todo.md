@@ -1,5 +1,41 @@
 # Task Log
 
+## Content Plan Posts Page — 2026-10-14
+
+### Plan
+- [x] Додати тип `TContentPlanPost` до `src/models/ContentPlan.ts`
+- [x] Додати `getContentPlanPosts` RTK Query endpoint
+- [x] Додати route `contentPlan/:contentPlanId/posts` в `App.tsx`
+- [x] Створити сторінку `ContentPlanPosts.tsx` з картками постів
+- [x] Зробити рядки таблиці клікабельними в `ContentPlan.tsx`
+- [x] Quality gate: reviewer + tester
+- [x] Виправити зауваження reviewer (useAppSelector, useQuery замість lazy, unused prop, deps)
+
+### Review
+- [x] reviewer → PASS (після виправлень)
+- [x] tester → 72 тести проходять (17 нових для ContentPlanPosts)
+- [x] Pre-existing fail: Calendar.test.tsx (holidaysApi module not found — не наш)
+- [x] No regressions found
+- Summary: Нова сторінка з картками постів content plan. Клік по рядку таблиці → навігація на детальну сторінку. Використано useGetContentPlanPostsQuery з RTK Query кешуванням.
+
+---
+
+## Sidebar Group Collapse Fix — 2026-10-14
+
+### Plan
+- [x] Перемістити `sidebarGroups` перед `findActiveGroupIndex` і `useState`
+- [x] Змінити `let` на `const` для sidebarGroups
+- [x] Видалити закоментований блок коду та невикористаний імпорт `TrendingUp`
+- [x] Quality gate: reviewer + tester
+
+### Review
+- [x] reviewer → PASS (після видалення закоментованого коду)
+- [x] tester → 21 тестів проходять
+- [x] No regressions found
+- Summary: Виправлено порядок оголошень в SidebarNav — `sidebarGroups` тепер заповнюється до виклику `findActiveGroupIndex`, що запобігає згортанню групи при навігації.
+
+---
+
 ## TopAdsBlock — Top Ads блок на Facebook Dashboard — 2026-09-04
 
 ### Plan

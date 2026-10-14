@@ -55,6 +55,7 @@ import Tiktok from "./pages/admin/business/components/Trends/Tiktok/Tiktok";
 import AiIdeas from "./pages/admin/business/components/AI/AiIdeas/AiIdeas";
 import AiPhoto from "./pages/admin/business/components/AI/AiPhotos/AiPhoto";
 import ContentPlan from "./pages/admin/business/components/ContentPlan/ContentPlan";
+import { ContentPlanPosts } from "./pages/admin/business/components/ContentPlan/ContentPlanPosts";
 import Calendar from "./pages/admin/business/components/ContentPlan/Calendar/Calendar";
 
 import { useAppDispatch, useAppSelector } from "./store/hooks";
@@ -157,6 +158,7 @@ function App() {
 
             {/*Content Plan*/}
             <Route path="contentPlan" element={<ContentPlan />} />
+            <Route path="contentPlan/:contentPlanId/posts" element={<ContentPlanPosts />} />
             <Route path="calendar" element={<Calendar />} />
 
             {/*AI*/}

@@ -11,9 +11,12 @@ jest.mock('react-toastify', () => ({
   toast: { success: jest.fn(), error: jest.fn() },
 }));
 
+const mockNavigate = jest.fn();
+
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useParams: () => ({ businessId: 'biz-1' }),
+  useNavigate: () => mockNavigate,
 }));
 
 const mockGetContentPlans = jest.fn();
@@ -26,16 +29,21 @@ jest.mock('../../../../../store/contentPlan/contentPlanApi', () => ({
 
 const mockDispatch = jest.fn();
 
+// storeState holds mutable selector data; the object itself is captured by the
+// mock factory closures at runtime (not at hoist-time), so mutations in tests
+// are visible to both useAppSelector and useSelector mocks below.
+const storeState = { contentPlans: null as TContentPlan[] | null };
+
 jest.mock('../../../../../store/hooks', () => ({
   useAppDispatch: () => mockDispatch,
+  useAppSelector: (selector: (state: unknown) => unknown) =>
+    selector({ contentPlanModule: { contentPlans: storeState.contentPlans } }),
 }));
-
-let mockContentPlans: TContentPlan[] | null = null;
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: (selector: (state: unknown) => unknown) =>
-    selector({ contentPlanModule: { contentPlans: mockContentPlans } }),
+    selector({ contentPlanModule: { contentPlans: storeState.contentPlans } }),
 }));
 
 jest.mock('../../../../../store/contentPlan/contentPlanSlice', () => ({
@@ -104,7 +112,7 @@ function renderComponent() {
 describe('ContentPlan page', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockContentPlans = null;
+    storeState.contentPlans = null;
     mockGetContentPlans.mockReturnValue({
       unwrap: () => Promise.resolve({ data: [] }),
     });
@@ -138,13 +146,13 @@ describe('ContentPlan page', () => {
   // ── Empty state ────────────────────────────────────────────────────────────
 
   it('shows "No data" when contentPlans is null', () => {
-    mockContentPlans = null;
+    storeState.contentPlans = null;
     renderComponent();
     expect(screen.getByText(/no data/i)).toBeInTheDocument();
   });
 
   it('shows "No data" when contentPlans is an empty array', () => {
-    mockContentPlans = [];
+    storeState.contentPlans = [];
     renderComponent();
     expect(screen.getByText(/no data/i)).toBeInTheDocument();
   });
@@ -152,25 +160,25 @@ describe('ContentPlan page', () => {
   // ── Row data ───────────────────────────────────────────────────────────────
 
   it('renders plan title in the table', () => {
-    mockContentPlans = [makePlan({ title: 'Spring Campaign' })];
+    storeState.contentPlans = [makePlan({ title: 'Spring Campaign' })];
     renderComponent();
     expect(screen.getByText('Spring Campaign')).toBeInTheDocument();
   });
 
   it('renders plan status badge', () => {
-    mockContentPlans = [makePlan({ status: ContentPlanStatus.Active })];
+    storeState.contentPlans = [makePlan({ status: ContentPlanStatus.Active })];
     renderComponent();
     expect(screen.getByText('Active')).toBeInTheDocument();
   });
 
   it('renders plan mode capitalised', () => {
-    mockContentPlans = [makePlan({ mode: 'manual' })];
+    storeState.contentPlans = [makePlan({ mode: 'manual' })];
     renderComponent();
     expect(screen.getByText('manual')).toBeInTheDocument();
   });
 
   it('renders a row for each plan', () => {
-    mockContentPlans = [
+    storeState.contentPlans = [
       makePlan({ id: 'p-1', title: 'Plan A' }),
       makePlan({ id: 'p-2', title: 'Plan B' }),
     ];
@@ -217,7 +225,7 @@ describe('ContentPlan page', () => {
   // ── Edit dialog ────────────────────────────────────────────────────────────
 
   it('opens the Update dialog when the edit button is clicked', () => {
-    mockContentPlans = [makePlan()];
+    storeState.contentPlans = [makePlan()];
     renderComponent();
 
     expect(screen.queryByRole('dialog', { name: /update content plan/i })).not.toBeInTheDocument();
@@ -228,7 +236,7 @@ describe('ContentPlan page', () => {
   });
 
   it('closes the Update dialog when its close callback fires', () => {
-    mockContentPlans = [makePlan()];
+    storeState.contentPlans = [makePlan()];
     renderComponent();
 
     userEvent.click(screen.getByRole('button', { name: /✎/i }));

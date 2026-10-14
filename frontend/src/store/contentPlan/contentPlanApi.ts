@@ -1,6 +1,6 @@
 import { api } from "../api/api";
 import { ApiResponse } from "../../models/ApiResponse";
-import { TContentPlan, TContentPlanGenerate, TContentPlanUpdate } from "../../models/ContentPlan";
+import { TContentPlan, TContentPlanGenerate, TContentPlanUpdate, TContentPlanPost } from "../../models/ContentPlan";
 
 export const contentPlanApi = api.injectEndpoints({
   endpoints: (builder) => ({
@@ -31,7 +31,13 @@ export const contentPlanApi = api.injectEndpoints({
         url: `/contentPlan/${id}`,
         method: "DELETE",
       })
-    })
+    }),
+
+    getContentPlanPosts: builder.query<ApiResponse<TContentPlanPost[]>, string>({
+      query: (id: string) => ({
+        url: `/contentPlan/posts/${id}`,
+      })
+    }),
   }),
   overrideExisting: false,
 });
@@ -41,4 +47,6 @@ export const {
   useLazyGetContentPlansQuery,
   useUpdateContentPlanMutation,
   useDeleteContentPlanMutation,
+  useGetContentPlanPostsQuery,
+  useLazyGetContentPlanPostsQuery,
 } = contentPlanApi;

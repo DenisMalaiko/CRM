@@ -72,7 +72,7 @@ RULES:
 - Keep ALL existing fields exactly as they are
 - Add only the designReference field
 - Match visual style to both format AND funnelStage
-- Maintain visual consistency across all 7 posts
+- Maintain visual consistency across all 10 posts
 - ALL text fields MUST be in ${language}
 
 Return ONLY valid JSON. No markdown. No explanations.`;

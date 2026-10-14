@@ -222,5 +222,21 @@
     "Gallery": "Галерея",
     "Design": "Дизайн",
     "AIPhoto": "AI-фото"
+  },
+  "ContentPlanPosts": {
+    "BackButton": "Назад",
+    "Title_page": "Пости контент-плану",
+    "Day": "День",
+    "Hook": "Хук",
+    "CTA": "Заклик до дії",
+    "ShowDetails": "Показати деталі",
+    "HideDetails": "Сховати деталі",
+    "Title": "Заголовок",
+    "Thesis": "Теза",
+    "MarketingGoal": "Маркетингова ціль",
+    "ContentType": "Тип контенту",
+    "DesignReference": "Дизайн-референс",
+    "Error": "Не вдалося завантажити пости.",
+    "Empty": "Постів не знайдено."
   }
 }

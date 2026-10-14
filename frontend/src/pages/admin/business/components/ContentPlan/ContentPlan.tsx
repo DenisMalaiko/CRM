@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { Eye, Copy } from "lucide-react";
 
@@ -14,9 +14,8 @@ import GenerateContentPlanDlg from "./components/GenerateContentPlanDlg";
 import UpdateContentPlanDlg from "./components/UpdateContentPlanDlg";
 
 // Redux
-import { useSelector } from "react-redux";
 import { RootState } from "../../../../../store";
-import { useAppDispatch } from "../../../../../store/hooks";
+import { useAppDispatch, useAppSelector } from "../../../../../store/hooks";
 import {
   useLazyGetContentPlansQuery,
   useDeleteContentPlanMutation,
@@ -44,10 +43,11 @@ const COLUMNS = [
 function ContentPlan() {
   const dispatch = useAppDispatch();
   const { businessId } = useParams<{ businessId: string }>();
+  const navigate = useNavigate();
   const [ getContentPlans ] = useLazyGetContentPlansQuery();
   const [ deleteContentPlan ] = useDeleteContentPlanMutation();
 
-  const { contentPlans } = useSelector((state: RootState) => state.contentPlanModule);
+  const { contentPlans } = useAppSelector((state: RootState) => state.contentPlanModule);
 
   const [ open, setOpen ] = useState(false);
   const [ sortKey, setSortKey ] = useState<'createdAt' | 'status'>('createdAt');
@@ -72,7 +72,7 @@ function ContentPlan() {
     };
 
     fetchData();
-  }, [dispatch]);
+  }, [dispatch, businessId, getContentPlans]);
 
   const sortedPlans: TContentPlan[] = useMemo(() => {
     if (!contentPlans?.length) return [];
@@ -213,7 +213,11 @@ function ContentPlan() {
                   </tr>
                 ) : (
                   paginatedItems && paginatedItems.map((item: TContentPlan) => (
-                    <tr key={item.id} className="bg-white hover:bg-slate-50">
+                    <tr
+                      key={item.id}
+                      className="bg-white hover:bg-slate-50 cursor-pointer"
+                      onClick={() => navigate(`${item.id}/posts`)}
+                    >
                       <td className="px-4 py-3 font-medium text-slate-900 text-left">{item.title}</td>
 
                       <td className="px-4 py-3 font-medium text-slate-900 text-left">
@@ -223,12 +227,18 @@ function ContentPlan() {
                           <div className="flex items-center gap-2 text-slate-500 mt-3">
                             <Eye
                               size={20}
-                              onClick={() => openText(item.description)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openText(item.description);
+                              }}
                               className="cursor-pointer text-blue-600 hover:text-blue-700"
                             />
                             <Copy
                               size={18}
-                              onClick={() => copy(item.description)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                copy(item.description);
+                              }}
                               className="cursor-pointer text-blue-600 hover:text-blue-700"
                             />
                           </div>
@@ -252,7 +262,10 @@ function ContentPlan() {
                       <td className="px-4 py-3 text-right">
                         <div className="flex items-center gap-2 justify-end">
                           <button
-                            onClick={() => openEditPlan(item)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openEditPlan(item);
+                            }}
                             className="h-8 w-8 flex items-center justify-center rounded-lg border text-slate-600 hover:bg-slate-50"
                           >
                             ✎
