@@ -23,3 +23,18 @@ export type TContentPlanUpdate = {
   description?: string;
   status?: ContentPlanStatus;
 }
+
+export type TContentPlanPost = {
+  day: number;
+  date: string;
+  funnelStage: "TOFU" | "MOFU" | "BOFU";
+  format: string;
+  contentType: string;
+  topic: string;
+  marketingGoal: string;
+  title: string;
+  hook: string;
+  thesis: string;
+  cta: string;
+  designReference: string;
+}

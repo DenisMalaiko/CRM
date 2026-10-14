@@ -8,7 +8,6 @@ import {
   LayoutDashboard,
   Swords,
   Lightbulb,
-  TrendingUp,
   ChevronRight,
   LucideIcon,
 } from "lucide-react"
@@ -28,19 +27,7 @@ export function SidebarNav() {
   const { pathname } = useLocation()
   const { t } = useTranslation()
 
-  let sidebarGroups: SidebarGroup[] = []
-
-  const [openGroupIndex, setOpenGroupIndex] = useState<number | null>(
-    () => findActiveGroupIndex(pathname)
-  )
-  const [prevPathname, setPrevPathname] = useState(pathname)
-
-  if (pathname !== prevPathname) {
-    setPrevPathname(pathname)
-    setOpenGroupIndex(findActiveGroupIndex(pathname))
-  }
-
-  sidebarGroups = [
+  const sidebarGroups: SidebarGroup[] = [
     {
       label: t('BusinessSidebar.Info'),
       icon: Database,
@@ -86,19 +73,7 @@ export function SidebarNav() {
         { id: "designSystem", title: t('BusinessSidebar.Design') },
         { id: "aiPhoto", title: t('BusinessSidebar.AIPhoto') },
       ],
-    },
-
-
-    /*{
-      label: "Others",
-      icon: TrendingUp,
-      tabs: [
-        { id: "trends", title: "Tiktok" },
-        { id: "profiles", title: "Context" },
-        { id: "prompts", title: "Prompts" },
-      ],
-    },*/
-  ]
+    },  ]
 
   function findActiveGroupIndex(pathname: string): number | null {
     for (let i = 0; i < sidebarGroups.length; i++) {
@@ -109,6 +84,16 @@ export function SidebarNav() {
       }
     }
     return null
+  }
+
+  const [openGroupIndex, setOpenGroupIndex] = useState<number | null>(
+    () => findActiveGroupIndex(pathname)
+  )
+  const [prevPathname, setPrevPathname] = useState(pathname)
+
+  if (pathname !== prevPathname) {
+    setPrevPathname(pathname)
+    setOpenGroupIndex(findActiveGroupIndex(pathname))
   }
 
   function handleToggle(index: number) {
