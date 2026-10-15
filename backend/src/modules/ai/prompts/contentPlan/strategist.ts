@@ -81,16 +81,42 @@ Use the following context as the primary creative direction:
 No specific ideas provided. Build the content strategy based on the business context, audience insights, and brand goals.`;
 }
 
-export function strategistOutputBlock(language: string) {
+export function strategistOutputBlock(
+  language: string,
+  productNames: string[] = [],
+  ideaNames: string[] = [],
+) {
+  const safeProducts = productNames.map((n) => n.slice(0, 80));
+  const safeIdeas = ideaNames.map((n) => n.slice(0, 80));
+  const hasProducts = safeProducts.length > 0;
+  const hasIdeas = safeIdeas.length > 0;
+
+  let fieldInstructions = `FIELD INSTRUCTIONS:
+- title: short name for the content plan (5-10 words)
+- description: brief summary of the plan's funnel strategy (2-3 sentences)`;
+
+  if (hasProducts || hasIdeas) {
+    const parts: string[] = [];
+    if (hasIdeas) parts.push(`ideas: ${safeIdeas.join(', ')}`);
+    if (hasProducts)
+      parts.push(`products/services: ${safeProducts.join(', ')}`);
+
+    fieldInstructions = `FIELD INSTRUCTIONS:
+- title: short name for the content plan (5-10 words). MUST reference the source ${parts.join(' and ')} in the title
+- description: brief summary of the plan's funnel strategy (2-3 sentences). Mention that this plan is built around ${parts.join(' and ')}`;
+  }
+
   return `## OUTPUT FORMAT (STRICT JSON)
 
 ALL text fields MUST be written in ${language}.
 
+${fieldInstructions}
+
 Return a JSON object:
 
 {
-  "title": "short name for the content plan (5-10 words)",
-  "description": "brief summary of the plan's funnel strategy (2-3 sentences)",
+  "title": "<plan title>",
+  "description": "<plan description>",
   "posts": [
     {
       "day": 1,

@@ -106,11 +106,14 @@ export class AiContentPlanService {
     const productsBlock = this.base.getProducts(settings.products);
     const ideasBlock = this.base.getIdeas(settings.ideas);
 
+    const productNames = settings.products.map((p) => p.name);
+    const ideaNames = settings.ideas.map((i) => i.title);
+
     const prompt = [
       strategistSystemPrompt(),
       strategistBusinessBlock(settings.business, audienceBlock, productsBlock),
       strategistIdeasBlock(ideasBlock, settings.context),
-      strategistOutputBlock(language),
+      strategistOutputBlock(language, productNames, ideaNames),
     ].join('\n\n');
 
     const response = await this.base.getModel(AiModel.Fast).invoke(prompt);
