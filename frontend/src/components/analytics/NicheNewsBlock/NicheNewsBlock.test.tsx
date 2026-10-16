@@ -24,6 +24,7 @@ jest.mock("react-i18next", () => ({
         "BusinessDashboard.noNicheNewsYet": "No niche news yet",
         "BusinessDashboard.fetching": "Fetching...",
         "BusinessDashboard.fetchNews": "Fetch News",
+        "BusinessDashboard.ideaDetails": "Idea Details",
         "BusinessDashboard.ideaWho": "Who",
         "BusinessDashboard.ideaWhat": "What",
         "BusinessDashboard.ideaWhy": "Why",
@@ -34,10 +35,26 @@ jest.mock("react-i18next", () => ({
         "BusinessDashboard.ideaWhyValue_Inspire": "Inspire",
         "BusinessDashboard.ideaHowValue_Storytelling": "Storytelling",
         "BusinessDashboard.ideaFeelingValue_Excitement": "Excitement",
+        "BusinessDashboard.generatePost": "Generate Post",
+        "BusinessDashboard.generateStory": "Generate Story",
+        "General.save": "Save",
+        "General.status": "Status",
       }
       return translations[key] ?? key
     },
   }),
+}))
+
+jest.mock("react-router-dom", () => ({
+  ...jest.requireActual("react-router-dom"),
+  useNavigate: () => jest.fn(),
+  useParams: () => ({ businessId: "biz-1" }),
+}))
+
+const mockUpdateIdeaAI = jest.fn()
+
+jest.mock("../../../store/ai/ideas/ideaAiApi", () => ({
+  useUpdateIdeaAIMutation: () => [mockUpdateIdeaAI, { isLoading: false }],
 }))
 
 
@@ -111,6 +128,7 @@ function makeItems(count: number): TNicheNews[] {
 beforeEach(() => {
   jest.clearAllMocks()
   jest.spyOn(window, "open").mockImplementation(() => null)
+  mockUpdateIdeaAI.mockResolvedValue({})
 })
 
 afterEach(() => {
@@ -368,12 +386,78 @@ describe("IdeaDetailDlg", () => {
     expect(screen.getByText("Leverage AI for email campaigns")).toBeInTheDocument()
   })
 
-  it("renders the idea status badge", () => {
+  it("renders the status dropdown with the idea's initial status selected", () => {
     render(
       <IdeaDetailDlg idea={mockIdea} onClose={jest.fn()} />
     )
 
-    expect(screen.getByText("New")).toBeInTheDocument()
+    expect(screen.getByRole("combobox")).toHaveValue(IdeaStatus.New)
+  })
+
+  it("renders all four status options in the dropdown", () => {
+    render(
+      <IdeaDetailDlg idea={mockIdea} onClose={jest.fn()} />
+    )
+
+    const select = screen.getByRole("combobox")
+    const options = Array.from(select.querySelectorAll("option")).map((o) => o.value)
+
+    expect(options).toEqual([IdeaStatus.New, IdeaStatus.Planned, IdeaStatus.Used, IdeaStatus.Archived])
+  })
+
+  it("does not show Save button when the status has not changed", () => {
+    render(
+      <IdeaDetailDlg idea={mockIdea} onClose={jest.fn()} />
+    )
+
+    expect(screen.queryByRole("button", { name: /save/i })).not.toBeInTheDocument()
+  })
+
+  it("shows Save button after selecting a different status", () => {
+    render(
+      <IdeaDetailDlg idea={mockIdea} onClose={jest.fn()} />
+    )
+
+    userEvent.selectOptions(screen.getByRole("combobox"), IdeaStatus.Planned)
+
+    expect(screen.getByRole("button", { name: /save/i })).toBeInTheDocument()
+  })
+
+  it("does NOT call updateIdeaAI when the dropdown value changes without clicking Save", () => {
+    render(
+      <IdeaDetailDlg idea={mockIdea} onClose={jest.fn()} />
+    )
+
+    userEvent.selectOptions(screen.getByRole("combobox"), IdeaStatus.Planned)
+
+    expect(mockUpdateIdeaAI).not.toHaveBeenCalled()
+  })
+
+  it("calls updateIdeaAI with the new status when Save button is clicked", async () => {
+    render(
+      <IdeaDetailDlg idea={mockIdea} onClose={jest.fn()} />
+    )
+
+    userEvent.selectOptions(screen.getByRole("combobox"), IdeaStatus.Planned)
+    userEvent.click(screen.getByRole("button", { name: /save/i }))
+
+    await screen.findByRole("button", { name: /save/i })
+
+    expect(mockUpdateIdeaAI).toHaveBeenCalledTimes(1)
+    expect(mockUpdateIdeaAI).toHaveBeenCalledWith({
+      id: mockIdea.id,
+      form: { status: IdeaStatus.Planned },
+    })
+  })
+
+  it("updates the displayed status after selection", () => {
+    render(
+      <IdeaDetailDlg idea={mockIdea} onClose={jest.fn()} />
+    )
+
+    userEvent.selectOptions(screen.getByRole("combobox"), IdeaStatus.Used)
+
+    expect(screen.getByRole("combobox")).toHaveValue(IdeaStatus.Used)
   })
 
   it("renders the description", () => {
@@ -428,5 +512,13 @@ describe("IdeaDetailDlg", () => {
     )
 
     expect(screen.queryByText("Feeling")).not.toBeInTheDocument()
+  })
+
+  it("renders the dialog title heading when an idea is selected", () => {
+    render(
+      <IdeaDetailDlg idea={mockIdea} onClose={jest.fn()} />
+    )
+
+    expect(screen.getByRole("heading", { name: "Idea Details" })).toBeInTheDocument()
   })
 })

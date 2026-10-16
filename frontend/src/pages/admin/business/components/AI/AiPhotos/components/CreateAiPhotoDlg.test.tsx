@@ -138,7 +138,7 @@ describe('CreateAiPhotoDlg', () => {
       renderDialog();
       const radios = screen.getAllByRole('radio') as HTMLInputElement[];
       const values = radios.map((r) => r.value);
-      expect(values).toContain('16:9');
+      expect(values).toContain('9:16');
       expect(values).toContain('4:5');
       expect(values).toContain('1:1');
     });
@@ -152,11 +152,11 @@ describe('CreateAiPhotoDlg', () => {
 
     it('changes selection when a different ratio is clicked', () => {
       renderDialog();
-      const radio169 = screen.getAllByRole('radio').find(
-        (r) => (r as HTMLInputElement).value === '16:9'
+      const radio916 = screen.getAllByRole('radio').find(
+        (r) => (r as HTMLInputElement).value === '9:16'
       ) as HTMLInputElement;
-      userEvent.click(radio169);
-      expect(radio169.checked).toBe(true);
+      userEvent.click(radio916);
+      expect(radio916.checked).toBe(true);
       const radio11 = screen.getAllByRole('radio').find(
         (r) => (r as HTMLInputElement).value === '1:1'
       ) as HTMLInputElement;
@@ -199,11 +199,11 @@ describe('CreateAiPhotoDlg', () => {
 
     it('resets aspectRatio back to 1:1 after successful generation', async () => {
       renderDialog();
-      const radio169 = screen.getAllByRole('radio').find(
-        (r) => (r as HTMLInputElement).value === '16:9'
+      const radio916 = screen.getAllByRole('radio').find(
+        (r) => (r as HTMLInputElement).value === '9:16'
       ) as HTMLInputElement;
-      userEvent.click(radio169);
-      expect(radio169.checked).toBe(true);
+      userEvent.click(radio916);
+      expect(radio916.checked).toBe(true);
 
       userEvent.type(screen.getByPlaceholderText(/enter prompt/i), 'a beach scene');
       userEvent.click(screen.getByRole('button', { name: /generate/i }));

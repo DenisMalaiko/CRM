@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Download } from "lucide-react";
 
 import { useGetContentPlanPostsQuery } from "../../../../../store/contentPlan/contentPlanApi";
 import { TContentPlanPost } from "../../../../../models/ContentPlan";
@@ -110,21 +110,59 @@ export function ContentPlanPosts() {
   const { data, isFetching, isError } = useGetContentPlanPostsQuery(contentPlanId!, { skip: !contentPlanId });
   const posts = useMemo(() => [...(data?.data ?? [])].sort((a, b) => a.day - b.day), [data]);
 
+  function handleExportXLSX() {
+    if (!posts.length) return
+
+    const headers = ["Day", "Date", "Funnel Stage", "Format", "Content Type", "Topic", "Marketing Goal", "Title", "Hook", "Thesis", "CTA", "Design Reference"]
+    const esc = (v: string) => String(v ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+
+    const headerRow = headers.map((h) => `<th style="font-weight:bold;background-color:#f1f5f9;">${esc(h)}</th>`).join("")
+    const dataRows = posts.map((p) =>
+      `<tr>${[p.day, p.date, p.funnelStage, p.format, p.contentType, p.topic, p.marketingGoal, p.title, p.hook, p.thesis, p.cta, p.designReference]
+        .map((v) => `<td>${esc(String(v))}</td>`).join("")}</tr>`
+    ).join("")
+
+    const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+<head><meta charset="utf-8"/></head>
+<body><table border="1">${headerRow}${dataRows}</table></body></html>`
+
+    const blob = new Blob([html], { type: "application/vnd.ms-excel;charset=utf-8;" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = "content-plan-posts.xls"
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   return (
     <div>
       <div className="rounded-2xl bg-white shadow border border-slate-200 mb-5">
-        <div className="border-b p-4 flex items-center gap-3">
-          <button
-            onClick={() => navigate(-1)}
-            className="flex items-center gap-1.5 text-slate-600 hover:text-slate-900"
-          >
-            <ArrowLeft size={18} />
-            <span className="text-sm font-medium">{t("ContentPlanPosts.BackButton")}</span>
-          </button>
+        <div className="border-b p-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate(-1)}
+              className="flex items-center gap-1.5 text-slate-600 hover:text-slate-900"
+            >
+              <ArrowLeft size={18} />
+              <span className="text-sm font-medium">{t("ContentPlanPosts.BackButton")}</span>
+            </button>
 
-          <h2 className="text-lg font-semibold text-slate-800">
-            {t("ContentPlanPosts.Title_page")}
-          </h2>
+            <h2 className="text-lg font-semibold text-slate-800">
+              {t("ContentPlanPosts.Title_page")}
+            </h2>
+          </div>
+
+          {posts.length > 0 && (
+            <button
+              type="button"
+              onClick={handleExportXLSX}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 cursor-pointer"
+            >
+              <Download size={16} />
+              Export Excel
+            </button>
+          )}
         </div>
 
         <div className="p-4">

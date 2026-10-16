@@ -95,19 +95,20 @@ function FetchInstagramReelsDlg({ open, onClose }: any) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50">
-      <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl p-6">
+      <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl">
 
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">Params</h2>
+        <div className="border-b p-4 flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-slate-800">Params</h2>
           <button
             onClick={onClose}
-            className="text-white text-xl bg-blue-600 rounded-full p-2 hover:bg-blue-700 cursor-pointer"
+            aria-label="Close"
+            className="bg-blue-600 rounded-full p-1.5 hover:bg-blue-700 cursor-pointer"
           >
-            <X size={20} strokeWidth={2} color="white" />
+            <X size={18} strokeWidth={2} color="white" />
           </button>
         </div>
 
-        <form className="space-y-4" onSubmit={getPostsData}>
+        <form className="p-6 space-y-4" onSubmit={getPostsData}>
           <div>
             <div className="flex items-center gap-2 justify-between mb-2">
               <label className="block text-sm font-medium text-slate-700 text-left">Only Posts Newer Than</label>

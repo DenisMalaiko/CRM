@@ -14,6 +14,7 @@ import {
 } from '../prompts/contentPlan/strategist';
 import {
   copywriterSystemPrompt,
+  copywriterIdeasContext,
   copywriterTaskBlock,
 } from '../prompts/contentPlan/copywriter';
 import {
@@ -84,6 +85,7 @@ export class AiContentPlanService {
       strategy.posts,
       business.name,
       language,
+      settings.ideas,
     );
     this.logger.log(`Copywriter done: ${withCopy.posts.length} posts`);
 
@@ -125,13 +127,18 @@ export class AiContentPlanService {
     posts: z.infer<typeof StrategistResponseSchema>['posts'],
     businessName: string,
     language: string,
+    ideas: ContentPlanSettings['ideas'],
   ) {
     const postsJson = JSON.stringify(posts, null, 2);
+    const ideasBlock = ideas.length ? this.base.getIdeas(ideas) : '';
 
     const prompt = [
       copywriterSystemPrompt(),
+      copywriterIdeasContext(ideasBlock),
       copywriterTaskBlock(postsJson, businessName, language),
-    ].join('\n\n');
+    ]
+      .filter(Boolean)
+      .join('\n\n');
 
     const response = await this.base.getModel(AiModel.Fast).invoke(prompt);
     const rawText = this.base.extractTextContent(response.content);

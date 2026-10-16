@@ -225,11 +225,11 @@ describe('CreateCompetitorDlg', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it('calls onClose when the ✕ button is clicked', () => {
+  it('calls onClose when the close button is clicked', () => {
     const onClose = jest.fn();
     renderDialog({ onClose });
 
-    userEvent.click(screen.getByRole('button', { name: /✕/i }));
+    userEvent.click(screen.getByRole('button', { name: /close/i }));
 
     expect(onClose).toHaveBeenCalledTimes(1);
   });

@@ -9,6 +9,45 @@ import { CreateBusinessDlg } from './CreateBusinessDlg';
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
 
+const translations: Record<string, string> = {
+  'General.country': 'Country',
+  'General.selectCountry': 'Select Country',
+  'General.language': 'Language',
+  'General.selectLanguage': 'Select Language',
+  'General.facebook': 'Facebook',
+  'General.instagram': 'Instagram',
+  'General.name': 'Name',
+  'General.website': 'Website',
+  'General.status': 'Status',
+  'General.save': 'Save',
+  'General.saving': 'Saving...',
+  'General.cancel': 'Cancel',
+  'Businesses.createBusiness': 'Create Business',
+  'Businesses.editBusiness': 'Edit Business',
+  'Businesses.industry': 'Industry',
+  'Businesses.brand': 'Brand',
+  'Businesses.advantages': 'Advantages',
+  'Businesses.goals': 'Goals',
+  'Businesses.enterName': 'Enter name',
+  'Businesses.enterWebsite': 'Enter website',
+  'Businesses.enterFacebookLink': 'Enter Facebook link',
+  'Businesses.enterInstagramLink': 'Enter Instagram link',
+  'Businesses.enterAboutBrand': 'Enter About Brand',
+  'Businesses.enterAdvantage': 'Enter advantage',
+  'Businesses.enterGoal': 'Enter goal',
+  'Businesses.newAdvantage': 'New Advantage',
+  'Businesses.newGoal': 'New Goal',
+  'Businesses.deleteAdvantage': 'Delete Advantage',
+  'Businesses.deleteGoal': 'Delete Goal',
+};
+
+jest.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key: string) => translations[key] ?? key,
+    i18n: { changeLanguage: jest.fn() },
+  }),
+}));
+
 jest.mock('react-toastify', () => ({
   toast: { success: jest.fn(), error: jest.fn() },
 }));

@@ -127,14 +127,14 @@ function GenerateContentPlanDlg({ open, onClose }: Props) {
   const allIdeasOptions = useMemo(() => {
     return [
       ...(ideas ?? [])
-        .filter((idea: TIdea) => idea.status === IdeaStatus.Used)
+        .filter((idea: TIdea) => idea.status === IdeaStatus.Planned || idea.status === IdeaStatus.Used)
         .map((idea: TIdea) => ({
           label: idea.title,
           value: idea.id,
           type: "manual" as const,
         })),
       ...(ideasAi ?? [])
-        .filter((idea: TIdeaAI) => idea.status === IdeaStatus.Used)
+        .filter((idea: TIdeaAI) => idea.status === IdeaStatus.Planned || idea.status === IdeaStatus.Used)
         .map((idea: TIdeaAI) => ({
           label: idea.title,
           value: idea.id,
@@ -186,20 +186,20 @@ function GenerateContentPlanDlg({ open, onClose }: Props) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50">
-      <div className="w-full max-w-3xl rounded-2xl bg-white shadow-xl p-6 relative max-h-[90vh] overflow-y-auto overflow-x-hidden">
-        <div className="flex items-center justify-between mb-6 relative">
-          <h2 className="text-lg font-semibold">Generate Content Plan</h2>
-
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50">
+      <div className="w-full max-w-3xl rounded-2xl bg-white shadow-xl relative">
+        <div className="border-b p-4 flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-slate-800">Generate Content Plan</h2>
           <button
             onClick={onClose}
-            className="absolute top-0 right-0 text-white text-xl z-10 bg-blue-600 rounded-full p-2 hover:bg-blue-700 cursor-pointer"
+            aria-label="Close"
+            className="bg-blue-600 rounded-full p-1.5 hover:bg-blue-700 cursor-pointer"
           >
-            <X size={20} strokeWidth={2} color="white" />
+            <X size={18} strokeWidth={2} color="white" />
           </button>
         </div>
 
-        <form className="space-y-4" onSubmit={generate}>
+        <form className="p-6 space-y-4" onSubmit={generate}>
           <div>
             <div className="grid grid-cols-2 gap-4">
               {MODE_OPTIONS.map((option) => {

@@ -30,6 +30,22 @@ GENERAL RULES:
 - Every element must feel native to the platform and format`;
 }
 
+export function copywriterIdeasContext(ideasBlock: string) {
+  if (!ideasBlock?.trim()) return '';
+
+  return `## IDEA CONTEXT
+
+The following ideas were used to generate the content strategy.
+Posts derived from these ideas MUST reflect each idea's essence in the copy:
+
+- Match the HOOK tone to the idea's target emotion (feeling)
+- Shape the THESIS around the idea's execution style (how) and audience intent (who)
+- Use the competitor post structure (if available) to guide hook → thesis → CTA flow — extract only the STRUCTURE and PSYCHOLOGY, never copy text
+- The CTA should align with the idea's marketing goal (why)
+
+${ideasBlock}`;
+}
+
 export function copywriterTaskBlock(
   strategyPosts: string,
   businessName: string,

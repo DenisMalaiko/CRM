@@ -61,9 +61,17 @@ ${productsBlock ? `\nProducts / services:\n${productsBlock}` : ''}`;
 
 export function strategistIdeasBlock(ideasBlock: string, context?: string) {
   if (ideasBlock?.trim()) {
-    return `## CREATIVE DIRECTION FROM IDEAS
+    return `## CREATIVE DIRECTION FROM IDEAS (PRIMARY)
 
-Use the following ideas as creative inspiration when choosing topics and funnel stages.
+The following ideas are the PRIMARY DRIVER of this content plan.
+Each idea MUST become at least one post — build the entire plan AROUND these ideas.
+
+IDEA-DRIVEN PLANNING RULES:
+- Assign each idea to the best-fitting funnel stage (TOFU / MOFU / BOFU), format, and day
+- The "topic" and "marketingGoal" of each idea-driven post MUST clearly reflect the source idea — do not dilute or generalize
+- If there are fewer than 10 ideas, fill remaining slots with supporting content that complements the ideas and maintains a balanced funnel arc
+- If there are 10 or more ideas, select the 10 strongest while ensuring funnel balance
+- Supporting (non-idea) posts should reinforce, build anticipation for, or follow up on the idea-driven posts
 
 ${ideasBlock}
 ${context?.trim() ? `\nAdditional context:\n${context}` : ''}`;

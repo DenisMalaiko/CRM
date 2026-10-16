@@ -1,4 +1,4 @@
-import { strategistOutputBlock } from './strategist';
+import { strategistIdeasBlock, strategistOutputBlock } from './strategist';
 
 // ─────────────────────────────────────────────
 // strategistOutputBlock
@@ -124,5 +124,101 @@ describe('strategistOutputBlock', () => {
     const result = strategistOutputBlock('English');
 
     expect(result).toContain('Generate exactly 10 posts');
+  });
+});
+
+// ─────────────────────────────────────────────
+// strategistIdeasBlock
+// ─────────────────────────────────────────────
+describe('strategistIdeasBlock', () => {
+  const ideasBlock = 'Idea 1: Launch campaign\nIdea 2: Behind the scenes';
+
+  it('returns PRIMARY DRIVER header when ideas are provided', () => {
+    const result = strategistIdeasBlock(ideasBlock);
+
+    expect(result).toContain('CREATIVE DIRECTION FROM IDEAS (PRIMARY)');
+  });
+
+  it('labels ideas as the PRIMARY DRIVER when ideas are provided', () => {
+    const result = strategistIdeasBlock(ideasBlock);
+
+    expect(result).toContain('PRIMARY DRIVER');
+  });
+
+  it('includes the MUST become at least one post directive when ideas are provided', () => {
+    const result = strategistIdeasBlock(ideasBlock);
+
+    expect(result).toContain('MUST become at least one post');
+  });
+
+  it('includes the IDEA-DRIVEN PLANNING RULES section when ideas are provided', () => {
+    const result = strategistIdeasBlock(ideasBlock);
+
+    expect(result).toContain('IDEA-DRIVEN PLANNING RULES');
+  });
+
+  it('includes the provided ideas content in the output', () => {
+    const result = strategistIdeasBlock(ideasBlock);
+
+    expect(result).toContain('Idea 1: Launch campaign');
+    expect(result).toContain('Idea 2: Behind the scenes');
+  });
+
+  it('includes additional context when both ideas and context are provided', () => {
+    const result = strategistIdeasBlock(ideasBlock, 'Focus on summer theme');
+
+    expect(result).toContain('Additional context:');
+    expect(result).toContain('Focus on summer theme');
+  });
+
+  it('does not include additional context section when context is empty string', () => {
+    const result = strategistIdeasBlock(ideasBlock, '');
+
+    expect(result).not.toContain('Additional context:');
+  });
+
+  it('does not include additional context section when context is whitespace only', () => {
+    const result = strategistIdeasBlock(ideasBlock, '   ');
+
+    expect(result).not.toContain('Additional context:');
+  });
+
+  it('returns fallback no-ideas text when ideasBlock is empty string', () => {
+    const result = strategistIdeasBlock('');
+
+    expect(result).toContain('No specific ideas provided');
+  });
+
+  it('returns fallback no-ideas text when ideasBlock is whitespace only', () => {
+    const result = strategistIdeasBlock('   ');
+
+    expect(result).toContain('No specific ideas provided');
+  });
+
+  it('does not include PRIMARY DRIVER language in fallback when no ideas provided', () => {
+    const result = strategistIdeasBlock('');
+
+    expect(result).not.toContain('PRIMARY DRIVER');
+  });
+
+  it('returns context-only block when no ideas but context is provided', () => {
+    const result = strategistIdeasBlock('', 'Promote end-of-year deals');
+
+    expect(result).toContain('## CREATIVE DIRECTION');
+    expect(result).toContain('Promote end-of-year deals');
+  });
+
+  it('does not include IDEA-DRIVEN PLANNING RULES in context-only block', () => {
+    const result = strategistIdeasBlock('', 'Promote end-of-year deals');
+
+    expect(result).not.toContain('IDEA-DRIVEN PLANNING RULES');
+  });
+
+  it('returns generic fallback when neither ideas nor context are provided', () => {
+    const result = strategistIdeasBlock('');
+
+    expect(result).toContain('## CREATIVE DIRECTION');
+    expect(result).toContain('No specific ideas provided');
+    expect(result).toContain('business context');
   });
 });

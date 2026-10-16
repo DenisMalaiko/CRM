@@ -31,21 +31,21 @@ function PhotoEditDlg({open, photo, onClose, onSave }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50">
-      <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl p-6 relative max-h-[90vh] overflow-auto">
-        <div className="flex items-center justify-between mb-4 relative">
-          <h2 className="text-lg font-semibold">Add Description</h2>
+      <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl max-h-[90vh] overflow-auto">
+        <div className="border-b p-4 flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-slate-800">Add Description</h2>
 
-          {/* Close */}
           <button
             onClick={() => onClose()}
-            className="absolute top-0 right-0 text-white text-xl z-10 bg-blue-600 rounded-full p-2 hover:bg-blue-700 cursor-pointer"
+            aria-label="Close"
+            className="bg-blue-600 rounded-full p-1.5 hover:bg-blue-700 cursor-pointer"
           >
-            <X size={20} strokeWidth={2} color="white"></X>
+            <X size={18} strokeWidth={2} color="white" />
           </button>
         </div>
 
         {/* Text */}
-        <div className="mt-8">
+        <div className="p-6">
 
           {/* Type */}
           <div className="mb-4">
@@ -94,7 +94,7 @@ function PhotoEditDlg({open, photo, onClose, onSave }: Props) {
         </div>
 
         {/* Actions */}
-        <div className="flex justify-end gap-3 pt-4">
+        <div className="flex justify-end gap-3 px-6 pb-6">
           <button
             onClick={() => onClose()}
             className="px-4 py-2 rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-50"

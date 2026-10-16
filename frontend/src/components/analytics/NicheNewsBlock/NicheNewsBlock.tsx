@@ -5,14 +5,16 @@ import { TNicheNews } from "../../../models/NicheNews"
 import { usePagination } from "../../../hooks/usePagination"
 import { TIdeaAI } from "../../../models/IdeaAI"
 import { IdeaDetailDlg } from "./components/ideaDetailDlg/IdeaDetailDlg"
+import { IdeaStatus } from "../../../enum/IdeaStatus"
 
 type Props = {
   nicheNews: TNicheNews[]
   onFetch?: () => void
   isFetching?: boolean
+  onIdeaStatusChange?: (ideaId: string, newStatus: IdeaStatus) => void
 }
 
-export function NicheNewsBlock({ nicheNews, onFetch, isFetching }: Props) {
+export function NicheNewsBlock({ nicheNews, onFetch, isFetching, onIdeaStatusChange }: Props) {
   const { t } = useTranslation()
 
   const [selectedIdea, setSelectedIdea] = useState<TIdeaAI | null>(null)
@@ -113,8 +115,13 @@ export function NicheNewsBlock({ nicheNews, onFetch, isFetching }: Props) {
       )}
 
       <IdeaDetailDlg
+        key={selectedIdea?.id}
         idea={selectedIdea}
         onClose={() => setSelectedIdea(null)}
+        onStatusChange={(ideaId, newStatus) => {
+          setSelectedIdea((prev) => prev ? { ...prev, status: newStatus } : prev)
+          onIdeaStatusChange?.(ideaId, newStatus)
+        }}
       />
     </div>
   )
