@@ -195,20 +195,21 @@ function CreateAudienceDlg({ open, onClose, audience }: any) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50">
-      <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl p-6 max-h-[90vh] overflow-y-auto overflow-x-hidden">
+      <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl max-h-[90vh] overflow-y-auto overflow-x-hidden">
 
-        <div className="flex items-center justify-between mb-4 relative">
-          <h2 className="text-lg font-semibold">{ isEdit ? "Edit" : "Create" } Audience</h2>
+        <div className="border-b p-4 flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-slate-800">{ isEdit ? "Edit" : "Create" } Audience</h2>
 
           <button
             onClick={() => onClose()}
-            className="absolute top-0 right-0 text-white text-xl z-10 bg-blue-600 rounded-full p-2 hover:bg-blue-700 cursor-pointer"
+            aria-label="Close"
+            className="bg-blue-600 rounded-full p-1.5 hover:bg-blue-700 cursor-pointer"
           >
-            <X size={20} strokeWidth={2} color="white"></X>
+            <X size={18} strokeWidth={2} color="white" />
           </button>
         </div>
 
-        <form className="space-y-4" onSubmit={create} action="">
+        <form className="p-6 space-y-4" onSubmit={create} action="">
           <div>
             <div className="flex items-center gap-2 justify-between">
               <label className="block text-sm font-medium text-slate-700 text-left">Name</label>

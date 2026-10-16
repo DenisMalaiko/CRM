@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { Eye, Copy } from "lucide-react";
+import { Eye, Copy, Search } from "lucide-react";
 
 // Hooks
 import { usePagination } from "../../../../../hooks/usePagination";
@@ -56,6 +56,7 @@ function ContentPlan() {
   const [ selectedPlan, setSelectedPlan ] = useState<TContentPlan | null>(null);
   const [ openTextDlg, setOpenTextDlg ] = useState(false);
   const [ selectedText, setSelectedText ] = useState<string | null>(null);
+  const [ search, setSearch ] = useState("");
 
   const { copy } = useCopyToClipboard();
 
@@ -94,10 +95,20 @@ function ContentPlan() {
     });
   }, [contentPlans, sortKey, sortDir]);
 
+  const filteredPlans = useMemo(() => {
+    if (!search.trim()) return sortedPlans;
+    const q = search.toLowerCase();
+    return sortedPlans.filter(
+      (plan) =>
+        plan.title?.toLowerCase().includes(q) ||
+        plan.description?.toLowerCase().includes(q)
+    );
+  }, [sortedPlans, search]);
+
   const { page, setPage, totalPages, paginatedItems, hasPrev, hasNext } = usePagination({
-    items: sortedPlans,
+    items: filteredPlans,
     pageSize: 5,
-    resetDeps: [sortKey, sortDir],
+    resetDeps: [sortKey, sortDir, search],
   });
 
   if (!businessId) return null;
@@ -155,12 +166,25 @@ function ContentPlan() {
           <div className="border-b p-4 flex items-center justify-between">
             <h2 className="text-lg text-left font-semibold text-slate-800">Content Plan</h2>
 
-            <button
-              onClick={() => setOpen(true)}
-              className="px-4 py-2 rounded-lg bg-blue-600 text-white flex items-center gap-2 justify-center"
-            >
-              Generate
-            </button>
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search..."
+                  className="pl-9 pr-3 py-2 text-sm rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none w-60"
+                />
+              </div>
+
+              <button
+                onClick={() => setOpen(true)}
+                className="px-4 py-2 rounded-lg bg-blue-600 text-white flex items-center gap-2 justify-center"
+              >
+                Generate
+              </button>
+            </div>
           </div>
         </section>
 

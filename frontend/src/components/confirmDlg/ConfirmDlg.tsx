@@ -34,34 +34,26 @@ export function useConfirmDialog() {
   return (
     state.isOpen && (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50">
-        <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl p-6">
-          <div className="flex items-center justify-between mb-2 relative">
-            <h2 className="text-lg font-semibold">
+        <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl">
+          <div className="border-b p-4 flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-slate-800">
               {state.options.title || "Confirm"}
             </h2>
 
-
-            {/* Close */}
             <button
               onClick={() => handleClose(false)}
-              className="absolute right-0 text-white text-xl z-10 bg-blue-600 rounded-full p-2 hover:bg-blue-700 cursor-pointer"
+              aria-label="Close"
+              className="bg-blue-600 rounded-full p-1.5 hover:bg-blue-700 cursor-pointer"
             >
-              <X size={20} strokeWidth={2} color="white"></X>
+              <X size={18} strokeWidth={2} color="white" />
             </button>
-
-{/*            <button
-              onClick={() => handleClose(false)}
-              className="text-slate-500 hover:text-slate-700 rounded-full p-1 hover:bg-slate-100"
-            >
-              ✕
-            </button>*/}
           </div>
 
-          <div>
+          <div className="p-6">
             <p className="text-left">{state.options.message || "Are you sure?"}</p>
           </div>
 
-          <div className="flex justify-end gap-3 pt-4">
+          <div className="flex justify-end gap-3 px-6 pb-6">
             <button
               onClick={() => handleClose(false)}
               className="px-4 py-2 rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-50"

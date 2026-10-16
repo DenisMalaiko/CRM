@@ -199,7 +199,8 @@
     "ideaFeelingValue_Authority": "Authority",
     "ideaFeelingValue_Empathy": "Empathy",
     "generatePost": "Generate Post",
-    "generateStory": "Generate Story"
+    "generateStory": "Generate Story",
+    "ideaDetails": "Idea Details"
   },
   "BusinessSidebar": {
     "Dashboard": "Dashboard",

@@ -1,15 +1,18 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams } from 'react-router-dom'
-import { X, FileText, Film } from 'lucide-react'
+import { X, FileText, Film, Save } from 'lucide-react'
+import { toast } from 'react-toastify'
 import { TIdeaAI } from '../../../../../models/IdeaAI'
 import { getStatusClass } from '../../../../../utils/getStatusClass'
 import { useUpdateIdeaAIMutation } from '../../../../../store/ai/ideas/ideaAiApi'
 import { IdeaStatus } from '../../../../../enum/IdeaStatus'
+import { showError } from '../../../../../utils/showError'
 
 type Props = {
   idea: TIdeaAI | null
   onClose: () => void
+  onStatusChange?: (ideaId: string, newStatus: IdeaStatus) => void
 }
 
 type IdeaField = 'who' | 'what' | 'why' | 'how' | 'feeling'
@@ -30,11 +33,25 @@ const VALUE_PREFIX: Record<IdeaField, string> = {
   feeling: 'BusinessDashboard.ideaFeelingValue_',
 }
 
-export function IdeaDetailDlg({ idea, onClose }: Props) {
+export function IdeaDetailDlg({ idea, onClose, onStatusChange }: Props) {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const { businessId } = useParams<{ businessId: string }>()
-  const [updateIdeaAI] = useUpdateIdeaAIMutation()
+  const [updateIdeaAI, { isLoading: isSaving }] = useUpdateIdeaAIMutation()
+  const [status, setStatus] = useState<IdeaStatus>(idea?.status ?? IdeaStatus.New)
+
+  const hasStatusChanged = status !== idea?.status
+
+  async function handleSaveStatus() {
+    if (!idea || !hasStatusChanged) return
+    try {
+      const response = await updateIdeaAI({ id: idea.id, form: { status } }).unwrap()
+      if (response?.message) toast.success(response.message)
+      onStatusChange?.(idea.id, status)
+    } catch (error) {
+      showError(error)
+    }
+  }
 
   async function handleGenerate(type: 'posts' | 'stories') {
     if (!idea || !businessId) return
@@ -54,21 +71,47 @@ export function IdeaDetailDlg({ idea, onClose }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50" onClick={onClose}>
-      <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl p-6 relative max-h-[90vh] overflow-auto" onClick={(e) => e.stopPropagation()}>
-        <button
-          onClick={onClose}
-          aria-label="Close"
-          className="absolute top-3 right-3 z-10 bg-blue-600 rounded-full p-2 hover:bg-blue-700 cursor-pointer"
-        >
-          <X size={20} strokeWidth={2} color="white" />
-        </button>
+      <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl relative max-h-[90vh] overflow-auto" onClick={(e) => e.stopPropagation()}>
+        <div className="border-b p-4 flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-slate-800">{t('BusinessDashboard.ideaDetails')}</h2>
+          <button
+            onClick={onClose}
+            aria-label="Close"
+            className="bg-blue-600 rounded-full p-1.5 hover:bg-blue-700 cursor-pointer"
+          >
+            <X size={18} strokeWidth={2} color="white" />
+          </button>
+        </div>
 
-        <div className="mt-8 flex flex-col gap-4">
-          <div className="flex items-start justify-between gap-3">
-            <h3 className="text-base font-semibold text-slate-800 text-left">{idea.title}</h3>
-            <span className={`shrink-0 text-xs font-medium px-2 py-0.5 rounded-full ${getStatusClass(idea.status)}`}>
-              {idea.status}
-            </span>
+        <div className="p-5 flex flex-col gap-4">
+          <h3 className="text-base font-semibold text-slate-800 text-left">{idea.title}</h3>
+
+          <div className="flex items-center gap-3">
+            <label className="text-sm font-medium text-slate-600">{t('General.status')}</label>
+            <select
+              value={status}
+              onChange={(e) => setStatus(e.target.value as IdeaStatus)}
+              className={`text-sm font-medium px-3 py-1.5 rounded-lg cursor-pointer outline-none border border-slate-200 ${getStatusClass(status)}`}
+            >
+              {Object.values(IdeaStatus).map((s) => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
+            {hasStatusChanged && (
+              <button
+                type="button"
+                onClick={handleSaveStatus}
+                disabled={isSaving}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:opacity-50 cursor-pointer"
+              >
+                {isSaving ? (
+                  <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                ) : (
+                  <Save size={14} />
+                )}
+                {t('General.save')}
+              </button>
+            )}
           </div>
 
           {idea.description && (

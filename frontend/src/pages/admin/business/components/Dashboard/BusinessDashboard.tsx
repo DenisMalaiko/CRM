@@ -26,6 +26,7 @@ import { TBusinessProfile } from "../../../../../models/BusinessProfile"
 import { TPrompt } from "../../../../../models/Prompt"
 import { TContentPlan } from "../../../../../models/ContentPlan"
 import { TIdeaAI } from "../../../../../models/IdeaAI"
+import { IdeaStatus } from "../../../../../enum/IdeaStatus"
 import { showError } from "../../../../../utils/showError"
 import { ContentTypeChart } from "../../../../../components/analytics/ContentTypeChart/ContentTypeChart"
 import { StoriesTypeChart } from "./StoriesTypeChart"
@@ -206,6 +207,17 @@ export function BusinessDashboard() {
     }
   }
 
+  function handleIdeaStatusChange(ideaId: string, newStatus: IdeaStatus) {
+    setNicheNewsData((prev) =>
+      prev.map((news) => ({
+        ...news,
+        ideasAI: news.ideasAI?.map((idea) =>
+          idea.id === ideaId ? { ...idea, status: newStatus } : idea
+        ),
+      }))
+    )
+  }
+
   const handleFetchNews = async () => {
     if (!businessId) return
     setIsFetchingNews(true)
@@ -325,7 +337,7 @@ export function BusinessDashboard() {
 
           <div className="grid grid-cols-2 gap-4">
             <RecentActivityBlock recentActivity={recentActivity} />
-            <NicheNewsBlock nicheNews={nicheNews} onFetch={handleFetchNews} isFetching={isFetchingNews} />
+            <NicheNewsBlock nicheNews={nicheNews} onFetch={handleFetchNews} isFetching={isFetchingNews} onIdeaStatusChange={handleIdeaStatusChange} />
           </div>
         </div>
       )}

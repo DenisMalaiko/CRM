@@ -40,15 +40,20 @@ jest.mock('../../../../../../../../../../utils/showError', () => ({
 
 // Stub DatePicker — avoids complex calendar DOM in unit tests
 jest.mock('react-datepicker', () => {
-  const MockDatePicker = ({ onChange, selected, className }: any) => (
-    <input
-      data-testid="date-picker"
-      type="text"
-      className={className}
-      defaultValue={selected ? selected.toISOString().slice(0, 10) : ''}
-      readOnly
-    />
-  );
+  const MockDatePicker = ({ onChange, selected, className }: any) => {
+    const displayValue = selected
+      ? (selected instanceof Date ? selected.toISOString().slice(0, 10) : String(selected).slice(0, 10))
+      : '';
+    return (
+      <input
+        data-testid="date-picker"
+        type="text"
+        className={className}
+        defaultValue={displayValue}
+        readOnly
+      />
+    );
+  };
   return MockDatePicker;
 });
 
@@ -132,13 +137,7 @@ describe('FetchInstagramPostsDlg', () => {
       const onClose = jest.fn();
       renderDialog({ onClose });
 
-      // X button is the one that is neither Cancel nor Get
-      const buttons = screen.getAllByRole('button');
-      const closeButton = buttons.find(
-        (btn) => !btn.textContent?.match(/cancel|get/i)
-      );
-      expect(closeButton).toBeDefined();
-      userEvent.click(closeButton!);
+      userEvent.click(screen.getByRole('button', { name: /close/i }));
 
       expect(onClose).toHaveBeenCalledTimes(1);
     });
