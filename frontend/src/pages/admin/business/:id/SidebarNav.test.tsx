@@ -70,7 +70,6 @@ describe('SidebarNav', () => {
   it('renders the top-level Dashboard NavLink pointing to /dashboard', () => {
     renderAt('/dashboard');
 
-    // There are two "Dashboard" links (top-level + Competitors tab), query by href
     const dashboardLinks = screen.getAllByRole('link', { name: /dashboard/i });
     const topDashboard = dashboardLinks.find((l) => l.getAttribute('href') === '/dashboard');
     expect(topDashboard).toBeInTheDocument();
@@ -116,8 +115,7 @@ describe('SidebarNav', () => {
   it('does not expand any group when the route matches no tab', () => {
     renderAt('/dashboard');
 
-    const buttons = screen.getAllByRole('button');
-    buttons.forEach((button) => {
+    screen.getAllByRole('button').forEach((button) => {
       expect(getAccordion(button)).toHaveClass('grid-rows-[0fr]');
     });
   });
@@ -221,7 +219,6 @@ describe('SidebarNav', () => {
     renderAt('/competitors/list');
 
     expect(screen.getByRole('link', { name: /^list$/i })).toHaveAttribute('href', '/competitors/list');
-    // Use getAllByRole because both the top-level and Competitors tab have "Dashboard" text
     const dashboardLinks = screen.getAllByRole('link', { name: /^dashboard$/i });
     const competitorsDashboard = dashboardLinks.find(
       (l) => l.getAttribute('href') === '/competitors/dashboard'
@@ -259,7 +256,6 @@ describe('SidebarNav', () => {
   it('rotates the chevron for the open group', () => {
     renderAt('/posts');
 
-    // The group icon is inside <span>, the chevron is a direct child of <button>
     const contentButton = screen.getByRole('button', { name: /^content$/i });
     const chevron = contentButton.querySelector(':scope > svg');
     expect(chevron).toHaveClass('rotate-90');
