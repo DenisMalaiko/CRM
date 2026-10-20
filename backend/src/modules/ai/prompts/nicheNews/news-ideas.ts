@@ -81,6 +81,7 @@ Rules:
 - Consider the target audience's pains, desires, and interests when framing the idea.
 - If brand voice is provided, the tone of title and description should reflect it.
 - Classify the idea using the who/what/why/how/feeling enums.
+- You MUST use EXACTLY the enum values listed in the output format below. Do not invent new values or use synonyms.
 - Write title and description in the same language as the article.`;
 }
 

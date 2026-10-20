@@ -293,6 +293,20 @@
     "Design": "Design",
     "AIPhoto": "AI Photo"
   },
+  "CalendarPage": {
+    "title": "Calendar",
+    "today": "Today",
+    "national": "National",
+    "religious": "Religious",
+    "observance": "Observance",
+    "Mon": "Mon",
+    "Tue": "Tue",
+    "Wed": "Wed",
+    "Thu": "Thu",
+    "Fri": "Fri",
+    "Sat": "Sat",
+    "Sun": "Sun"
+  },
   "ContentPlanPosts": {
     "BackButton": "Back",
     "Title_page": "Content Plan Posts",

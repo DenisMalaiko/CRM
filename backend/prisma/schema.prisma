@@ -699,17 +699,6 @@ model ContentPlan {
   @@index([businessId])
 }
 
-model PublicHoliday {
-  id          String   @id @default(uuid())
-  year        Int
-  countryCode String
-  holidays    Json
-  fetchedAt   DateTime @default(now())
-
-  @@unique([year, countryCode])
-  @@index([year, countryCode])
-}
-
 model CalendarificHoliday {
   id          String   @id @default(uuid())
   year        Int

@@ -1,4 +1,5 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { z } from 'zod';
 import { PrismaService } from '../../core/prisma/prisma.service';
 import { IndustryCategoryMap } from '../../shared/const/IndustryCategoryMap';
 import { type NicheNews } from '@prisma/client';
@@ -277,11 +278,21 @@ export class NicheNewsService {
 
       const response = await model.invoke(prompt);
       const rawText = this.aiBase.extractTextContent(response.content);
-      const parsed = NewsIdeasSchema.parse(this.aiBase.safeParseJson(rawText));
+      const rawParsed = this.aiBase.safeParseJson(rawText);
+      const rawIdeas = Array.isArray(rawParsed?.ideas) ? rawParsed.ideas : [];
+      const IdeaSchema = NewsIdeasSchema.shape.ideas.element;
 
-      const validIdeas = parsed.ideas.filter(
-        (idea) => idea.newsIndex >= 0 && idea.newsIndex < savedNews.length,
-      );
+      const validIdeas: z.infer<typeof IdeaSchema>[] = [];
+      for (const raw of rawIdeas) {
+        const result = IdeaSchema.safeParse(raw);
+        if (result.success && result.data.newsIndex >= 0 && result.data.newsIndex < savedNews.length) {
+          validIdeas.push(result.data);
+        } else if (!result.success) {
+          this.logger.warn(
+            `Skipping invalid idea: ${JSON.stringify(result.error.issues)}`,
+          );
+        }
+      }
 
       const created = await this.prisma.$transaction(
         validIdeas.map((idea) =>
