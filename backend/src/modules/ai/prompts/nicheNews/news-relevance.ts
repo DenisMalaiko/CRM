@@ -52,7 +52,9 @@ Analyze each news article above and determine if it is relevant to the business 
 Rules:
 - Include articles that cover topics the business, its products/services, or its target customers would find useful or interesting.
 - Include articles about trends, events, or developments in the broader industry — not just the exact sub-niche.
-- Exclude only articles that are clearly unrelated to the industry (e.g. politics, celebrity gossip, unrelated sports for a non-sports business).`;
+- Exclude only articles that are clearly unrelated to the industry (e.g. politics, celebrity gossip, unrelated sports for a non-sports business).
+- When in doubt, INCLUDE the article — it is better to show a loosely related article than to miss a relevant one.
+- For sports, outdoor, health, and fitness businesses: general sports news, athlete stories, event coverage, and fitness trends ARE relevant — they provide timely hooks for content creation.`;
 }
 
 export function newsFilterOutputBlock(): string {

@@ -293,6 +293,20 @@
     "Design": "Дизайн",
     "AIPhoto": "AI-фото"
   },
+  "CalendarPage": {
+    "title": "Календар",
+    "today": "Сьогодні",
+    "national": "Державне",
+    "religious": "Релігійне",
+    "observance": "Пам'ятне",
+    "Mon": "Пн",
+    "Tue": "Вт",
+    "Wed": "Ср",
+    "Thu": "Чт",
+    "Fri": "Пт",
+    "Sat": "Сб",
+    "Sun": "Нд"
+  },
   "ContentPlanPosts": {
     "BackButton": "Назад",
     "Title_page": "Пости контент-плану",

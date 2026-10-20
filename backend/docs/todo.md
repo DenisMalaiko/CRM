@@ -1,3 +1,31 @@
+## Свята з AI-перекладом, кешуванням та типізацією — 2026-10-19
+
+### Plan
+- [x] Оновити Prisma-схему: видалити `PublicHoliday`, залишити `CalendarificHoliday`
+- [x] Створити AI-промпт для перекладу свят (`translate-holidays.ts`)
+- [x] Створити Zod-схему для валідації AI-відповіді (`ai-calendarific.schema.ts`)
+- [x] Оновити entity-типи (мультимовна структура)
+- [x] Оновити DTO — додати `language` query param
+- [x] Оновити `CalendarificService` — кешування + AI переклад
+- [x] Оновити контролер — прокинути `language`
+- [x] Оновити модуль — додати PrismaModule + AiBaseService
+- [x] Оновити фронтенд — language param + типізація свят на UI
+- [x] Quality gate: backend-reviewer + backend-tester
+
+### Notes
+- Migration needed: yes — видалення таблиці `PublicHoliday` (таблиця ніколи не існувала в БД, тому деструктивна міграція не потрібна)
+- Affected modules: calendarific, ai
+- Формат кешу: мультимовний JSON `{ names: { en, uk }, descriptions: { en, uk } }`
+- Pending: потрібно запустити `sudo npx prisma generate` для оновлення Prisma client
+
+### Review
+- [x] backend-reviewer → PASS (retry 1: додано @IsNotEmpty, try/catch для safeParseJson, перевірка API shape, guard довжини масиву)
+- [x] backend-tester → 29/29 тестів пройшли (17 service + 12 controller)
+- [x] Регресій не знайдено
+- Summary: Додано кешування свят з AI-перекладом (en/uk) через gpt-4o-mini, query-param language з дефолтом uk, типізація свят (national/religious/observance) на фронті
+
+---
+
 ## Strategic Insights для CompetitorFacebookReport — 2026-10-09
 
 ### Plan

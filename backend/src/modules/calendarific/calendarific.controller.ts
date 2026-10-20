@@ -1,8 +1,11 @@
-import { Controller, Get, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../../core/guards/jwt-auth.guard';
 import { ResponseMessage } from '../../core/decorators/response-message.decorator';
 import { CalendarificService } from './calendarific.service';
-import { GetCalendarificParamsDto } from './dto/calendarific.dto';
+import {
+  GetCalendarificParamsDto,
+  GetCalendarificQueryDto,
+} from './dto/calendarific.dto';
 
 @UseGuards(JwtAuthGuard)
 @Controller('calendarific')
@@ -11,7 +14,14 @@ export class CalendarificController {
 
   @Get('/:year/:countryCode')
   @ResponseMessage('Calendarific holidays retrieved successfully')
-  async getHolidays(@Param() { year, countryCode }: GetCalendarificParamsDto) {
-    return this.calendarificService.getHolidays(year, countryCode.toUpperCase());
+  async getHolidays(
+    @Param() { year, countryCode }: GetCalendarificParamsDto,
+    @Query() { language }: GetCalendarificQueryDto,
+  ) {
+    return this.calendarificService.getHolidays(
+      year,
+      countryCode.toUpperCase(),
+      language,
+    );
   }
 }
