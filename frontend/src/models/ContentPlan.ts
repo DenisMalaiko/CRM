@@ -6,17 +6,24 @@ export type TContentPlan = {
   title: string;
   description: string;
   status: ContentPlanStatus;
-  mode: "manual" | "profile";
+  mode: "manual" | "marketing_calendar";
   createdAt: Date;
 }
 
-export type TContentPlanGenerate = {
-  mode: "manual" | "profile";
-  productsIds?: string[];
-  audiencesIds?: string[];
-  ideasIds?: string[];
-  context?: string;
-}
+export type TContentPlanGenerate =
+  | {
+      mode: "manual";
+      productsIds?: string[];
+      audiencesIds?: string[];
+      ideasIds?: string[];
+    }
+  | {
+      mode: "marketing_calendar";
+      productsIds?: string[];
+      audiencesIds?: string[];
+      holidayName: string;
+      holidayDate: string;
+    };
 
 export type TContentPlanUpdate = {
   title?: string;

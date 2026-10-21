@@ -47,14 +47,14 @@ describe('contentPlanSlice', () => {
       id: 'plan-x',
       title: 'My Plan',
       status: ContentPlanStatus.Active,
-      mode: 'profile',
+      mode: 'manual',
     });
     const state = reducer(initialState, setContentPlans([plan]));
     expect(state.contentPlans![0]).toMatchObject({
       id: 'plan-x',
       title: 'My Plan',
       status: ContentPlanStatus.Active,
-      mode: 'profile',
+      mode: 'manual',
     });
   });
 });

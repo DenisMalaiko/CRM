@@ -42,20 +42,21 @@ jest.mock('../../../../../../store/ai/ideas/ideaAiApi', () => ({
   useLazyGetIdeasAIQuery: () => [mockGetIdeasAI, { isLoading: false }],
 }));
 
+jest.mock('../../../../../../store/calendarific/calendarificApi', () => ({
+  useGetCalendarificHolidaysQuery: () => ({ data: undefined }),
+}));
+
 const mockDispatch = jest.fn();
 
 jest.mock('../../../../../../store/hooks', () => ({
   useAppDispatch: () => mockDispatch,
-}));
-
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useSelector: (selector: (state: unknown) => unknown) =>
+  useAppSelector: (selector: (state: unknown) => unknown) =>
     selector({
       productsModule: { products: [] },
       audienceModule: { audiences: [] },
       ideaModule: { ideas: [] },
       ideaAiModule: { ideasAi: [] },
+      businessModule: { business: null },
     }),
 }));
 
@@ -88,7 +89,6 @@ let mockForm = {
   productsIds: [] as string[],
   audiencesIds: [] as string[],
   ideasIds: [] as string[],
-  context: '',
 };
 
 jest.mock('../../../../../../hooks/useForm', () => ({
@@ -132,95 +132,6 @@ describe('GenerateContentPlanDlg', () => {
   it('does not render when open is false', () => {
     renderDialog({ open: false });
     expect(screen.queryByText('Generate Content Plan')).not.toBeInTheDocument();
-  });
-
-  // ── Mode radio options ─────────────────────────────────────────────────────
-
-  it('renders the "Create manually" radio option', () => {
-    renderDialog();
-    expect(screen.getByText('Create manually')).toBeInTheDocument();
-  });
-
-  it('renders the "From business profile" radio option', () => {
-    renderDialog();
-    expect(screen.getByText('From business profile')).toBeInTheDocument();
-  });
-
-  it('defaults to the "manual" mode radio being checked', () => {
-    renderDialog();
-    const radios = screen.getAllByRole('radio');
-    const manualRadio = radios.find(r => (r as HTMLInputElement).value === 'manual');
-    expect(manualRadio).toBeChecked();
-  });
-
-  it('does not check the "profile" radio by default', () => {
-    renderDialog();
-    const radios = screen.getAllByRole('radio');
-    const profileRadio = radios.find(r => (r as HTMLInputElement).value === 'profile');
-    expect(profileRadio).not.toBeChecked();
-  });
-
-  // ── Mode switching ─────────────────────────────────────────────────────────
-
-  it('shows the context textarea when "From business profile" is selected', () => {
-    renderDialog();
-
-    expect(screen.queryByPlaceholderText(/describe your business profile context/i)).not.toBeInTheDocument();
-
-    const radios = screen.getAllByRole('radio');
-    const profileRadio = radios.find(r => (r as HTMLInputElement).value === 'profile')!;
-    userEvent.click(profileRadio);
-
-    expect(screen.getByPlaceholderText(/describe your business profile context/i)).toBeInTheDocument();
-  });
-
-  it('hides the context textarea when switching back to "manual" mode', () => {
-    renderDialog();
-
-    const radios = screen.getAllByRole('radio');
-    const profileRadio = radios.find(r => (r as HTMLInputElement).value === 'profile')!;
-    const manualRadio = radios.find(r => (r as HTMLInputElement).value === 'manual')!;
-
-    userEvent.click(profileRadio);
-    expect(screen.getByPlaceholderText(/describe your business profile context/i)).toBeInTheDocument();
-
-    userEvent.click(manualRadio);
-    expect(screen.queryByPlaceholderText(/describe your business profile context/i)).not.toBeInTheDocument();
-  });
-
-  it('checks the "profile" radio after clicking it', () => {
-    renderDialog();
-
-    const radios = screen.getAllByRole('radio');
-    const profileRadio = radios.find(r => (r as HTMLInputElement).value === 'profile')!;
-    userEvent.click(profileRadio);
-
-    expect(profileRadio).toBeChecked();
-  });
-
-  it('unchecks "manual" radio after switching to "profile"', () => {
-    renderDialog();
-
-    const radios = screen.getAllByRole('radio');
-    const profileRadio = radios.find(r => (r as HTMLInputElement).value === 'profile')!;
-    const manualRadio = radios.find(r => (r as HTMLInputElement).value === 'manual')!;
-
-    userEvent.click(profileRadio);
-    expect(manualRadio).not.toBeChecked();
-  });
-
-  // ── Context textarea ───────────────────────────────────────────────────────
-
-  it('calls handleChange when text is entered into the context textarea', () => {
-    renderDialog();
-
-    const radios = screen.getAllByRole('radio');
-    const profileRadio = radios.find(r => (r as HTMLInputElement).value === 'profile')!;
-    userEvent.click(profileRadio);
-
-    const textarea = screen.getByPlaceholderText(/describe your business profile context/i);
-    userEvent.type(textarea, 'My context');
-    expect(mockHandleChange).toHaveBeenCalled();
   });
 
   // ── Actions ────────────────────────────────────────────────────────────────
