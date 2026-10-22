@@ -23,6 +23,8 @@ import { useGetIdeasMutation } from "../../../../../../store/idea/ideaApi";
 import { setIdeas } from "../../../../../../store/idea/ideaSlice";
 import { useLazyGetIdeasAIQuery } from "../../../../../../store/ai/ideas/ideaAiApi";
 import { setIdeasAi } from "../../../../../../store/ai/ideas/ideaAiSlice";
+import { useGetBusinessMutation } from "../../../../../../store/businesses/businessesApi";
+import { setBusiness } from "../../../../../../store/businesses/businessesSlice";
 import { useGetCalendarificHolidaysQuery } from "../../../../../../store/calendarific/calendarificApi";
 
 // Components
@@ -36,6 +38,7 @@ import { TAudience } from "../../../../../../models/Audience";
 import { TIdea } from "../../../../../../models/Idea";
 import { TIdeaAI } from "../../../../../../models/IdeaAI";
 import { TCalendarificHoliday } from "../../../../../../models/CalendarificHoliday";
+import { TBusiness } from "../../../../../../models/Business";
 
 // Utils
 import { showError } from "../../../../../../utils/showError";
@@ -63,6 +66,7 @@ function GenerateContentPlanDlg({ open, onClose }: Props) {
   const [ getAudiences ] = useGetAudiencesMutation();
   const [ getIdeas ] = useGetIdeasMutation();
   const [ getIdeasAI ] = useLazyGetIdeasAIQuery();
+  const [ getBusiness ] = useGetBusinessMutation();
 
   const { products } = useAppSelector((state) => state.productsModule);
   const { audiences } = useAppSelector((state) => state.audienceModule);
@@ -82,6 +86,14 @@ function GenerateContentPlanDlg({ open, onClose }: Props) {
     audiencesIds: [] as string[],
     ideasIds: [] as string[],
   });
+
+  useEffect(() => {
+    if (!business && businessId) {
+      getBusiness(businessId).unwrap().then((response: ApiResponse<TBusiness>) => {
+        if (response?.data) dispatch(setBusiness(response.data));
+      });
+    }
+  }, [business, businessId, dispatch, getBusiness]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -151,13 +163,22 @@ function GenerateContentPlanDlg({ open, onClose }: Props) {
     return map;
   }, [holidaysResponse]);
 
-  const highlightDates = useMemo(() => {
-    if (!holidaysResponse?.data) return [];
-    return [{
-      "react-datepicker__day--highlighted-custom": holidaysResponse.data.map(
-        (h) => new Date(h.date)
-      ),
-    }];
+  const holidayTypeMap = useMemo(() => {
+    const map = new Map<string, string>();
+    if (holidaysResponse?.data) {
+      for (const h of holidaysResponse.data) {
+        if (map.has(h.date)) continue;
+        const lower = h.primaryType.toLowerCase();
+        if (lower.includes("national") || lower.includes("public")) {
+          map.set(h.date, "holiday--national");
+        } else if (lower.includes("religious") || lower.includes("christian") || lower.includes("orthodox")) {
+          map.set(h.date, "holiday--religious");
+        } else {
+          map.set(h.date, "holiday--observance");
+        }
+      }
+    }
+    return map;
   }, [holidaysResponse]);
 
   if (!open) return null;
@@ -166,6 +187,33 @@ function GenerateContentPlanDlg({ open, onClose }: Props) {
   const isHolidayDate = (date: Date): boolean => {
     if (holidayMap.size === 0) return true;
     return holidayMap.has(format(date, "yyyy-MM-dd"));
+  };
+
+  const getDayClassName = (date: Date): string => {
+    const typeClass = holidayTypeMap.get(format(date, "yyyy-MM-dd"));
+    return typeClass ?? "";
+  };
+
+  const getHolidayColorClass = (primaryType: string): string => {
+    const lower = primaryType.toLowerCase();
+    if (lower.includes("national") || lower.includes("public")) return "tooltip--national";
+    if (lower.includes("religious") || lower.includes("christian") || lower.includes("orthodox")) return "tooltip--religious";
+    return "tooltip--observance";
+  };
+
+  const renderDayContents = (day: number, date: Date) => {
+    const dateStr = format(date, "yyyy-MM-dd");
+    const holidays = holidayMap.get(dateStr);
+    if (holidays && holidays.length > 0) {
+      const name = holidays.map(h => h.name).join(", ");
+      const colorClass = getHolidayColorClass(holidays[0].primaryType);
+      return (
+        <span className={`holiday-tooltip ${colorClass}`} data-tooltip={name}>
+          {day}
+        </span>
+      );
+    }
+    return day;
   };
 
   const handleDateChange = (date: Date | null) => {
@@ -396,16 +444,34 @@ function GenerateContentPlanDlg({ open, onClose }: Props) {
                 .content-plan-datepicker .react-datepicker__day--disabled:hover {
                   background-color: transparent;
                 }
-                .content-plan-datepicker .react-datepicker__day--highlighted-custom {
+                .content-plan-datepicker .holiday--national {
                   background-color: #dbeafe !important;
                   color: #1d4ed8 !important;
                   font-weight: 600;
                   border-radius: 0.5rem;
                 }
-                .content-plan-datepicker .react-datepicker__day--highlighted-custom:hover {
+                .content-plan-datepicker .holiday--national:hover {
                   background-color: #bfdbfe !important;
                 }
-                .content-plan-datepicker .react-datepicker__day--highlighted-custom.react-datepicker__day--selected {
+                .content-plan-datepicker .holiday--religious {
+                  background-color: #f3e8ff !important;
+                  color: #7e22ce !important;
+                  font-weight: 600;
+                  border-radius: 0.5rem;
+                }
+                .content-plan-datepicker .holiday--religious:hover {
+                  background-color: #e9d5ff !important;
+                }
+                .content-plan-datepicker .holiday--observance {
+                  background-color: #ccfbf1 !important;
+                  color: #0f766e !important;
+                  font-weight: 600;
+                  border-radius: 0.5rem;
+                }
+                .content-plan-datepicker .holiday--observance:hover {
+                  background-color: #99f6e4 !important;
+                }
+                .content-plan-datepicker .react-datepicker__day--selected[class*="holiday--"] {
                   background-color: #2563eb !important;
                   color: white !important;
                 }
@@ -421,6 +487,52 @@ function GenerateContentPlanDlg({ open, onClose }: Props) {
                 .content-plan-datepicker .react-datepicker__navigation:hover *::before {
                   border-color: #1e293b;
                 }
+                .content-plan-datepicker .react-datepicker,
+                .content-plan-datepicker .react-datepicker__month-container,
+                .content-plan-datepicker .react-datepicker__header,
+                .content-plan-datepicker .react-datepicker__month {
+                  overflow: visible;
+                }
+                .content-plan-datepicker .holiday-tooltip {
+                  position: relative;
+                  display: inline-block;
+                  width: 100%;
+                  height: 100%;
+                }
+                .content-plan-datepicker .holiday-tooltip::after {
+                  content: attr(data-tooltip);
+                  position: absolute;
+                  bottom: calc(100% + 6px);
+                  left: 50%;
+                  transform: translateX(-50%);
+                  background-color: #1e293b;
+                  color: white;
+                  font-size: 0.7rem;
+                  font-weight: 500;
+                  padding: 4px 8px;
+                  border-radius: 6px;
+                  white-space: normal;
+                  width: max-content;
+                  max-width: 200px;
+                  text-align: center;
+                  line-height: 1.3;
+                  pointer-events: none;
+                  opacity: 0;
+                  transition: opacity 0.15s ease;
+                  z-index: 50;
+                }
+                .content-plan-datepicker .holiday-tooltip:hover::after {
+                  opacity: 1;
+                }
+                .content-plan-datepicker .tooltip--national::after {
+                  background-color: #1d4ed8;
+                }
+                .content-plan-datepicker .tooltip--religious::after {
+                  background-color: #7e22ce;
+                }
+                .content-plan-datepicker .tooltip--observance::after {
+                  background-color: #0f766e;
+                }
               `}</style>
               <label className="block text-sm font-medium text-slate-700 text-left mb-1">
                 Select a holiday
@@ -431,19 +543,16 @@ function GenerateContentPlanDlg({ open, onClose }: Props) {
                   onChange={handleDateChange}
                   onMonthChange={(date: Date) => setViewDate(date)}
                   filterDate={isHolidayDate}
-                  highlightDates={highlightDates}
-                  dateFormat="dd-MM-yyyy"
-                  placeholderText="dd-mm-yyyy"
+                  dayClassName={getDayClassName}
+                  renderDayContents={renderDayContents}
+                  value={selectedHoliday ? `${selectedHoliday.name} (${selectedHoliday.date})` : ""}
+                  placeholderText="Select a holiday..."
                   wrapperClassName="w-full"
                   popperClassName="content-plan-datepicker"
                   className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer"
+                  onChangeRaw={(e) => e?.preventDefault()}
                 />
               </div>
-              {selectedHoliday && (
-                <div className="mt-2 p-3 bg-blue-50 rounded-lg text-sm text-blue-800">
-                  Selected: <strong>{selectedHoliday.name}</strong> ({selectedHoliday.date})
-                </div>
-              )}
             </div>
           )}
 

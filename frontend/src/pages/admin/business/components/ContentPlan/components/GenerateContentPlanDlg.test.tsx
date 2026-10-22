@@ -46,6 +46,16 @@ jest.mock('../../../../../../store/calendarific/calendarificApi', () => ({
   useGetCalendarificHolidaysQuery: () => ({ data: undefined }),
 }));
 
+const mockGetBusiness = jest.fn();
+
+jest.mock('../../../../../../store/businesses/businessesApi', () => ({
+  useGetBusinessMutation: () => [mockGetBusiness, { isLoading: false }],
+}));
+
+jest.mock('../../../../../../store/businesses/businessesSlice', () => ({
+  setBusiness: (d: unknown) => ({ type: 'business/setBusiness', payload: d }),
+}));
+
 const mockDispatch = jest.fn();
 
 jest.mock('../../../../../../store/hooks', () => ({
@@ -117,6 +127,7 @@ describe('GenerateContentPlanDlg', () => {
     mockGetIdeas.mockReturnValue({ unwrap: () => Promise.resolve({ data: [] }) });
     mockGetIdeasAI.mockReturnValue({ unwrap: () => Promise.resolve({ data: [] }) });
     mockGetContentPlans.mockReturnValue({ unwrap: () => Promise.resolve({ data: [] }) });
+    mockGetBusiness.mockReturnValue({ unwrap: () => Promise.resolve({ data: null }) });
     mockGenerateContentPlan.mockReturnValue({
       unwrap: () => Promise.resolve({ data: [], message: 'Generated' }),
     });

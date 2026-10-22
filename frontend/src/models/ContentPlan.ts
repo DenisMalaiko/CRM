@@ -6,7 +6,7 @@ export type TContentPlan = {
   title: string;
   description: string;
   status: ContentPlanStatus;
-  mode: "manual" | "marketing_calendar";
+  mode: "manual";
   createdAt: Date;
 }
 
