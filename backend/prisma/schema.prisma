@@ -737,6 +737,7 @@ enum ContentPlanStatus {
 enum ContentPlanMode {
   manual
   profile
+  marketing_calendar
 }
 
 enum Plan {

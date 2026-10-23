@@ -1,5 +1,31 @@
 # Task Log
 
+## Marketing Calendar Content Plan Generation — 2026-10-22
+
+### Plan
+- [x] Frontend: спростити `TContentPlanGenerate` — mode завжди `"manual"`, додати optional `holidayName`/`holidayDate`
+- [x] Frontend: `GenerateContentPlanDlg.tsx` — відправляти `mode: "manual"` для обох випадків
+- [x] Backend DTO: додати `holidayName?: string` та `holidayDate?: string`
+- [x] Backend ContentPlanService: прибрати mode-гілку, завантажувати resources по наявності IDs, передати holiday info до AI
+- [x] Backend ContentPlanSettings: додати `holidayName?` та `holidayDate?`
+- [x] Backend Strategist prompt: додати `strategistHolidayBlock()` — свято як primary driver
+- [x] Backend Copywriter prompt: додати `copywriterHolidayContext()` — контекст свята
+- [x] Backend AiContentPlanService: прокинути holiday info через пайплайн
+- [x] Quality gate: reviewer + tester (цикл 2 — PASS)
+
+### Review
+- [x] reviewer → PASS (після виправлень: unused isHolidaysLoading, useEffect deps, named export)
+- [x] tester → 10 тестів проходять
+- [x] No regressions found
+- Summary: Додано підтримку генерації контент-плану на базі маркетингового свята. Frontend завжди відправляє mode: "manual", а holidayName/holidayDate визначають стратегію AI. Backend AI-пайплайн розгалужується на holiday/ideas по наявності holidayName.
+
+### Notes
+- Prisma schema НЕ змінюється — mode завжди `manual`
+- Бекенд розрізняє ідеї/свято по наявності `holidayName` в DTO
+- Art Director не потребує змін
+
+---
+
 ## Content Plan Posts Page — 2026-10-14
 
 ### Plan

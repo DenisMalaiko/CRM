@@ -10,11 +10,13 @@ import {
   strategistSystemPrompt,
   strategistBusinessBlock,
   strategistIdeasBlock,
+  strategistHolidayBlock,
   strategistOutputBlock,
 } from '../prompts/contentPlan/strategist';
 import {
   copywriterSystemPrompt,
   copywriterIdeasContext,
+  copywriterHolidayContext,
   copywriterTaskBlock,
 } from '../prompts/contentPlan/copywriter';
 import {
@@ -60,6 +62,8 @@ interface ContentPlanSettings {
     competitorText?: string | null;
   }[];
   context?: string;
+  holidayName?: string;
+  holidayDate?: string;
 }
 
 @Injectable()
@@ -86,6 +90,7 @@ export class AiContentPlanService {
       business.name,
       language,
       settings.ideas,
+      settings.holidayName,
     );
     this.logger.log(`Copywriter done: ${withCopy.posts.length} posts`);
 
@@ -111,10 +116,14 @@ export class AiContentPlanService {
     const productNames = settings.products.map((p) => p.name);
     const ideaNames = settings.ideas.map((i) => i.title);
 
+    const creativeBlock = settings.holidayName
+      ? strategistHolidayBlock(settings.holidayName, settings.holidayDate)
+      : strategistIdeasBlock(ideasBlock, settings.context);
+
     const prompt = [
       strategistSystemPrompt(),
       strategistBusinessBlock(settings.business, audienceBlock, productsBlock),
-      strategistIdeasBlock(ideasBlock, settings.context),
+      creativeBlock,
       strategistOutputBlock(language, productNames, ideaNames),
     ].join('\n\n');
 
@@ -128,13 +137,18 @@ export class AiContentPlanService {
     businessName: string,
     language: string,
     ideas: ContentPlanSettings['ideas'],
+    holidayName?: string,
   ) {
     const postsJson = JSON.stringify(posts, null, 2);
     const ideasBlock = ideas.length ? this.base.getIdeas(ideas) : '';
 
+    const contextBlock = holidayName
+      ? copywriterHolidayContext(holidayName)
+      : copywriterIdeasContext(ideasBlock);
+
     const prompt = [
       copywriterSystemPrompt(),
-      copywriterIdeasContext(ideasBlock),
+      contextBlock,
       copywriterTaskBlock(postsJson, businessName, language),
     ]
       .filter(Boolean)

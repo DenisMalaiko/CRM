@@ -60,28 +60,26 @@ export class ContentPlanService {
     let products: Product[] = [];
     let ideas: (Idea | IdeaAI)[] = [];
 
-    if (dto.mode === 'manual') {
-      if (dto.audiencesIds?.length) {
-        audiences = await this.prisma.targetAudience.findMany({
-          where: { id: { in: dto.audiencesIds }, businessId },
-        });
-      }
+    if (dto.audiencesIds?.length) {
+      audiences = await this.prisma.targetAudience.findMany({
+        where: { id: { in: dto.audiencesIds }, businessId },
+      });
+    }
 
-      if (dto.productsIds?.length) {
-        products = await this.prisma.product.findMany({
-          where: { id: { in: dto.productsIds }, businessId },
-        });
-      }
+    if (dto.productsIds?.length) {
+      products = await this.prisma.product.findMany({
+        where: { id: { in: dto.productsIds }, businessId },
+      });
+    }
 
-      if (dto.ideasIds?.length) {
-        const manualIdeas = await this.prisma.idea.findMany({
-          where: { id: { in: dto.ideasIds }, businessId },
-        });
-        const aiIdeas = await this.prisma.ideaAI.findMany({
-          where: { id: { in: dto.ideasIds }, businessId },
-        });
-        ideas = [...manualIdeas, ...aiIdeas];
-      }
+    if (dto.ideasIds?.length) {
+      const manualIdeas = await this.prisma.idea.findMany({
+        where: { id: { in: dto.ideasIds }, businessId },
+      });
+      const aiIdeas = await this.prisma.ideaAI.findMany({
+        where: { id: { in: dto.ideasIds }, businessId },
+      });
+      ideas = [...manualIdeas, ...aiIdeas];
     }
 
     const result = await this.aiContentPlanService.generateContentPlan({
@@ -90,6 +88,8 @@ export class ContentPlanService {
       products,
       ideas,
       context: dto.context,
+      holidayName: dto.holidayName,
+      holidayDate: dto.holidayDate,
     });
 
     return this.prisma.contentPlan.create({

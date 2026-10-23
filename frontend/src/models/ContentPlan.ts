@@ -10,20 +10,14 @@ export type TContentPlan = {
   createdAt: Date;
 }
 
-export type TContentPlanGenerate =
-  | {
-      mode: "manual";
-      productsIds?: string[];
-      audiencesIds?: string[];
-      ideasIds?: string[];
-    }
-  | {
-      mode: "marketing_calendar";
-      productsIds?: string[];
-      audiencesIds?: string[];
-      holidayName: string;
-      holidayDate: string;
-    };
+export type TContentPlanGenerate = {
+  mode: "manual";
+  productsIds?: string[];
+  audiencesIds?: string[];
+  ideasIds?: string[];
+  holidayName?: string;
+  holidayDate?: string;
+};
 
 export type TContentPlanUpdate = {
   title?: string;
