@@ -46,6 +46,18 @@ Posts derived from these ideas MUST reflect each idea's essence in the copy:
 ${ideasBlock}`;
 }
 
+export function copywriterHolidayContext(holidayName: string) {
+  return `## HOLIDAY CONTEXT
+
+This content plan is built around the holiday/event: "${holidayName}"
+
+Posts in this plan MUST reflect the holiday theme in their copy:
+- Match the HOOK to the holiday mood — create emotional connection with the celebration
+- Shape the THESIS around how the brand participates in or relates to this event
+- The CTA should leverage the holiday urgency or sentiment (e.g., "celebrate with us", "holiday special ends soon")
+- Maintain a festive, thematic tone throughout while keeping it authentic to the brand`;
+}
+
 export function copywriterTaskBlock(
   strategyPosts: string,
   businessName: string,

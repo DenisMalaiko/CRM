@@ -56,7 +56,7 @@ type Props = {
   onClose: () => void;
 };
 
-function GenerateContentPlanDlg({ open, onClose }: Props) {
+export function GenerateContentPlanDlg({ open, onClose }: Props) {
   const dispatch = useAppDispatch();
   const { businessId } = useParams<{ businessId: string }>();
 
@@ -115,7 +115,7 @@ function GenerateContentPlanDlg({ open, onClose }: Props) {
     };
 
     fetchData();
-  }, [dispatch]);
+  }, [dispatch, businessId, getProducts, getAudiences, getIdeas, getIdeasAI]);
 
   const productsOptions = useMemo(
     () => products?.map((product: TProduct) => ({ value: product.id, label: product.name })) ?? [],
@@ -146,7 +146,7 @@ function GenerateContentPlanDlg({ open, onClose }: Props) {
     ];
   }, [ideas, ideasAi]);
 
-  const { data: holidaysResponse, isLoading: isHolidaysLoading } = useGetCalendarificHolidaysQuery(
+  const { data: holidaysResponse } = useGetCalendarificHolidaysQuery(
     { year: getYear(viewDate), countryCode: country!, language: "uk" },
     { skip: !country }
   );
@@ -248,7 +248,7 @@ function GenerateContentPlanDlg({ open, onClose }: Props) {
           return;
         }
         formData = {
-          mode: "marketing_calendar",
+          mode: "manual",
           productsIds: form.productsIds,
           audiencesIds: form.audiencesIds,
           holidayName: selectedHoliday.name,
@@ -589,4 +589,3 @@ function GenerateContentPlanDlg({ open, onClose }: Props) {
   );
 }
 
-export default GenerateContentPlanDlg;

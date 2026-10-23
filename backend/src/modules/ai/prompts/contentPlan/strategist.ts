@@ -89,6 +89,29 @@ Use the following context as the primary creative direction:
 No specific ideas provided. Build the content strategy based on the business context, audience insights, and brand goals.`;
 }
 
+export function strategistHolidayBlock(
+  holidayName: string,
+  holidayDate?: string,
+) {
+  const dateLine = holidayDate ? `\nHoliday date: ${holidayDate}` : '';
+
+  return `## CREATIVE DIRECTION FROM MARKETING CALENDAR (PRIMARY)
+
+The following holiday/event is the PRIMARY DRIVER of this content plan.
+The entire 10-day content plan MUST be built AROUND this event.
+${dateLine}
+Holiday/Event: ${holidayName}
+
+HOLIDAY-DRIVEN PLANNING RULES:
+- The holiday is the central theme — every post should connect to it directly or indirectly
+- Day 1-3 (TOFU): build anticipation, educate about the holiday, create buzz
+- Day 4-6 (MOFU): show how the brand/products relate to the holiday, share stories, behind-the-scenes
+- Day 7-10 (BOFU): holiday-themed offers, special promotions, urgency around the date
+- The "topic" and "marketingGoal" of each post MUST clearly connect to the holiday theme
+- Adapt the holiday to the brand's voice and products — don't just mention it generically
+- If the holiday date falls within the 10-day period, make that day's post the climax of the series`;
+}
+
 export function strategistOutputBlock(
   language: string,
   productNames: string[] = [],

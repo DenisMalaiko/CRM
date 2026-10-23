@@ -10,7 +10,7 @@ import { useCopyToClipboard } from "../../../../../hooks/useCopyToClipboard";
 // Components
 import { confirm } from "../../../../../components/confirmDlg/ConfirmDlg";
 import TextDlg from "../../../../../components/textDlg/TextDlg";
-import GenerateContentPlanDlg from "./components/GenerateContentPlanDlg";
+import { GenerateContentPlanDlg } from "./components/GenerateContentPlanDlg";
 import UpdateContentPlanDlg from "./components/UpdateContentPlanDlg";
 
 // Redux

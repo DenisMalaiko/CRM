@@ -31,6 +31,14 @@ export class GenerateContentPlanDto {
   @IsString()
   @IsOptional()
   context?: string;
+
+  @IsString()
+  @IsOptional()
+  holidayName?: string;
+
+  @IsString()
+  @IsOptional()
+  holidayDate?: string;
 }
 
 export class UpdateContentPlanDto {
