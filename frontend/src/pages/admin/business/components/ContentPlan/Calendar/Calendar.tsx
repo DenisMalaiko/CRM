@@ -21,6 +21,7 @@ import { useGetCalendarificHolidaysQuery } from "../../../../../../store/calenda
 import { useGetBusinessMutation } from "../../../../../../store/businesses/businessesApi";
 import { setBusiness } from "../../../../../../store/businesses/businessesSlice";
 import { TCalendarificHoliday } from "../../../../../../models/CalendarificHoliday";
+import { getMarketingDatesForYear } from "../../../../../../const/MarketingDates";
 import { ApiResponse } from "../../../../../../models/ApiResponse";
 import { TBusiness } from "../../../../../../models/Business";
 
@@ -30,6 +31,8 @@ function getHolidayStyle(primaryType: string): { bg: string; text: string; dot: 
     return { bg: "bg-blue-100", text: "text-blue-700", dot: "bg-blue-400" };
   if (lower.includes("religious") || lower.includes("christian") || lower.includes("orthodox"))
     return { bg: "bg-purple-100", text: "text-purple-700", dot: "bg-purple-400" };
+  if (lower.includes("marketing"))
+    return { bg: "bg-orange-100", text: "text-orange-700", dot: "bg-orange-400" };
   return { bg: "bg-teal-100", text: "text-teal-700", dot: "bg-teal-400" };
 }
 
@@ -54,7 +57,7 @@ export function Calendar() {
   const dateLocale = language === "ua" ? { locale: uk } : undefined;
   const calendarificLang = language === "ua" ? "uk" : language;
   const { data: calendarificResponse, isFetching: isFetchingHolidays } = useGetCalendarificHolidaysQuery(
-    { year, countryCode: country!, language: calendarificLang },
+    { year, countryCode: country ?? "", language: calendarificLang },
     { skip: !country }
   );
 
@@ -67,8 +70,13 @@ export function Calendar() {
         map.set(holiday.date, existing);
       }
     }
+    for (const mDate of getMarketingDatesForYear(year)) {
+      const existing = map.get(mDate.date) || [];
+      existing.push(mDate);
+      map.set(mDate.date, existing);
+    }
     return map;
-  }, [calendarificResponse]);
+  }, [calendarificResponse, year]);
 
   const handlePrevMonth = () => setCurrentMonth(prev => subMonths(prev, 1));
   const handleNextMonth = () => setCurrentMonth(prev => addMonths(prev, 1));
@@ -98,6 +106,10 @@ export function Calendar() {
             <span className="flex items-center gap-1">
               <span className="inline-block h-2.5 w-2.5 rounded-full bg-teal-400" />
               {t('CalendarPage.observance')}
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="inline-block h-2.5 w-2.5 rounded-full bg-orange-400" />
+              {t('CalendarPage.marketing')}
             </span>
           </div>
         </div>
@@ -183,10 +195,10 @@ export function Calendar() {
                   {format(day, "d")}
                 </span>
 
-                {calendarificHolidays && isCurrentMonth && calendarificHolidays.map((ch, i) => {
+                {calendarificHolidays && isCurrentMonth && calendarificHolidays.map((ch) => {
                   const style = getHolidayStyle(ch.primaryType);
                   return (
-                    <div key={i} className={`mt-1 w-full ${style.bg} rounded px-1.5 py-0.5 overflow-hidden text-left`}>
+                    <div key={ch.name} className={`mt-1 w-full ${style.bg} rounded px-1.5 py-0.5 overflow-hidden text-left`}>
                       <span className={`text-xs ${style.text} block line-clamp-2`} title={ch.name}>
                         {ch.name}
                       </span>
