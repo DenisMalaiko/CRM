@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { toast } from "react-toastify";
-import Select from "react-select";
-import {Download, ImagePlay, WandSparkles} from "lucide-react";
+import Select, { StylesConfig } from "react-select";
+import {Download, Image, ImagePlay, WandSparkles} from "lucide-react";
 
 // Redux
-import { useSelector } from "react-redux";
-import { useAppDispatch } from "../../../../../../store/hooks";
+import { useAppDispatch, useAppSelector } from "../../../../../../store/hooks";
 import {
   useDeleteCreativeMutation,
   useDeleteCreativeBatchMutation,
@@ -42,9 +41,14 @@ import { GalleryType } from "../../../../../../enum/GalleryType";
 import { BusinessProfileFocus } from "../../../../../../enum/BusinessProfileFocus";
 import { ContentType } from "../../../../../../enum/ContentType";
 
+// Types
+type SelectOption = { value: string; label: string };
+
 function Posts() {
   const dispatch = useAppDispatch();
   const { businessId } = useParams<{ businessId: string }>();
+  const business = useAppSelector((state) => state.businessModule.business);
+  const businessName = business?.name ?? "";
 
   const [ getAiArtifacts ] = useLazyGetAiArtifactsQuery();
   const [ deleteCreative ] = useDeleteCreativeMutation();
@@ -60,11 +64,12 @@ function Posts() {
   const [ selectedPost, setSelectedPost ] = useState<TAIArtifact | null>(null);
   const [ openCreative, setOpenCreative ] = useState(false);
   const [ selectedIds, setSelectedIds ] = useState<string[]>([]);
+  const [ expandedIds, setExpandedIds ] = useState<string[]>([]);
   const [ profilesIds, setProfilesIds ] = useState<string[]>([]);
   const [ productsIds, setProductsIds ] = useState<string[]>([]);
 
   // Posts
-  const filteredPosts = useSelector(((state: any) => {
+  const filteredPosts = useAppSelector((state) => {
     const { posts } = state.artifactModule;
 
     return posts?.filter((post: TAIArtifact) => {
@@ -84,12 +89,12 @@ function Posts() {
         const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
         return bTime - aTime;
       });
-  }));
-  const { profiles } = useSelector((state: any) => state.profileModule);
-  const { products } = useSelector((state: any) => state.productsModule);
+  });
+  const { profiles } = useAppSelector((state) => state.profileModule);
+  const { products } = useAppSelector((state) => state.productsModule);
 
-  const profilesOptions = profiles?.map((profile: any) => ({ value: profile.id, label: profile.name })) || [];
-  const productsOptions = products?.map((product: any) => ({ value: product.id, label: product.name })) || [];
+  const profilesOptions: SelectOption[] = profiles?.map((profile: any) => ({ value: profile.id, label: profile.name })) || [];
+  const productsOptions: SelectOption[] = products?.map((product: any) => ({ value: product.id, label: product.name })) || [];
 
 
   // Get Data
@@ -107,7 +112,6 @@ function Posts() {
 
           if(response && response?.data) {
             dispatch(setPosts(response.data));
-            console.log("POSTS ", response.data)
           }
           if(profilesResponse && profilesResponse?.data) dispatch(setProfiles(profilesResponse.data));
           if(productsResponse && productsResponse?.data) dispatch(setProducts(productsResponse.data));
@@ -218,32 +222,32 @@ function Posts() {
 
             <div className="flex items-center gap-3">
               { profiles && profiles.length > 0 &&
-                <Select
+                <Select<SelectOption, true>
                   isMulti
                   placeholder="Select profiles"
                   options={profilesOptions}
-                  value={profilesOptions.filter((option: { value: string; label: string; }) =>
+                  value={profilesOptions.filter((option) =>
                     profilesIds.includes(option.value)
                   )}
                   onChange={(selected) => {
-                    setProfilesIds(selected.map(option => option.value));
+                    setProfilesIds(selected.map((option) => option.value));
                   }}
-                  styles={centeredSelectStyles}
+                  styles={centeredSelectStyles as StylesConfig<SelectOption, true>}
                 />
               }
 
               { products && products.length > 0 &&
-                <Select
+                <Select<SelectOption, true>
                   isMulti
                   placeholder="Select products"
                   options={productsOptions}
-                  value={productsOptions.filter((option: { value: string; label: string; }) =>
+                  value={productsOptions.filter((option) =>
                     productsIds.includes(option.value)
                   )}
                   onChange={(selected) => {
-                    setProductsIds(selected.map(option => option.value));
+                    setProductsIds(selected.map((option) => option.value));
                   }}
-                  styles={centeredSelectStyles}
+                  styles={centeredSelectStyles as StylesConfig<SelectOption, true>}
                 />
               }
 
@@ -272,29 +276,33 @@ function Posts() {
               filteredPosts?.map((item: TAIArtifact) => (
                 <div
                   key={item.id}
-                  className="flex h-full flex-col rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md"
+                  className="flex flex-col rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md overflow-hidden text-left"
                 >
                   {/* Header */}
-                  <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+                  <div className="flex items-start justify-between px-4 pt-4 pb-3">
                     <div className="flex items-center gap-3">
+                      <div className="flex-shrink-0 w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center">
+                        <span className="text-white font-bold text-base">
+                          {businessName.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-sm font-semibold text-slate-900 leading-tight">{businessName}</span>
+                        <span className="text-xs text-slate-400 mt-0.5">{toDate(item.createdAt)}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 flex-shrink-0">
+                      <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getStatusClass(item.status)}`}>
+                        {item.status}
+                      </span>
                       <input
                         type="checkbox"
                         checked={selectedIds.includes(item.id)}
                         onChange={() => setSelectedIds(selectedIds.includes(item.id) ? selectedIds.filter(id => id !== item.id) : [...selectedIds, item.id])}
                         className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
                       />
-
-                      <span className={`
-                        inline-flex items-center rounded-full px-2.5 py-1
-                        text-xs font-medium
-                        ${getStatusClass(item.status)}
-                      `}>
-                         {item?.status}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                      <button onClick={() => openEditPost(item)} className="h-8 w-8 flex items-center justify-center rounded-lg border  text-slate-600 hover:bg-slate-50">
+                      <button onClick={() => openEditPost(item)} className="h-8 w-8 flex items-center justify-center rounded-lg border text-slate-600 hover:bg-slate-50">
                         ✎
                       </button>
                       <button onClick={(e) => openConfirmDlg(e, item)} className="h-8 w-8 flex items-center justify-center rounded-lg border text-rose-600 hover:bg-rose-50">
@@ -303,103 +311,100 @@ function Posts() {
                     </div>
                   </div>
 
-                  {/* Content */}
-                  <div className="flex flex-col gap-4 px-6 py-5">
-                    {/* Hook */}
-                    <div className="group relative rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition">
-                      {(item?.media && item?.media.length) && (
-                        item?.media.map((media) => (
-                          <>
-                            {media.type === 'Video' && (
-                              <div>
-                                <video
-                                  src={media.url}
-                                  poster={media.sourceUrl ?? undefined}
-                                  controls
-                                  playsInline
-                                  preload="metadata"
-                                  className="w-full rounded-xl border border-slate-200"
-                                />
-                              </div>
-                            )}
-
-                            {media.type === 'Image' && (
-                              <div>
-                                <img
-                                  src={`${media.url}`}
-                                  alt="AI generated"
-                                  className="w-full rounded-xl border border-slate-200"
-                                />
-                              </div>
-                            )}
-
-                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition duration-300 flex items-center justify-center flex-col">
-                              <div className="flex gap-5">
-                                <button
-                                  onClick={() => setOpenEditPhotoDlg({ photoId: item.id, mediaId: media.id })}
-                                  className="opacity-0 group-hover:opacity-100 transition duration-300 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg"
-                                >
-                                  <WandSparkles size={18} />
-                                </button>
-
-                                <button
-                                  onClick={() => openSlider([{url: media.url}])}
-                                  className="opacity-0 group-hover:opacity-100 transition duration-300 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg"
-                                >
-                                  <ImagePlay size={18} />
-                                </button>
-
-                                <button
-                                  onClick={() => window.open(media.url, '_blank')}
-                                  className="opacity-0 group-hover:opacity-100 transition duration-300 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg"
-                                >
-                                  <Download size={18} />
-                                </button>
-                              </div>
-                            </div>
-                          </>
-                        ))
+                  {/* Post Body */}
+                  <div className="px-4 pb-3 flex flex-col gap-2">
+                    <p className="text-sm font-semibold text-slate-900 leading-relaxed">
+                      {item.outputJson?.hook || "—"}
+                    </p>
+                    <div className="relative">
+                      <p className={`text-sm text-slate-700 leading-relaxed whitespace-pre-wrap ${expandedIds.includes(item.id) ? "inline" : "line-clamp-2"}`}>
+                        {item.outputJson?.body || "—"}
+                        {expandedIds.includes(item.id) && (
+                          <span
+                            onClick={() => setExpandedIds((prev) => prev.filter((id) => id !== item.id))}
+                            className="text-sm text-blue-600 hover:text-blue-700 font-medium cursor-pointer ml-1"
+                          >
+                            Показати менше
+                          </span>
+                        )}
+                      </p>
+                      {!expandedIds.includes(item.id) && (
+                        <span
+                          onClick={() => setExpandedIds((prev) => [...prev, item.id])}
+                          className="absolute bottom-0 right-0 text-sm text-blue-600 hover:text-blue-700 font-medium cursor-pointer pl-8 bg-gradient-to-r from-white/0 to-white to-30%"
+                        >
+                          ... Ще
+                        </span>
                       )}
                     </div>
-
-                    {/* Hook */}
-                    <div>
-                      <p className="text-xs font-semibold uppercase tracking-wide text-slate-400 text-left">
-                        Hook
-                      </p>
-                      <p className="mt-1 text-lg font-semibold text-slate-900 text-left">
-                        {item.outputJson?.hook || "—"}
-                      </p>
-                    </div>
-
-                    {/* Body */}
-                    <div>
-                      <p className="text-xs font-semibold uppercase tracking-wide text-slate-400 text-left">
-                        Description
-                      </p>
-                      <p className="mt-1 text-slate-700 leading-relaxed text-left whitespace-pre-wrap">
-                        {item.outputJson?.body || "—"}
-                      </p>
-                    </div>
+                    <p className="text-sm font-semibold text-blue-600">
+                      {item.outputJson?.cta || "—"}
+                    </p>
                   </div>
+
+                  {/* Media */}
+                  {item.media && item.media.length > 0 ? (
+                    <div className="group relative overflow-hidden">
+                      {item.media.map((media) => (
+                        <React.Fragment key={media.id}>
+                          {media.type === 'Video' && (
+                            <video
+                              src={media.url}
+                              poster={media.sourceUrl ?? undefined}
+                              controls
+                              playsInline
+                              preload="metadata"
+                              className="w-full border-t border-slate-100"
+                            />
+                          )}
+                          {media.type === 'Image' && (
+                            <img
+                              src={media.url}
+                              alt="AI generated"
+                              className="w-full border-t border-slate-100"
+                            />
+                          )}
+                        </React.Fragment>
+                      ))}
+
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition duration-300 flex items-center justify-center">
+                        <div className="flex gap-5">
+                          {item.media.map((media) => (
+                            <React.Fragment key={`actions-${media.id}`}>
+                              <button
+                                onClick={() => setOpenEditPhotoDlg({ photoId: item.id, mediaId: media.id })}
+                                className="opacity-0 group-hover:opacity-100 transition duration-300 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg"
+                              >
+                                <WandSparkles size={18} />
+                              </button>
+                              <button
+                                onClick={() => openSlider([{url: media.url}])}
+                                className="opacity-0 group-hover:opacity-100 transition duration-300 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg"
+                              >
+                                <ImagePlay size={18} />
+                              </button>
+                              <button
+                                onClick={() => window.open(media.url, '_blank')}
+                                className="opacity-0 group-hover:opacity-100 transition duration-300 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg"
+                              >
+                                <Download size={18} />
+                              </button>
+                            </React.Fragment>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="mx-4 mb-3 rounded-xl bg-gradient-to-br from-slate-100 to-slate-200 flex flex-col items-center justify-center gap-2 p-5 min-h-28">
+                      <Image size={28} className="text-slate-400" />
+                      <p className="text-xs text-slate-500 text-center leading-relaxed">
+                        {item.imagePrompt || "No media"}
+                      </p>
+                    </div>
+                  )}
 
                   {/* Footer */}
-                  <div className="mt-auto border-t border-slate-100 bg-slate-50 px-6 py-4">
-                    {/* CTA */}
-                    <div>
-                      <p className="text-xs font-semibold uppercase tracking-wide text-slate-400 text-left">
-                        CTA
-                      </p>
-
-                      <p className="mt-1 mb-1 font-medium text-indigo-600 text-left">
-                        {item.outputJson?.cta || "—"}
-                      </p>
-
-                      <p className="text-xs font-semibold uppercase tracking-wide text-slate-400 text-left">
-                        { toDate(item.createdAt) }
-                      </p>
-                    </div>
-                  </div>
+                  <div className="mt-auto border-t border-slate-100 bg-slate-50 px-4 py-2.5" />
                 </div>
               ))
             )}

@@ -21,6 +21,7 @@ export function getMarketingDatesForYear(year: number): TCalendarificHoliday[] {
   return [
     {
       name: "Valentine's Day",
+      nameKey: "CalendarPage.holidays.valentinesDay",
       description: "Global celebration of love and romance",
       date: format(new Date(year, 1, 14), "yyyy-MM-dd"),
       type: ["marketing"],
@@ -28,6 +29,7 @@ export function getMarketingDatesForYear(year: number): TCalendarificHoliday[] {
     },
     {
       name: "International Women's Day",
+      nameKey: "CalendarPage.holidays.internationalWomensDay",
       description: "Global day celebrating women's achievements",
       date: format(new Date(year, 2, 8), "yyyy-MM-dd"),
       type: ["marketing"],
@@ -35,6 +37,7 @@ export function getMarketingDatesForYear(year: number): TCalendarificHoliday[] {
     },
     {
       name: "Earth Day",
+      nameKey: "CalendarPage.holidays.earthDay",
       description: "Annual event for environmental protection",
       date: format(new Date(year, 3, 22), "yyyy-MM-dd"),
       type: ["marketing"],
@@ -42,6 +45,7 @@ export function getMarketingDatesForYear(year: number): TCalendarificHoliday[] {
     },
     {
       name: "Halloween",
+      nameKey: "CalendarPage.holidays.halloween",
       description: "Annual celebration on October 31st",
       date: format(new Date(year, 9, 31), "yyyy-MM-dd"),
       type: ["marketing"],
@@ -49,6 +53,7 @@ export function getMarketingDatesForYear(year: number): TCalendarificHoliday[] {
     },
     {
       name: "Singles' Day",
+      nameKey: "CalendarPage.holidays.singlesDay",
       description: "World's largest online shopping event (11.11)",
       date: format(new Date(year, 10, 11), "yyyy-MM-dd"),
       type: ["marketing"],
@@ -56,6 +61,7 @@ export function getMarketingDatesForYear(year: number): TCalendarificHoliday[] {
     },
     {
       name: "Black Friday",
+      nameKey: "CalendarPage.holidays.blackFriday",
       description: "Major shopping day after Thanksgiving",
       date: getBlackFridayDate(year),
       type: ["marketing"],

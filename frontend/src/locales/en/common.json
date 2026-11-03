@@ -306,7 +306,15 @@
     "Thu": "Thu",
     "Fri": "Fri",
     "Sat": "Sat",
-    "Sun": "Sun"
+    "Sun": "Sun",
+    "holidays": {
+      "valentinesDay": "Valentine's Day",
+      "internationalWomensDay": "International Women's Day",
+      "earthDay": "Earth Day",
+      "halloween": "Halloween",
+      "singlesDay": "Singles' Day",
+      "blackFriday": "Black Friday"
+    }
   },
   "ContentPlanPosts": {
     "BackButton": "Back",

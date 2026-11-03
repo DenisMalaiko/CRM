@@ -187,7 +187,7 @@ function App() {
       </Routes>
 
       <ToastContainer
-        position="bottom-center"
+        position="top-right"
         autoClose={3000}
         hideProgressBar={false}
         newestOnTop={false}
@@ -196,7 +196,8 @@ function App() {
         pauseOnFocusLoss
         draggable
         pauseOnHover
-        theme="colored"
+        theme="light"
+        toastClassName="toast-wrapper"
       />
 
       {ConfirmDialog}

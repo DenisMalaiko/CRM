@@ -1,8 +1,8 @@
 import { MediaType } from './MediaType';
 
 describe('MediaType enum', () => {
-  it('has a Photo value equal to "Photo"', () => {
-    expect(MediaType.Image).toBe('Photo');
+  it('has an Image value equal to "Image"', () => {
+    expect(MediaType.Image).toBe('Image');
   });
 
   it('has a Video value equal to "Video"', () => {

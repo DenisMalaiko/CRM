@@ -6,6 +6,13 @@ import { Calendar } from './Calendar';
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
 
+jest.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key: string) => key,
+    i18n: { language: 'en' },
+  }),
+}));
+
 const mockUseAppSelector = jest.fn<any, any[]>(() => undefined);
 
 jest.mock('../../../../../../store/hooks', () => ({
@@ -13,10 +20,10 @@ jest.mock('../../../../../../store/hooks', () => ({
   useAppDispatch: () => jest.fn(),
 }));
 
-const mockUseGetHolidaysQuery = jest.fn();
+const mockUseGetCalendarificHolidaysQuery = jest.fn();
 
-jest.mock('../../../../../../store/holidays/holidaysApi', () => ({
-  useGetHolidaysQuery: (...args: any[]) => mockUseGetHolidaysQuery(...args),
+jest.mock('../../../../../../store/calendarific/calendarificApi', () => ({
+  useGetCalendarificHolidaysQuery: (...args: any[]) => mockUseGetCalendarificHolidaysQuery(...args),
 }));
 
 const mockGetBusiness = jest.fn(() => ({ unwrap: () => Promise.resolve({ data: null }) }));
@@ -40,8 +47,14 @@ function renderComponent() {
 }
 
 /** Returns a holiday fixture for today's date (always in the current month). */
-function todayHoliday(localName = 'Test Holiday') {
-  return { date: format(new Date(), 'yyyy-MM-dd'), localName, name: localName, countryCode: 'UA' };
+function todayHoliday(name = 'Test Holiday', primaryType = 'observance') {
+  return {
+    date: format(new Date(), 'yyyy-MM-dd'),
+    name,
+    description: '',
+    type: [primaryType],
+    primaryType,
+  };
 }
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
@@ -50,7 +63,7 @@ describe('Calendar', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseAppSelector.mockReturnValue(undefined);
-    mockUseGetHolidaysQuery.mockReturnValue({ data: undefined });
+    mockUseGetCalendarificHolidaysQuery.mockReturnValue({ data: undefined, isFetching: false });
   });
 
   // ── Default render ─────────────────────────────────────────────────────────
@@ -74,7 +87,8 @@ describe('Calendar', () => {
     renderComponent();
     const headers = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     headers.forEach(day => {
-      expect(screen.getByText(day)).toBeInTheDocument();
+      // t() is mocked to return the key, so rendered text is 'CalendarPage.Mon' etc.
+      expect(screen.getByText(`CalendarPage.${day}`)).toBeInTheDocument();
     });
   });
 
@@ -144,7 +158,7 @@ describe('Calendar', () => {
   });
 
   it('renders holiday name on a day cell when holidays API returns data', () => {
-    mockUseGetHolidaysQuery.mockReturnValue({
+    mockUseGetCalendarificHolidaysQuery.mockReturnValue({
       data: { data: [todayHoliday()] },
     });
 
@@ -155,50 +169,52 @@ describe('Calendar', () => {
 
   // ── Holiday styling ────────────────────────────────────────────────────────
 
-  it('applies bg-red-50 to the day cell that has a holiday', () => {
-    mockUseGetHolidaysQuery.mockReturnValue({
-      data: { data: [todayHoliday('Independence Day')] },
+  it('applies bg-slate-50/80 to the day cell that has a holiday', () => {
+    mockUseGetCalendarificHolidaysQuery.mockReturnValue({
+      data: { data: [todayHoliday('Independence Day', 'national')] },
+      isFetching: false,
     });
 
     renderComponent();
 
-    // Walk from label → badge wrapper → day cell
     const label = screen.getByText('Independence Day');
     const dayCell = label.parentElement!.parentElement!;
-    expect(dayCell.className).toContain('bg-red-50');
+    expect(dayCell.className).toContain('bg-slate-50');
   });
 
-  it('applies bg-red-100 badge with rounded corners to holiday label', () => {
-    mockUseGetHolidaysQuery.mockReturnValue({
-      data: { data: [todayHoliday('Labour Day')] },
+  it('applies correct bg class to the holiday badge based on primaryType', () => {
+    mockUseGetCalendarificHolidaysQuery.mockReturnValue({
+      data: { data: [todayHoliday('Labour Day', 'national')] },
+      isFetching: false,
     });
 
     renderComponent();
 
     const label = screen.getByText('Labour Day');
     const badge = label.parentElement!;
-    expect(badge.className).toContain('bg-red-100');
+    expect(badge.className).toContain('bg-blue-100');
     expect(badge.className).toContain('rounded');
   });
 
-  it('displays the localName field (not the name field) on the day cell', () => {
-    mockUseGetHolidaysQuery.mockReturnValue({
+  it('displays the name field on the day cell when no nameKey is present', () => {
+    mockUseGetCalendarificHolidaysQuery.mockReturnValue({
       data: {
         data: [
           {
             date: format(new Date(), 'yyyy-MM-dd'),
-            localName: 'День незалежності',
             name: 'Independence Day',
-            countryCode: 'UA',
+            description: '',
+            type: ['national'],
+            primaryType: 'national',
           },
         ],
       },
+      isFetching: false,
     });
 
     renderComponent();
 
-    expect(screen.getByText('День незалежності')).toBeInTheDocument();
-    expect(screen.queryByText('Independence Day')).not.toBeInTheDocument();
+    expect(screen.getByText('Independence Day')).toBeInTheDocument();
   });
 
   // ── No country — API skipped ───────────────────────────────────────────────
@@ -207,7 +223,7 @@ describe('Calendar', () => {
     // useAppSelector returns undefined → country is undefined → skip: true
     mockUseAppSelector.mockReturnValue(undefined);
     // Even if the hook were called it returns nothing
-    mockUseGetHolidaysQuery.mockReturnValue({ data: undefined });
+    mockUseGetCalendarificHolidaysQuery.mockReturnValue({ data: undefined });
 
     renderComponent();
 
@@ -221,12 +237,12 @@ describe('Calendar', () => {
     renderComponent();
 
     // Second argument to useGetHolidaysQuery must include { skip: true }
-    const [, options] = mockUseGetHolidaysQuery.mock.calls[0];
+    const [, options] = mockUseGetCalendarificHolidaysQuery.mock.calls[0];
     expect(options).toMatchObject({ skip: true });
   });
 
   it('does not apply bg-red-50 to any cell when holidays data is absent', () => {
-    mockUseGetHolidaysQuery.mockReturnValue({ data: undefined });
+    mockUseGetCalendarificHolidaysQuery.mockReturnValue({ data: undefined });
 
     const { container } = renderComponent();
 
@@ -242,7 +258,7 @@ describe('Calendar', () => {
 
     renderComponent();
 
-    const [, options] = mockUseGetHolidaysQuery.mock.calls[0];
+    const [, options] = mockUseGetCalendarificHolidaysQuery.mock.calls[0];
     expect(options).toMatchObject({ skip: false });
   });
 });

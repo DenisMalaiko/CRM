@@ -1,9 +1,10 @@
 import React, { useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, Download } from "lucide-react";
+import { ArrowLeft, Download, Image } from "lucide-react";
 
 import { useGetContentPlanPostsQuery } from "../../../../../store/contentPlan/contentPlanApi";
+import { useAppSelector } from "../../../../../store/hooks";
 import { TContentPlanPost } from "../../../../../models/ContentPlan";
 
 const FUNNEL_BADGE: Record<TContentPlanPost["funnelStage"], string> = {
@@ -14,91 +15,93 @@ const FUNNEL_BADGE: Record<TContentPlanPost["funnelStage"], string> = {
 
 type PostCardProps = {
   post: TContentPlanPost;
+  businessName: string;
 };
 
-function PostCard({ post }: PostCardProps) {
+function PostCard({ post, businessName }: PostCardProps) {
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
+  const avatarLetter = businessName.charAt(0).toUpperCase();
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 flex flex-col gap-4 text-left">
-      <div className="flex items-center gap-3">
-        <span className="text-sm font-semibold text-slate-700">
-          {t("ContentPlanPosts.Day")} {post.day} &middot; {post.date}
-        </span>
-
-        <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${FUNNEL_BADGE[post.funnelStage]}`}>
-          {post.funnelStage}
-        </span>
-
-        <span className="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium bg-slate-100 text-slate-600">
-          {post.format}
-        </span>
-      </div>
-
-      <div className="flex flex-col gap-2">
-        <p className="font-semibold text-slate-900">{post.topic}</p>
-
-        <div>
-          <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-            {t("ContentPlanPosts.Hook")}
-          </span>
-          <p className="text-sm text-slate-700 mt-0.5">{post.hook}</p>
+    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col text-left overflow-hidden">
+      {/* Header */}
+      <div className="flex items-start justify-between px-4 pt-4 pb-3">
+        <div className="flex items-center gap-3">
+          <div className="flex-shrink-0 w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center">
+            <span className="text-white font-bold text-base">{avatarLetter}</span>
+          </div>
+          <div className="flex flex-col">
+            <span className="text-sm font-semibold text-slate-900 leading-tight">{businessName}</span>
+            <span className="text-xs text-slate-400 mt-0.5">
+              {t("ContentPlanPosts.Day")} {post.day} &middot; {post.date}
+            </span>
+          </div>
         </div>
-
-        <div>
-          <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-            {t("ContentPlanPosts.CTA")}
+        <div className="flex items-center gap-1.5 flex-shrink-0">
+          <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${FUNNEL_BADGE[post.funnelStage]}`}>
+            {post.funnelStage}
           </span>
-          <p className="text-sm text-slate-700 mt-0.5">{post.cta}</p>
+          <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-slate-100 text-slate-600">
+            {post.format}
+          </span>
         </div>
       </div>
 
-      <button
-        onClick={() => setExpanded((prev) => !prev)}
-        className="self-start text-sm text-blue-600 hover:text-blue-700 font-medium"
-      >
-        {expanded ? t("ContentPlanPosts.HideDetails") : t("ContentPlanPosts.ShowDetails")}
-      </button>
+      {/* Post body */}
+      <div className="px-4 pb-3 flex flex-col gap-2">
+        <p className="text-sm text-slate-800 leading-relaxed">{post.hook}</p>
+        <p className="text-sm text-slate-600 leading-relaxed">{post.thesis}</p>
+        <p className="text-sm font-semibold text-blue-600">{post.cta}</p>
+      </div>
 
-      {expanded && (
-        <div className="flex flex-col gap-3 border-t border-slate-100 pt-4">
-          <div>
-            <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-              {t("ContentPlanPosts.Title")}
-            </span>
-            <p className="text-sm text-slate-700 mt-0.5">{post.title}</p>
-          </div>
+      {/* Visual placeholder */}
+      <div className="mx-4 mb-3 rounded-xl bg-gradient-to-br from-slate-100 to-slate-200 flex flex-col items-center justify-center gap-2 p-5 min-h-28">
+        <Image size={28} className="text-slate-400" />
+        <p className="text-xs text-slate-500 text-center leading-relaxed">{post.designReference}</p>
+      </div>
 
-          <div>
-            <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-              {t("ContentPlanPosts.Thesis")}
-            </span>
-            <p className="text-sm text-slate-700 mt-0.5">{post.thesis}</p>
-          </div>
+      {/* Footer */}
+      <div className="flex items-center justify-between px-4 py-2.5 border-t border-slate-100 bg-slate-50">
+        <span className="text-xs text-slate-500 truncate max-w-[30%]">{post.contentType}</span>
+        <span className="text-xs font-medium text-slate-700 bg-slate-200 rounded-full px-2.5 py-0.5 truncate max-w-[38%]">{post.topic}</span>
+        <span className="text-xs text-slate-500 truncate max-w-[26%] text-right">{post.marketingGoal}</span>
+      </div>
 
-          <div>
-            <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-              {t("ContentPlanPosts.MarketingGoal")}
-            </span>
-            <p className="text-sm text-slate-700 mt-0.5">{post.marketingGoal}</p>
-          </div>
+      {/* Expandable details */}
+      <div className="px-4 pb-4">
+        <button
+          onClick={() => setExpanded((prev) => !prev)}
+          className="mt-3 self-start text-sm text-blue-600 hover:text-blue-700 font-medium"
+        >
+          {expanded ? t("ContentPlanPosts.HideDetails") : t("ContentPlanPosts.ShowDetails")}
+        </button>
 
-          <div>
-            <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-              {t("ContentPlanPosts.ContentType")}
-            </span>
-            <p className="text-sm text-slate-700 mt-0.5">{post.contentType}</p>
-          </div>
+        {expanded && (
+          <div className="flex flex-col gap-3 border-t border-slate-100 pt-4 mt-3">
+            <div>
+              <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                {t("ContentPlanPosts.Title")}
+              </span>
+              <p className="text-sm text-slate-700 mt-0.5">{post.title}</p>
+            </div>
 
-          <div>
-            <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-              {t("ContentPlanPosts.DesignReference")}
-            </span>
-            <p className="text-sm text-slate-700 mt-0.5">{post.designReference}</p>
+            <div>
+              <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                {t("ContentPlanPosts.MarketingGoal")}
+              </span>
+              <p className="text-sm text-slate-700 mt-0.5">{post.marketingGoal}</p>
+            </div>
+
+            <div>
+              <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                {t("ContentPlanPosts.ContentType")}
+              </span>
+              <p className="text-sm text-slate-700 mt-0.5">{post.contentType}</p>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
@@ -107,32 +110,34 @@ export function ContentPlanPosts() {
   const { t } = useTranslation();
   const { contentPlanId } = useParams<{ contentPlanId: string }>();
   const navigate = useNavigate();
+  const business = useAppSelector((state) => state.businessModule.business);
   const { data, isFetching, isError } = useGetContentPlanPostsQuery(contentPlanId!, { skip: !contentPlanId });
   const posts = useMemo(() => [...(data?.data ?? [])].sort((a, b) => a.day - b.day), [data]);
+  const businessName = business?.name ?? "";
 
   function handleExportXLSX() {
-    if (!posts.length) return
+    if (!posts.length) return;
 
-    const headers = ["Day", "Date", "Funnel Stage", "Format", "Content Type", "Topic", "Marketing Goal", "Title", "Hook", "Thesis", "CTA", "Design Reference"]
-    const esc = (v: string) => String(v ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    const headers = ["Day", "Date", "Funnel Stage", "Format", "Content Type", "Topic", "Marketing Goal", "Title", "Hook", "Thesis", "CTA", "Design Reference"];
+    const esc = (v: string) => String(v ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
-    const headerRow = headers.map((h) => `<th style="font-weight:bold;background-color:#f1f5f9;">${esc(h)}</th>`).join("")
+    const headerRow = headers.map((h) => `<th style="font-weight:bold;background-color:#f1f5f9;">${esc(h)}</th>`).join("");
     const dataRows = posts.map((p) =>
       `<tr>${[p.day, p.date, p.funnelStage, p.format, p.contentType, p.topic, p.marketingGoal, p.title, p.hook, p.thesis, p.cta, p.designReference]
         .map((v) => `<td>${esc(String(v))}</td>`).join("")}</tr>`
-    ).join("")
+    ).join("");
 
     const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
 <head><meta charset="utf-8"/></head>
-<body><table border="1">${headerRow}${dataRows}</table></body></html>`
+<body><table border="1">${headerRow}${dataRows}</table></body></html>`;
 
-    const blob = new Blob([html], { type: "application/vnd.ms-excel;charset=utf-8;" })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement("a")
-    a.href = url
-    a.download = "content-plan-posts.xls"
-    a.click()
-    URL.revokeObjectURL(url)
+    const blob = new Blob([html], { type: "application/vnd.ms-excel;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "content-plan-posts.xls";
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   return (
@@ -185,9 +190,9 @@ export function ContentPlanPosts() {
           )}
 
           {!isFetching && !isError && posts.length > 0 && (
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
               {posts.map((post) => (
-                <PostCard key={post.day} post={post} />
+                <PostCard key={`${post.day}-${post.date}`} post={post} businessName={businessName} />
               ))}
             </div>
           )}
