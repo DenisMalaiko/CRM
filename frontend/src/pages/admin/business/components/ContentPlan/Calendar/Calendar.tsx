@@ -199,8 +199,8 @@ export function Calendar() {
                   const style = getHolidayStyle(ch.primaryType);
                   return (
                     <div key={ch.name} className={`mt-1 w-full ${style.bg} rounded px-1.5 py-0.5 overflow-hidden text-left`}>
-                      <span className={`text-xs ${style.text} block line-clamp-2`} title={ch.name}>
-                        {ch.name}
+                      <span className={`text-xs ${style.text} block line-clamp-2`} title={ch.nameKey ? t(ch.nameKey) : ch.name}>
+                        {ch.nameKey ? t(ch.nameKey) : ch.name}
                       </span>
                     </div>
                   );

@@ -4,6 +4,7 @@ import { useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import DatePicker from "react-datepicker";
 import { format, getYear } from "date-fns";
+import { useTranslation } from "react-i18next";
 
 // Hooks
 import { useForm } from "../../../../../../hooks/useForm";
@@ -62,6 +63,7 @@ type Props = {
 export function GenerateContentPlanDlg({ open, onClose }: Props) {
   const dispatch = useAppDispatch();
   const { businessId } = useParams<{ businessId: string }>();
+  const { t, i18n } = useTranslation();
 
   const [ generateContentPlan ] = useGenerateContentPlanMutation();
   const [ getContentPlans ] = useLazyGetContentPlansQuery();
@@ -81,7 +83,7 @@ export function GenerateContentPlanDlg({ open, onClose }: Props) {
   const [isLoading, setIsLoading] = useState(false);
   const [sourceMode, setSourceMode] = useState<"idea" | "marketing_calendar">("idea");
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [selectedHoliday, setSelectedHoliday] = useState<{ name: string; date: string } | null>(null);
+  const [selectedHoliday, setSelectedHoliday] = useState<{ name: string; nameKey?: string; date: string } | null>(null);
   const [viewDate, setViewDate] = useState<Date>(new Date());
 
   const { form, handleChange } = useForm({
@@ -152,7 +154,7 @@ export function GenerateContentPlanDlg({ open, onClose }: Props) {
   const viewYear = getYear(viewDate);
 
   const { data: holidaysResponse } = useGetCalendarificHolidaysQuery(
-    { year: viewYear, countryCode: country ?? "", language: "uk" },
+    { year: viewYear, countryCode: country ?? "", language: i18n.language === "ua" ? "uk" : i18n.language },
     { skip: !country }
   );
 
@@ -214,7 +216,7 @@ export function GenerateContentPlanDlg({ open, onClose }: Props) {
     const dateStr = format(date, "yyyy-MM-dd");
     const holidays = holidayMap.get(dateStr);
     if (holidays && holidays.length > 0) {
-      const name = holidays.map(h => h.name).join(", ");
+      const name = holidays.map(h => h.nameKey ? t(h.nameKey) : h.name).join(", ");
       const colorClass = getHolidayColorClass(holidays[0].primaryType);
       return (
         <span className={`holiday-tooltip ${colorClass}`} data-tooltip={name}>
@@ -231,7 +233,7 @@ export function GenerateContentPlanDlg({ open, onClose }: Props) {
     const holidays = holidayMap.get(dateStr);
     if (holidays && holidays.length > 0) {
       setSelectedDate(date);
-      setSelectedHoliday({ name: holidays[0].name, date: dateStr });
+      setSelectedHoliday({ name: holidays[0].name, nameKey: holidays[0].nameKey, date: dateStr });
     }
   };
 
@@ -566,7 +568,7 @@ export function GenerateContentPlanDlg({ open, onClose }: Props) {
                   filterDate={isHolidayDate}
                   dayClassName={getDayClassName}
                   renderDayContents={renderDayContents}
-                  value={selectedHoliday ? `${selectedHoliday.name} (${selectedHoliday.date})` : ""}
+                  value={selectedHoliday ? `${selectedHoliday.nameKey ? t(selectedHoliday.nameKey) : selectedHoliday.name} (${selectedHoliday.date})` : ""}
                   placeholderText="Select a holiday..."
                   wrapperClassName="w-full"
                   popperClassName="content-plan-datepicker"

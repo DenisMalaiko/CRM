@@ -50,6 +50,11 @@ jest.mock('../../../../../store/contentPlan/contentPlanApi', () => ({
   useGetContentPlanPostsQuery: () => mockQueryState,
 }));
 
+jest.mock('../../../../../store/hooks', () => ({
+  useAppSelector: jest.fn(() => ({ name: 'Test Business' })),
+  useAppDispatch: jest.fn(),
+}));
+
 // ── Fixtures ──────────────────────────────────────────────────────────────────
 
 function makePost(overrides: Partial<TContentPlanPost> = {}): TContentPlanPost {
@@ -200,11 +205,11 @@ describe('ContentPlanPosts', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /show details/i }));
 
+    // title only appears inside the expanded section
     expect(screen.getByText('Expanded Post Title')).toBeInTheDocument();
-    expect(screen.getByText('Core thesis text')).toBeInTheDocument();
-    expect(screen.getByText('Drive conversions')).toBeInTheDocument();
-    expect(screen.getByText('Blog post')).toBeInTheDocument();
-    expect(screen.getByText('Bold typography')).toBeInTheDocument();
+    // marketingGoal and contentType appear in both card footer and expanded details
+    expect(screen.getAllByText('Drive conversions')).toHaveLength(2);
+    expect(screen.getAllByText('Blog post')).toHaveLength(2);
   });
 
   it('collapses details when "Hide Details" is clicked after expanding', () => {

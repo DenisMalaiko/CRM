@@ -306,7 +306,15 @@
     "Thu": "Чт",
     "Fri": "Пт",
     "Sat": "Сб",
-    "Sun": "Нд"
+    "Sun": "Нд",
+    "holidays": {
+      "valentinesDay": "День святого Валентина",
+      "internationalWomensDay": "Міжнародний жіночий день",
+      "earthDay": "День Землі",
+      "halloween": "Гелловін",
+      "singlesDay": "День холостяків",
+      "blackFriday": "Чорна п'ятниця"
+    }
   },
   "ContentPlanPosts": {
     "BackButton": "Назад",

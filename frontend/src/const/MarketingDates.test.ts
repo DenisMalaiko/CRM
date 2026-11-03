@@ -19,6 +19,13 @@ describe('getMarketingDatesForYear', () => {
     });
   });
 
+  it('all items have a nameKey', () => {
+    result2026.forEach((item) => {
+      expect(item.nameKey).toBeDefined();
+      expect(item.nameKey).toContain('CalendarPage.holidays.');
+    });
+  });
+
   describe('fixed dates', () => {
     it.each([
       ["Valentine's Day", '02-14'],
