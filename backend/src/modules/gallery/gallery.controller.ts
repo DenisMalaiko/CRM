@@ -29,14 +29,14 @@ export class GalleryController {
   constructor(private readonly galleryService: GalleryService) {}
 
   @Get('/list/:id')
-  @ResponseMessage('Gallery defaultGalleryPhotos have been got!')
+  @ResponseMessage('Gallery photos have been retrieved!')
   async getGalleryPhotos(@Param() { id }: GalleryPhotoIdParamDto) {
     return await this.galleryService.getPhotos(id);
   }
 
   @Post()
   @UseInterceptors(FilesInterceptor('files'))
-  @ResponseMessage('Gallery defaultGalleryPhotos have been uploaded!')
+  @ResponseMessage('Gallery photos have been uploaded!')
   async uploadGalleryPhotos(
     @Body() dto: GalleryPhotoBaseDto,
     @UploadedFiles() files: Express.Multer.File[],
@@ -59,13 +59,11 @@ export class GalleryController {
     return await this.galleryService.revertOriginal(id);
   }
 
-
   @Post(':id/revert-previous')
   @ResponseMessage('Photo has been revert to previous!')
   async revertPrevious(@Param() { id }: GalleryPhotoIdParamDto) {
     return await this.galleryService.revertPrevious(id);
   }
-
 
   @Patch('/:id')
   @ResponseMessage('Photo has been updated!')
@@ -127,6 +125,6 @@ export class GalleryController {
     @Param() { id }: GalleryPhotoIdParamDto,
     @Body() body: AiGeneratedGalleryPhotoDto,
   ) {
-    return await this.galleryService.generateAiPhoto(id, body)
+    return await this.galleryService.generateAiPhoto(id, body);
   }
 }

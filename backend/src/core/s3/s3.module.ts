@@ -9,10 +9,13 @@ import { S3Service } from './s3.service';
       provide: S3Client,
       useFactory: (config: ConfigService) =>
         new S3Client({
-          region: config.getOrThrow<string>('AWS_REGION'),
+          region: 'auto',
+          endpoint: config.getOrThrow<string>('CLOUDFLARE_API_URL'),
           credentials: {
-            accessKeyId: config.getOrThrow<string>('AWS_ACCESS_KEY_ID'),
-            secretAccessKey: config.getOrThrow<string>('AWS_SECRET_ACCESS_KEY'),
+            accessKeyId: config.getOrThrow<string>('CLOUDFLARE_ACCESS_KEY_ID'),
+            secretAccessKey: config.getOrThrow<string>(
+              'CLOUDFLARE_SECRET_ACCESS_KEY',
+            ),
           },
         }),
       inject: [ConfigService],
