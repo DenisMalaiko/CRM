@@ -16,7 +16,7 @@ export class S3Service {
   ) {
     await this.s3.send(
       new PutObjectCommand({
-        Bucket: this.config.getOrThrow<string>('AWS_S3_BUCKET'),
+        Bucket: this.config.getOrThrow<string>('CLOUDFLARE_S3_BUCKET'),
         Key: key,
         Body: buffer,
         ContentType: contentType,
@@ -29,7 +29,7 @@ export class S3Service {
   async delete(key: string) {
     await this.s3.send(
       new DeleteObjectCommand({
-        Bucket: this.config.getOrThrow<string>('AWS_S3_BUCKET'),
+        Bucket: this.config.getOrThrow<string>('CLOUDFLARE_S3_BUCKET'),
         Key: key,
       }),
     );
