@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
@@ -15,15 +15,10 @@ import {
   getYear,
 } from "date-fns";
 import { uk } from "date-fns/locale";
-import { useParams } from "react-router-dom";
-import { useAppDispatch, useAppSelector } from "../../../../../../store/hooks";
+import { useAppSelector } from "../../../../../../store/hooks";
 import { useGetCalendarificHolidaysQuery } from "../../../../../../store/calendarific/calendarificApi";
-import { useGetBusinessMutation } from "../../../../../../store/businesses/businessesApi";
-import { setBusiness } from "../../../../../../store/businesses/businessesSlice";
 import { TCalendarificHoliday } from "../../../../../../models/CalendarificHoliday";
 import { getMarketingDatesForYear } from "../../../../../../const/MarketingDates";
-import { ApiResponse } from "../../../../../../models/ApiResponse";
-import { TBusiness } from "../../../../../../models/Business";
 
 function getHolidayStyle(primaryType: string): { bg: string; text: string; dot: string } {
   const lower = primaryType.toLowerCase();
@@ -38,19 +33,9 @@ function getHolidayStyle(primaryType: string): { bg: string; text: string; dot: 
 
 export function Calendar() {
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
-  const { businessId } = useParams<{ businessId: string }>();
-  const dispatch = useAppDispatch();
   const business = useAppSelector(state => state.businessModule.business);
   const country = business?.country;
-  const [getBusiness] = useGetBusinessMutation();
 
-  useEffect(() => {
-    if (!business && businessId) {
-      getBusiness(businessId).unwrap().then((response: ApiResponse<TBusiness>) => {
-        if (response?.data) dispatch(setBusiness(response.data));
-      });
-    }
-  }, [business, businessId, dispatch, getBusiness]);
   const { t, i18n } = useTranslation();
   const year = getYear(currentMonth);
   const language = i18n.language || "ua";

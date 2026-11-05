@@ -24,8 +24,6 @@ import { useGetIdeasMutation } from "../../../../../../store/idea/ideaApi";
 import { setIdeas } from "../../../../../../store/idea/ideaSlice";
 import { useLazyGetIdeasAIQuery } from "../../../../../../store/ai/ideas/ideaAiApi";
 import { setIdeasAi } from "../../../../../../store/ai/ideas/ideaAiSlice";
-import { useGetBusinessMutation } from "../../../../../../store/businesses/businessesApi";
-import { setBusiness } from "../../../../../../store/businesses/businessesSlice";
 import { useGetCalendarificHolidaysQuery } from "../../../../../../store/calendarific/calendarificApi";
 
 // Components
@@ -39,7 +37,6 @@ import { TAudience } from "../../../../../../models/Audience";
 import { TIdea } from "../../../../../../models/Idea";
 import { TIdeaAI } from "../../../../../../models/IdeaAI";
 import { TCalendarificHoliday } from "../../../../../../models/CalendarificHoliday";
-import { TBusiness } from "../../../../../../models/Business";
 
 // Constants
 import { getMarketingDatesForYear } from "../../../../../../const/MarketingDates";
@@ -71,8 +68,6 @@ export function GenerateContentPlanDlg({ open, onClose }: Props) {
   const [ getAudiences ] = useGetAudiencesMutation();
   const [ getIdeas ] = useGetIdeasMutation();
   const [ getIdeasAI ] = useLazyGetIdeasAIQuery();
-  const [ getBusiness ] = useGetBusinessMutation();
-
   const { products } = useAppSelector((state) => state.productsModule);
   const { audiences } = useAppSelector((state) => state.audienceModule);
   const { ideas } = useAppSelector((state) => state.ideaModule);
@@ -91,14 +86,6 @@ export function GenerateContentPlanDlg({ open, onClose }: Props) {
     audiencesIds: [] as string[],
     ideasIds: [] as string[],
   });
-
-  useEffect(() => {
-    if (!business && businessId) {
-      getBusiness(businessId).unwrap().then((response: ApiResponse<TBusiness>) => {
-        if (response?.data) dispatch(setBusiness(response.data));
-      });
-    }
-  }, [business, businessId, dispatch, getBusiness]);
 
   useEffect(() => {
     const fetchData = async () => {
