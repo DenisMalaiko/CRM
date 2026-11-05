@@ -1,23 +1,15 @@
-import React, { useEffect, useState } from 'react';
-import { useParams } from "react-router-dom";
+import React, { useState } from 'react';
 
 // Redux
-import { useSelector } from "react-redux";
-import { RootState } from "../../../../../../store";
-import { useAppDispatch } from "../../../../../../store/hooks";
-import { useGetBusinessMutation } from "../../../../../../store/businesses/businessesApi";
-import { setBusiness } from "../../../../../../store/businesses/businessesSlice";
+import { useAppSelector } from "../../../../../../store/hooks";
 
 // Models
-import { ApiResponse } from "../../../../../../models/ApiResponse";
 import { TBusiness } from "../../../../../../models/Business";
 
 // Components
 import CreateBusinessDlg from "../../../createBusinessDlg/CreateBusinessDlg";
 
 // Utils
-import { trimID } from "../../../../../../utils/trimID";
-import { showError } from "../../../../../../utils/showError";
 import { getStatusClass } from "../../../../../../utils/getStatusClass";
 
 // Const
@@ -25,32 +17,9 @@ import { Languages } from "../../../../../../const/Languages";
 import { Countries } from "../../../../../../const/Countries";
 
 function BaseData() {
-  const dispatch = useAppDispatch();
-  const { businessId } = useParams<{ businessId: string }>();
-  const [ getBusiness ] = useGetBusinessMutation();
   const [ open, setOpen ] = useState(false);
   const [ selectedBusiness, setSelectedBusiness ] = useState<TBusiness | null>(null);
-  const { business } = useSelector((state: RootState) => state.businessModule)
-
-  // Get Data
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        if(businessId) {
-          const response: ApiResponse<TBusiness> = await getBusiness(businessId).unwrap();
-
-          if(response && response?.data) {
-            dispatch(setBusiness(response.data));
-          }
-        }
-      } catch (error) {
-        console.error("Error fetching data:", error);
-        showError(error);
-      }
-    }
-
-    fetchData();
-  }, [dispatch]);
+  const { business } = useAppSelector((state) => state.businessModule);
 
   // Open Edit Business Dialog
   const openEditBusiness = async (item: TBusiness) => {
