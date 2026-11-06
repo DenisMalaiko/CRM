@@ -1,6 +1,7 @@
 import {
   IsArray,
   IsEnum,
+  IsIn,
   IsNotEmpty,
   IsOptional,
   IsString,
@@ -55,4 +56,60 @@ export class UpdateContentPlanDto {
   @IsEnum(ContentPlanStatus)
   @IsOptional()
   status?: ContentPlanStatus;
+}
+
+export class UpdateContentPlanPostDto {
+  @IsString()
+  @IsNotEmpty()
+  @IsOptional()
+  date?: string;
+
+  @IsIn(['TOFU', 'MOFU', 'BOFU'])
+  @IsOptional()
+  funnelStage?: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @IsOptional()
+  format?: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @IsOptional()
+  contentType?: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @IsOptional()
+  topic?: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @IsOptional()
+  marketingGoal?: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @IsOptional()
+  title?: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @IsOptional()
+  hook?: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @IsOptional()
+  thesis?: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @IsOptional()
+  cta?: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @IsOptional()
+  designReference?: string;
 }

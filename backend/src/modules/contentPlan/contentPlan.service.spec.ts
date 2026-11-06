@@ -15,6 +15,7 @@ import { JwtAuthGuard } from '../../core/guards/jwt-auth.guard';
 
 const PLAN_UUID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
 const BUSINESS_UUID = 'b2c3d4e5-f6a7-8901-bcde-f12345678901';
+const AGENCY_UUID = 'c3d4e5f6-a7b8-9012-cdef-123456789012';
 
 const fakePlan = {
   id: PLAN_UUID,
@@ -362,6 +363,194 @@ describe('ContentPlanService', () => {
       });
     });
   });
+
+  // ─────────────────────────────────────────────
+  // updateContentPlanPost
+  // ─────────────────────────────────────────────
+  describe('updateContentPlanPost', () => {
+    const existingPost = { day: 1, platform: 'instagram', content: 'Post 1' };
+
+    it('returns the updated post after applying dto fields', async () => {
+      mockPrisma.contentPlan.findUnique.mockResolvedValue({
+        postsJson: [existingPost],
+        business: { agencyId: AGENCY_UUID },
+      });
+      mockPrisma.contentPlan.update.mockResolvedValue({} as any);
+
+      const result = await service.updateContentPlanPost(
+        PLAN_UUID,
+        1,
+        {
+          topic: 'New topic',
+        },
+        AGENCY_UUID,
+      );
+
+      expect(result.topic).toBe('New topic');
+      expect(result.day).toBe(1);
+    });
+
+    it('persists the modified posts array via prisma.update', async () => {
+      mockPrisma.contentPlan.findUnique.mockResolvedValue({
+        postsJson: [existingPost],
+        business: { agencyId: AGENCY_UUID },
+      });
+      mockPrisma.contentPlan.update.mockResolvedValue({} as any);
+
+      await service.updateContentPlanPost(
+        PLAN_UUID,
+        1,
+        { topic: 'Updated' },
+        AGENCY_UUID,
+      );
+
+      expect(mockPrisma.contentPlan.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: PLAN_UUID },
+          data: expect.objectContaining({ postsJson: expect.any(Array) }),
+        }),
+      );
+    });
+
+    it('throws NotFoundException when the content plan does not exist', async () => {
+      mockPrisma.contentPlan.findUnique.mockResolvedValue(null);
+
+      await expect(
+        service.updateContentPlanPost(
+          PLAN_UUID,
+          1,
+          { topic: 'Test' },
+          AGENCY_UUID,
+        ),
+      ).rejects.toThrow(NotFoundException);
+
+      expect(mockPrisma.contentPlan.update).not.toHaveBeenCalled();
+    });
+
+    it('throws NotFoundException when agencyId does not match', async () => {
+      mockPrisma.contentPlan.findUnique.mockResolvedValue({
+        postsJson: [existingPost],
+        business: { agencyId: 'other-agency-id' },
+      });
+
+      await expect(
+        service.updateContentPlanPost(
+          PLAN_UUID,
+          1,
+          { topic: 'Test' },
+          AGENCY_UUID,
+        ),
+      ).rejects.toThrow(NotFoundException);
+
+      expect(mockPrisma.contentPlan.update).not.toHaveBeenCalled();
+    });
+
+    it('throws NotFoundException when the post with the given day does not exist', async () => {
+      mockPrisma.contentPlan.findUnique.mockResolvedValue({
+        postsJson: [existingPost],
+        business: { agencyId: AGENCY_UUID },
+      });
+
+      await expect(
+        service.updateContentPlanPost(
+          PLAN_UUID,
+          99,
+          { topic: 'Ghost' },
+          AGENCY_UUID,
+        ),
+      ).rejects.toThrow(NotFoundException);
+
+      expect(mockPrisma.contentPlan.update).not.toHaveBeenCalled();
+    });
+
+    it('handles postsJson being null by treating it as an empty array', async () => {
+      mockPrisma.contentPlan.findUnique.mockResolvedValue({
+        postsJson: null,
+        business: { agencyId: AGENCY_UUID },
+      });
+
+      await expect(
+        service.updateContentPlanPost(
+          PLAN_UUID,
+          1,
+          { topic: 'Test' },
+          AGENCY_UUID,
+        ),
+      ).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  // ─────────────────────────────────────────────
+  // deleteContentPlanPost
+  // ─────────────────────────────────────────────
+  describe('deleteContentPlanPost', () => {
+    const post1 = { day: 1, platform: 'instagram', content: 'Post 1' };
+    const post2 = { day: 2, platform: 'facebook', content: 'Post 2' };
+
+    it('removes the target post and persists the remaining array', async () => {
+      mockPrisma.contentPlan.findUnique.mockResolvedValue({
+        postsJson: [post1, post2],
+        business: { agencyId: AGENCY_UUID },
+      });
+      mockPrisma.contentPlan.update.mockResolvedValue({} as any);
+
+      await service.deleteContentPlanPost(PLAN_UUID, 1, AGENCY_UUID);
+
+      expect(mockPrisma.contentPlan.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: PLAN_UUID },
+          data: { postsJson: [post2] },
+        }),
+      );
+    });
+
+    it('throws NotFoundException when the content plan does not exist', async () => {
+      mockPrisma.contentPlan.findUnique.mockResolvedValue(null);
+
+      await expect(
+        service.deleteContentPlanPost(PLAN_UUID, 1, AGENCY_UUID),
+      ).rejects.toThrow(NotFoundException);
+
+      expect(mockPrisma.contentPlan.update).not.toHaveBeenCalled();
+    });
+
+    it('throws NotFoundException when agencyId does not match', async () => {
+      mockPrisma.contentPlan.findUnique.mockResolvedValue({
+        postsJson: [post1],
+        business: { agencyId: 'other-agency-id' },
+      });
+
+      await expect(
+        service.deleteContentPlanPost(PLAN_UUID, 1, AGENCY_UUID),
+      ).rejects.toThrow(NotFoundException);
+
+      expect(mockPrisma.contentPlan.update).not.toHaveBeenCalled();
+    });
+
+    it('throws NotFoundException when no post matches the given day', async () => {
+      mockPrisma.contentPlan.findUnique.mockResolvedValue({
+        postsJson: [post1],
+        business: { agencyId: AGENCY_UUID },
+      });
+
+      await expect(
+        service.deleteContentPlanPost(PLAN_UUID, 99, AGENCY_UUID),
+      ).rejects.toThrow(NotFoundException);
+
+      expect(mockPrisma.contentPlan.update).not.toHaveBeenCalled();
+    });
+
+    it('handles postsJson being null by throwing NotFoundException', async () => {
+      mockPrisma.contentPlan.findUnique.mockResolvedValue({
+        postsJson: null,
+        business: { agencyId: AGENCY_UUID },
+      });
+
+      await expect(
+        service.deleteContentPlanPost(PLAN_UUID, 1, AGENCY_UUID),
+      ).rejects.toThrow(NotFoundException);
+    });
+  });
 });
 
 // ─────────────────────────────────────────────
@@ -377,6 +566,8 @@ describe('ContentPlanController (integration)', () => {
       | 'generateContentPlan'
       | 'updateContentPlan'
       | 'deleteContentPlan'
+      | 'updateContentPlanPost'
+      | 'deleteContentPlanPost'
     >
   >;
 
@@ -391,6 +582,8 @@ describe('ContentPlanController (integration)', () => {
         .fn()
         .mockResolvedValue({ ...fakePlan, title: 'Updated' }),
       deleteContentPlan: jest.fn().mockResolvedValue(fakePlan),
+      updateContentPlanPost: jest.fn().mockResolvedValue(fakePosts[0]),
+      deleteContentPlanPost: jest.fn().mockResolvedValue(undefined),
     };
 
     const moduleRef: TestingModule = await Test.createTestingModule({
@@ -399,7 +592,13 @@ describe('ContentPlanController (integration)', () => {
       providers: [{ provide: ContentPlanService, useValue: mockService }],
     })
       .overrideGuard(JwtAuthGuard)
-      .useValue({ canActivate: () => true })
+      .useValue({
+        canActivate: (context) => {
+          const req = context.switchToHttp().getRequest();
+          req.user = { id: 'user-1', agencyId: AGENCY_UUID };
+          return true;
+        },
+      })
       .compile();
 
     app = moduleRef.createNestApplication();
@@ -424,6 +623,8 @@ describe('ContentPlanController (integration)', () => {
       title: 'Updated',
     } as any);
     mockService.deleteContentPlan.mockResolvedValue(fakePlan as any);
+    mockService.updateContentPlanPost.mockResolvedValue(fakePosts[0] as any);
+    mockService.deleteContentPlanPost.mockResolvedValue(undefined);
   });
 
   // ─────────────────────────────────────────────
@@ -512,13 +713,17 @@ describe('ContentPlanController (integration)', () => {
     });
 
     it('passes optional arrays and context when provided', async () => {
+      const prodId = 'a1b2c3d4-e5f6-4890-abcd-ef1234567890';
+      const audId = 'b2c3d4e5-f6a7-4901-bcde-f12345678901';
+      const ideaId = 'c3d4e5f6-a7b8-4012-8def-123456789012';
+
       await request(app.getHttpServer())
         .post(`/contentPlan/${BUSINESS_UUID}`)
         .send({
           mode: 'manual',
-          productsIds: ['prod-1'],
-          audiencesIds: ['aud-1'],
-          ideasIds: ['idea-1'],
+          productsIds: [prodId],
+          audiencesIds: [audId],
+          ideasIds: [ideaId],
           context: 'Summer campaign',
         })
         .expect(201);
@@ -527,9 +732,9 @@ describe('ContentPlanController (integration)', () => {
         BUSINESS_UUID,
         {
           mode: 'manual',
-          productsIds: ['prod-1'],
-          audiencesIds: ['aud-1'],
-          ideasIds: ['idea-1'],
+          productsIds: [prodId],
+          audiencesIds: [audId],
+          ideasIds: [ideaId],
           context: 'Summer campaign',
         },
       );
@@ -606,6 +811,142 @@ describe('ContentPlanController (integration)', () => {
       await request(app.getHttpServer())
         .delete(`/contentPlan/${PLAN_UUID}`)
         .expect(404);
+    });
+  });
+
+  // ─────────────────────────────────────────────
+  // PATCH /contentPlan/:id/posts/:day
+  // ─────────────────────────────────────────────
+  describe('PATCH /contentPlan/:id/posts/:day', () => {
+    it('returns 200 with the updated post for a valid request', async () => {
+      const response = await request(app.getHttpServer())
+        .patch(`/contentPlan/${PLAN_UUID}/posts/1`)
+        .send({ topic: 'Updated topic' })
+        .expect(200);
+
+      expect(response.body).toEqual(fakePosts[0]);
+      expect(mockService.updateContentPlanPost).toHaveBeenCalledWith(
+        PLAN_UUID,
+        1,
+        { topic: 'Updated topic' },
+        AGENCY_UUID,
+      );
+    });
+
+    it('returns 200 and passes the parsed integer day to the service', async () => {
+      await request(app.getHttpServer())
+        .patch(`/contentPlan/${PLAN_UUID}/posts/7`)
+        .send({ funnelStage: 'TOFU' })
+        .expect(200);
+
+      expect(mockService.updateContentPlanPost).toHaveBeenCalledWith(
+        PLAN_UUID,
+        7,
+        { funnelStage: 'TOFU' },
+        AGENCY_UUID,
+      );
+    });
+
+    it('returns 404 when the content plan does not exist', async () => {
+      mockService.updateContentPlanPost.mockRejectedValue(
+        new NotFoundException('Content plan not found'),
+      );
+
+      await request(app.getHttpServer())
+        .patch(`/contentPlan/${PLAN_UUID}/posts/1`)
+        .send({ topic: 'Ghost' })
+        .expect(404);
+    });
+
+    it('returns 404 when no post matches the given day', async () => {
+      mockService.updateContentPlanPost.mockRejectedValue(
+        new NotFoundException('Post not found'),
+      );
+
+      await request(app.getHttpServer())
+        .patch(`/contentPlan/${PLAN_UUID}/posts/99`)
+        .send({ topic: 'Missing day' })
+        .expect(404);
+    });
+
+    it('returns 400 when day param is not a number', async () => {
+      await request(app.getHttpServer())
+        .patch(`/contentPlan/${PLAN_UUID}/posts/abc`)
+        .send({ topic: 'Bad param' })
+        .expect(400);
+
+      expect(mockService.updateContentPlanPost).not.toHaveBeenCalled();
+    });
+
+    it('strips unknown fields from the body (whitelist)', async () => {
+      await request(app.getHttpServer())
+        .patch(`/contentPlan/${PLAN_UUID}/posts/1`)
+        .send({ topic: 'Valid', unknownField: 'stripped' })
+        .expect(200);
+
+      expect(mockService.updateContentPlanPost).toHaveBeenCalledWith(
+        PLAN_UUID,
+        1,
+        { topic: 'Valid' },
+        AGENCY_UUID,
+      );
+    });
+  });
+
+  // ─────────────────────────────────────────────
+  // DELETE /contentPlan/:id/posts/:day
+  // ─────────────────────────────────────────────
+  describe('DELETE /contentPlan/:id/posts/:day', () => {
+    it('returns 200 when the post is deleted successfully', async () => {
+      await request(app.getHttpServer())
+        .delete(`/contentPlan/${PLAN_UUID}/posts/1`)
+        .expect(200);
+
+      expect(mockService.deleteContentPlanPost).toHaveBeenCalledWith(
+        PLAN_UUID,
+        1,
+        AGENCY_UUID,
+      );
+    });
+
+    it('returns 200 and passes the parsed integer day to the service', async () => {
+      await request(app.getHttpServer())
+        .delete(`/contentPlan/${PLAN_UUID}/posts/5`)
+        .expect(200);
+
+      expect(mockService.deleteContentPlanPost).toHaveBeenCalledWith(
+        PLAN_UUID,
+        5,
+        AGENCY_UUID,
+      );
+    });
+
+    it('returns 404 when the content plan does not exist', async () => {
+      mockService.deleteContentPlanPost.mockRejectedValue(
+        new NotFoundException('Content plan not found'),
+      );
+
+      await request(app.getHttpServer())
+        .delete(`/contentPlan/${PLAN_UUID}/posts/1`)
+        .expect(404);
+    });
+
+    it('returns 404 when no post matches the given day', async () => {
+      mockService.deleteContentPlanPost.mockRejectedValue(
+        new NotFoundException('Post not found'),
+      );
+
+      await request(app.getHttpServer())
+        .delete(`/contentPlan/${PLAN_UUID}/posts/99`)
+        .expect(404);
+    });
+
+    it('returns 400 when day param is not a number', async () => {
+      await request(app.getHttpServer())
+        .delete(`/contentPlan/${PLAN_UUID}/posts/abc`)
+        .expect(400);
+
+      expect(mockService.deleteContentPlanPost).not.toHaveBeenCalled();
     });
   });
 });

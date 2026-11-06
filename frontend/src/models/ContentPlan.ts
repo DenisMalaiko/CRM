@@ -8,7 +8,7 @@ export type TContentPlan = {
   status: ContentPlanStatus;
   mode: "manual";
   createdAt: Date;
-}
+};
 
 export type TContentPlanGenerate = {
   mode: "manual";
@@ -23,7 +23,7 @@ export type TContentPlanUpdate = {
   title?: string;
   description?: string;
   status?: ContentPlanStatus;
-}
+};
 
 export type TContentPlanPost = {
   day: number;
@@ -38,4 +38,6 @@ export type TContentPlanPost = {
   thesis: string;
   cta: string;
   designReference: string;
-}
+};
+
+export type TContentPlanPostUpdate = Partial<Omit<TContentPlanPost, "day">>;

@@ -329,6 +329,13 @@
     "MarketingGoal": "Marketing Goal",
     "ContentType": "Content Type",
     "DesignReference": "Design Reference",
+    "EditPost": "Edit Post",
+    "DeletePost": "Delete Post",
+    "DeletePostConfirm": "Are you sure you want to delete this post?",
+    "PostDeleted": "Post deleted successfully",
+    "Format": "Format",
+    "FunnelStage": "Funnel Stage",
+    "Topic": "Topic",
     "Error": "Failed to load posts.",
     "Empty": "No posts found."
   }

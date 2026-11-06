@@ -7,6 +7,8 @@ import {
   Param,
   Body,
   UseGuards,
+  ParseIntPipe,
+  Request,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../../core/guards/jwt-auth.guard';
 import { ResponseMessage } from '../../core/decorators/response-message.decorator';
@@ -14,6 +16,7 @@ import { ContentPlanService } from './contentPlan.service';
 import {
   GenerateContentPlanDto,
   UpdateContentPlanDto,
+  UpdateContentPlanPostDto,
 } from './dto/contentPlan.dto';
 
 @UseGuards(JwtAuthGuard)
@@ -40,6 +43,36 @@ export class ContentPlanController {
     @Body() dto: GenerateContentPlanDto,
   ) {
     return this.contentPlanService.generateContentPlan(businessId, dto);
+  }
+
+  @Patch('/:id/posts/:day')
+  @ResponseMessage('Content plan post updated successfully')
+  async updateContentPlanPost(
+    @Request() req,
+    @Param('id') id: string,
+    @Param('day', ParseIntPipe) day: number,
+    @Body() dto: UpdateContentPlanPostDto,
+  ) {
+    return this.contentPlanService.updateContentPlanPost(
+      id,
+      day,
+      dto,
+      req.user.agencyId,
+    );
+  }
+
+  @Delete('/:id/posts/:day')
+  @ResponseMessage('Content plan post deleted successfully')
+  async deleteContentPlanPost(
+    @Request() req,
+    @Param('id') id: string,
+    @Param('day', ParseIntPipe) day: number,
+  ) {
+    return this.contentPlanService.deleteContentPlanPost(
+      id,
+      day,
+      req.user.agencyId,
+    );
   }
 
   @Patch('/:id')
