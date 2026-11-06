@@ -11,7 +11,9 @@ import { AiContentPlanService } from '../ai/services/ai-content-plan.service';
 import {
   GenerateContentPlanDto,
   UpdateContentPlanDto,
+  UpdateContentPlanPostDto,
 } from './dto/contentPlan.dto';
+import { TContentPlanPost } from './entities/contentPlan.entity';
 
 const CONTENT_PLAN_LIST_SELECT = {
   id: true,
@@ -119,5 +121,56 @@ export class ContentPlanService {
     if (!plan) throw new NotFoundException('Content plan not found');
 
     return this.prisma.contentPlan.delete({ where: { id } });
+  }
+
+  async updateContentPlanPost(
+    id: string,
+    day: number,
+    dto: UpdateContentPlanPostDto,
+    agencyId: string,
+  ) {
+    const plan = await this.prisma.contentPlan.findUnique({
+      where: { id },
+      select: { postsJson: true, business: { select: { agencyId: true } } },
+    });
+
+    if (!plan || plan.business.agencyId !== agencyId)
+      throw new NotFoundException('Content plan not found');
+
+    const posts = (plan.postsJson ?? []) as TContentPlanPost[];
+    const post = posts.find((p) => p.day === day);
+
+    if (!post) throw new NotFoundException('Post not found');
+
+    Object.assign(post, dto);
+
+    await this.prisma.contentPlan.update({
+      where: { id },
+      data: { postsJson: posts },
+    });
+
+    return post;
+  }
+
+  async deleteContentPlanPost(id: string, day: number, agencyId: string) {
+    const plan = await this.prisma.contentPlan.findUnique({
+      where: { id },
+      select: { postsJson: true, business: { select: { agencyId: true } } },
+    });
+
+    if (!plan || plan.business.agencyId !== agencyId)
+      throw new NotFoundException('Content plan not found');
+
+    const posts = (plan.postsJson ?? []) as TContentPlanPost[];
+    const postIndex = posts.findIndex((p) => p.day === day);
+
+    if (postIndex === -1) throw new NotFoundException('Post not found');
+
+    const filtered = posts.filter((p) => p.day !== day);
+
+    await this.prisma.contentPlan.update({
+      where: { id },
+      data: { postsJson: filtered },
+    });
   }
 }

@@ -1,11 +1,20 @@
 import React, { useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, Download, Image } from "lucide-react";
+import { toast } from "react-toastify";
+import { ArrowLeft, Download, Image, Pencil, Trash2 } from "lucide-react";
 
-import { useGetContentPlanPostsQuery } from "../../../../../store/contentPlan/contentPlanApi";
+import { confirm } from "../../../../../components/confirmDlg/ConfirmDlg";
+import UpdateContentPlanPostDlg from "./components/UpdateContentPlanPostDlg";
+
+import {
+  useGetContentPlanPostsQuery,
+  useDeleteContentPlanPostMutation,
+  useLazyGetContentPlanPostsQuery,
+} from "../../../../../store/contentPlan/contentPlanApi";
 import { useAppSelector } from "../../../../../store/hooks";
 import { TContentPlanPost } from "../../../../../models/ContentPlan";
+import { showError } from "../../../../../utils/showError";
 
 const FUNNEL_BADGE: Record<TContentPlanPost["funnelStage"], string> = {
   TOFU: "bg-green-100 text-green-700",
@@ -16,9 +25,11 @@ const FUNNEL_BADGE: Record<TContentPlanPost["funnelStage"], string> = {
 type PostCardProps = {
   post: TContentPlanPost;
   businessName: string;
+  onEdit: (post: TContentPlanPost) => void;
+  onDelete: (post: TContentPlanPost) => void;
 };
 
-function PostCard({ post, businessName }: PostCardProps) {
+function PostCard({ post, businessName, onEdit, onDelete }: PostCardProps) {
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const avatarLetter = businessName.charAt(0).toUpperCase();
@@ -45,6 +56,22 @@ function PostCard({ post, businessName }: PostCardProps) {
           <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-slate-100 text-slate-600">
             {post.format}
           </span>
+
+          <button
+            onClick={() => onEdit(post)}
+            title={t("ContentPlanPosts.EditPost")}
+            className="h-7 w-7 flex items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-700 ml-1"
+          >
+            <Pencil size={14} />
+          </button>
+
+          <button
+            onClick={() => onDelete(post)}
+            title={t("ContentPlanPosts.DeletePost")}
+            className="h-7 w-7 flex items-center justify-center rounded-lg border border-slate-200 text-rose-500 hover:bg-rose-50 hover:text-rose-700"
+          >
+            <Trash2 size={14} />
+          </button>
         </div>
       </div>
 
@@ -114,6 +141,32 @@ export function ContentPlanPosts() {
   const { data, isFetching, isError } = useGetContentPlanPostsQuery(contentPlanId!, { skip: !contentPlanId });
   const posts = useMemo(() => [...(data?.data ?? [])].sort((a, b) => a.day - b.day), [data]);
   const businessName = business?.name ?? "";
+
+  const [deleteContentPlanPost] = useDeleteContentPlanPostMutation();
+  const [getContentPlanPosts] = useLazyGetContentPlanPostsQuery();
+
+  const [editingPost, setEditingPost] = useState<TContentPlanPost | null>(null);
+
+  const handleEdit = (post: TContentPlanPost) => {
+    setEditingPost(post);
+  };
+
+  const handleDelete = async (post: TContentPlanPost) => {
+    const ok = await confirm({
+      title: t("ContentPlanPosts.DeletePost"),
+      message: t("ContentPlanPosts.DeletePostConfirm"),
+    });
+
+    if (!ok || !contentPlanId) return;
+
+    try {
+      await deleteContentPlanPost({ id: contentPlanId, day: post.day }).unwrap();
+      await getContentPlanPosts(contentPlanId).unwrap();
+      toast.success(t("ContentPlanPosts.PostDeleted"));
+    } catch (error) {
+      showError(error);
+    }
+  };
 
   function handleExportXLSX() {
     if (!posts.length) return;
@@ -192,12 +245,27 @@ export function ContentPlanPosts() {
           {!isFetching && !isError && posts.length > 0 && (
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
               {posts.map((post) => (
-                <PostCard key={`${post.day}-${post.date}`} post={post} businessName={businessName} />
+                <PostCard
+                  key={`${post.day}-${post.date}`}
+                  post={post}
+                  businessName={businessName}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                />
               ))}
             </div>
           )}
         </div>
       </div>
+
+      {editingPost && contentPlanId && (
+        <UpdateContentPlanPostDlg
+          open={!!editingPost}
+          onClose={() => setEditingPost(null)}
+          post={editingPost}
+          contentPlanId={contentPlanId}
+        />
+      )}
     </div>
   );
 }
