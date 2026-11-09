@@ -1,14 +1,14 @@
-import { configureStore } from '@reduxjs/toolkit'
-import adminModule from './admin/adminSlice'
-import authModule from './auth/authSlice'
-import productsModule from './products/productsSlice'
-import agencyModule from './agency/agencySlice'
-import businessModule from './businesses/businessesSlice'
+import { configureStore } from "@reduxjs/toolkit";
+import adminModule from "./admin/adminSlice";
+import authModule from "./auth/authSlice";
+import productsModule from "./products/productsSlice";
+import agencyModule from "./agency/agencySlice";
+import businessModule from "./businesses/businessesSlice";
 import managerModule from "./ai/manager/managerSlice";
 import profileModule from "./profile/profileSlice";
 import audienceModule from "./audience/audienceSlice";
 import platformModule from "./platform/platformSlice";
-import artifactModule from "./artifact/artifactSlice"
+import artifactModule from "./artifact/artifactSlice";
 import promptModule from "./prompts/promptSlice";
 import competitorModule from "./competitor/competitorSlice";
 import galleryModule from "./gallery/gallerySlice";
@@ -16,7 +16,8 @@ import ideaModule from "./idea/ideaSlice";
 import trendsModule from "./trends/trendsSlice";
 import ideaAiModule from "./ai/ideas/ideaAiSlice";
 import contentPlanModule from "./contentPlan/contentPlanSlice";
-import { api } from './api/api'
+import designSystemModule from "./designSystem/designSystemSlice";
+import { api } from "./api/api";
 
 export const store = configureStore({
   reducer: {
@@ -37,10 +38,12 @@ export const store = configureStore({
     ideaAiModule: ideaAiModule,
     contentPlanModule: contentPlanModule,
     trendsModule: trendsModule,
+    designSystemModule: designSystemModule,
     [api.reducerPath]: api.reducer,
   },
-  middleware: (getDefaultMiddleware: any) => getDefaultMiddleware().concat(api.middleware),
-})
+  middleware: (getDefaultMiddleware: any) =>
+    getDefaultMiddleware().concat(api.middleware),
+});
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;

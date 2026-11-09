@@ -1,13 +1,23 @@
-import {IsArray, IsEnum, IsNotEmpty, IsOptional, IsUUID, IsString, ValidateNested, ArrayMinSize} from "class-validator";
-import {AIArtifactStatus, AIArtifactType, MediaType} from "@prisma/client";
-import { Type } from "class-transformer";
+import {
+  IsArray,
+  IsBoolean,
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsUUID,
+  IsString,
+  ValidateNested,
+  ArrayMinSize,
+} from 'class-validator';
+import { AIArtifactStatus, AIArtifactType, MediaType } from '@prisma/client';
+import { Type } from 'class-transformer';
 
 export class AiArtifactBaseDto {
   @IsOptional()
   outputJson: any;
 
   @IsEnum(AIArtifactStatus)
-  status: AIArtifactStatus
+  status: AIArtifactStatus;
 }
 
 export class CreateAiArtifactDto {
@@ -41,6 +51,10 @@ export class CreateAiArtifactDto {
   @IsArray()
   @IsOptional()
   defaultPhotosIds: string[];
+
+  @IsOptional()
+  @IsBoolean()
+  manualPromptOverride?: boolean;
 }
 
 export class UpdateAiArtifactDto extends AiArtifactBaseDto {}

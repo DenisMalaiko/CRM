@@ -32,6 +32,7 @@ import { TrendsModule } from './modules/trends/trends.module';
 import { ContentPlanModule } from './modules/contentPlan/contentPlan.module';
 import { CalendarificModule } from './modules/calendarific/calendarific.module';
 import { NicheNewsModule } from './modules/nicheNews/nicheNews.module';
+import { DesignSystemModule } from './modules/designSystem/designSystem.module';
 
 @Module({
   imports: [
@@ -81,6 +82,7 @@ import { NicheNewsModule } from './modules/nicheNews/nicheNews.module';
     ContentPlanModule,
     CalendarificModule,
     NicheNewsModule,
+    DesignSystemModule,
   ],
   controllers: [AppController],
   providers: [

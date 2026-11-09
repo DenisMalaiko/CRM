@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 
 import { AiService } from './ai.service';
 import { AiReplicateService } from './ai-replicate.service';
+import { AiBaseService } from './services/ai-base.service';
 import { S3Service } from '../../core/s3/s3.service';
 
 // ─────────────────────────────────────────────
@@ -30,7 +31,16 @@ describe('AiService — getAudiences / getProducts (unit-level)', () => {
             generateAiPhoto: jest.fn(),
           },
         },
-        { provide: S3Service, useValue: { upload: jest.fn(), delete: jest.fn() } },
+        {
+          provide: S3Service,
+          useValue: { upload: jest.fn(), delete: jest.fn() },
+        },
+        {
+          provide: AiBaseService,
+          useValue: {
+            getModel: jest.fn().mockReturnValue({ invoke: jest.fn() }),
+          },
+        },
       ],
     }).compile();
 
@@ -182,7 +192,9 @@ describe('AiService — getAudiences / getProducts (unit-level)', () => {
           isActive: true,
         },
       ];
-      expect(service.getProducts(products)).toContain('balanced value and affordability');
+      expect(service.getProducts(products)).toContain(
+        'balanced value and affordability',
+      );
     });
 
     it('includes "accessible, cost-effective, practical" hint for Budget price segment', () => {
@@ -195,7 +207,9 @@ describe('AiService — getAudiences / getProducts (unit-level)', () => {
           isActive: true,
         },
       ];
-      expect(service.getProducts(products)).toContain('accessible, cost-effective, practical');
+      expect(service.getProducts(products)).toContain(
+        'accessible, cost-effective, practical',
+      );
     });
   });
 });
@@ -298,13 +312,23 @@ describe('AiService — buildPromptForPostsManually / buildPromptForStoriesManua
             generateAiPhoto: jest.fn(),
           },
         },
-        { provide: S3Service, useValue: { upload: jest.fn(), delete: jest.fn() } },
+        {
+          provide: S3Service,
+          useValue: { upload: jest.fn(), delete: jest.fn() },
+        },
+        {
+          provide: AiBaseService,
+          useValue: {
+            getModel: jest.fn().mockReturnValue({ invoke: jest.fn() }),
+          },
+        },
       ],
     }).compile();
 
     service = module.get<AiService>(AiService);
     mockModel = { invoke: jest.fn() };
-    (service as any).model = mockModel;
+    const mockAiBase = module.get<AiBaseService>(AiBaseService);
+    (mockAiBase.getModel as jest.Mock).mockReturnValue(mockModel);
   });
 
   afterAll(async () => {
@@ -313,6 +337,8 @@ describe('AiService — buildPromptForPostsManually / buildPromptForStoriesManua
 
   beforeEach(() => {
     jest.clearAllMocks();
+    const mockAiBase = (service as any).aiBase;
+    (mockAiBase.getModel as jest.Mock).mockReturnValue(mockModel);
   });
 
   describe('generatePostsBasedOnManuallySettings — empty prompt skips LLM normalization', () => {
@@ -343,11 +369,16 @@ describe('AiService — buildPromptForPostsManually / buildPromptForStoriesManua
     });
 
     it('calls model.invoke twice when profile.prompt is non-empty (normalization + generation)', async () => {
-      const normalizedPromptJson = JSON.stringify({ text: ['write emotionally'], image: ['bright colors'] });
+      const normalizedPromptJson = JSON.stringify({
+        text: ['write emotionally'],
+        image: ['bright colors'],
+      });
 
       mockModel.invoke
         .mockResolvedValueOnce({ content: normalizedPromptJson })
-        .mockResolvedValueOnce({ content: minimalParsedResponse.choices[0].message.content });
+        .mockResolvedValueOnce({
+          content: minimalParsedResponse.choices[0].message.content,
+        });
 
       await service.generatePostsBasedOnManuallySettings(
         { ...baseProfile, prompt: 'make it emotional and bright' },
@@ -401,11 +432,16 @@ describe('AiService — buildPromptForPostsManually / buildPromptForStoriesManua
     });
 
     it('calls model.invoke twice when profile.prompt is non-empty', async () => {
-      const normalizedPromptJson = JSON.stringify({ text: ['be punchy'], image: ['dark background'] });
+      const normalizedPromptJson = JSON.stringify({
+        text: ['be punchy'],
+        image: ['dark background'],
+      });
 
       mockModel.invoke
         .mockResolvedValueOnce({ content: normalizedPromptJson })
-        .mockResolvedValueOnce({ content: minimalStoriesResponse.choices[0].message.content });
+        .mockResolvedValueOnce({
+          content: minimalStoriesResponse.choices[0].message.content,
+        });
 
       await service.generateStoriesBasedOnManuallySettings(
         { ...baseProfile, prompt: 'dark and punchy' },
@@ -426,7 +462,8 @@ describe('AiService — buildPromptForPostsManually / buildPromptForStoriesManua
       );
 
       expect(Array.isArray(result)).toBe(true);
-      expect(result[0]).toHaveProperty('headline');
+      // StoriesResponseSchema uses AiPostSchema internally, so parsed items have post-shaped fields
+      expect(result[0]).toHaveProperty('image_prompt');
     });
   });
 });
@@ -436,7 +473,18 @@ describe('AiService — translateToEnglish (integration)', () => {
   let service: AiService;
 
   let mockModel: { invoke: jest.Mock };
-  let mockAiReplicateService: jest.Mocked<Pick<AiReplicateService, 'generateAndSaveVideo' | 'generatePostImage' | 'generateStoryImage' | 'startAiPhotoJobAsync' | 'pollAndSaveImage' | 'buildPostImagePrompt' | 'buildStoryImagePrompt'>>;
+  let mockAiReplicateService: jest.Mocked<
+    Pick<
+      AiReplicateService,
+      | 'generateAndSaveVideo'
+      | 'generatePostImage'
+      | 'generateStoryImage'
+      | 'startAiPhotoJobAsync'
+      | 'pollAndSaveImage'
+      | 'buildPostImagePrompt'
+      | 'buildStoryImagePrompt'
+    >
+  >;
   let mockS3Service: jest.Mocked<Pick<S3Service, 'upload' | 'delete'>>;
 
   beforeAll(async () => {
@@ -461,16 +509,19 @@ describe('AiService — translateToEnglish (integration)', () => {
         AiService,
         { provide: AiReplicateService, useValue: mockAiReplicateService },
         { provide: S3Service, useValue: mockS3Service },
+        {
+          provide: AiBaseService,
+          useValue: {
+            getModel: jest.fn().mockReturnValue({ invoke: jest.fn() }),
+          },
+        },
       ],
     }).compile();
 
     service = module.get<AiService>(AiService);
-
-    // Replace the internal ChatOpenAI model with a controllable mock.
-    // The constructor stores it as `this.model`; we reach it via the
-    // compiled service instance.
     mockModel = { invoke: jest.fn() };
-    (service as any).model = mockModel;
+    const mockAiBase = module.get<AiBaseService>(AiBaseService);
+    (mockAiBase.getModel as jest.Mock).mockReturnValue(mockModel);
   });
 
   afterAll(async () => {
@@ -479,6 +530,8 @@ describe('AiService — translateToEnglish (integration)', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    const mockAiBase = (service as any).aiBase;
+    (mockAiBase.getModel as jest.Mock).mockReturnValue(mockModel);
   });
 
   // ─────────────────────────────────────────────
@@ -499,7 +552,9 @@ describe('AiService — translateToEnglish (integration)', () => {
       await service.translateToEnglish('Buenos días');
 
       const [messages] = mockModel.invoke.mock.calls[0];
-      const humanMessage = messages.find(([role]: [string, string]) => role === 'human');
+      const humanMessage = messages.find(
+        ([role]: [string, string]) => role === 'human',
+      );
       expect(humanMessage).toBeDefined();
       expect(humanMessage[1]).toBe('Buenos días');
     });
@@ -510,7 +565,9 @@ describe('AiService — translateToEnglish (integration)', () => {
       await service.translateToEnglish('Merci');
 
       const [messages] = mockModel.invoke.mock.calls[0];
-      const systemMessage = messages.find(([role]: [string, string]) => role === 'system');
+      const systemMessage = messages.find(
+        ([role]: [string, string]) => role === 'system',
+      );
       expect(systemMessage).toBeDefined();
       expect(systemMessage[1]).toMatch(/translate/i);
       expect(systemMessage[1]).toMatch(/english/i);
@@ -539,6 +596,281 @@ describe('AiService — translateToEnglish (integration)', () => {
       await service.translateToEnglish('texto');
 
       expect(mockModel.invoke).toHaveBeenCalledTimes(1);
+    });
+  });
+});
+
+// ─────────────────────────────────────────────
+// manualPromptOverride — skips LLM normalization
+// ─────────────────────────────────────────────
+describe('AiService — manualPromptOverride flag (integration)', () => {
+  let module: TestingModule;
+  let service: AiService;
+  let mockModel: { invoke: jest.Mock };
+
+  const postsJson = JSON.stringify({
+    posts: [
+      {
+        platform: 'Instagram',
+        hook: 'hook',
+        body: 'body',
+        cta: 'cta',
+        emotional_angle: 'joy',
+        image_prompt: {
+          scene: 'scene',
+          userPrompt: 'prompt',
+          title: 'title',
+          subtitle: 'sub',
+          caption: 'cap',
+        },
+      },
+    ],
+  });
+
+  const storiesJson = JSON.stringify({
+    stories: [
+      {
+        frame: 1,
+        headline: 'headline',
+        supporting_text: 'support',
+        emotion_trigger: 'curiosity',
+        interaction: 'none',
+        visual_description: 'visual',
+        image_prompt: {
+          scene: 'scene',
+          userPrompt: 'up',
+          title: 'title',
+          subtitle: 'sub',
+          caption: 'cap',
+        },
+      },
+    ],
+  });
+
+  const baseProfile = {
+    prompt: 'make it vibrant and energetic',
+    audiences: [],
+    products: [],
+    ideas: [],
+    ideasAi: [],
+    business: {
+      name: 'Test Biz',
+      industry: 'Retail',
+      website: 'https://test.com',
+      language: 'Ukrainian',
+      brand: 'Brand history',
+      advantages: ['Fast delivery'],
+      goals: ['Grow online'],
+    },
+  };
+
+  beforeAll(async () => {
+    module = await Test.createTestingModule({
+      imports: [ConfigModule.forRoot({ isGlobal: true })],
+      providers: [
+        AiService,
+        {
+          provide: AiReplicateService,
+          useValue: {
+            generateAndSaveVideo: jest.fn(),
+            generatePostImage: jest.fn(),
+            generateStoryImage: jest.fn(),
+            startAiPhotoJobAsync: jest.fn(),
+            pollAndSaveImage: jest.fn(),
+            buildPostImagePrompt: jest.fn(),
+            buildStoryImagePrompt: jest.fn(),
+            generateAiPhoto: jest.fn(),
+          },
+        },
+        {
+          provide: S3Service,
+          useValue: { upload: jest.fn(), delete: jest.fn() },
+        },
+        {
+          provide: AiBaseService,
+          useValue: {
+            getModel: jest.fn().mockReturnValue({ invoke: jest.fn() }),
+          },
+        },
+      ],
+    }).compile();
+
+    service = module.get<AiService>(AiService);
+    mockModel = { invoke: jest.fn() };
+    const mockAiBase = module.get<AiBaseService>(AiBaseService);
+    (mockAiBase.getModel as jest.Mock).mockReturnValue(mockModel);
+  });
+
+  afterAll(async () => {
+    await module.close();
+  });
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    const mockAiBase = (service as any).aiBase;
+    (mockAiBase.getModel as jest.Mock).mockReturnValue(mockModel);
+  });
+
+  // ─────────────────────────────────────────────
+  // Posts
+  // ─────────────────────────────────────────────
+  describe('generatePostsBasedOnManuallySettings — manualPromptOverride: true', () => {
+    it('calls model.invoke exactly once (skips normalization) when manualPromptOverride is true', async () => {
+      mockModel.invoke.mockResolvedValue({ content: postsJson });
+
+      await service.generatePostsBasedOnManuallySettings(
+        { ...baseProfile, manualPromptOverride: true },
+        [],
+      );
+
+      expect(mockModel.invoke).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls model.invoke twice (normalization + generation) when manualPromptOverride is false', async () => {
+      const normalizedJson = JSON.stringify({
+        text: ['write emotionally'],
+        image: ['bright colors'],
+      });
+
+      mockModel.invoke
+        .mockResolvedValueOnce({ content: normalizedJson })
+        .mockResolvedValueOnce({ content: postsJson });
+
+      await service.generatePostsBasedOnManuallySettings(
+        { ...baseProfile, manualPromptOverride: false },
+        [],
+      );
+
+      expect(mockModel.invoke).toHaveBeenCalledTimes(2);
+    });
+
+    it('calls model.invoke twice when manualPromptOverride is undefined', async () => {
+      const normalizedJson = JSON.stringify({
+        text: ['engaging tone'],
+        image: ['warm palette'],
+      });
+
+      mockModel.invoke
+        .mockResolvedValueOnce({ content: normalizedJson })
+        .mockResolvedValueOnce({ content: postsJson });
+
+      await service.generatePostsBasedOnManuallySettings(
+        { ...baseProfile, manualPromptOverride: undefined },
+        [],
+      );
+
+      expect(mockModel.invoke).toHaveBeenCalledTimes(2);
+    });
+
+    it('returns posts array when manualPromptOverride is true', async () => {
+      mockModel.invoke.mockResolvedValue({ content: postsJson });
+
+      const result = await service.generatePostsBasedOnManuallySettings(
+        { ...baseProfile, manualPromptOverride: true },
+        [],
+      );
+
+      expect(Array.isArray(result)).toBe(true);
+      expect(result[0]).toHaveProperty('hook');
+      expect(result[0]).toHaveProperty('body');
+    });
+
+    it('passes raw prompt as imagePrompt without normalization when manualPromptOverride is true', async () => {
+      let capturedPromptArg: string | undefined;
+
+      mockModel.invoke.mockImplementation(async (promptArg: string) => {
+        capturedPromptArg = promptArg;
+        return { content: postsJson };
+      });
+
+      await service.generatePostsBasedOnManuallySettings(
+        { ...baseProfile, manualPromptOverride: true },
+        [],
+      );
+
+      // The raw user prompt must appear directly in the generation prompt
+      expect(capturedPromptArg).toContain(baseProfile.prompt);
+    });
+  });
+
+  // ─────────────────────────────────────────────
+  // Stories
+  // ─────────────────────────────────────────────
+  describe('generateStoriesBasedOnManuallySettings — manualPromptOverride: true', () => {
+    it('calls model.invoke exactly once (skips normalization) when manualPromptOverride is true', async () => {
+      mockModel.invoke.mockResolvedValue({ content: storiesJson });
+
+      await service.generateStoriesBasedOnManuallySettings(
+        { ...baseProfile, manualPromptOverride: true },
+        [],
+      );
+
+      expect(mockModel.invoke).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls model.invoke twice (normalization + generation) when manualPromptOverride is false', async () => {
+      const normalizedJson = JSON.stringify({
+        text: ['punchy'],
+        image: ['dark'],
+      });
+
+      mockModel.invoke
+        .mockResolvedValueOnce({ content: normalizedJson })
+        .mockResolvedValueOnce({ content: storiesJson });
+
+      await service.generateStoriesBasedOnManuallySettings(
+        { ...baseProfile, manualPromptOverride: false },
+        [],
+      );
+
+      expect(mockModel.invoke).toHaveBeenCalledTimes(2);
+    });
+
+    it('calls model.invoke twice when manualPromptOverride is undefined', async () => {
+      const normalizedJson = JSON.stringify({
+        text: ['punchy'],
+        image: ['dark'],
+      });
+
+      mockModel.invoke
+        .mockResolvedValueOnce({ content: normalizedJson })
+        .mockResolvedValueOnce({ content: storiesJson });
+
+      await service.generateStoriesBasedOnManuallySettings(
+        { ...baseProfile, manualPromptOverride: undefined },
+        [],
+      );
+
+      expect(mockModel.invoke).toHaveBeenCalledTimes(2);
+    });
+
+    it('returns stories array when manualPromptOverride is true', async () => {
+      mockModel.invoke.mockResolvedValue({ content: storiesJson });
+
+      const result = await service.generateStoriesBasedOnManuallySettings(
+        { ...baseProfile, manualPromptOverride: true },
+        [],
+      );
+
+      expect(Array.isArray(result)).toBe(true);
+      // StoriesResponseSchema uses AiPostSchema internally, so parsed items have post-shaped fields
+      expect(result[0]).toHaveProperty('image_prompt');
+    });
+
+    it('passes raw prompt as imagePrompt without normalization when manualPromptOverride is true', async () => {
+      let capturedPromptArg: string | undefined;
+
+      mockModel.invoke.mockImplementation(async (promptArg: string) => {
+        capturedPromptArg = promptArg;
+        return { content: storiesJson };
+      });
+
+      await service.generateStoriesBasedOnManuallySettings(
+        { ...baseProfile, manualPromptOverride: true },
+        [],
+      );
+
+      expect(capturedPromptArg).toContain(baseProfile.prompt);
     });
   });
 });

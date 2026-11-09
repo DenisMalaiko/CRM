@@ -1,3 +1,61 @@
+## Design System — модуль з пресетами та CRUD — 2026-11-08
+
+### Plan
+- [x] Prisma: модель `DesignSystem` + міграція
+- [x] Backend: модуль `designSystem` (entity, dto, service, controller)
+- [x] Backend: 10 seed-пресетів (різні кольори, типографія, стилі)
+- [x] Backend: CRUD ендпоінти (list, get, create, duplicate, update, delete)
+- [x] Backend: seed ендпоінт або auto-seed при першому list
+- [x] Frontend: Redux store (`designSystemApi`, `designSystemSlice`)
+- [x] Frontend: сторінка Design System — список карток пресетів
+- [x] Frontend: клік по картці → бічна панель з усіма полями
+- [x] Frontend: кнопка "Duplicate" → створити копію для кастомізації
+- [x] Frontend: редагування полів у бічній панелі
+- [x] Quality gate: backend-reviewer + backend-tester
+
+### Notes
+- Migration needed: yes — нова таблиця `DesignSystem`
+- Affected modules: новий `designSystem`, `business` (relation)
+- Структура: shadcn-style токени (colors, typography, radius, border, shadow, spacing, brandElements, composition, scene)
+- Пресети: 10 шаблонів з різними палітрами (мінімалістичний, luxury, bold, pastel, dark, neon, earth, corporate, playful, monochrome)
+- Сторінка: замінює поточний DesignSystem.tsx який просто показує фото з галереї
+
+### Review
+- [x] backend-reviewer → PASS (retry 1: виправлено tenant scoping через agencyId з JWT, @IsNotEmpty/@IsUUID в DTO, typed entity замість Record<string,any>)
+- [x] backend-tester → 26/26 тестів пройшли
+- [x] Міграція застосована
+- [x] Регресій не знайдено
+- Summary: Новий модуль DesignSystem з Prisma моделлю, 10 пресетами (shadcn-style токени), CRUD з tenant scoping, фронтенд з картками пресетів та бічною панеллю редагування
+
+---
+
+## Гібридна інтеграція image-prompt-engineer скілу — 2026-11-08
+
+### Plan
+- [x] Переписати 5 промпт-блоків у post/image.ts (composition, lighting, camera, quality, professionalContext)
+- [x] Дзеркальні зміни в story/image.ts
+- [x] Додати `manualPromptOverride` до DTO та entity
+- [x] Додати `buildManualOverridePrompt()` в ai-replicate.service.ts
+- [x] Змінити сигнатури `buildPostImagePrompt`, `buildStoryImagePrompt`, `generatePostImage`, `generateStoryImage`
+- [x] Прокинути `manualPromptOverride` через aiArtifact.service.ts → startGenerateImage → replicate
+- [x] Умовний skip нормалізації в ai.service.ts (buildPromptForPostsManually, buildPromptForStoriesManually)
+- [x] Build: `npm run build` ✅
+- [x] Quality gate: backend-reviewer + backend-tester
+
+### Notes
+- Migration needed: no
+- Affected modules: ai (prompts, replicate service, ai.service), aiArtifact (service, dto, entity)
+- ESLint config pre-existing broken (printWidth key error) — не наша проблема
+
+### Review
+- [x] backend-reviewer → PASS (retry 1: виправлено дублікат `decorativeGraphics` в story output schema, замінено `console.error` на `this.logger.error`)
+- [x] backend-tester → 68/68 тестів пройшли (нові тести для manualPromptOverride в ai-replicate.service + ai.service)
+- [x] Міграція не потрібна
+- [x] Регресій не знайдено (pre-existing failures в startGenerateVideo та NicheNews — не пов'язані)
+- Summary: Переписано 5 промпт-блоків з generic тегів на фізично-обґрунтовану прозу для покращення якості Replicate генерації. Додано manualPromptOverride для прямого надсилання промптів у Replicate минаючи GPT-4o-mini нормалізацію.
+
+---
+
 ## Свята з AI-перекладом, кешуванням та типізацією — 2026-10-19
 
 ### Plan
