@@ -3,10 +3,10 @@ import {
   InternalServerErrorException,
   Logger,
 } from '@nestjs/common';
-import { ChatOpenAI } from '@langchain/openai';
 import { TProfile } from '../profiles/entities/profile.entity';
 import { AiPost } from './entities/aiPost.entity';
 import { AiReplicateService } from './ai-replicate.service';
+import { AiBaseService, AiModel } from './services/ai-base.service';
 import { GalleryPhotoType, AIArtifactType } from '@prisma/client';
 import { IdeasBatchSchema } from '../idea/schema/idea.schema';
 import { IdeaAISchema } from '../ideaAI/schema/ideaAI.schema';
@@ -64,15 +64,19 @@ type Photo = {
 
 @Injectable()
 export class AiService {
-  private model: ChatOpenAI;
   private readonly logger = new Logger(AiService.name);
 
-  constructor(private readonly aiReplicate: AiReplicateService) {
-    this.model = new ChatOpenAI({
-      model: 'gpt-4o-mini',
-      temperature: 0.2,
-      apiKey: process.env.OPENAI_API_KEY,
-    });
+  constructor(
+    private readonly aiReplicate: AiReplicateService,
+    private readonly aiBase: AiBaseService,
+  ) {}
+
+  private get creativeModel() {
+    return this.aiBase.getModel(AiModel.Creative);
+  }
+
+  private get fastModel() {
+    return this.aiBase.getModel(AiModel.Fast);
   }
 
   private safeParseJson(text: string): any {
@@ -89,7 +93,7 @@ export class AiService {
     photos: Photo[],
   ): Promise<AiPost[]> {
     const prompt = this.buildPromptForPosts(profile, photos);
-    const response = await this.model.invoke(prompt);
+    const response = await this.creativeModel.invoke(prompt);
     const rawText = this.extractTextContent(response.content);
     const parsed = PostsResponseSchema.parse(this.safeParseJson(rawText));
     const posts: AiPost[] = parsed.posts;
@@ -112,7 +116,7 @@ export class AiService {
     photos: Photo[],
   ): Promise<any[]> {
     const prompt = this.buildPromptForStories(profile, photos);
-    const response = await this.model.invoke(prompt);
+    const response = await this.creativeModel.invoke(prompt);
     const rawText = this.extractTextContent(response.content);
     const parsed = StoriesResponseSchema.parse(this.safeParseJson(rawText));
     const stories: any[] = parsed.stories;
@@ -135,7 +139,7 @@ export class AiService {
     photos: Photo[],
   ): Promise<AiPost[]> {
     const prompt = await this.buildPromptForPostsManually(settings, photos);
-    const response = await this.model.invoke(prompt);
+    const response = await this.creativeModel.invoke(prompt);
     const rawText = this.extractTextContent(response.content);
     const parsed = PostsResponseSchema.parse(this.safeParseJson(rawText));
 
@@ -147,7 +151,7 @@ export class AiService {
     photos: Photo[],
   ): Promise<AiPost[]> {
     const prompt = await this.buildPromptForStoriesManually(settings, photos);
-    const response = await this.model.invoke(prompt);
+    const response = await this.creativeModel.invoke(prompt);
     const rawText = this.extractTextContent(response.content);
     const parsed = StoriesResponseSchema.parse(this.safeParseJson(rawText));
 
@@ -169,7 +173,8 @@ export class AiService {
   }
 
   async analyzeCompetitorPosts(posts: any[]) {
-    const structuredModel = this.model.withStructuredOutput(IdeasBatchSchema);
+    const structuredModel =
+      this.fastModel.withStructuredOutput(IdeasBatchSchema);
 
     const payload = posts.map((p) => ({
       sourceId: p.sourceId,
@@ -246,7 +251,7 @@ export class AiService {
     fbReport: TFacebookReport,
   ): Promise<TStrategicInsight[]> {
     try {
-      const structuredModel = this.model.withStructuredOutput(
+      const structuredModel = this.fastModel.withStructuredOutput(
         StrategicInsightsResponseSchema,
       );
       const prompt = strategicInsightsPrompt(business, fbReport);
@@ -271,7 +276,7 @@ export class AiService {
     igReport: TInstagramReport,
   ): Promise<TStrategicInsight[]> {
     try {
-      const structuredModel = this.model.withStructuredOutput(
+      const structuredModel = this.fastModel.withStructuredOutput(
         StrategicInsightsResponseSchema,
       );
       const prompt = instagramStrategicInsightsPrompt(business, igReport);
@@ -297,7 +302,7 @@ export class AiService {
     report: TCompetitorFacebookReport,
   ): Promise<TStrategicInsight[]> {
     try {
-      const structuredModel = this.model.withStructuredOutput(
+      const structuredModel = this.fastModel.withStructuredOutput(
         StrategicInsightsResponseSchema,
       );
       const prompt = competitorStrategicInsightsPrompt(
@@ -319,7 +324,8 @@ export class AiService {
     business,
     existingIdeas: Array<{ title: string; description: string }>,
   ) {
-    const structuredModel = this.model.withStructuredOutput(IdeaAISchema);
+    const structuredModel =
+      this.creativeModel.withStructuredOutput(IdeaAISchema);
     const prompt = ideaPrompt(business, existingIdeas);
     const result = await structuredModel.invoke(prompt);
 
@@ -357,16 +363,20 @@ export class AiService {
     let imagePrompts: string[] = [];
 
     if (profile.prompt) {
-      const customPrompt = normalizeUserPromptBlock(profile.prompt);
-      const customPromptResponse = await this.model.invoke(customPrompt);
-      const customPromptRawText = this.extractTextContent(
-        customPromptResponse.content,
-      );
-      const parsedPrompts = NormalizedPromptSchema.parse(
-        this.safeParseJson(customPromptRawText),
-      );
-      textPrompts = parsedPrompts.text;
-      imagePrompts = parsedPrompts.image;
+      if (profile.manualPromptOverride) {
+        imagePrompts = [profile.prompt];
+      } else {
+        const customPrompt = normalizeUserPromptBlock(profile.prompt);
+        const customPromptResponse = await this.fastModel.invoke(customPrompt);
+        const customPromptRawText = this.extractTextContent(
+          customPromptResponse.content,
+        );
+        const parsedPrompts = NormalizedPromptSchema.parse(
+          this.safeParseJson(customPromptRawText),
+        );
+        textPrompts = parsedPrompts.text;
+        imagePrompts = parsedPrompts.image;
+      }
     }
 
     const audienceBlock = this.getAudiences(profile.audiences);
@@ -423,16 +433,20 @@ export class AiService {
     let imagePrompts: string[] = [];
 
     if (profile.prompt) {
-      const customPrompt = normalizeUserPromptBlock(profile.prompt);
-      const customPromptResponse = await this.model.invoke(customPrompt);
-      const customPromptRawText = this.extractTextContent(
-        customPromptResponse.content,
-      );
-      const parsedPrompts = NormalizedPromptSchema.parse(
-        this.safeParseJson(customPromptRawText),
-      );
-      textPrompts = parsedPrompts.text;
-      imagePrompts = parsedPrompts.image;
+      if (profile.manualPromptOverride) {
+        imagePrompts = [profile.prompt];
+      } else {
+        const customPrompt = normalizeUserPromptBlock(profile.prompt);
+        const customPromptResponse = await this.fastModel.invoke(customPrompt);
+        const customPromptRawText = this.extractTextContent(
+          customPromptResponse.content,
+        );
+        const parsedPrompts = NormalizedPromptSchema.parse(
+          this.safeParseJson(customPromptRawText),
+        );
+        textPrompts = parsedPrompts.text;
+        imagePrompts = parsedPrompts.image;
+      }
     }
 
     const audienceBlock = this.getAudiences(profile.audiences);
@@ -562,7 +576,7 @@ export class AiService {
 
   async translateToEnglish(text: string): Promise<string> {
     try {
-      const response = await this.model.invoke([
+      const response = await this.fastModel.invoke([
         ['system', TRANSLATE_TO_ENGLISH_SYSTEM_PROMPT],
         ['human', text],
       ]);
@@ -594,7 +608,7 @@ Keep it brand-appropriate and suitable for social media.
 
 Return ONLY the prompt text, no JSON, no explanation.`;
 
-    const response = await this.model.invoke(prompt);
+    const response = await this.creativeModel.invoke(prompt);
     const content = response.content;
     return typeof content === 'string'
       ? content.trim()

@@ -60,6 +60,7 @@ model Business {
   ideasAI          IdeaAI[]
   nicheNews        NicheNews[]
   contentPlans     ContentPlan[]
+  designSystems    DesignSystem[]
   createdAt        DateTime          @default(now())
   facebookReport   FacebookReport?
   instagramReport  InstagramReport?
@@ -905,4 +906,35 @@ enum IdeaSourceType {
 enum ProfileFocus {
   GeneratePosts
   GenerateStories
+}
+
+enum DesignSystemSource {
+  MANUAL
+  AI_PHOTO
+  PRESET
+}
+
+model DesignSystem {
+  id         String             @id @default(uuid())
+  name       String
+  businessId String?
+  business   Business?          @relation(fields: [businessId], references: [id])
+  source     DesignSystemSource @default(PRESET)
+  isPreset   Boolean            @default(false)
+
+  colors             Json @default("{}")
+  gradients          Json @default("[]")
+  typography         Json @default("{}")
+  radius             String @default("12px")
+  border             Json @default("{}")
+  shadow             Json @default("{}")
+  spacing            Json @default("{}")
+  brandElements      Json @default("{}")
+  composition        Json @default("{}")
+  scene              Json @default("{}")
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([businessId])
 }

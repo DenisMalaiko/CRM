@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { InternalServerErrorException } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { GalleryPhotoType } from '@prisma/client';
 
 import { AiReplicateService } from './ai-replicate.service';
 import { S3Service } from '../../core/s3/s3.service';
@@ -67,14 +68,14 @@ describe('AiReplicateService — generateAndSaveVideo (integration)', () => {
   // Happy path — text-to-video (no sourceUrl)
   // ─────────────────────────────────────────────
   describe('text-to-video (no sourceUrl)', () => {
-    it('calls Replicate with the seedance-1-lite model', async () => {
+    it('calls Replicate with the seedance-2.0-fast model', async () => {
       await service.generateAndSaveVideo({
         prompt: 'A sunrise over the mountains',
         businessId: 'biz-001',
       });
 
       expect(mockReplicate.run).toHaveBeenCalledWith(
-        'bytedance/seedance-1-lite',
+        'bytedance/seedance-2.0-fast',
         expect.objectContaining({ input: expect.any(Object) }),
       );
     });
@@ -116,7 +117,7 @@ describe('AiReplicateService — generateAndSaveVideo (integration)', () => {
   // Happy path — image-to-video (with sourceUrl)
   // ─────────────────────────────────────────────
   describe('image-to-video (with sourceUrl)', () => {
-    it('includes image param in the Replicate input when sourceUrl is provided', async () => {
+    it('includes sourceUrl in reference_images when sourceUrl is provided', async () => {
       await service.generateAndSaveVideo({
         prompt: 'product in motion',
         businessId: 'biz-001',
@@ -124,7 +125,9 @@ describe('AiReplicateService — generateAndSaveVideo (integration)', () => {
       });
 
       const { input } = mockReplicate.run.mock.calls[0][1];
-      expect(input.image).toBe('https://example.com/product.jpg');
+      expect(input.reference_images).toContain(
+        'https://example.com/product.jpg',
+      );
     });
 
     it('returns a valid S3 key for image-to-video generation', async () => {
@@ -142,15 +145,15 @@ describe('AiReplicateService — generateAndSaveVideo (integration)', () => {
   // Default parameters
   // ─────────────────────────────────────────────
   describe('default parameters', () => {
-    it('sends fps=24, duration=5, resolution=720p, aspect_ratio=16:9 when not provided', async () => {
+    it('sends duration=7, seed=99, resolution=720p, aspect_ratio=16:9 when not provided', async () => {
       await service.generateAndSaveVideo({
         prompt: 'default params test',
         businessId: 'biz-001',
       });
 
       const { input } = mockReplicate.run.mock.calls[0][1];
-      expect(input.fps).toBe(24);
-      expect(input.duration).toBe(5);
+      expect(input.duration).toBe(7);
+      expect(input.seed).toBe(99);
       expect(input.resolution).toBe('720p');
       expect(input.aspect_ratio).toBe('16:9');
     });
@@ -239,7 +242,9 @@ describe('AiReplicateService — generateAndSaveVideo (integration)', () => {
     });
 
     it('propagates Replicate errors as-is', async () => {
-      mockReplicate.run.mockRejectedValue(new Error('Replicate quota exceeded'));
+      mockReplicate.run.mockRejectedValue(
+        new Error('Replicate quota exceeded'),
+      );
 
       await expect(
         service.generateAndSaveVideo({
@@ -247,6 +252,300 @@ describe('AiReplicateService — generateAndSaveVideo (integration)', () => {
           businessId: 'biz-001',
         }),
       ).rejects.toThrow('Replicate quota exceeded');
+    });
+  });
+});
+
+// ─────────────────────────────────────────────
+// buildPostImagePrompt / buildStoryImagePrompt — manualPromptOverride
+// ─────────────────────────────────────────────
+describe('AiReplicateService — manualPromptOverride (integration)', () => {
+  let module: TestingModule;
+  let service: AiReplicateService;
+  let mockOpenAIClient: { responses: { create: jest.Mock } };
+  let mockS3Service: jest.Mocked<Pick<S3Service, 'upload' | 'delete'>>;
+
+  const noPhotos: never[] = [];
+
+  const decorationPhoto = {
+    url: 'https://example.com/deco.jpg',
+    type: GalleryPhotoType.Decoration,
+    description: 'brand logo',
+  };
+
+  beforeAll(async () => {
+    mockS3Service = {
+      upload: jest.fn().mockResolvedValue(undefined),
+      delete: jest.fn().mockResolvedValue(undefined),
+    };
+
+    module = await Test.createTestingModule({
+      imports: [ConfigModule.forRoot({ isGlobal: true })],
+      providers: [
+        AiReplicateService,
+        { provide: S3Service, useValue: mockS3Service },
+      ],
+    }).compile();
+
+    service = module.get<AiReplicateService>(AiReplicateService);
+
+    mockOpenAIClient = {
+      responses: {
+        create: jest.fn(),
+      },
+    };
+    (service as any).client = mockOpenAIClient;
+  });
+
+  afterAll(async () => {
+    await module.close();
+  });
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+
+    // Default: design-system analysis returns no visible text
+    mockOpenAIClient.responses.create.mockResolvedValue({
+      output_text: JSON.stringify({
+        posts: [
+          {
+            postDesignSystem: {
+              typography: { textBlocks: [{ textContent: 'Not visible' }] },
+            },
+          },
+        ],
+        stories: [
+          {
+            storyDesignSystem: {
+              typography: { textBlocks: [{ textContent: 'Not visible' }] },
+            },
+          },
+        ],
+      }),
+    });
+  });
+
+  // ─────────────────────────────────────────────
+  // buildPostImagePrompt — manualOverride: true
+  // ─────────────────────────────────────────────
+  describe('buildPostImagePrompt', () => {
+    it('returns a prompt containing the userPrompt when manualOverride is true', async () => {
+      const prompt = {
+        userPrompt: 'bright background with product',
+        scene: 'product scene',
+      };
+
+      const result = await service.buildPostImagePrompt(prompt, noPhotos, {
+        manualOverride: true,
+      });
+
+      expect(result.prompt).toContain('bright background with product');
+    });
+
+    it('override prompt contains professional context', async () => {
+      const prompt = { userPrompt: 'minimal white studio', scene: 'studio' };
+
+      const result = await service.buildPostImagePrompt(prompt, noPhotos, {
+        manualOverride: true,
+      });
+
+      // postImageProfessionalContext() contains this phrase
+      expect(result.prompt).toContain('commercial photographer');
+    });
+
+    it('override prompt contains CRITICAL RENDERING RULE section', async () => {
+      const prompt = { userPrompt: 'outdoor scene', scene: 'outdoor' };
+
+      const result = await service.buildPostImagePrompt(prompt, noPhotos, {
+        manualOverride: true,
+      });
+
+      expect(result.prompt).toContain('CRITICAL RENDERING RULE');
+    });
+
+    it('override prompt contains IMAGE QUALITY section', async () => {
+      const prompt = { userPrompt: 'product close-up', scene: 'product' };
+
+      const result = await service.buildPostImagePrompt(prompt, noPhotos, {
+        manualOverride: true,
+      });
+
+      expect(result.prompt).toContain('IMAGE QUALITY');
+    });
+
+    it('override prompt does NOT contain TEMPLATE REPLICATION MODE', async () => {
+      const prompt = { userPrompt: 'some scene', scene: 'scene description' };
+
+      const result = await service.buildPostImagePrompt(prompt, noPhotos, {
+        manualOverride: true,
+      });
+
+      expect(result.prompt).not.toContain('TEMPLATE REPLICATION MODE');
+    });
+
+    it('override prompt does NOT contain POST IDEA section', async () => {
+      const prompt = { userPrompt: 'some scene', scene: 'scene description' };
+
+      const result = await service.buildPostImagePrompt(prompt, noPhotos, {
+        manualOverride: true,
+      });
+
+      expect(result.prompt).not.toContain('POST IDEA');
+    });
+
+    it('returns all photo urls as imageUrls in the result', async () => {
+      const prompt = { userPrompt: 'test', scene: 'test scene' };
+      const photos = [
+        {
+          url: 'https://example.com/a.jpg',
+          type: GalleryPhotoType.Post,
+          description: null,
+        },
+        {
+          url: 'https://example.com/b.jpg',
+          type: GalleryPhotoType.Image,
+          description: null,
+        },
+      ];
+
+      const result = await service.buildPostImagePrompt(prompt, photos, {
+        manualOverride: true,
+      });
+
+      expect(result.imageUrls).toEqual([
+        'https://example.com/a.jpg',
+        'https://example.com/b.jpg',
+      ]);
+    });
+
+    it('falls through to standard pipeline when manualOverride is true but userPrompt is empty', async () => {
+      const prompt = { userPrompt: '', scene: 'scene description' };
+
+      const result = await service.buildPostImagePrompt(prompt, noPhotos, {
+        manualOverride: true,
+      });
+
+      expect(result.prompt).toContain('TEMPLATE REPLICATION MODE');
+    });
+
+    it('falls through to standard pipeline when manualOverride is false', async () => {
+      const prompt = { userPrompt: 'some instruction', scene: 'scene' };
+
+      const result = await service.buildPostImagePrompt(prompt, noPhotos, {
+        manualOverride: false,
+      });
+
+      expect(result.prompt).toContain('TEMPLATE REPLICATION MODE');
+      expect(result.prompt).not.toContain('SCENE AND COMPOSITION');
+    });
+
+    it('falls through to standard pipeline when options are omitted', async () => {
+      const prompt = { userPrompt: 'some instruction', scene: 'scene' };
+
+      const result = await service.buildPostImagePrompt(prompt, noPhotos);
+
+      expect(result.prompt).toContain('TEMPLATE REPLICATION MODE');
+    });
+
+    it('includes REFERENCE DESIGN SYSTEM in override prompt when reference images are present', async () => {
+      const prompt = { userPrompt: 'product shot', scene: 'product' };
+
+      const result = await service.buildPostImagePrompt(
+        prompt,
+        [decorationPhoto],
+        { manualOverride: true },
+      );
+
+      expect(result.prompt).toContain('REFERENCE DESIGN SYSTEM');
+    });
+
+    it('does NOT include REFERENCE DESIGN SYSTEM in override prompt when no reference images', async () => {
+      const prompt = { userPrompt: 'product shot', scene: 'product' };
+
+      const result = await service.buildPostImagePrompt(prompt, noPhotos, {
+        manualOverride: true,
+      });
+
+      expect(result.prompt).not.toContain('REFERENCE DESIGN SYSTEM');
+    });
+  });
+
+  // ─────────────────────────────────────────────
+  // buildStoryImagePrompt — manualOverride: true
+  // ─────────────────────────────────────────────
+  describe('buildStoryImagePrompt', () => {
+    it('returns a prompt containing the userPrompt when manualOverride is true', async () => {
+      const prompt = {
+        userPrompt: 'bold typography on dark background',
+        scene: 'story scene',
+      };
+
+      const result = await service.buildStoryImagePrompt(prompt, noPhotos, {
+        manualOverride: true,
+      });
+
+      expect(result.prompt).toContain('bold typography on dark background');
+    });
+
+    it('override prompt contains professional context', async () => {
+      const prompt = {
+        userPrompt: 'minimalist lifestyle story',
+        scene: 'lifestyle',
+      };
+
+      const result = await service.buildStoryImagePrompt(prompt, noPhotos, {
+        manualOverride: true,
+      });
+
+      expect(result.prompt).toContain('commercial photographer');
+    });
+
+    it('override prompt contains CRITICAL RENDERING RULE section', async () => {
+      const prompt = { userPrompt: 'neon lights scene', scene: 'neon' };
+
+      const result = await service.buildStoryImagePrompt(prompt, noPhotos, {
+        manualOverride: true,
+      });
+
+      expect(result.prompt).toContain('CRITICAL RENDERING RULE');
+    });
+
+    it('falls through to standard pipeline when manualOverride is true but userPrompt is empty', async () => {
+      const prompt = { userPrompt: '', scene: 'story scene' };
+
+      const result = await service.buildStoryImagePrompt(prompt, noPhotos, {
+        manualOverride: true,
+      });
+
+      expect(result.prompt).toContain('TEMPLATE REPLICATION MODE');
+    });
+
+    it('falls through to standard pipeline when manualOverride is false', async () => {
+      const prompt = { userPrompt: 'bold story', scene: 'story' };
+
+      const result = await service.buildStoryImagePrompt(prompt, noPhotos, {
+        manualOverride: false,
+      });
+
+      expect(result.prompt).toContain('TEMPLATE REPLICATION MODE');
+      expect(result.prompt).not.toContain('SCENE AND COMPOSITION');
+    });
+
+    it('returns all photo urls as imageUrls in the result', async () => {
+      const prompt = { userPrompt: 'story test', scene: 'scene' };
+      const photos = [
+        {
+          url: 'https://example.com/story1.jpg',
+          type: GalleryPhotoType.Story,
+          description: null,
+        },
+      ];
+
+      const result = await service.buildStoryImagePrompt(prompt, photos, {
+        manualOverride: true,
+      });
+
+      expect(result.imageUrls).toEqual(['https://example.com/story1.jpg']);
     });
   });
 });

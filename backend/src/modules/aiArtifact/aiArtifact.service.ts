@@ -1,17 +1,23 @@
-import { Injectable, InternalServerErrorException, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+  BadRequestException,
+  Logger,
+} from '@nestjs/common';
 import { PrismaService } from 'src/core/prisma/prisma.service';
 import { S3Service } from 'src/core/s3/s3.service';
-import { StorageUrlService } from "../../core/storage/storage-url.service";
-import { AIArtifactBase, CreateAIArtifact } from "./entities/aiArtifact.entity";
+import { StorageUrlService } from '../../core/storage/storage-url.service';
+import { AIArtifactBase, CreateAIArtifact } from './entities/aiArtifact.entity';
 import {
   AIArtifactStatus,
   AIArtifactType,
   AIArtifactImageChangeType,
   MediaType,
-} from "@prisma/client";
-import { AiService } from "../ai/ai.service";
-import {AiPost} from "../ai/entities/aiPost.entity";
-import { AiReplicateService, Photo } from "../ai/ai-replicate.service";
+} from '@prisma/client';
+import { AiService } from '../ai/ai.service';
+import { AiPost } from '../ai/entities/aiPost.entity';
+import { AiReplicateService, Photo } from '../ai/ai-replicate.service';
 
 @Injectable()
 export class AiArtifactService {
@@ -25,28 +31,33 @@ export class AiArtifactService {
     private readonly aiReplicateService: AiReplicateService,
   ) {}
 
-  async getAiArtifacts(businessId: string, type?: AIArtifactType): Promise<AIArtifactBase[]> {
+  async getAiArtifacts(
+    businessId: string,
+    type?: AIArtifactType,
+  ): Promise<AIArtifactBase[]> {
     const artifacts = await this.prisma.aIArtifact.findMany({
       where: {
         businessId,
-        ...(type && { type })
+        ...(type && { type }),
       },
       include: {
         products: { include: { product: true } },
         media: { orderBy: { order: 'asc' } },
-      }
+      },
     });
 
     return artifacts.map((artifact) => {
       return {
         ...artifact,
-        imageUrl: artifact.imageUrl ? this.storageUrlService.getPublicUrl(artifact.imageUrl) : null,
+        imageUrl: artifact.imageUrl
+          ? this.storageUrlService.getPublicUrl(artifact.imageUrl)
+          : null,
         media: artifact.media.map((m) => ({
           ...m,
           url: m.url ? this.storageUrlService.getPublicUrl(m.url) : null,
         })),
-      }
-    })
+      };
+    });
   }
 
   async updateAiArtifact(id: string, body: any): Promise<AIArtifactBase> {
@@ -54,7 +65,7 @@ export class AiArtifactService {
 
     try {
       return await this.prisma.aIArtifact.update({
-        where: {id},
+        where: { id },
         data: {
           type: body.type,
           outputJson: body.outputJson,
@@ -62,7 +73,7 @@ export class AiArtifactService {
         },
         include: {
           products: { include: { product: true } },
-        }
+        },
       });
     } catch (err: any) {
       if (err.code === 'P2025') {
@@ -73,7 +84,10 @@ export class AiArtifactService {
     }
   }
 
-  async createArtifact(businessId: string, body: { form: CreateAIArtifact, mediaType: MediaType }) {
+  async createArtifact(
+    businessId: string,
+    body: { form: CreateAIArtifact; mediaType: MediaType },
+  ) {
     const audiencesIds = body.form.audiencesIds ?? [];
     const productsIds = body.form.productsIds ?? [];
     const ideasIds = body.form.ideasIds ?? [];
@@ -90,13 +104,31 @@ export class AiArtifactService {
       defaultPhotos,
       photos,
     ] = await Promise.all([
-      this.prisma.business.findUnique({ where: { id: businessId }}),
-      audiencesIds.length ? this.prisma.targetAudience.findMany({ where: { id: { in: audiencesIds } } }) : [],
-      productsIds.length ? this.prisma.product.findMany({ where: { id: { in: productsIds } } }) : [],
-      ideasIds.length ? this.prisma.idea.findMany({ where: { id: { in: ideasIds } } }) : [],
-      ideasAiIds.length ? this.prisma.ideaAI.findMany({ where: { id: { in: ideasAiIds } } }) : [],
-      defaultPhotosIds.length ? this.prisma.defaultPhoto.findMany({ where: { id: { in: defaultPhotosIds } } }) : [],
-      photosIds.length ? this.prisma.galleryPhoto.findMany({ where: { id: { in: photosIds } } }) : [],
+      this.prisma.business.findUnique({ where: { id: businessId } }),
+      audiencesIds.length
+        ? this.prisma.targetAudience.findMany({
+            where: { id: { in: audiencesIds } },
+          })
+        : [],
+      productsIds.length
+        ? this.prisma.product.findMany({ where: { id: { in: productsIds } } })
+        : [],
+      ideasIds.length
+        ? this.prisma.idea.findMany({ where: { id: { in: ideasIds } } })
+        : [],
+      ideasAiIds.length
+        ? this.prisma.ideaAI.findMany({ where: { id: { in: ideasAiIds } } })
+        : [],
+      defaultPhotosIds.length
+        ? this.prisma.defaultPhoto.findMany({
+            where: { id: { in: defaultPhotosIds } },
+          })
+        : [],
+      photosIds.length
+        ? this.prisma.galleryPhoto.findMany({
+            where: { id: { in: photosIds } },
+          })
+        : [],
     ]);
 
     const settings = {
@@ -105,8 +137,9 @@ export class AiArtifactService {
       products,
       prompt: body.form.prompt,
       ideas,
-      ideasAi
-    }
+      ideasAi,
+      manualPromptOverride: body.form.manualPromptOverride ?? false,
+    };
 
     const galleryPhotosUrls = [...defaultPhotos, ...photos].map((photo) => ({
       type: photo.type,
@@ -116,17 +149,21 @@ export class AiArtifactService {
 
     let generatedContent: AiPost[];
     if (body.form.type === AIArtifactType.Post) {
-      generatedContent = await this.aiService.generatePostsBasedOnManuallySettings(
-        settings,
-        galleryPhotosUrls,
-      );
+      generatedContent =
+        await this.aiService.generatePostsBasedOnManuallySettings(
+          settings,
+          galleryPhotosUrls,
+        );
     } else if (body.form.type === AIArtifactType.Story) {
-      generatedContent = await this.aiService.generateStoriesBasedOnManuallySettings(
-        settings,
-        galleryPhotosUrls,
-      );
+      generatedContent =
+        await this.aiService.generateStoriesBasedOnManuallySettings(
+          settings,
+          galleryPhotosUrls,
+        );
     } else {
-      throw new BadRequestException(`Unsupported artifact type: ${body.form.type}`);
+      throw new BadRequestException(
+        `Unsupported artifact type: ${body.form.type}`,
+      );
     }
 
     const createdArtifacts = await this.prisma.$transaction(async (tx) => {
@@ -156,7 +193,6 @@ export class AiArtifactService {
           },
         });
 
-
         if (artifact.imageUrl) {
           await tx.aIArtifactImageHistory.create({
             data: {
@@ -181,7 +217,13 @@ export class AiArtifactService {
         if (!imagePrompt) return Promise.resolve(artifact);
 
         if (body.mediaType === MediaType.Image) {
-          return this.startGenerateImage(artifact.id, businessId, imagePrompt, galleryPhotosUrls);
+          return this.startGenerateImage(
+            artifact.id,
+            businessId,
+            imagePrompt,
+            galleryPhotosUrls,
+            { manualOverride: body.form.manualPromptOverride },
+          );
         }
         if (body.mediaType === MediaType.Video) {
           return this.startGenerateVideo({
@@ -193,7 +235,7 @@ export class AiArtifactService {
           });
         }
         return Promise.resolve(artifact);
-      })
+      }),
     );
 
     return artifactsWithMedia;
@@ -216,8 +258,9 @@ export class AiArtifactService {
 
     const urlsToDelete = Array.from(
       new Set(
-        [aiArtifact.imageUrl, ...historyEntries.map((h) => h.imageUrl)]
-          .filter((url): url is string => Boolean(url)),
+        [aiArtifact.imageUrl, ...historyEntries.map((h) => h.imageUrl)].filter(
+          (url): url is string => Boolean(url),
+        ),
       ),
     );
 
@@ -300,10 +343,18 @@ export class AiArtifactService {
     return { success: true };
   }
 
-  async regenerateAiArtifact(artifactId: string, mediaId: string, prompt: string) {
-    const media = await this.prisma.aIArtifactMedia.findUnique({ where: { id: mediaId } });
+  async regenerateAiArtifact(
+    artifactId: string,
+    mediaId: string,
+    prompt: string,
+  ) {
+    const media = await this.prisma.aIArtifactMedia.findUnique({
+      where: { id: mediaId },
+    });
     if (!media || media.artifactId !== artifactId) {
-      throw new NotFoundException(`Media with id ${mediaId} not found for artifact ${artifactId}`);
+      throw new NotFoundException(
+        `Media with id ${mediaId} not found for artifact ${artifactId}`,
+      );
     }
 
     const artifact = await this.prisma.aIArtifact.findUnique({
@@ -311,14 +362,20 @@ export class AiArtifactService {
       select: { id: true, businessId: true, type: true },
     });
     if (!artifact) {
-      throw new NotFoundException(`AI artifact with id ${artifactId} not found`);
+      throw new NotFoundException(
+        `AI artifact with id ${artifactId} not found`,
+      );
     }
 
-    const referenceImages = media.url ? [{
-      url: this.storageUrlService.getPublicUrl(media.url),
-      type: artifact.type,
-      description: null,
-    }] : [];
+    const referenceImages = media.url
+      ? [
+          {
+            url: this.storageUrlService.getPublicUrl(media.url),
+            type: artifact.type,
+            description: null,
+          },
+        ]
+      : [];
 
     const generatedImageUrl = await this.aiService.generateAiPhoto(
       artifact.businessId,
@@ -350,9 +407,13 @@ export class AiArtifactService {
   }
 
   async revertAiArtifactOriginal(artifactId: string, mediaId: string) {
-    const media = await this.prisma.aIArtifactMedia.findUnique({ where: { id: mediaId } });
+    const media = await this.prisma.aIArtifactMedia.findUnique({
+      where: { id: mediaId },
+    });
     if (!media || media.artifactId !== artifactId) {
-      throw new NotFoundException(`Media with id ${mediaId} not found for artifact ${artifactId}`);
+      throw new NotFoundException(
+        `Media with id ${mediaId} not found for artifact ${artifactId}`,
+      );
     }
 
     const originalEntry = await this.prisma.aIArtifactImageHistory.findFirst({
@@ -370,15 +431,18 @@ export class AiArtifactService {
       throw new BadRequestException('Image is already at the original version');
     }
 
-    const intermediateEntries = await this.prisma.aIArtifactImageHistory.findMany({
-      where: { artifactId, id: { not: originalEntry.id } },
-      select: { imageUrl: true },
-    });
+    const intermediateEntries =
+      await this.prisma.aIArtifactImageHistory.findMany({
+        where: { artifactId, id: { not: originalEntry.id } },
+        select: { imageUrl: true },
+      });
 
     const urlsToDelete = Array.from(
       new Set(
-        [media.url, ...intermediateEntries.map((e) => e.imageUrl)]
-          .filter((url): url is string => Boolean(url) && url !== originalEntry.imageUrl),
+        [media.url, ...intermediateEntries.map((e) => e.imageUrl)].filter(
+          (url): url is string =>
+            Boolean(url) && url !== originalEntry.imageUrl,
+        ),
       ),
     );
 
@@ -413,9 +477,13 @@ export class AiArtifactService {
   }
 
   async revertAiArtifactPrevious(artifactId: string, mediaId: string) {
-    const media = await this.prisma.aIArtifactMedia.findUnique({ where: { id: mediaId } });
+    const media = await this.prisma.aIArtifactMedia.findUnique({
+      where: { id: mediaId },
+    });
     if (!media || media.artifactId !== artifactId) {
-      throw new NotFoundException(`Media with id ${mediaId} not found for artifact ${artifactId}`);
+      throw new NotFoundException(
+        `Media with id ${mediaId} not found for artifact ${artifactId}`,
+      );
     }
 
     const lastTwoEntries = await this.prisma.aIArtifactImageHistory.findMany({
@@ -425,7 +493,9 @@ export class AiArtifactService {
     });
 
     if (lastTwoEntries.length < 2) {
-      throw new BadRequestException('Cannot revert: no previous version available');
+      throw new BadRequestException(
+        'Cannot revert: no previous version available',
+      );
     }
 
     const [currentEntry, previousEntry] = lastTwoEntries;
@@ -434,19 +504,22 @@ export class AiArtifactService {
       throw new BadRequestException('Image is already at the previous version');
     }
 
-    const otherEntriesWithSameUrl = await this.prisma.aIArtifactImageHistory.count({
-      where: {
-        artifactId,
-        imageUrl: media.url ?? '',
-        id: { not: currentEntry.id },
-      },
-    });
+    const otherEntriesWithSameUrl =
+      await this.prisma.aIArtifactImageHistory.count({
+        where: {
+          artifactId,
+          imageUrl: media.url ?? '',
+          id: { not: currentEntry.id },
+        },
+      });
 
     const shouldDeleteFromS3 = otherEntriesWithSameUrl === 0;
     const urlToDelete = media.url;
 
     await this.prisma.$transaction(async (tx) => {
-      await tx.aIArtifactImageHistory.delete({ where: { id: currentEntry.id } });
+      await tx.aIArtifactImageHistory.delete({
+        where: { id: currentEntry.id },
+      });
 
       await tx.aIArtifactMedia.update({
         where: { id: mediaId },
@@ -454,7 +527,11 @@ export class AiArtifactService {
       });
     });
 
-    if (shouldDeleteFromS3 && urlToDelete && urlToDelete !== previousEntry.imageUrl) {
+    if (
+      shouldDeleteFromS3 &&
+      urlToDelete &&
+      urlToDelete !== previousEntry.imageUrl
+    ) {
       try {
         await this.s3Service.delete(urlToDelete);
       } catch (error) {
@@ -471,14 +548,33 @@ export class AiArtifactService {
     });
   }
 
-  async startGenerateImage(artifactId: string, businessId: string, imagePrompt: any, photos: Photo[]) {
-    const artifact = await this.prisma.aIArtifact.findUnique({ where: { id: artifactId } });
-    if (!artifact || artifact.businessId !== businessId) throw new NotFoundException(`Artifact ${artifactId} not found`);
+  async startGenerateImage(
+    artifactId: string,
+    businessId: string,
+    imagePrompt: any,
+    photos: Photo[],
+    options?: { manualOverride?: boolean },
+  ) {
+    const artifact = await this.prisma.aIArtifact.findUnique({
+      where: { id: artifactId },
+    });
+    if (!artifact || artifact.businessId !== businessId)
+      throw new NotFoundException(`Artifact ${artifactId} not found`);
 
     const isStory = artifact.type === AIArtifactType.Story;
     const s3Key = isStory
-      ? await this.aiReplicateService.generateStoryImage(imagePrompt, businessId, photos)
-      : await this.aiReplicateService.generatePostImage(imagePrompt, businessId, photos);
+      ? await this.aiReplicateService.generateStoryImage(
+          imagePrompt,
+          businessId,
+          photos,
+          options,
+        )
+      : await this.aiReplicateService.generatePostImage(
+          imagePrompt,
+          businessId,
+          photos,
+          options,
+        );
 
     await this.prisma.$transaction(async (tx) => {
       await tx.aIArtifactMedia.create({
@@ -502,11 +598,26 @@ export class AiArtifactService {
     });
   }
 
-  async startGenerateVideo(params: { artifactId: string; businessId: string; description: string; galleryPhotosUrls: any; artifactType: AIArtifactType; }) {
-    const { artifactId, businessId, description, galleryPhotosUrls, artifactType } = params;
+  async startGenerateVideo(params: {
+    artifactId: string;
+    businessId: string;
+    description: string;
+    galleryPhotosUrls: any;
+    artifactType: AIArtifactType;
+  }) {
+    const {
+      artifactId,
+      businessId,
+      description,
+      galleryPhotosUrls,
+      artifactType,
+    } = params;
 
-    const artifact = await this.prisma.aIArtifact.findUnique({ where: { id: artifactId } });
-    if (!artifact || artifact.businessId !== businessId) throw new NotFoundException(`Artifact ${artifactId} not found`);
+    const artifact = await this.prisma.aIArtifact.findUnique({
+      where: { id: artifactId },
+    });
+    if (!artifact || artifact.businessId !== businessId)
+      throw new NotFoundException(`Artifact ${artifactId} not found`);
 
     const sourceUrl = galleryPhotosUrls[0]?.url;
 
@@ -515,8 +626,10 @@ export class AiArtifactService {
     });
 
     try {
-      const aspectRatio = artifactType === AIArtifactType.Story ? '9:16' : '3:4';
-      const translatedPrompt = await this.aiService.translateToEnglish(description);
+      const aspectRatio =
+        artifactType === AIArtifactType.Story ? '9:16' : '3:4';
+      const translatedPrompt =
+        await this.aiService.translateToEnglish(description);
       const s3Key = await this.aiReplicateService.generateAndSaveVideo({
         prompt: translatedPrompt,
         businessId,
@@ -543,7 +656,8 @@ export class AiArtifactService {
       where: { id: artifactId },
       include: { media: { orderBy: { order: 'asc' } } },
     });
-    if (!artifact || artifact.businessId !== businessId) throw new NotFoundException(`Artifact ${artifactId} not found`);
+    if (!artifact || artifact.businessId !== businessId)
+      throw new NotFoundException(`Artifact ${artifactId} not found`);
 
     const pendingMedia = artifact.media.filter((m) => !!m.jobId && !m.url);
 

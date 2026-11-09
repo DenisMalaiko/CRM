@@ -16,12 +16,25 @@ describe('AiArtifactService (integration)', () => {
   let service: AiArtifactService;
   let prisma: PrismaService;
 
-  let mockAiService: jest.Mocked<Pick<AiService, 'generateVideoPrompt' | 'generateAiPhoto'>>;
+  let mockAiService: jest.Mocked<
+    Pick<AiService, 'generateVideoPrompt' | 'generateAiPhoto'>
+  >;
   let mockAiReplicateService: jest.Mocked<
-    Pick<AiReplicateService, 'startAiPhotoJobAsync' | 'pollAndSaveImage' | 'buildPostImagePrompt' | 'buildStoryImagePrompt' | 'generatePostImage' | 'generateStoryImage' | 'generateAndSaveVideo'>
+    Pick<
+      AiReplicateService,
+      | 'startAiPhotoJobAsync'
+      | 'pollAndSaveImage'
+      | 'buildPostImagePrompt'
+      | 'buildStoryImagePrompt'
+      | 'generatePostImage'
+      | 'generateStoryImage'
+      | 'generateAndSaveVideo'
+    >
   >;
   let mockS3Service: jest.Mocked<Pick<S3Service, 'upload' | 'delete'>>;
-  let mockStorageUrlService: jest.Mocked<Pick<StorageUrlService, 'getPublicUrl'>>;
+  let mockStorageUrlService: jest.Mocked<
+    Pick<StorageUrlService, 'getPublicUrl'>
+  >;
 
   // IDs created during test setup — cleaned up in afterAll
   let businessId: string;
@@ -40,11 +53,21 @@ describe('AiArtifactService (integration)', () => {
     mockAiReplicateService = {
       startAiPhotoJobAsync: jest.fn().mockResolvedValue('replicate-job-001'),
       pollAndSaveImage: jest.fn().mockResolvedValue(null),
-      buildPostImagePrompt: jest.fn().mockResolvedValue({ prompt: 'built-post-prompt', imageUrls: [] }),
-      buildStoryImagePrompt: jest.fn().mockResolvedValue({ prompt: 'built-story-prompt', imageUrls: [] }),
-      generatePostImage: jest.fn().mockResolvedValue('ai-images/biz/generated-post.png'),
-      generateStoryImage: jest.fn().mockResolvedValue('ai-images/biz/generated-story.png'),
-      generateAndSaveVideo: jest.fn().mockResolvedValue('ai-videos/biz/saved-video.mp4'),
+      buildPostImagePrompt: jest
+        .fn()
+        .mockResolvedValue({ prompt: 'built-post-prompt', imageUrls: [] }),
+      buildStoryImagePrompt: jest
+        .fn()
+        .mockResolvedValue({ prompt: 'built-story-prompt', imageUrls: [] }),
+      generatePostImage: jest
+        .fn()
+        .mockResolvedValue('ai-images/biz/generated-post.png'),
+      generateStoryImage: jest
+        .fn()
+        .mockResolvedValue('ai-images/biz/generated-story.png'),
+      generateAndSaveVideo: jest
+        .fn()
+        .mockResolvedValue('ai-videos/biz/saved-video.mp4'),
     };
 
     mockS3Service = {
@@ -57,10 +80,7 @@ describe('AiArtifactService (integration)', () => {
     };
 
     module = await Test.createTestingModule({
-      imports: [
-        ConfigModule.forRoot({ isGlobal: true }),
-        PrismaModule,
-      ],
+      imports: [ConfigModule.forRoot({ isGlobal: true }), PrismaModule],
       providers: [
         AiArtifactService,
         { provide: S3Service, useValue: mockS3Service },
@@ -103,7 +123,10 @@ describe('AiArtifactService (integration)', () => {
     // Clean up in dependency order
     await prisma.aIArtifactMedia.deleteMany({ where: { businessId } });
     await prisma.aIArtifact.deleteMany({ where: { businessId } });
-    const business = await prisma.business.findUnique({ where: { id: businessId }, select: { agencyId: true } });
+    const business = await prisma.business.findUnique({
+      where: { id: businessId },
+      select: { agencyId: true },
+    });
     await prisma.business.delete({ where: { id: businessId } });
     if (business?.agencyId) {
       await prisma.agency.delete({ where: { id: business.agencyId } });
@@ -117,14 +140,30 @@ describe('AiArtifactService (integration)', () => {
     mockAiService.generateVideoPrompt.mockResolvedValue(
       'Cinematic product showcase with soft lighting',
     );
-    mockAiService.generateAiPhoto.mockResolvedValue('ai-images/biz/regenerated.png');
-    mockAiReplicateService.startAiPhotoJobAsync.mockResolvedValue('replicate-job-001');
+    mockAiService.generateAiPhoto.mockResolvedValue(
+      'ai-images/biz/regenerated.png',
+    );
+    mockAiReplicateService.startAiPhotoJobAsync.mockResolvedValue(
+      'replicate-job-001',
+    );
     mockAiReplicateService.pollAndSaveImage.mockResolvedValue(null);
-    mockAiReplicateService.buildPostImagePrompt.mockResolvedValue({ prompt: 'built-post-prompt', imageUrls: [] });
-    mockAiReplicateService.buildStoryImagePrompt.mockResolvedValue({ prompt: 'built-story-prompt', imageUrls: [] });
-    mockAiReplicateService.generatePostImage.mockResolvedValue('ai-images/biz/generated-post.png');
-    mockAiReplicateService.generateStoryImage.mockResolvedValue('ai-images/biz/generated-story.png');
-    mockAiReplicateService.generateAndSaveVideo.mockResolvedValue('ai-videos/biz/saved-video.mp4');
+    mockAiReplicateService.buildPostImagePrompt.mockResolvedValue({
+      prompt: 'built-post-prompt',
+      imageUrls: [],
+    });
+    mockAiReplicateService.buildStoryImagePrompt.mockResolvedValue({
+      prompt: 'built-story-prompt',
+      imageUrls: [],
+    });
+    mockAiReplicateService.generatePostImage.mockResolvedValue(
+      'ai-images/biz/generated-post.png',
+    );
+    mockAiReplicateService.generateStoryImage.mockResolvedValue(
+      'ai-images/biz/generated-story.png',
+    );
+    mockAiReplicateService.generateAndSaveVideo.mockResolvedValue(
+      'ai-videos/biz/saved-video.mp4',
+    );
     mockStorageUrlService.getPublicUrl.mockImplementation(
       (key: string) => `https://cdn.example.com/${key}`,
     );
@@ -243,9 +282,9 @@ describe('AiArtifactService (integration)', () => {
     it('throws NotFoundException when IDs do not exist in the database', async () => {
       const nonExistentId = '00000000-0000-0000-0000-000000000099';
 
-      await expect(service.deleteAiArtifactsBatch([nonExistentId])).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        service.deleteAiArtifactsBatch([nonExistentId]),
+      ).rejects.toThrow(NotFoundException);
       expect(mockS3Service.delete).not.toHaveBeenCalled();
     });
 
@@ -323,9 +362,16 @@ describe('AiArtifactService (integration)', () => {
   // ─────────────────────────────────────────────
   describe('startGenerateImage', () => {
     it('creates an AIArtifactMedia record with type Image and url', async () => {
-      mockAiReplicateService.generatePostImage.mockResolvedValue('ai-images/biz/test-image.png');
+      mockAiReplicateService.generatePostImage.mockResolvedValue(
+        'ai-images/biz/test-image.png',
+      );
 
-      await service.startGenerateImage(artifactId, businessId, { scene: 'bright product photo' }, []);
+      await service.startGenerateImage(
+        artifactId,
+        businessId,
+        { scene: 'bright product photo' },
+        [],
+      );
 
       const media = await prisma.aIArtifactMedia.findFirst({
         where: { artifactId, type: MediaType.Image },
@@ -339,10 +385,26 @@ describe('AiArtifactService (integration)', () => {
 
     it('calls generatePostImage for Post artifacts', async () => {
       const imagePrompt = { scene: 'sunset on the beach' };
-      const photos = [{ url: 'https://example.com/photo.jpg', type: 'Image' as const, description: null }];
-      await service.startGenerateImage(artifactId, businessId, imagePrompt, photos);
+      const photos = [
+        {
+          url: 'https://example.com/photo.jpg',
+          type: 'Image' as const,
+          description: null,
+        },
+      ];
+      await service.startGenerateImage(
+        artifactId,
+        businessId,
+        imagePrompt,
+        photos,
+      );
 
-      expect(mockAiReplicateService.generatePostImage).toHaveBeenCalledWith(imagePrompt, businessId, photos);
+      expect(mockAiReplicateService.generatePostImage).toHaveBeenCalledWith(
+        imagePrompt,
+        businessId,
+        photos,
+        undefined,
+      );
     });
 
     it('returns the artifact with media array', async () => {
@@ -372,7 +434,12 @@ describe('AiArtifactService (integration)', () => {
 
     it('does not return artifact from another business (tenant isolation)', async () => {
       await expect(
-        service.startGenerateImage(artifactId, 'other-business-uuid', { scene: 'prompt' }, []),
+        service.startGenerateImage(
+          artifactId,
+          'other-business-uuid',
+          { scene: 'prompt' },
+          [],
+        ),
       ).rejects.toThrow(NotFoundException);
     });
   });
@@ -382,7 +449,9 @@ describe('AiArtifactService (integration)', () => {
   // ─────────────────────────────────────────────
   describe('startGenerateVideo', () => {
     it('creates a Video media record and updates it with the S3 key on success', async () => {
-      mockAiReplicateService.generateAndSaveVideo.mockResolvedValue('ai-videos/biz/saved.mp4');
+      mockAiReplicateService.generateAndSaveVideo.mockResolvedValue(
+        'ai-videos/biz/saved.mp4',
+      );
 
       await service.startGenerateVideo({
         artifactId,
@@ -400,7 +469,9 @@ describe('AiArtifactService (integration)', () => {
     });
 
     it('calls aiReplicateService.generateAndSaveVideo with correct params', async () => {
-      mockAiReplicateService.generateAndSaveVideo.mockResolvedValue('ai-videos/biz/saved.mp4');
+      mockAiReplicateService.generateAndSaveVideo.mockResolvedValue(
+        'ai-videos/biz/saved.mp4',
+      );
 
       await service.startGenerateVideo({
         artifactId,
@@ -419,7 +490,9 @@ describe('AiArtifactService (integration)', () => {
     });
 
     it('uses aspect ratio 9:16 for Story artifacts', async () => {
-      mockAiReplicateService.generateAndSaveVideo.mockResolvedValue('ai-videos/biz/story.mp4');
+      mockAiReplicateService.generateAndSaveVideo.mockResolvedValue(
+        'ai-videos/biz/story.mp4',
+      );
 
       await service.startGenerateVideo({
         artifactId,
@@ -435,7 +508,9 @@ describe('AiArtifactService (integration)', () => {
     });
 
     it('uses aspect ratio 4:5 for Post artifacts', async () => {
-      mockAiReplicateService.generateAndSaveVideo.mockResolvedValue('ai-videos/biz/post.mp4');
+      mockAiReplicateService.generateAndSaveVideo.mockResolvedValue(
+        'ai-videos/biz/post.mp4',
+      );
 
       await service.startGenerateVideo({
         artifactId,
@@ -451,7 +526,9 @@ describe('AiArtifactService (integration)', () => {
     });
 
     it('passes first gallery photo URL as sourceUrl when provided', async () => {
-      mockAiReplicateService.generateAndSaveVideo.mockResolvedValue('ai-videos/biz/saved.mp4');
+      mockAiReplicateService.generateAndSaveVideo.mockResolvedValue(
+        'ai-videos/biz/saved.mp4',
+      );
 
       await service.startGenerateVideo({
         artifactId,
@@ -462,7 +539,9 @@ describe('AiArtifactService (integration)', () => {
       });
 
       expect(mockAiReplicateService.generateAndSaveVideo).toHaveBeenCalledWith(
-        expect.objectContaining({ sourceUrl: 'https://example.com/source.jpg' }),
+        expect.objectContaining({
+          sourceUrl: 'https://example.com/source.jpg',
+        }),
       );
 
       const media = await prisma.aIArtifactMedia.findFirst({
@@ -537,13 +616,19 @@ describe('AiArtifactService (integration)', () => {
   describe('getAiArtifact', () => {
     it('throws NotFoundException when artifact does not exist', async () => {
       await expect(
-        service.getAiArtifact('00000000-0000-0000-0000-000000000000', businessId),
+        service.getAiArtifact(
+          '00000000-0000-0000-0000-000000000000',
+          businessId,
+        ),
       ).rejects.toThrow(NotFoundException);
     });
 
     it('throws NotFoundException for artifact that belongs to a different business', async () => {
       await expect(
-        service.getAiArtifact(artifactId, '00000000-0000-0000-0000-000000000002'),
+        service.getAiArtifact(
+          artifactId,
+          '00000000-0000-0000-0000-000000000002',
+        ),
       ).rejects.toThrow(NotFoundException);
     });
 
@@ -562,9 +647,7 @@ describe('AiArtifactService (integration)', () => {
 
       const result = await service.getAiArtifact(artifactId, businessId);
 
-      const pendingMedia = result.media.find(
-        (m) => m.type === MediaType.Image,
-      );
+      const pendingMedia = result.media.find((m) => m.type === MediaType.Image);
       expect(pendingMedia).toBeDefined();
       // jobId is not cleared because image is still in progress (null returned)
       // The service only clears jobId when s3Key is returned
@@ -590,7 +673,9 @@ describe('AiArtifactService (integration)', () => {
 
       const result = await service.getAiArtifact(artifactId, businessId);
 
-      const completedMedia = result.media.find((m) => m.type === MediaType.Image);
+      const completedMedia = result.media.find(
+        (m) => m.type === MediaType.Image,
+      );
       expect(completedMedia).toBeDefined();
       // url is resolved through storageUrlService
       expect(completedMedia!.url).toBe(
@@ -725,8 +810,12 @@ describe('AiArtifactService (integration)', () => {
         mediaType: MediaType.Image,
       });
 
-      const [calledArtifactId, calledBusinessId, calledImagePrompt, calledPhotos] =
-        startGenerateImageSpy.mock.calls[0];
+      const [
+        calledArtifactId,
+        calledBusinessId,
+        calledImagePrompt,
+        calledPhotos,
+      ] = startGenerateImageSpy.mock.calls[0];
 
       expect(calledBusinessId).toBe(businessId);
       expect(typeof calledArtifactId).toBe('string');
@@ -814,7 +903,9 @@ describe('AiArtifactService (integration)', () => {
         },
       };
 
-      (mockAiService as any).generatePostsBasedOnManuallySettings.mockResolvedValue([
+      (
+        mockAiService as any
+      ).generatePostsBasedOnManuallySettings.mockResolvedValue([
         generatedPost,
         secondPost,
       ]);
@@ -828,9 +919,13 @@ describe('AiArtifactService (integration)', () => {
       expect(result).toHaveLength(2);
 
       // First call uses first post's image_prompt object
-      expect(startGenerateImageSpy.mock.calls[0][2]).toEqual(generatedPost.image_prompt);
+      expect(startGenerateImageSpy.mock.calls[0][2]).toEqual(
+        generatedPost.image_prompt,
+      );
       // Second call uses second post's image_prompt object
-      expect(startGenerateImageSpy.mock.calls[1][2]).toEqual(secondPost.image_prompt);
+      expect(startGenerateImageSpy.mock.calls[1][2]).toEqual(
+        secondPost.image_prompt,
+      );
     });
   });
 
@@ -840,22 +935,40 @@ describe('AiArtifactService (integration)', () => {
   describe('regenerateAiArtifact', () => {
     it('happy path — updates media url and creates history entry, returns artifact with media', async () => {
       const media = await prisma.aIArtifactMedia.create({
-        data: { artifactId, businessId, type: MediaType.Image, url: 'ai-images/biz/original.png' },
+        data: {
+          artifactId,
+          businessId,
+          type: MediaType.Image,
+          url: 'ai-images/biz/original.png',
+        },
       });
 
       await prisma.aIArtifactImageHistory.create({
-        data: { artifactId, businessId, imageUrl: 'ai-images/biz/original.png', changeType: 'Create' },
+        data: {
+          artifactId,
+          businessId,
+          imageUrl: 'ai-images/biz/original.png',
+          changeType: 'Create',
+        },
       });
 
-      mockAiService.generateAiPhoto.mockResolvedValue('ai-images/biz/new-generated.png');
+      mockAiService.generateAiPhoto.mockResolvedValue(
+        'ai-images/biz/new-generated.png',
+      );
 
-      const result = await service.regenerateAiArtifact(artifactId, media.id, 'bright product photo');
+      const result = await service.regenerateAiArtifact(
+        artifactId,
+        media.id,
+        'bright product photo',
+      );
 
       expect(mockAiService.generateAiPhoto).toHaveBeenCalledWith(
         businessId,
         'bright product photo',
         expect.arrayContaining([
-          expect.objectContaining({ url: expect.stringContaining('original.png') }),
+          expect.objectContaining({
+            url: expect.stringContaining('original.png'),
+          }),
         ]),
       );
 
@@ -863,10 +976,14 @@ describe('AiArtifactService (integration)', () => {
       expect(result!.id).toBe(artifactId);
       expect(Array.isArray(result!.media)).toBe(true);
 
-      const updatedMedia = await prisma.aIArtifactMedia.findUnique({ where: { id: media.id } });
+      const updatedMedia = await prisma.aIArtifactMedia.findUnique({
+        where: { id: media.id },
+      });
       expect(updatedMedia!.url).toBe('ai-images/biz/new-generated.png');
 
-      const historyCount = await prisma.aIArtifactImageHistory.count({ where: { artifactId } });
+      const historyCount = await prisma.aIArtifactImageHistory.count({
+        where: { artifactId },
+      });
       expect(historyCount).toBe(2);
     });
 
@@ -875,7 +992,11 @@ describe('AiArtifactService (integration)', () => {
         data: { artifactId, businessId, type: MediaType.Image, url: null },
       });
 
-      await service.regenerateAiArtifact(artifactId, media.id, 'clean product shot');
+      await service.regenerateAiArtifact(
+        artifactId,
+        media.id,
+        'clean product shot',
+      );
 
       expect(mockAiService.generateAiPhoto).toHaveBeenCalledWith(
         businessId,
@@ -900,7 +1021,11 @@ describe('AiArtifactService (integration)', () => {
       });
 
       const media = await prisma.aIArtifactMedia.create({
-        data: { artifactId: otherArtifact.id, businessId, type: MediaType.Image },
+        data: {
+          artifactId: otherArtifact.id,
+          businessId,
+          type: MediaType.Image,
+        },
       });
 
       await expect(
@@ -920,42 +1045,84 @@ describe('AiArtifactService (integration)', () => {
   describe('revertAiArtifactOriginal', () => {
     it('happy path — reverts media url to original, deletes non-original history entries', async () => {
       const media = await prisma.aIArtifactMedia.create({
-        data: { artifactId, businessId, type: MediaType.Image, url: 'ai-images/biz/update2.png' },
+        data: {
+          artifactId,
+          businessId,
+          type: MediaType.Image,
+          url: 'ai-images/biz/update2.png',
+        },
       });
 
       await prisma.aIArtifactImageHistory.create({
-        data: { artifactId, businessId, imageUrl: 'ai-images/biz/original.png', changeType: 'Create' },
+        data: {
+          artifactId,
+          businessId,
+          imageUrl: 'ai-images/biz/original.png',
+          changeType: 'Create',
+        },
       });
       await prisma.aIArtifactImageHistory.create({
-        data: { artifactId, businessId, imageUrl: 'ai-images/biz/update1.png', changeType: 'Update' },
+        data: {
+          artifactId,
+          businessId,
+          imageUrl: 'ai-images/biz/update1.png',
+          changeType: 'Update',
+        },
       });
       await prisma.aIArtifactImageHistory.create({
-        data: { artifactId, businessId, imageUrl: 'ai-images/biz/update2.png', changeType: 'Update' },
+        data: {
+          artifactId,
+          businessId,
+          imageUrl: 'ai-images/biz/update2.png',
+          changeType: 'Update',
+        },
       });
 
-      const result = await service.revertAiArtifactOriginal(artifactId, media.id);
+      const result = await service.revertAiArtifactOriginal(
+        artifactId,
+        media.id,
+      );
 
       expect(result).not.toBeNull();
       expect(result!.id).toBe(artifactId);
 
-      const updatedMedia = await prisma.aIArtifactMedia.findUnique({ where: { id: media.id } });
+      const updatedMedia = await prisma.aIArtifactMedia.findUnique({
+        where: { id: media.id },
+      });
       expect(updatedMedia!.url).toBe('ai-images/biz/original.png');
 
-      const remainingHistory = await prisma.aIArtifactImageHistory.findMany({ where: { artifactId } });
+      const remainingHistory = await prisma.aIArtifactImageHistory.findMany({
+        where: { artifactId },
+      });
       expect(remainingHistory).toHaveLength(1);
       expect(remainingHistory[0].changeType).toBe('Create');
     });
 
     it('calls s3Service.delete for intermediate S3 urls', async () => {
       const media = await prisma.aIArtifactMedia.create({
-        data: { artifactId, businessId, type: MediaType.Image, url: 'ai-images/biz/update.png' },
+        data: {
+          artifactId,
+          businessId,
+          type: MediaType.Image,
+          url: 'ai-images/biz/update.png',
+        },
       });
 
       await prisma.aIArtifactImageHistory.create({
-        data: { artifactId, businessId, imageUrl: 'ai-images/biz/create.png', changeType: 'Create' },
+        data: {
+          artifactId,
+          businessId,
+          imageUrl: 'ai-images/biz/create.png',
+          changeType: 'Create',
+        },
       });
       await prisma.aIArtifactImageHistory.create({
-        data: { artifactId, businessId, imageUrl: 'ai-images/biz/update.png', changeType: 'Update' },
+        data: {
+          artifactId,
+          businessId,
+          imageUrl: 'ai-images/biz/update.png',
+          changeType: 'Update',
+        },
       });
 
       mockS3Service.delete.mockResolvedValue(undefined);
@@ -980,7 +1147,11 @@ describe('AiArtifactService (integration)', () => {
         data: { businessId, type: 'Post', outputJson: {}, status: 'Draft' },
       });
       const media = await prisma.aIArtifactMedia.create({
-        data: { artifactId: otherArtifact.id, businessId, type: MediaType.Image },
+        data: {
+          artifactId: otherArtifact.id,
+          businessId,
+          type: MediaType.Image,
+        },
       });
 
       await expect(
@@ -993,7 +1164,12 @@ describe('AiArtifactService (integration)', () => {
 
     it('throws BadRequestException when no Create history entry exists', async () => {
       const media = await prisma.aIArtifactMedia.create({
-        data: { artifactId, businessId, type: MediaType.Image, url: 'ai-images/biz/some.png' },
+        data: {
+          artifactId,
+          businessId,
+          type: MediaType.Image,
+          url: 'ai-images/biz/some.png',
+        },
       });
 
       // No history entries at all
@@ -1005,11 +1181,21 @@ describe('AiArtifactService (integration)', () => {
     it('throws BadRequestException when media url already matches the original', async () => {
       const originalUrl = 'ai-images/biz/original-already.png';
       const media = await prisma.aIArtifactMedia.create({
-        data: { artifactId, businessId, type: MediaType.Image, url: originalUrl },
+        data: {
+          artifactId,
+          businessId,
+          type: MediaType.Image,
+          url: originalUrl,
+        },
       });
 
       await prisma.aIArtifactImageHistory.create({
-        data: { artifactId, businessId, imageUrl: originalUrl, changeType: 'Create' },
+        data: {
+          artifactId,
+          businessId,
+          imageUrl: originalUrl,
+          changeType: 'Create',
+        },
       });
 
       await expect(
@@ -1024,44 +1210,83 @@ describe('AiArtifactService (integration)', () => {
   describe('revertAiArtifactPrevious', () => {
     it('happy path — reverts media url to previous version and deletes current history entry', async () => {
       const media = await prisma.aIArtifactMedia.create({
-        data: { artifactId, businessId, type: MediaType.Image, url: 'ai-images/biz/current.png' },
+        data: {
+          artifactId,
+          businessId,
+          type: MediaType.Image,
+          url: 'ai-images/biz/current.png',
+        },
       });
 
       const older = await prisma.aIArtifactImageHistory.create({
-        data: { artifactId, businessId, imageUrl: 'ai-images/biz/previous.png', changeType: 'Create' },
+        data: {
+          artifactId,
+          businessId,
+          imageUrl: 'ai-images/biz/previous.png',
+          changeType: 'Create',
+        },
       });
       // Ensure newer entry has a strictly later changedAt by waiting a moment
       await new Promise((r) => setTimeout(r, 5));
       const newer = await prisma.aIArtifactImageHistory.create({
-        data: { artifactId, businessId, imageUrl: 'ai-images/biz/current.png', changeType: 'Update' },
+        data: {
+          artifactId,
+          businessId,
+          imageUrl: 'ai-images/biz/current.png',
+          changeType: 'Update',
+        },
       });
 
-      const result = await service.revertAiArtifactPrevious(artifactId, media.id);
+      const result = await service.revertAiArtifactPrevious(
+        artifactId,
+        media.id,
+      );
 
       expect(result).not.toBeNull();
       expect(result!.id).toBe(artifactId);
 
-      const updatedMedia = await prisma.aIArtifactMedia.findUnique({ where: { id: media.id } });
+      const updatedMedia = await prisma.aIArtifactMedia.findUnique({
+        where: { id: media.id },
+      });
       expect(updatedMedia!.url).toBe('ai-images/biz/previous.png');
 
-      const deletedEntry = await prisma.aIArtifactImageHistory.findUnique({ where: { id: newer.id } });
+      const deletedEntry = await prisma.aIArtifactImageHistory.findUnique({
+        where: { id: newer.id },
+      });
       expect(deletedEntry).toBeNull();
 
-      const survivingEntry = await prisma.aIArtifactImageHistory.findUnique({ where: { id: older.id } });
+      const survivingEntry = await prisma.aIArtifactImageHistory.findUnique({
+        where: { id: older.id },
+      });
       expect(survivingEntry).not.toBeNull();
     });
 
     it('calls s3Service.delete for the current url when it is not referenced by other history entries', async () => {
       const media = await prisma.aIArtifactMedia.create({
-        data: { artifactId, businessId, type: MediaType.Image, url: 'ai-images/biz/unique-current.png' },
+        data: {
+          artifactId,
+          businessId,
+          type: MediaType.Image,
+          url: 'ai-images/biz/unique-current.png',
+        },
       });
 
       await prisma.aIArtifactImageHistory.create({
-        data: { artifactId, businessId, imageUrl: 'ai-images/biz/prev-ref.png', changeType: 'Create' },
+        data: {
+          artifactId,
+          businessId,
+          imageUrl: 'ai-images/biz/prev-ref.png',
+          changeType: 'Create',
+        },
       });
       await new Promise((r) => setTimeout(r, 5));
       await prisma.aIArtifactImageHistory.create({
-        data: { artifactId, businessId, imageUrl: 'ai-images/biz/unique-current.png', changeType: 'Update' },
+        data: {
+          artifactId,
+          businessId,
+          imageUrl: 'ai-images/biz/unique-current.png',
+          changeType: 'Update',
+        },
       });
 
       mockS3Service.delete.mockResolvedValue(undefined);
@@ -1081,15 +1306,30 @@ describe('AiArtifactService (integration)', () => {
       // Create 3 history entries: the oldest also uses sharedUrl,
       // so when we revert from entry3→entry2, sharedUrl still has a reference (entry1)
       await prisma.aIArtifactImageHistory.create({
-        data: { artifactId, businessId, imageUrl: sharedUrl, changeType: 'Create' },
+        data: {
+          artifactId,
+          businessId,
+          imageUrl: sharedUrl,
+          changeType: 'Create',
+        },
       });
       await new Promise((r) => setTimeout(r, 5));
       await prisma.aIArtifactImageHistory.create({
-        data: { artifactId, businessId, imageUrl: 'ai-images/biz/different.png', changeType: 'Update' },
+        data: {
+          artifactId,
+          businessId,
+          imageUrl: 'ai-images/biz/different.png',
+          changeType: 'Update',
+        },
       });
       await new Promise((r) => setTimeout(r, 5));
       await prisma.aIArtifactImageHistory.create({
-        data: { artifactId, businessId, imageUrl: sharedUrl, changeType: 'Update' },
+        data: {
+          artifactId,
+          businessId,
+          imageUrl: sharedUrl,
+          changeType: 'Update',
+        },
       });
 
       mockS3Service.delete.mockResolvedValue(undefined);
@@ -1113,7 +1353,11 @@ describe('AiArtifactService (integration)', () => {
         data: { businessId, type: 'Post', outputJson: {}, status: 'Draft' },
       });
       const media = await prisma.aIArtifactMedia.create({
-        data: { artifactId: otherArtifact.id, businessId, type: MediaType.Image },
+        data: {
+          artifactId: otherArtifact.id,
+          businessId,
+          type: MediaType.Image,
+        },
       });
 
       await expect(
@@ -1126,11 +1370,21 @@ describe('AiArtifactService (integration)', () => {
 
     it('throws BadRequestException when there is only one history entry (no previous version)', async () => {
       const media = await prisma.aIArtifactMedia.create({
-        data: { artifactId, businessId, type: MediaType.Image, url: 'ai-images/biz/only.png' },
+        data: {
+          artifactId,
+          businessId,
+          type: MediaType.Image,
+          url: 'ai-images/biz/only.png',
+        },
       });
 
       await prisma.aIArtifactImageHistory.create({
-        data: { artifactId, businessId, imageUrl: 'ai-images/biz/only.png', changeType: 'Create' },
+        data: {
+          artifactId,
+          businessId,
+          imageUrl: 'ai-images/biz/only.png',
+          changeType: 'Create',
+        },
       });
 
       await expect(
@@ -1140,7 +1394,12 @@ describe('AiArtifactService (integration)', () => {
 
     it('throws BadRequestException when there are no history entries at all', async () => {
       const media = await prisma.aIArtifactMedia.create({
-        data: { artifactId, businessId, type: MediaType.Image, url: 'ai-images/biz/nohistory.png' },
+        data: {
+          artifactId,
+          businessId,
+          type: MediaType.Image,
+          url: 'ai-images/biz/nohistory.png',
+        },
       });
 
       await expect(
