@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { toast } from "react-toastify";
-import { X } from "lucide-react";
+import { X, Pencil, Check } from "lucide-react";
 import { showError } from "../../../../../../utils/showError";
+import { GOOGLE_FONTS } from "../../../../../../const/Fonts";
+import { useGoogleFonts } from "../../../../../../hooks/useGoogleFonts";
 
 // Redux
 import { useSelector } from "react-redux";
@@ -49,6 +51,9 @@ function DesignSystem() {
 
   const [draft, setDraft] = useState<TDesignSystem | null>(null);
   const [activeElement, setActiveElement] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState(false);
+
+  useGoogleFonts(GOOGLE_FONTS);
 
   // Sync draft with selected
   useEffect(() => {
@@ -93,10 +98,12 @@ function DesignSystem() {
 
   const handleSave = async (data: Partial<TDesignSystem>) => {
     if (!selected) return;
+    const { name, colors, gradients, typography, radius, border, shadow, spacing, brandElements, composition, scene } = data;
+    const payload = { name, colors, gradients, typography, radius, border, shadow, spacing, brandElements, composition, scene };
     try {
       const res: ApiResponse<TDesignSystem> = await updateSystem({
         id: selected.id,
-        data,
+        data: payload,
       }).unwrap();
       if (res?.data) {
         dispatch(updateBusinessSystem(res.data));
@@ -123,6 +130,7 @@ function DesignSystem() {
     dispatch(closePanel());
     setDraft(null);
     setActiveElement(null);
+    setEditingName(false);
   };
 
   if (!businessId) return null;
@@ -191,8 +199,37 @@ function DesignSystem() {
             {/* Header */}
             <div className="border-b p-4 flex items-center justify-between flex-shrink-0">
               <div>
-                <h2 className="text-lg font-semibold text-slate-800">{draft.name}</h2>
-                <p className="text-sm text-slate-400">{selected.isPreset ? "Preset · Read only" : "Custom"}</p>
+                <div className="flex items-center gap-2">
+                  {!selected.isPreset && editingName ? (
+                    <input
+                      type="text"
+                      value={draft.name}
+                      onChange={(e) => setDraft({ ...draft, name: e.target.value })}
+                      autoFocus
+                      className="text-lg font-semibold text-slate-800 bg-transparent border-b border-blue-500 focus:outline-none px-0 py-0 w-64"
+                    />
+                  ) : (
+                    <h2 className="text-lg text-left font-semibold text-slate-800">{draft.name}</h2>
+                  )}
+                  {!selected.isPreset && (
+                    <button
+                      onClick={() => {
+                        if (editingName && draft.name !== selected.name) {
+                          handleSave({ name: draft.name });
+                        }
+                        setEditingName(!editingName);
+                      }}
+                      className={`rounded-full p-1.5 transition-colors cursor-pointer ${
+                        editingName
+                          ? "bg-green-100 text-green-600 hover:bg-green-200"
+                          : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+                      }`}
+                    >
+                      {editingName ? <Check size={14} /> : <Pencil size={14} />}
+                    </button>
+                  )}
+                </div>
+                <p className="text-sm text-left text-slate-400">{selected.isPreset ? "Preset · Read only" : "Custom"}</p>
               </div>
               <button
                 onClick={handleClose}

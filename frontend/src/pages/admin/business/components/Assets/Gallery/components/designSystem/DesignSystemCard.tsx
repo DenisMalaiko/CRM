@@ -65,8 +65,8 @@ function DesignSystemCard({ designSystem, isSelected, onClick, onDuplicate }: Pr
       {/* Name & meta */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-sm font-semibold text-slate-800">{name}</h3>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <h3 className="text-sm text-left font-semibold text-slate-800">{name}</h3>
+          <p className="text-xs text-left text-slate-500 mt-0.5">
             {designSystem.radius} radius · {typography?.headline?.fontFamily || "—"}
           </p>
         </div>
