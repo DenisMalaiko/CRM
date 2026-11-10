@@ -65,7 +65,7 @@ function DesignSystemPreview({ designSystem, activeElement, onSelectElement }: P
       {/* Decorative top accent */}
       <div
         className="absolute top-0 left-0 right-0 h-1.5"
-        style={{ backgroundColor: colors.primary }}
+        style={{ backgroundColor: colors.accent }}
       />
 
       <div className="flex flex-col justify-between h-full pt-4">
@@ -109,7 +109,7 @@ function DesignSystemPreview({ designSystem, activeElement, onSelectElement }: P
           <div className="mt-5">
             <ElementWrapper id="description" isActive={activeElement === "description"} onClick={() => onSelectElement("description")}>
               <p style={{
-                color: colors.foreground,
+                color: colors.secondary,
                 fontFamily: body?.fontFamily || "sans-serif",
                 fontWeight: body?.weight || 400,
                 lineHeight: body?.lineHeight || 1.6,
@@ -140,10 +140,10 @@ function DesignSystemPreview({ designSystem, activeElement, onSelectElement }: P
                 >
                   <div
                     className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                    style={{ backgroundColor: colors.primary }}
+                    style={{ backgroundColor: colors.destructive }}
                   />
                   <span style={{
-                    color: colors.foreground,
+                    color: colors.secondaryForeground,
                     fontFamily: body?.fontFamily || "sans-serif",
                     fontWeight: body?.weight || 400,
                     fontSize: sz(body?.sizePercent, 3.5),
@@ -161,7 +161,7 @@ function DesignSystemPreview({ designSystem, activeElement, onSelectElement }: P
           <ElementWrapper id="button" isActive={activeElement === "button"} onClick={() => onSelectElement("button")}>
             <button style={{
               width: "100%",
-              backgroundColor: colors.primary,
+              backgroundColor: colors.border,
               color: colors.primaryForeground,
               fontFamily: cta?.fontFamily || "sans-serif",
               fontWeight: cta?.weight || 600,

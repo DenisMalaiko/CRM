@@ -1,6 +1,7 @@
 import React from "react";
 import { Save, Trash2, Type, AlignLeft, List, RectangleHorizontal, Palette } from "lucide-react";
 import { TDesignSystem } from "../../../../../../../../models/DesignSystem";
+import { Fonts } from "../../../../../../../../const/Fonts";
 
 interface Props {
   draft: TDesignSystem;
@@ -15,7 +16,7 @@ interface Props {
 function ColorInput({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
   return (
     <div className="flex items-center justify-between gap-2">
-      <label className="text-xs text-slate-600 flex-1">{label}</label>
+      <label className="text-xs text-left text-slate-600 flex-1">{label}</label>
       <div className="flex items-center gap-1.5">
         <input type="color" value={value || "#000000"} onChange={(e) => onChange(e.target.value)} className="w-5 h-5 rounded cursor-pointer border border-slate-200 p-0" />
         <input type="text" value={value || ""} onChange={(e) => onChange(e.target.value)} className="w-[72px] text-[11px] px-1.5 py-0.5 border border-slate-200 rounded font-mono" />
@@ -27,8 +28,28 @@ function ColorInput({ label, value, onChange }: { label: string; value: string; 
 function TextInput({ label, value, onChange }: { label: string; value: string | number; onChange: (v: string) => void }) {
   return (
     <div className="flex items-center justify-between gap-2">
-      <label className="text-xs text-slate-600 flex-1">{label}</label>
+      <label className="text-xs text-left text-slate-600 flex-1">{label}</label>
       <input type="text" value={value ?? ""} onChange={(e) => onChange(e.target.value)} className="w-[100px] text-[11px] px-1.5 py-0.5 border border-slate-200 rounded" />
+    </div>
+  );
+}
+
+function FontFamilySelect({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+  const options = Fonts.includes(value) ? Fonts : [value, ...Fonts];
+  return (
+    <div className="flex items-center justify-between gap-2">
+      <label className="text-xs text-left text-slate-600 flex-1">{label}</label>
+      <select
+        value={value || Fonts[0]}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-[160px] text-[11px] px-1.5 py-0.5 border border-slate-200 rounded bg-white"
+      >
+        {options.map((font) => (
+          <option key={font} value={font} style={{ fontFamily: font }}>
+            {font}{!Fonts.includes(font) ? " (custom)" : ""}
+          </option>
+        ))}
+      </select>
     </div>
   );
 }
@@ -36,7 +57,7 @@ function TextInput({ label, value, onChange }: { label: string; value: string | 
 function SelectInput({ label, value, options, onChange }: { label: string; value: string; options: string[]; onChange: (v: string) => void }) {
   return (
     <div className="flex items-center justify-between gap-2">
-      <label className="text-xs text-slate-600 flex-1">{label}</label>
+      <label className="text-xs text-left text-slate-600 flex-1">{label}</label>
       <select value={value || options[0]} onChange={(e) => onChange(e.target.value)} className="w-[100px] text-[11px] px-1.5 py-0.5 border border-slate-200 rounded bg-white">
         {options.map((o) => <option key={o} value={o}>{o}</option>)}
       </select>
@@ -59,7 +80,9 @@ const TABS = [
 
 function DesignSystemPanel({ draft, original, activeElement, onActiveElementChange, onDraftChange, onSave, onDelete }: Props) {
   const isPreset = original.isPreset;
-  const hasChanges = JSON.stringify(draft) !== JSON.stringify(original);
+  const { name: _dn, ...draftFields } = draft;
+  const { name: _on, ...originalFields } = original;
+  const hasChanges = JSON.stringify(draftFields) !== JSON.stringify(originalFields);
 
   const updateColor = (key: string, value: string) => {
     onDraftChange({ ...draft, colors: { ...draft.colors, [key]: value } });
@@ -82,7 +105,7 @@ function DesignSystemPanel({ draft, original, activeElement, onActiveElementChan
     return (
       <>
         <SectionLabel>Font</SectionLabel>
-        <TextInput label="Family" value={typo.fontFamily} onChange={(v) => updateTypography(level, "fontFamily", v)} />
+        <FontFamilySelect label="Family" value={typo.fontFamily} onChange={(v) => updateTypography(level, "fontFamily", v)} />
         <TextInput label="Weight" value={typo.weight} onChange={(v) => updateTypography(level, "weight", Number(v) || v)} />
         <SelectInput label="Case" value={typo.case} options={["uppercase", "lowercase", "title", "sentence"]} onChange={(v) => updateTypography(level, "case", v)} />
         <TextInput label="Size %" value={typo.sizePercent} onChange={(v) => updateTypography(level, "sizePercent", Number(v) || 0)} />
@@ -117,7 +140,7 @@ function DesignSystemPanel({ draft, original, activeElement, onActiveElementChan
         return (
           <>
             <SectionLabel>Color</SectionLabel>
-            <ColorInput label="Text" value={draft.colors.foreground} onChange={(v) => updateColor("foreground", v)} />
+            <ColorInput label="Text" value={draft.colors.secondary} onChange={(v) => updateColor("secondary", v)} />
             {renderTypoFields("body")}
           </>
         );
@@ -125,7 +148,7 @@ function DesignSystemPanel({ draft, original, activeElement, onActiveElementChan
         return (
           <>
             <SectionLabel>Colors</SectionLabel>
-            <ColorInput label="Background" value={draft.colors.primary} onChange={(v) => updateColor("primary", v)} />
+            <ColorInput label="Background" value={draft.colors.border} onChange={(v) => updateColor("border", v)} />
             <ColorInput label="Text" value={draft.colors.primaryForeground} onChange={(v) => updateColor("primaryForeground", v)} />
             {renderTypoFields("cta")}
             <SectionLabel>Shape</SectionLabel>
@@ -139,8 +162,8 @@ function DesignSystemPanel({ draft, original, activeElement, onActiveElementChan
           <>
             <SectionLabel>Colors</SectionLabel>
             <ColorInput label="Background" value={draft.colors.muted} onChange={(v) => updateColor("muted", v)} />
-            <ColorInput label="Text" value={draft.colors.foreground} onChange={(v) => updateColor("foreground", v)} />
-            <ColorInput label="Bullet" value={draft.colors.primary} onChange={(v) => updateColor("primary", v)} />
+            <ColorInput label="Text" value={draft.colors.secondaryForeground} onChange={(v) => updateColor("secondaryForeground", v)} />
+            <ColorInput label="Bullet" value={draft.colors.destructive} onChange={(v) => updateColor("destructive", v)} />
             <SectionLabel>Shape</SectionLabel>
             <TextInput label="Radius" value={draft.radius} onChange={(v) => updateDraft({ radius: v })} />
           </>
@@ -150,7 +173,7 @@ function DesignSystemPanel({ draft, original, activeElement, onActiveElementChan
           <>
             <SectionLabel>Background</SectionLabel>
             <ColorInput label="Color" value={draft.colors.background} onChange={(v) => updateColor("background", v)} />
-            <ColorInput label="Accent line" value={draft.colors.primary} onChange={(v) => updateColor("primary", v)} />
+            <ColorInput label="Accent line" value={draft.colors.accent} onChange={(v) => updateColor("accent", v)} />
             <SectionLabel>Layout</SectionLabel>
             <TextInput label="Padding" value={draft.spacing?.contentPadding || "32px"} onChange={(v) => updateDraft({ spacing: { ...draft.spacing, contentPadding: v } })} />
             <TextInput label="Radius" value={draft.radius} onChange={(v) => updateDraft({ radius: v })} />
@@ -185,12 +208,6 @@ function DesignSystemPanel({ draft, original, activeElement, onActiveElementChan
 
       {/* Fields */}
       <div className="flex-1 overflow-y-auto px-3 pb-3 space-y-1">
-        {/* Name (custom only, canvas tab) */}
-        {!isPreset && activeElement === null && (
-          <div className="pt-2">
-            <TextInput label="Name" value={draft.name} onChange={(v) => updateDraft({ name: v })} />
-          </div>
-        )}
         {renderFields()}
       </div>
 
