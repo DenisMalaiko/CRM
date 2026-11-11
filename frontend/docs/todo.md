@@ -1,5 +1,21 @@
 # Task Log
 
+## Upload Design System from Photo — 2026-11-10
+
+### Plan
+- [x] Додати RTK Query mutation `createDesignSystemFromPhoto` (`POST /design-systems/from-photo`)
+- [x] Створити `UploadDesignSystemDlg` — діалог завантаження фото для AI-аналізу
+- [x] Додати кнопку "Upload" в header сторінки Design System
+- [x] Quality gate: reviewer + tester (цикл 2 — PASS)
+
+### Review
+- [x] reviewer → PASS (після виправлень: useAppSelector замість useSelector, useEffect deps, unused imports)
+- [x] tester → 27 тестів проходять (7 нових для UploadDesignSystemDlg + 20 existing DesignSystemPanel)
+- [x] No regressions found
+- Summary: Додано кнопку Upload в header сторінки Design System та діалог для завантаження фото. AI аналізує зображення та створює кастомну дизайн-систему з source: "AI_PHOTO".
+
+---
+
 ## Marketing Calendar Content Plan Generation — 2026-10-22
 
 ### Plan
