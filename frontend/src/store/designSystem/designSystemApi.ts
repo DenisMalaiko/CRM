@@ -70,6 +70,17 @@ export const designSystemApi = api.injectEndpoints({
         method: "DELETE",
       }),
     }),
+
+    createDesignSystemFromPhoto: builder.mutation<
+      ApiResponse<TDesignSystem>,
+      FormData
+    >({
+      query: (formData) => ({
+        url: "/design-systems/from-photo",
+        method: "POST",
+        body: formData,
+      }),
+    }),
   }),
   overrideExisting: false,
 });
@@ -82,4 +93,5 @@ export const {
   useDuplicateDesignSystemMutation,
   useUpdateDesignSystemMutation,
   useDeleteDesignSystemMutation,
+  useCreateDesignSystemFromPhotoMutation,
 } = designSystemApi;

@@ -275,7 +275,7 @@ describe('DesignSystemPanel', () => {
 
     test('save button is enabled when draft differs from original', () => {
       const original = makeDraft();
-      const modified = { ...original, name: 'Changed Name' };
+      const modified = { ...original, colors: { ...original.colors, background: '#123456' } };
 
       render(
         <DesignSystemPanel

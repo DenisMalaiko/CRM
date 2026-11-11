@@ -1,14 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { toast } from "react-toastify";
-import { X, Pencil, Check } from "lucide-react";
+import { X, Pencil, Check, Upload } from "lucide-react";
 import { showError } from "../../../../../../utils/showError";
 import { GOOGLE_FONTS } from "../../../../../../const/Fonts";
 import { useGoogleFonts } from "../../../../../../hooks/useGoogleFonts";
 
 // Redux
-import { useSelector } from "react-redux";
-import { useAppDispatch } from "../../../../../../store/hooks";
+import { useAppDispatch, useAppSelector } from "../../../../../../store/hooks";
 import {
   useLazyGetDesignSystemPresetsQuery,
   useLazyGetBusinessDesignSystemsQuery,
@@ -30,6 +29,7 @@ import {
 import DesignSystemCard from "./components/designSystem/DesignSystemCard";
 import DesignSystemPanel from "./components/designSystem/DesignSystemPanel";
 import DesignSystemPreview from "./components/designSystem/DesignSystemPreview";
+import UploadDesignSystemDlg from "./components/designSystem/UploadDesignSystemDlg";
 
 // Models
 import { ApiResponse } from "../../../../../../models/ApiResponse";
@@ -45,13 +45,14 @@ function DesignSystem() {
   const [updateSystem] = useUpdateDesignSystemMutation();
   const [deleteSystem] = useDeleteDesignSystemMutation();
 
-  const { presets, businessSystems, selected, panelOpen } = useSelector(
-    (state: any) => state.designSystemModule
+  const { presets, businessSystems, selected, panelOpen } = useAppSelector(
+    (state) => state.designSystemModule
   );
 
   const [draft, setDraft] = useState<TDesignSystem | null>(null);
   const [activeElement, setActiveElement] = useState<string | null>(null);
   const [editingName, setEditingName] = useState(false);
+  const [uploadDlgOpen, setUploadDlgOpen] = useState(false);
 
   useGoogleFonts(GOOGLE_FONTS);
 
@@ -80,7 +81,7 @@ function DesignSystem() {
     };
 
     fetchData();
-  }, [dispatch, businessId]);
+  }, [dispatch, businessId, getPresets, getBusinessSystems]);
 
   const handleDuplicate = async (id: string) => {
     if (!businessId) return;
@@ -138,13 +139,22 @@ function DesignSystem() {
   return (
     <div className="rounded-2xl bg-white shadow border border-slate-200">
       <section>
-        <div className="border-b p-4">
-          <h2 className="text-lg text-left font-semibold text-slate-800">
-            Design System
-          </h2>
-          <p className="text-sm text-left text-slate-500 mt-1">
-            Choose a preset or create your own by duplicating a template
-          </p>
+        <div className="border-b p-4 flex items-center justify-between">
+          <div>
+            <h2 className="text-lg text-left font-semibold text-slate-800">
+              Design System
+            </h2>
+            <p className="text-sm text-left text-slate-500 mt-1">
+              Choose a preset or create your own by duplicating a template
+            </p>
+          </div>
+          <button
+            onClick={() => setUploadDlgOpen(true)}
+            className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition cursor-pointer"
+          >
+            <Upload size={16} />
+            Upload
+          </button>
         </div>
 
         {/* Custom Design Systems */}
@@ -191,6 +201,11 @@ function DesignSystem() {
           )}
         </div>
       </section>
+
+      <UploadDesignSystemDlg
+        open={uploadDlgOpen}
+        onClose={() => setUploadDlgOpen(false)}
+      />
 
       {/* Design System Editor Dialog */}
       {panelOpen && selected && draft && (
