@@ -8,7 +8,11 @@ import {
   Body,
   Request,
   UseGuards,
+  UseInterceptors,
+  UploadedFile,
+  BadRequestException,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from '../../core/guards/jwt-auth.guard';
 import { ResponseMessage } from '../../core/decorators/response-message.decorator';
 import { DesignSystemService } from './designSystem.service';
@@ -16,6 +20,7 @@ import {
   DesignSystemIdParamDto,
   BusinessIdParamDto,
   CreateDesignSystemDto,
+  CreateDesignSystemFromPhotoDto,
   UpdateDesignSystemDto,
 } from './dto/designSystem.dto';
 
@@ -46,6 +51,27 @@ export class DesignSystemController {
   @ResponseMessage('Design system retrieved')
   async getById(@Param() { id }: DesignSystemIdParamDto, @Request() req) {
     return this.designSystemService.getById(id, req.user.agencyId);
+  }
+
+  @Post('/from-photo')
+  @UseInterceptors(
+    FileInterceptor('file', { limits: { fileSize: 10 * 1024 * 1024 } }),
+  )
+  @ResponseMessage('Design system created from photo')
+  async createFromPhoto(
+    @Body() dto: CreateDesignSystemFromPhotoDto,
+    @UploadedFile() file: Express.Multer.File,
+    @Request() req,
+  ) {
+    if (!file) {
+      throw new BadRequestException('Image file is required');
+    }
+    return this.designSystemService.createFromPhoto(
+      file,
+      dto.businessId,
+      req.user.agencyId,
+      dto.name,
+    );
   }
 
   @Post('/')

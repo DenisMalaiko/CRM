@@ -1,5 +1,25 @@
 # Task Log
 
+## Backend: Design System from Photo AI Analysis — 2026-11-11
+
+### Plan
+- [x] Створити Zod-схему AI-відповіді з дефолтами (`designSystem-from-photo.schema.ts`)
+- [x] Створити AI-промпт для аналізу фото (`from-photo.prompt.ts`)
+- [x] Додати `CreateDesignSystemFromPhotoDto` в DTO
+- [x] Додати метод `analyzePhotoForDesignSystem()` в `AiService`
+- [x] Додати метод `createFromPhoto()` в `DesignSystemService`
+- [x] Додати `POST /from-photo` ендпоінт в контролер
+- [x] Оновити `DesignSystemModule` — імпорти AiModule, S3Module
+- [x] Верифікація: `tsc --noEmit` — 0 нових помилок
+
+### Notes
+- Фронтенд вже готовий (UploadDesignSystemDlg.tsx + RTK Query mutation)
+- GPT-4o Vision для аналізу зображень
+- Дефолтні значення з пресету "Minimal Clean"
+- Роут `/from-photo` ПЕРЕД `/:id` щоб уникнути конфлікту
+
+---
+
 ## Upload Design System from Photo — 2026-11-10
 
 ### Plan
