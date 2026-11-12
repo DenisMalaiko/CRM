@@ -3,10 +3,13 @@ import { ForbiddenException, NotFoundException } from '@nestjs/common';
 
 import { DesignSystemService } from './designSystem.service';
 import { PrismaService } from '../../core/prisma/prisma.service';
+import { AiService } from '../ai/ai.service';
+import { S3Service } from '../../core/s3/s3.service';
 import { DESIGN_SYSTEM_PRESETS } from './designSystem.presets';
 
 const BUSINESS_ID = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
 const OTHER_BUSINESS_ID = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb';
+const AGENCY_ID = 'dddddddd-dddd-dddd-dddd-dddddddddddd';
 const RECORD_ID = 'cccccccc-cccc-cccc-cccc-cccccccccccc';
 
 const makeDs = (overrides: Record<string, unknown> = {}) => ({
@@ -34,6 +37,7 @@ describe('DesignSystemService', () => {
   let module: TestingModule;
   let service: DesignSystemService;
   let prisma: {
+    business: { findUnique: jest.Mock };
     designSystem: {
       findMany: jest.Mock;
       findUnique: jest.Mock;
@@ -46,6 +50,9 @@ describe('DesignSystemService', () => {
 
   beforeAll(async () => {
     prisma = {
+      business: {
+        findUnique: jest.fn().mockResolvedValue({ id: BUSINESS_ID }),
+      },
       designSystem: {
         findMany: jest.fn(),
         findUnique: jest.fn(),
@@ -60,6 +67,11 @@ describe('DesignSystemService', () => {
       providers: [
         DesignSystemService,
         { provide: PrismaService, useValue: prisma },
+        {
+          provide: AiService,
+          useValue: { analyzePhotoForDesignSystem: jest.fn() },
+        },
+        { provide: S3Service, useValue: { upload: jest.fn() } },
       ],
     }).compile();
 
@@ -147,7 +159,7 @@ describe('DesignSystemService', () => {
       const records = [makeDs(), makeDs({ id: 'id-2', name: 'Second' })];
       prisma.designSystem.findMany.mockResolvedValue(records);
 
-      const result = await service.getByBusinessId(BUSINESS_ID);
+      const result = await service.getByBusinessId(BUSINESS_ID, AGENCY_ID);
 
       expect(prisma.designSystem.findMany).toHaveBeenCalledWith(
         expect.objectContaining({ where: { businessId: BUSINESS_ID } }),
@@ -158,7 +170,7 @@ describe('DesignSystemService', () => {
     it('returns empty array when the business has no design systems', async () => {
       prisma.designSystem.findMany.mockResolvedValue([]);
 
-      const result = await service.getByBusinessId(OTHER_BUSINESS_ID);
+      const result = await service.getByBusinessId(OTHER_BUSINESS_ID, AGENCY_ID);
 
       expect(result).toEqual([]);
     });
@@ -170,8 +182,8 @@ describe('DesignSystemService', () => {
           where.businessId === BUSINESS_ID ? [ownRecord] : [],
       );
 
-      const ownResult = await service.getByBusinessId(BUSINESS_ID);
-      const otherResult = await service.getByBusinessId(OTHER_BUSINESS_ID);
+      const ownResult = await service.getByBusinessId(BUSINESS_ID, AGENCY_ID);
+      const otherResult = await service.getByBusinessId(OTHER_BUSINESS_ID, AGENCY_ID);
 
       expect(ownResult).toHaveLength(1);
       expect(otherResult).toHaveLength(0);
@@ -186,7 +198,7 @@ describe('DesignSystemService', () => {
       const record = makeDs();
       prisma.designSystem.findUnique.mockResolvedValue(record);
 
-      const result = await service.getById(RECORD_ID);
+      const result = await service.getById(RECORD_ID, AGENCY_ID);
 
       expect(prisma.designSystem.findUnique).toHaveBeenCalledWith({
         where: { id: RECORD_ID },
@@ -197,7 +209,7 @@ describe('DesignSystemService', () => {
     it('throws NotFoundException when the record does not exist', async () => {
       prisma.designSystem.findUnique.mockResolvedValue(null);
 
-      await expect(service.getById('non-existent-id')).rejects.toThrow(
+      await expect(service.getById('non-existent-id', AGENCY_ID)).rejects.toThrow(
         NotFoundException,
       );
     });
@@ -222,7 +234,7 @@ describe('DesignSystemService', () => {
       prisma.designSystem.findUnique.mockResolvedValue(source);
       prisma.designSystem.create.mockResolvedValue(created);
 
-      const result = await service.duplicate(RECORD_ID, BUSINESS_ID);
+      const result = await service.duplicate(RECORD_ID, BUSINESS_ID, AGENCY_ID);
 
       const { data } = prisma.designSystem.create.mock.calls[0][0];
       expect(data.name).toBe('Ocean Blue (Copy)');
@@ -238,7 +250,7 @@ describe('DesignSystemService', () => {
       prisma.designSystem.findUnique.mockResolvedValue(source);
       prisma.designSystem.create.mockResolvedValue(makeDs());
 
-      await service.duplicate(RECORD_ID, BUSINESS_ID);
+      await service.duplicate(RECORD_ID, BUSINESS_ID, AGENCY_ID);
 
       const { data } = prisma.designSystem.create.mock.calls[0][0];
       expect(data.isPreset).toBe(false);
@@ -252,7 +264,7 @@ describe('DesignSystemService', () => {
         makeDs({ businessId: BUSINESS_ID }),
       );
 
-      await service.duplicate(RECORD_ID, BUSINESS_ID);
+      await service.duplicate(RECORD_ID, BUSINESS_ID, AGENCY_ID);
 
       const { data } = prisma.designSystem.create.mock.calls[0][0];
       expect(data.businessId).toBe(BUSINESS_ID);
@@ -261,7 +273,7 @@ describe('DesignSystemService', () => {
     it('throws NotFoundException when the source does not exist', async () => {
       prisma.designSystem.findUnique.mockResolvedValue(null);
 
-      await expect(service.duplicate('ghost-id', BUSINESS_ID)).rejects.toThrow(
+      await expect(service.duplicate('ghost-id', BUSINESS_ID, AGENCY_ID)).rejects.toThrow(
         NotFoundException,
       );
     });
@@ -278,7 +290,7 @@ describe('DesignSystemService', () => {
       const result = await service.create({
         name: 'My System',
         businessId: BUSINESS_ID,
-      });
+      }, AGENCY_ID);
 
       const { data } = prisma.designSystem.create.mock.calls[0][0];
       expect(data.name).toBe('My System');
@@ -289,7 +301,7 @@ describe('DesignSystemService', () => {
     it('always sets isPreset=false and source=MANUAL', async () => {
       prisma.designSystem.create.mockResolvedValue(makeDs());
 
-      await service.create({ name: 'X', businessId: BUSINESS_ID });
+      await service.create({ name: 'X', businessId: BUSINESS_ID }, AGENCY_ID);
 
       const { data } = prisma.designSystem.create.mock.calls[0][0];
       expect(data.isPreset).toBe(false);
@@ -299,7 +311,7 @@ describe('DesignSystemService', () => {
     it('applies defaults when optional fields are not provided', async () => {
       prisma.designSystem.create.mockResolvedValue(makeDs());
 
-      await service.create({ name: 'X', businessId: BUSINESS_ID });
+      await service.create({ name: 'X', businessId: BUSINESS_ID }, AGENCY_ID);
 
       const { data } = prisma.designSystem.create.mock.calls[0][0];
       expect(data.colors).toEqual({});
@@ -308,7 +320,7 @@ describe('DesignSystemService', () => {
     });
 
     it('uses provided optional fields over defaults', async () => {
-      const colors = { background: '#000', foreground: '#fff' };
+      const colors: any = { background: '#000', foreground: '#fff' };
       prisma.designSystem.create.mockResolvedValue(makeDs({ colors }));
 
       await service.create({
@@ -316,7 +328,7 @@ describe('DesignSystemService', () => {
         businessId: BUSINESS_ID,
         colors,
         radius: '4px',
-      });
+      }, AGENCY_ID);
 
       const { data } = prisma.designSystem.create.mock.calls[0][0];
       expect(data.colors).toEqual(colors);

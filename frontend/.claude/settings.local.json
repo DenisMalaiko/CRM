@@ -3,7 +3,8 @@
     "allow": [
       "Bash(npm test:*)",
       "Bash(rm package-lock.json)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(find:*)"
     ]
   },
   "outputStyle": "Explanatory"

@@ -2,17 +2,27 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
+  Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../../core/prisma/prisma.service';
+import { S3Service } from '../../core/s3/s3.service';
+import { AiService } from '../ai/ai.service';
 import { DESIGN_SYSTEM_PRESETS } from './designSystem.presets';
 import {
   CreateDesignSystemDto,
   UpdateDesignSystemDto,
 } from './dto/designSystem.dto';
+import { randomUUID } from 'crypto';
 
 @Injectable()
 export class DesignSystemService {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly logger = new Logger(DesignSystemService.name);
+
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly aiService: AiService,
+    private readonly s3Service: S3Service,
+  ) {}
 
   async getPresets() {
     const existing = await this.prisma.designSystem.findMany({
@@ -98,6 +108,49 @@ export class DesignSystemService {
         brandElements: dto.brandElements ?? {},
         composition: dto.composition ?? {},
         scene: dto.scene ?? {},
+      },
+    });
+  }
+
+  async createFromPhoto(
+    file: Express.Multer.File,
+    businessId: string,
+    agencyId: string,
+    name?: string,
+  ) {
+    await this.verifyBusinessOwnership(businessId, agencyId);
+
+    const ext = file.originalname?.split('.').pop() || 'jpg';
+    const s3Key = `design-system-sources/${businessId}/${randomUUID()}.${ext}`;
+
+    try {
+      await this.s3Service.upload(s3Key, file.buffer, file.mimetype);
+    } catch (e) {
+      this.logger.warn('Failed to upload design system source photo to S3', e);
+    }
+
+    const designTokens =
+      await this.aiService.analyzePhotoForDesignSystem(
+        file.buffer,
+        file.mimetype,
+      );
+
+    return this.prisma.designSystem.create({
+      data: {
+        name: name || 'Design System (from photo)',
+        businessId,
+        source: 'AI_PHOTO',
+        isPreset: false,
+        colors: designTokens.colors as any,
+        gradients: designTokens.gradients as any,
+        typography: designTokens.typography as any,
+        radius: designTokens.radius,
+        border: designTokens.border as any,
+        shadow: designTokens.shadow as any,
+        spacing: designTokens.spacing as any,
+        brandElements: designTokens.brandElements as any,
+        composition: designTokens.composition as any,
+        scene: designTokens.scene as any,
       },
     });
   }

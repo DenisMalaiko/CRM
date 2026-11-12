@@ -3,6 +3,7 @@ import {
   InternalServerErrorException,
   Logger,
 } from '@nestjs/common';
+import { HumanMessage } from '@langchain/core/messages';
 import { TProfile } from '../profiles/entities/profile.entity';
 import { AiPost } from './entities/aiPost.entity';
 import { AiReplicateService } from './ai-replicate.service';
@@ -15,6 +16,11 @@ import {
   StoriesResponseSchema,
   NormalizedPromptSchema,
 } from './schema/ai-content.schema';
+import {
+  DesignSystemFromPhotoSchema,
+  DesignSystemFromPhoto,
+} from '../designSystem/schema/designSystem-from-photo.schema';
+import { buildDesignSystemFromPhotoPrompt } from '../designSystem/prompts/from-photo.prompt';
 import { jsonrepair } from 'jsonrepair';
 import * as process from 'node:process';
 import { ideaPrompt } from './prompts/idea/idea';
@@ -587,6 +593,32 @@ export class AiService {
         error,
       );
       return text;
+    }
+  }
+
+  async analyzePhotoForDesignSystem(
+    buffer: Buffer,
+    mimeType: string,
+  ): Promise<DesignSystemFromPhoto> {
+    const base64 = buffer.toString('base64');
+    const dataUrl = `data:${mimeType};base64,${base64}`;
+
+    const message = new HumanMessage({
+      content: [
+        { type: 'text', text: buildDesignSystemFromPhotoPrompt() },
+        { type: 'image_url', image_url: { url: dataUrl } },
+      ],
+    });
+
+    try {
+      const response = await this.creativeModel.invoke([message]);
+      const rawText = this.extractTextContent(response.content);
+      return DesignSystemFromPhotoSchema.parse(this.safeParseJson(rawText));
+    } catch (e) {
+      this.logger.error('analyzePhotoForDesignSystem failed', e);
+      throw new InternalServerErrorException(
+        'Failed to analyze photo for design system',
+      );
     }
   }
 

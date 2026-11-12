@@ -77,6 +77,15 @@ export class CreateDesignSystemDto {
   scene?: TScene;
 }
 
+export class CreateDesignSystemFromPhotoDto {
+  @IsUUID()
+  businessId: string;
+
+  @IsOptional()
+  @IsString()
+  name?: string;
+}
+
 export class UpdateDesignSystemDto {
   @IsOptional()
   @IsString()
