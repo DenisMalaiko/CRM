@@ -97,6 +97,7 @@ export type TDesignSystem = {
   businessId: string | null;
   source: 'MANUAL' | 'AI_PHOTO' | 'PRESET';
   isPreset: boolean;
+  isActive: boolean;
   colors: TColorToken;
   gradients: TGradient[];
   typography: TTypography;

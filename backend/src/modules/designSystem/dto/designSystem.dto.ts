@@ -5,6 +5,7 @@ import {
   IsObject,
   IsArray,
   IsUUID,
+  IsBoolean,
 } from 'class-validator';
 import {
   TColorToken,
@@ -91,6 +92,10 @@ export class UpdateDesignSystemDto {
   @IsString()
   @IsNotEmpty()
   name?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  isActive?: boolean;
 
   @IsOptional()
   @IsObject()

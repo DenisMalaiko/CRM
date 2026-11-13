@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { X, Upload } from "lucide-react";
@@ -14,6 +15,7 @@ type Props = {
 };
 
 function UploadDesignSystemDlg({ open, onClose }: Props) {
+  const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const { businessId } = useParams<{ businessId: string }>();
 
@@ -73,7 +75,7 @@ function UploadDesignSystemDlg({ open, onClose }: Props) {
       const res = await createFromPhoto(formData).unwrap();
       if (res?.data) {
         dispatch(addBusinessSystem(res.data));
-        toast.success("Design system created from photo");
+        toast.success(t('DesignSystem.uploadSuccess'));
         handleClose();
       }
     } catch (err) {
@@ -88,7 +90,7 @@ function UploadDesignSystemDlg({ open, onClose }: Props) {
       <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl">
         <div className="border-b p-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-slate-800">
-            Upload Design Photo
+            {t('DesignSystem.uploadTitle')}
           </h2>
           <button
             onClick={handleClose}
@@ -105,21 +107,21 @@ function UploadDesignSystemDlg({ open, onClose }: Props) {
               htmlFor="ds-name"
               className="block text-sm text-left font-medium text-slate-700 mb-1"
             >
-              Name
+              {t('DesignSystem.uploadName')}
             </label>
             <input
               id="ds-name"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="My Brand Design System"
+              placeholder={t('DesignSystem.uploadNamePlaceholder')}
               className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             />
           </div>
 
           <div>
             <span className="block text-sm text-left font-medium text-slate-700 mb-1">
-              Photo
+              {t('DesignSystem.uploadPhoto')}
             </span>
             {preview && file ? (
               <div className="relative group">
@@ -141,10 +143,10 @@ function UploadDesignSystemDlg({ open, onClose }: Props) {
               <label className="flex flex-col items-center justify-center h-48 rounded-lg border-2 border-dashed border-slate-300 cursor-pointer hover:border-blue-400 hover:bg-blue-50/50 transition">
                 <Upload size={32} className="text-slate-400 mb-2" />
                 <span className="text-sm font-medium text-slate-500">
-                  Choose a photo
+                  {t('DesignSystem.uploadChoose')}
                 </span>
                 <span className="text-xs text-slate-400 mt-1">
-                  PNG, JPG up to 5MB
+                  {t('DesignSystem.uploadHint')}
                 </span>
                 <input
                   type="file"
@@ -155,7 +157,7 @@ function UploadDesignSystemDlg({ open, onClose }: Props) {
               </label>
             )}
             <p className="text-xs text-slate-400 mt-2">
-              AI will analyze this image to extract colors, typography, and design tokens
+              {t('DesignSystem.uploadAiHint')}
             </p>
           </div>
 
@@ -166,7 +168,7 @@ function UploadDesignSystemDlg({ open, onClose }: Props) {
               disabled={isLoading}
               className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 transition disabled:opacity-50 cursor-pointer"
             >
-              Cancel
+              {t('DesignSystem.uploadCancel')}
             </button>
             <button
               type="submit"
@@ -176,7 +178,7 @@ function UploadDesignSystemDlg({ open, onClose }: Props) {
               {isLoading && (
                 <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
               )}
-              {isLoading ? "Analyzing..." : "Create"}
+              {isLoading ? t('DesignSystem.uploadAnalyzing') : t('DesignSystem.uploadCreate')}
             </button>
           </div>
         </form>

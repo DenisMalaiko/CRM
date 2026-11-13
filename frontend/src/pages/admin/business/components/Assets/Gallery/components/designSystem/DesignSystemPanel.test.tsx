@@ -5,6 +5,10 @@ import DesignSystemPanel from './DesignSystemPanel';
 import { Fonts } from '../../../../../../../../const/Fonts';
 import { TDesignSystem } from '../../../../../../../../models/DesignSystem';
 
+jest.mock('react-i18next', () => ({
+  useTranslation: () => ({ t: (key: string) => key }),
+}));
+
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
 
 function makeTypoLevel(fontFamily = 'Inter') {
@@ -26,6 +30,7 @@ function makeDraft(overrides: Partial<TDesignSystem> = {}): TDesignSystem {
     businessId: 'biz-1',
     source: 'MANUAL',
     isPreset: false,
+    isActive: false,
     colors: {
       background: '#ffffff',
       foreground: '#000000',
@@ -107,7 +112,7 @@ function renderPanel({ activeElement = 'headline', draft }: RenderOptions = {}) 
  * a htmlFor/id association, so we locate the row by label text then find the select.
  */
 function getFamilySelect(): HTMLSelectElement {
-  const label = screen.getByText('Family');
+  const label = screen.getByText('DesignSystem.family');
   const row = label.closest('div') as HTMLElement;
   return within(row).getByRole('combobox') as HTMLSelectElement;
 }
@@ -129,7 +134,7 @@ describe('DesignSystemPanel', () => {
     test('no text input exists in the Family row', () => {
       renderPanel({ activeElement: 'headline' });
 
-      const label = screen.getByText('Family');
+      const label = screen.getByText('DesignSystem.family');
       const row = label.closest('div') as HTMLElement;
       expect(within(row).queryByRole('textbox')).not.toBeInTheDocument();
     });
@@ -227,7 +232,7 @@ describe('DesignSystemPanel', () => {
       (tab) => {
         renderPanel({ activeElement: tab });
 
-        const label = screen.getByText('Family');
+        const label = screen.getByText('DesignSystem.family');
         const row = label.closest('div') as HTMLElement;
         expect(within(row).getByRole('combobox')).toBeInTheDocument();
       }
@@ -240,7 +245,7 @@ describe('DesignSystemPanel', () => {
     test('does not render a Family label on the canvas tab', () => {
       renderPanel({ activeElement: null });
 
-      expect(screen.queryByText('Family')).not.toBeInTheDocument();
+      expect(screen.queryByText('DesignSystem.family')).not.toBeInTheDocument();
     });
   });
 

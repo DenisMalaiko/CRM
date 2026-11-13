@@ -921,6 +921,7 @@ model DesignSystem {
   business   Business?          @relation(fields: [businessId], references: [id])
   source     DesignSystemSource @default(PRESET)
   isPreset   Boolean            @default(false)
+  isActive   Boolean            @default(false)
 
   colors             Json @default("{}")
   gradients          Json @default("[]")

@@ -1,15 +1,19 @@
 import React from "react";
-import { Copy, Lock } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { Copy, Lock, CircleCheck, Trash2 } from "lucide-react";
 import { TDesignSystem } from "../../../../../../../../models/DesignSystem";
 
-interface Props {
+type Props = {
   designSystem: TDesignSystem;
   isSelected: boolean;
   onClick: () => void;
   onDuplicate?: () => void;
-}
+  onSetActive?: () => void;
+  onDelete?: () => void;
+};
 
-function DesignSystemCard({ designSystem, isSelected, onClick, onDuplicate }: Props) {
+function DesignSystemCard({ designSystem, isSelected, onClick, onDuplicate, onSetActive, onDelete }: Props) {
+  const { t } = useTranslation();
   const { colors, name, isPreset, typography } = designSystem;
 
   const colorSwatches = [
@@ -40,6 +44,13 @@ function DesignSystemCard({ designSystem, isSelected, onClick, onDuplicate }: Pr
             background: `linear-gradient(135deg, ${colors.primary} 0%, transparent 50%, ${colors.secondary} 100%)`,
           }}
         />
+
+        {/* Active badge */}
+        {designSystem.isActive && (
+          <span className="absolute top-2 left-2 z-10 bg-green-500 text-white text-xs px-2 py-0.5 rounded-md font-medium">
+            {t('DesignSystem.active')}
+          </span>
+        )}
 
         {/* Color dots */}
         <div className="flex gap-2 z-10">
@@ -77,16 +88,34 @@ function DesignSystemCard({ designSystem, isSelected, onClick, onDuplicate }: Pr
               <Lock size={14} />
             </span>
           )}
+          {onSetActive && !designSystem.isActive && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onSetActive(); }}
+              className="p-1.5 rounded-md hover:bg-slate-100 text-slate-500 hover:text-green-600 transition-colors cursor-pointer"
+              title={t('DesignSystem.setActive')}
+            >
+              <CircleCheck size={14} />
+            </button>
+          )}
           {onDuplicate && (
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 onDuplicate();
               }}
-              className="p-1.5 rounded-md hover:bg-slate-100 text-slate-500 hover:text-blue-600 transition-colors"
-              title="Duplicate to customize"
+              className="p-1.5 rounded-md hover:bg-slate-100 text-slate-500 hover:text-blue-600 transition-colors cursor-pointer"
+              title={t('DesignSystem.duplicate')}
             >
               <Copy size={14} />
+            </button>
+          )}
+          {onDelete && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onDelete(); }}
+              className="p-1.5 rounded-md hover:bg-slate-100 text-slate-500 hover:text-red-600 transition-colors cursor-pointer"
+              title={t('DesignSystem.delete')}
+            >
+              <Trash2 size={14} />
             </button>
           )}
         </div>

@@ -2,7 +2,7 @@ import { TDesignSystem } from './entities/designSystem.entity';
 
 type PresetData = Omit<
   TDesignSystem,
-  'id' | 'businessId' | 'createdAt' | 'updatedAt'
+  'id' | 'businessId' | 'isActive' | 'createdAt' | 'updatedAt'
 >;
 
 const baseTypography = (

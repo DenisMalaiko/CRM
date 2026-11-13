@@ -9,6 +9,7 @@ import { PrismaService } from '../../core/prisma/prisma.service';
 import { InstagramService } from '../instagram/instagram.service';
 import { FacebookService } from '../facebook/facebook.service';
 import { AiService } from '../ai/ai.service';
+import { DesignSystemService } from '../designSystem/designSystem.service';
 import {
   TBusiness,
   TBusinessCreate,
@@ -25,6 +26,7 @@ export class BusinessService {
     private readonly instagramService: InstagramService,
     private readonly facebookService: FacebookService,
     private readonly aiService: AiService,
+    private readonly designSystemService: DesignSystemService,
   ) {}
 
   async getBusinesses(agencyId: string): Promise<TBusiness[]> {
@@ -94,7 +96,7 @@ export class BusinessService {
         throw new ConflictException('Business already exists!');
       }
 
-      return await this.prisma.business.create({
+      const business = await this.prisma.business.create({
         data: body,
         select: {
           id: true,
@@ -113,7 +115,12 @@ export class BusinessService {
           createdAt: true,
         },
       });
+
+      this.designSystemService.createDefaultForBusiness(business.id).catch(() => {});
+
+      return business;
     } catch (err: any) {
+      if (err instanceof ConflictException) throw err;
       throw new InternalServerErrorException('Failed to create business');
     }
   }

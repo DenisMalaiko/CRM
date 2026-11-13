@@ -1,12 +1,12 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { TDesignSystem } from "../../models/DesignSystem";
 
-interface DesignSystemState {
+type DesignSystemState = {
   presets: TDesignSystem[];
   businessSystems: TDesignSystem[];
   selected: TDesignSystem | null;
   panelOpen: boolean;
-}
+};
 
 const initialState: DesignSystemState = {
   presets: [],
@@ -53,6 +53,14 @@ const designSystemSlice = createSlice({
         state.panelOpen = false;
       }
     },
+    setActiveSystem(state, action: PayloadAction<string>) {
+      state.businessSystems.forEach((s) => { s.isActive = false; });
+      const target = state.businessSystems.find((s) => s.id === action.payload);
+      if (target) target.isActive = true;
+      if (state.selected) {
+        state.selected.isActive = state.selected.id === action.payload;
+      }
+    },
   },
 });
 
@@ -64,6 +72,7 @@ export const {
   addBusinessSystem,
   updateBusinessSystem,
   removeBusinessSystem,
+  setActiveSystem,
 } = designSystemSlice.actions;
 
 export default designSystemSlice.reducer;
