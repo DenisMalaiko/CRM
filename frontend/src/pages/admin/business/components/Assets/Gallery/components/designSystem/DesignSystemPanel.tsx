@@ -1,9 +1,10 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Save, Trash2, Type, AlignLeft, List, RectangleHorizontal, Palette } from "lucide-react";
 import { TDesignSystem } from "../../../../../../../../models/DesignSystem";
 import { Fonts } from "../../../../../../../../const/Fonts";
 
-interface Props {
+type Props = {
   draft: TDesignSystem;
   original: TDesignSystem;
   activeElement: string | null;
@@ -11,7 +12,7 @@ interface Props {
   onDraftChange: (draft: TDesignSystem) => void;
   onSave: (data: Partial<TDesignSystem>) => void;
   onDelete?: () => void;
-}
+};
 
 function ColorInput({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
   return (
@@ -70,15 +71,16 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 }
 
 const TABS = [
-  { id: null, label: "Canvas", icon: Palette },
-  { id: "headline", label: "Headline", icon: Type },
-  { id: "subheadline", label: "Subtitle", icon: Type },
-  { id: "description", label: "Text", icon: AlignLeft },
-  { id: "list", label: "List", icon: List },
-  { id: "button", label: "Button", icon: RectangleHorizontal },
+  { id: null, label: "canvas", icon: Palette },
+  { id: "headline", label: "headline", icon: Type },
+  { id: "subheadline", label: "subtitle_tab", icon: Type },
+  { id: "description", label: "text", icon: AlignLeft },
+  { id: "list", label: "list", icon: List },
+  { id: "button", label: "button", icon: RectangleHorizontal },
 ] as const;
 
 function DesignSystemPanel({ draft, original, activeElement, onActiveElementChange, onDraftChange, onSave, onDelete }: Props) {
+  const { t } = useTranslation();
   const isPreset = original.isPreset;
   const { name: _dn, ...draftFields } = draft;
   const { name: _on, ...originalFields } = original;
@@ -104,14 +106,14 @@ function DesignSystemPanel({ draft, original, activeElement, onActiveElementChan
     if (!typo) return null;
     return (
       <>
-        <SectionLabel>Font</SectionLabel>
-        <FontFamilySelect label="Family" value={typo.fontFamily} onChange={(v) => updateTypography(level, "fontFamily", v)} />
-        <TextInput label="Weight" value={typo.weight} onChange={(v) => updateTypography(level, "weight", Number(v) || v)} />
-        <SelectInput label="Case" value={typo.case} options={["uppercase", "lowercase", "title", "sentence"]} onChange={(v) => updateTypography(level, "case", v)} />
-        <TextInput label="Size %" value={typo.sizePercent} onChange={(v) => updateTypography(level, "sizePercent", Number(v) || 0)} />
-        <SectionLabel>Spacing</SectionLabel>
-        <TextInput label="Letter spacing" value={typo.letterSpacing} onChange={(v) => updateTypography(level, "letterSpacing", v)} />
-        <TextInput label="Line height" value={typo.lineHeight} onChange={(v) => updateTypography(level, "lineHeight", Number(v) || 0)} />
+        <SectionLabel>{t('DesignSystem.font')}</SectionLabel>
+        <FontFamilySelect label={t('DesignSystem.family')} value={typo.fontFamily} onChange={(v) => updateTypography(level, "fontFamily", v)} />
+        <TextInput label={t('DesignSystem.weight')} value={typo.weight} onChange={(v) => updateTypography(level, "weight", Number(v) || v)} />
+        <SelectInput label={t('DesignSystem.case')} value={typo.case} options={["uppercase", "lowercase", "title", "sentence"]} onChange={(v) => updateTypography(level, "case", v)} />
+        <TextInput label={t('DesignSystem.sizePercent')} value={typo.sizePercent} onChange={(v) => updateTypography(level, "sizePercent", Number(v) || 0)} />
+        <SectionLabel>{t('DesignSystem.spacing')}</SectionLabel>
+        <TextInput label={t('DesignSystem.letterSpacing')} value={typo.letterSpacing} onChange={(v) => updateTypography(level, "letterSpacing", v)} />
+        <TextInput label={t('DesignSystem.lineHeight')} value={typo.lineHeight} onChange={(v) => updateTypography(level, "lineHeight", Number(v) || 0)} />
       </>
     );
   };
@@ -121,62 +123,62 @@ function DesignSystemPanel({ draft, original, activeElement, onActiveElementChan
       case "headline":
         return (
           <>
-            <SectionLabel>Colors</SectionLabel>
-            <ColorInput label="Word 1" value={draft.colors.primary} onChange={(v) => updateColor("primary", v)} />
-            <ColorInput label="Word 2" value={draft.colors.foreground} onChange={(v) => updateColor("foreground", v)} />
+            <SectionLabel>{t('DesignSystem.colors')}</SectionLabel>
+            <ColorInput label={t('DesignSystem.word1')} value={draft.colors.primary} onChange={(v) => updateColor("primary", v)} />
+            <ColorInput label={t('DesignSystem.word2')} value={draft.colors.foreground} onChange={(v) => updateColor("foreground", v)} />
             {renderTypoFields("headline")}
           </>
         );
       case "subheadline":
         return (
           <>
-            <SectionLabel>Colors</SectionLabel>
-            <ColorInput label="Word 1" value={draft.colors.accentForeground} onChange={(v) => updateColor("accentForeground", v)} />
-            <ColorInput label="Word 2" value={draft.colors.mutedForeground} onChange={(v) => updateColor("mutedForeground", v)} />
+            <SectionLabel>{t('DesignSystem.colors')}</SectionLabel>
+            <ColorInput label={t('DesignSystem.word1')} value={draft.colors.accentForeground} onChange={(v) => updateColor("accentForeground", v)} />
+            <ColorInput label={t('DesignSystem.word2')} value={draft.colors.mutedForeground} onChange={(v) => updateColor("mutedForeground", v)} />
             {renderTypoFields("subheadline")}
           </>
         );
       case "description":
         return (
           <>
-            <SectionLabel>Color</SectionLabel>
-            <ColorInput label="Text" value={draft.colors.secondary} onChange={(v) => updateColor("secondary", v)} />
+            <SectionLabel>{t('DesignSystem.color')}</SectionLabel>
+            <ColorInput label={t('DesignSystem.textColor')} value={draft.colors.secondary} onChange={(v) => updateColor("secondary", v)} />
             {renderTypoFields("body")}
           </>
         );
       case "button":
         return (
           <>
-            <SectionLabel>Colors</SectionLabel>
-            <ColorInput label="Background" value={draft.colors.border} onChange={(v) => updateColor("border", v)} />
-            <ColorInput label="Text" value={draft.colors.primaryForeground} onChange={(v) => updateColor("primaryForeground", v)} />
+            <SectionLabel>{t('DesignSystem.colors')}</SectionLabel>
+            <ColorInput label={t('DesignSystem.background')} value={draft.colors.border} onChange={(v) => updateColor("border", v)} />
+            <ColorInput label={t('DesignSystem.textColor')} value={draft.colors.primaryForeground} onChange={(v) => updateColor("primaryForeground", v)} />
             {renderTypoFields("cta")}
-            <SectionLabel>Shape</SectionLabel>
-            <TextInput label="Radius" value={draft.radius} onChange={(v) => updateDraft({ radius: v })} />
-            <TextInput label="Shadow blur" value={draft.shadow?.blur || ""} onChange={(v) => updateDraft({ shadow: { ...draft.shadow, blur: v } })} />
-            <ColorInput label="Shadow color" value={draft.shadow?.color?.startsWith("rgba") ? "#000000" : (draft.shadow?.color || "#000000")} onChange={(v) => updateDraft({ shadow: { ...draft.shadow, color: v } })} />
+            <SectionLabel>{t('DesignSystem.shape')}</SectionLabel>
+            <TextInput label={t('DesignSystem.radius')} value={draft.radius} onChange={(v) => updateDraft({ radius: v })} />
+            <TextInput label={t('DesignSystem.shadowBlur')} value={draft.shadow?.blur || ""} onChange={(v) => updateDraft({ shadow: { ...draft.shadow, blur: v } })} />
+            <ColorInput label={t('DesignSystem.shadowColor')} value={draft.shadow?.color?.startsWith("rgba") ? "#000000" : (draft.shadow?.color || "#000000")} onChange={(v) => updateDraft({ shadow: { ...draft.shadow, color: v } })} />
           </>
         );
       case "list":
         return (
           <>
-            <SectionLabel>Colors</SectionLabel>
-            <ColorInput label="Background" value={draft.colors.muted} onChange={(v) => updateColor("muted", v)} />
-            <ColorInput label="Text" value={draft.colors.secondaryForeground} onChange={(v) => updateColor("secondaryForeground", v)} />
-            <ColorInput label="Bullet" value={draft.colors.destructive} onChange={(v) => updateColor("destructive", v)} />
-            <SectionLabel>Shape</SectionLabel>
-            <TextInput label="Radius" value={draft.radius} onChange={(v) => updateDraft({ radius: v })} />
+            <SectionLabel>{t('DesignSystem.colors')}</SectionLabel>
+            <ColorInput label={t('DesignSystem.background')} value={draft.colors.muted} onChange={(v) => updateColor("muted", v)} />
+            <ColorInput label={t('DesignSystem.textColor')} value={draft.colors.secondaryForeground} onChange={(v) => updateColor("secondaryForeground", v)} />
+            <ColorInput label={t('DesignSystem.bullet')} value={draft.colors.destructive} onChange={(v) => updateColor("destructive", v)} />
+            <SectionLabel>{t('DesignSystem.shape')}</SectionLabel>
+            <TextInput label={t('DesignSystem.radius')} value={draft.radius} onChange={(v) => updateDraft({ radius: v })} />
           </>
         );
       default:
         return (
           <>
-            <SectionLabel>Background</SectionLabel>
-            <ColorInput label="Color" value={draft.colors.background} onChange={(v) => updateColor("background", v)} />
-            <ColorInput label="Accent line" value={draft.colors.accent} onChange={(v) => updateColor("accent", v)} />
-            <SectionLabel>Layout</SectionLabel>
-            <TextInput label="Padding" value={draft.spacing?.contentPadding || "32px"} onChange={(v) => updateDraft({ spacing: { ...draft.spacing, contentPadding: v } })} />
-            <TextInput label="Radius" value={draft.radius} onChange={(v) => updateDraft({ radius: v })} />
+            <SectionLabel>{t('DesignSystem.background')}</SectionLabel>
+            <ColorInput label={t('DesignSystem.color')} value={draft.colors.background} onChange={(v) => updateColor("background", v)} />
+            <ColorInput label={t('DesignSystem.accentLine')} value={draft.colors.accent} onChange={(v) => updateColor("accent", v)} />
+            <SectionLabel>{t('DesignSystem.layout')}</SectionLabel>
+            <TextInput label={t('DesignSystem.padding')} value={draft.spacing?.contentPadding || "32px"} onChange={(v) => updateDraft({ spacing: { ...draft.spacing, contentPadding: v } })} />
+            <TextInput label={t('DesignSystem.radius')} value={draft.radius} onChange={(v) => updateDraft({ radius: v })} />
           </>
         );
     }
@@ -200,7 +202,7 @@ function DesignSystemPanel({ draft, original, activeElement, onActiveElementChan
               }`}
             >
               <Icon size={12} />
-              {tab.label}
+              {t(`DesignSystem.${tab.label}`)}
             </button>
           );
         })}
@@ -216,7 +218,7 @@ function DesignSystemPanel({ draft, original, activeElement, onActiveElementChan
         <div className="px-3 py-2.5 border-t border-slate-200 flex items-center justify-between">
           {onDelete ? (
             <button onClick={onDelete} className="flex items-center gap-1 text-xs text-red-500 hover:text-red-700">
-              <Trash2 size={12} /> Delete
+              <Trash2 size={12} /> {t('DesignSystem.delete')}
             </button>
           ) : <div />}
           <button
@@ -226,7 +228,7 @@ function DesignSystemPanel({ draft, original, activeElement, onActiveElementChan
               hasChanges ? "bg-blue-600 text-white hover:bg-blue-700" : "bg-slate-100 text-slate-400 cursor-not-allowed"
             }`}
           >
-            <Save size={12} /> Save
+            <Save size={12} /> {t('DesignSystem.save')}
           </button>
         </div>
       )}

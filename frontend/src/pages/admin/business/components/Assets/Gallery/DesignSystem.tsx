@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { X, Pencil, Check, Upload } from "lucide-react";
 import { showError } from "../../../../../../utils/showError";
+import { confirm } from "../../../../../../components/confirmDlg/ConfirmDlg";
 import { GOOGLE_FONTS } from "../../../../../../const/Fonts";
 import { useGoogleFonts } from "../../../../../../hooks/useGoogleFonts";
 
@@ -23,6 +25,7 @@ import {
   addBusinessSystem,
   updateBusinessSystem,
   removeBusinessSystem,
+  setActiveSystem,
 } from "../../../../../../store/designSystem/designSystemSlice";
 
 // Components
@@ -36,6 +39,7 @@ import { ApiResponse } from "../../../../../../models/ApiResponse";
 import { TDesignSystem } from "../../../../../../models/DesignSystem";
 
 function DesignSystem() {
+  const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const { businessId } = useParams<{ businessId: string }>();
 
@@ -89,10 +93,43 @@ function DesignSystem() {
       const res: ApiResponse<TDesignSystem> = await duplicateSystem({ id, businessId }).unwrap();
       if (res?.data) {
         dispatch(addBusinessSystem(res.data));
-        dispatch(setSelected(res.data));
-        toast.success("Design system duplicated");
+        toast.success(t('DesignSystem.duplicated'));
       }
     } catch (error) {
+      showError(error);
+    }
+  };
+
+  const handleSetActive = async (id: string) => {
+    if (!businessId) return;
+    try {
+      dispatch(setActiveSystem(id));
+      await updateSystem({ id, data: { isActive: true } }).unwrap();
+      toast.success(t('DesignSystem.setActiveSuccess'));
+    } catch (error) {
+      try {
+        const bizRes: ApiResponse<TDesignSystem[]> = await getBusinessSystems(businessId).unwrap();
+        if (bizRes?.data) dispatch(setBusinessSystems(bizRes.data));
+      } catch (_) { /* rollback failed — UI state may be stale */ }
+      showError(error);
+    }
+  };
+
+  const handleSetActivePreset = async (presetId: string) => {
+    if (!businessId) return;
+    try {
+      const dupRes: ApiResponse<TDesignSystem> = await duplicateSystem({ id: presetId, businessId }).unwrap();
+      if (!dupRes?.data) return;
+      dispatch(addBusinessSystem(dupRes.data));
+
+      dispatch(setActiveSystem(dupRes.data.id));
+      await updateSystem({ id: dupRes.data.id, data: { isActive: true } }).unwrap();
+      toast.success(t('DesignSystem.duplicatedAndActive'));
+    } catch (error) {
+      try {
+        const bizRes: ApiResponse<TDesignSystem[]> = await getBusinessSystems(businessId).unwrap();
+        if (bizRes?.data) dispatch(setBusinessSystems(bizRes.data));
+      } catch (_) { /* rollback failed */ }
       showError(error);
     }
   };
@@ -109,19 +146,27 @@ function DesignSystem() {
       if (res?.data) {
         dispatch(updateBusinessSystem(res.data));
         dispatch(setSelected(res.data));
-        toast.success("Design system saved");
+        toast.success(t('DesignSystem.saved'));
       }
     } catch (error) {
       showError(error);
     }
   };
 
-  const handleDelete = async () => {
-    if (!selected || !businessId) return;
+  const handleDelete = async (id?: string) => {
+    const targetId = id || selected?.id;
+    if (!targetId || !businessId) return;
+
+    const confirmed = await confirm({
+      title: t('DesignSystem.deleteTitle'),
+      message: t('DesignSystem.deleteMessage'),
+    });
+    if (!confirmed) return;
+
     try {
-      await deleteSystem({ id: selected.id }).unwrap();
-      dispatch(removeBusinessSystem(selected.id));
-      toast.success("Design system deleted");
+      await deleteSystem({ id: targetId }).unwrap();
+      dispatch(removeBusinessSystem(targetId));
+      toast.success(t('DesignSystem.deleted'));
     } catch (error) {
       showError(error);
     }
@@ -142,10 +187,10 @@ function DesignSystem() {
         <div className="border-b p-4 flex items-center justify-between">
           <div>
             <h2 className="text-lg text-left font-semibold text-slate-800">
-              Design System
+              {t('DesignSystem.title')}
             </h2>
             <p className="text-sm text-left text-slate-500 mt-1">
-              Choose a preset or create your own by duplicating a template
+              {t('DesignSystem.subtitle')}
             </p>
           </div>
           <button
@@ -153,7 +198,7 @@ function DesignSystem() {
             className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition cursor-pointer"
           >
             <Upload size={16} />
-            Upload
+            {t('DesignSystem.upload')}
           </button>
         </div>
 
@@ -161,7 +206,7 @@ function DesignSystem() {
         {businessSystems.length > 0 && (
           <div className="p-5">
             <h3 className="text-sm text-left font-semibold text-slate-700 uppercase tracking-wide mb-4">
-              My Design Systems
+              {t('DesignSystem.myDesignSystems')}
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {businessSystems.map((ds: TDesignSystem) => (
@@ -171,6 +216,8 @@ function DesignSystem() {
                   isSelected={selected?.id === ds.id}
                   onClick={() => dispatch(setSelected(ds))}
                   onDuplicate={() => handleDuplicate(ds.id)}
+                  onSetActive={() => handleSetActive(ds.id)}
+                  onDelete={() => handleDelete(ds.id)}
                 />
               ))}
             </div>
@@ -180,7 +227,7 @@ function DesignSystem() {
         {/* Preset Templates */}
         <div className="p-5">
           <h3 className="text-sm text-left font-semibold text-slate-700 uppercase tracking-wide mb-4">
-            Presets
+            {t('DesignSystem.presets')}
           </h3>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {presets.map((ds: TDesignSystem) => (
@@ -190,13 +237,14 @@ function DesignSystem() {
                 isSelected={selected?.id === ds.id}
                 onClick={() => dispatch(setSelected(ds))}
                 onDuplicate={() => handleDuplicate(ds.id)}
+                onSetActive={() => handleSetActivePreset(ds.id)}
               />
             ))}
           </div>
 
           {presets.length === 0 && (
             <p className="text-sm text-slate-400 text-center py-8">
-              Loading presets...
+              {t('DesignSystem.loadingPresets')}
             </p>
           )}
         </div>
@@ -244,7 +292,12 @@ function DesignSystem() {
                     </button>
                   )}
                 </div>
-                <p className="text-sm text-left text-slate-400">{selected.isPreset ? "Preset · Read only" : "Custom"}</p>
+                <p className="text-sm text-left text-slate-400">
+                  {selected.isPreset ? t('DesignSystem.presetReadOnly') : t('DesignSystem.custom')}
+                  {selected.isActive && (
+                    <span className="ml-2 inline-block bg-green-100 text-green-700 text-xs px-1.5 py-0.5 rounded">{t('DesignSystem.active')}</span>
+                  )}
+                </p>
               </div>
               <button
                 onClick={handleClose}

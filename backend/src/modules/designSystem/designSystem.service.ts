@@ -167,7 +167,7 @@ export class DesignSystemService {
       await this.verifyBusinessOwnership(ds.businessId, agencyId);
     }
 
-    const data: Partial<UpdateDesignSystemDto> = {};
+    const data: Record<string, unknown> = {};
     if (dto.name !== undefined) data.name = dto.name;
     if (dto.colors !== undefined) data.colors = dto.colors;
     if (dto.gradients !== undefined) data.gradients = dto.gradients;
@@ -179,6 +179,28 @@ export class DesignSystemService {
     if (dto.brandElements !== undefined) data.brandElements = dto.brandElements;
     if (dto.composition !== undefined) data.composition = dto.composition;
     if (dto.scene !== undefined) data.scene = dto.scene;
+
+    if (dto.isActive === true && ds.businessId) {
+      return this.prisma.$transaction(async (tx) => {
+        await tx.designSystem.updateMany({
+          where: {
+            businessId: ds.businessId,
+            id: { not: id },
+            isActive: true,
+          },
+          data: { isActive: false },
+        });
+
+        return tx.designSystem.update({
+          where: { id },
+          data: { ...data, isActive: true },
+        });
+      });
+    }
+
+    if (dto.isActive === false) {
+      data.isActive = false;
+    }
 
     return this.prisma.designSystem.update({
       where: { id },
@@ -199,6 +221,34 @@ export class DesignSystemService {
     }
 
     return this.prisma.designSystem.delete({ where: { id } });
+  }
+
+  async createDefaultForBusiness(businessId: string) {
+    const preset = await this.prisma.designSystem.findFirst({
+      where: { isPreset: true, name: 'Ocean Blue' },
+    });
+
+    if (!preset) return;
+
+    return this.prisma.designSystem.create({
+      data: {
+        name: preset.name,
+        businessId,
+        source: 'MANUAL',
+        isPreset: false,
+        isActive: true,
+        colors: preset.colors ?? {},
+        gradients: preset.gradients ?? [],
+        typography: preset.typography ?? {},
+        radius: preset.radius,
+        border: preset.border ?? {},
+        shadow: preset.shadow ?? {},
+        spacing: preset.spacing ?? {},
+        brandElements: preset.brandElements ?? {},
+        composition: preset.composition ?? {},
+        scene: preset.scene ?? {},
+      },
+    });
   }
 
   private async verifyBusinessOwnership(businessId: string, agencyId: string) {

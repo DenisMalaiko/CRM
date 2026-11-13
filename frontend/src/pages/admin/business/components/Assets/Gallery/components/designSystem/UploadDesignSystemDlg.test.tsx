@@ -4,6 +4,10 @@ import UploadDesignSystemDlg from './UploadDesignSystemDlg';
 
 // ─── Mocks ────────────────────────────────────────────────────────────────────
 
+jest.mock('react-i18next', () => ({
+  useTranslation: () => ({ t: (key: string) => key }),
+}));
+
 const mockDispatch = jest.fn();
 
 jest.mock('../../../../../../../../store/hooks', () => ({
@@ -48,23 +52,23 @@ describe('UploadDesignSystemDlg', () => {
 
   test('does not render when open is false', () => {
     renderDialog(false);
-    expect(screen.queryByText('Upload Design Photo')).not.toBeInTheDocument();
+    expect(screen.queryByText('DesignSystem.uploadTitle')).not.toBeInTheDocument();
   });
 
   test('renders dialog when open is true', () => {
     renderDialog(true);
-    expect(screen.getByText('Upload Design Photo')).toBeInTheDocument();
+    expect(screen.getByText('DesignSystem.uploadTitle')).toBeInTheDocument();
   });
 
   test('shows file upload zone with "Choose a photo" text', () => {
     renderDialog(true);
-    expect(screen.getByText('Choose a photo')).toBeInTheDocument();
+    expect(screen.getByText('DesignSystem.uploadChoose')).toBeInTheDocument();
   });
 
   test('shows name input with correct placeholder', () => {
     renderDialog(true);
     expect(
-      screen.getByPlaceholderText('My Brand Design System')
+      screen.getByPlaceholderText('DesignSystem.uploadNamePlaceholder')
     ).toBeInTheDocument();
   });
 

@@ -43,6 +43,7 @@ export type TDesignSystem = {
   businessId: string | null;
   source: "MANUAL" | "AI_PHOTO" | "PRESET";
   isPreset: boolean;
+  isActive: boolean;
   colors: TColorToken;
   gradients: TGradient[];
   typography: TTypography;
@@ -59,7 +60,7 @@ export type TDesignSystem = {
   brandElements: {
     logoStyle: string;
     decorativeMotifs: string[];
-    graphicElements: any[];
+    graphicElements: unknown[];
   };
   composition: {
     layout: string;

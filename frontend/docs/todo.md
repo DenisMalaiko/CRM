@@ -1,5 +1,30 @@
 # Task Log
 
+## Active Design System — 2026-11-13
+
+### Plan
+- [x] Додати `isActive: boolean` до `TDesignSystem` моделі
+- [x] Додати reducer `setActiveSystem` в Redux slice
+- [x] Оновити `DesignSystemCard` — badge "Active" + кнопка Set Active
+- [x] Оновити `DesignSystem.tsx` — handleSetActive + props + badge в модалці
+- [x] Quality gate: reviewer + tester (цикл 2 — PASS)
+
+### Notes
+- Бекенд підтримує PATCH з `isActive: true`, сам деактивує попередню (транзакція)
+- Тільки кастомні системи можуть бути активними (не presets)
+- Оптимістичне оновлення UI через Redux
+- Partial unique index в БД гарантує max 1 active на бізнес
+- При створенні бізнесу автоматично дублюється Ocean Blue preset як активна дизайн система
+
+### Review
+- [x] reviewer → PASS (цикл 2: `any[]` → `unknown[]`, `interface` → `type`, guarded rollback)
+- [x] reviewer → PASS (цикл 2: i18n + delete + set active preset)
+- [x] tester → 50 тестів проходять (21 нових)
+- [x] No regressions found
+- Summary: Активна дизайн система з badge + Set Active на картках (кастомні і presets). Видалення з confirm діалогом. i18n переклади (59 ключів EN/UA). Бекенд: PATCH з транзакцією, partial unique index, auto-duplicate Ocean Blue при створенні бізнесу.
+
+---
+
 ## Backend: Design System from Photo AI Analysis — 2026-11-11
 
 ### Plan
