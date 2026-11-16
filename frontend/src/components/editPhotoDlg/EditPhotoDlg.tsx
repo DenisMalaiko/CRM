@@ -1,4 +1,5 @@
 import React, {useState} from 'react';
+import {useTranslation} from "react-i18next";
 import {X} from "lucide-react";
 import {toast} from "react-toastify";
 
@@ -38,6 +39,7 @@ type Props = {
 }
 
 function EditPhotoDlg({ open, type, onClose, onSuccess, photoId, mediaId }: Props) {
+  const { t } = useTranslation();
   const [ regeneratePhoto, { isLoading } ] = useRegeneratePhotoMutation();
   const [ revertOriginal, { isLoading: isReturningOriginalLoading } ] = useRevertOriginalMutation();
   const [ revertPrevious, { isLoading: isReturningPreviousLoading } ] = useRevertPreviousMutation();
@@ -128,7 +130,7 @@ function EditPhotoDlg({ open, type, onClose, onSuccess, photoId, mediaId }: Prop
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50">
       <div className="w-full max-w-3xl rounded-2xl bg-white shadow-xl max-h-[90vh] overflow-y-auto overflow-x-hidden">
         <div className="border-b p-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-slate-800">Edit Photo</h2>
+          <h2 className="text-lg font-semibold text-slate-800">{t("EditPhotoDlg.Title")}</h2>
           <button
             onClick={() => onClose()}
             aria-label="Close"
@@ -141,14 +143,14 @@ function EditPhotoDlg({ open, type, onClose, onSuccess, photoId, mediaId }: Prop
         <form className="p-6 space-y-4" onSubmit={editPhoto} action="">
           <div>
             <div className="flex items-center gap-2 justify-between">
-              <label className="block text-sm font-medium text-slate-700 text-left mb-1">Prompt</label>
+              <label className="block text-sm font-medium text-slate-700 text-left mb-1">{t("EditPhotoDlg.Prompt")}</label>
             </div>
 
             <textarea
               rows={3}
               value={form.prompt}
               onChange={(e) => setForm(prev => ({ ...prev, prompt: e.target.value }))}
-              placeholder="Enter prompt..."
+              placeholder={t("EditPhotoDlg.PromptPlaceholder")}
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -160,7 +162,7 @@ function EditPhotoDlg({ open, type, onClose, onSuccess, photoId, mediaId }: Prop
               disabled={isAnyLoading}
               className="px-4 py-2 rounded-lg border  text-slate-600 border-slate-300 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-slate-white"
             >
-              Cancel
+              {t("EditPhotoDlg.Cancel")}
             </button>
 
             <button
@@ -172,9 +174,9 @@ function EditPhotoDlg({ open, type, onClose, onSuccess, photoId, mediaId }: Prop
               { (isReturningOriginalLoading || isRevertingCreativeOriginalLoading) ? (
                 <>
                   <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"/>
-                  Reverting...
+                  {t("EditPhotoDlg.Reverting")}
                 </>
-                ) : ("Revert to original")
+                ) : (t("EditPhotoDlg.RevertOriginal"))
               }
             </button>
 
@@ -187,9 +189,9 @@ function EditPhotoDlg({ open, type, onClose, onSuccess, photoId, mediaId }: Prop
               { (isReturningPreviousLoading || isRevertingCreativePreviousLoading) ? (
                 <>
                   <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"/>
-                  Reverting...
+                  {t("EditPhotoDlg.Reverting")}
                 </>
-                ) : ("Revert to previous")
+                ) : (t("EditPhotoDlg.RevertPrevious"))
               }
             </button>
 
@@ -201,9 +203,9 @@ function EditPhotoDlg({ open, type, onClose, onSuccess, photoId, mediaId }: Prop
               { (isLoading || isRegeneratingCreativeLoading ) ? (
                 <>
                   <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"/>
-                  Editing...
+                  {t("EditPhotoDlg.Editing")}
                 </>
-              ) : ("Edit")
+              ) : (t("EditPhotoDlg.Edit"))
               }
             </button>
           </div>

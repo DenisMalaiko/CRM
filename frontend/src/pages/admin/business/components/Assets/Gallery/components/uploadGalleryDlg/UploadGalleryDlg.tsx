@@ -1,7 +1,8 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useRef, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
+import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
-import { X, Trash2 } from "lucide-react";
+import { X, Trash2, Upload } from "lucide-react";
 
 // Hooks
 import { useForm } from "../../../../../../../../hooks/useForm";
@@ -21,7 +22,6 @@ import { GalleryType } from "../../../../../../../../enum/GalleryType";
 // Utils
 import { showError } from "../../../../../../../../utils/showError";
 import { isBoolean, isRequired, isValidPhoto } from "../../../../../../../../utils/validations";
-import { ChangeArg, isNativeEvent } from "../../../../../../../../utils/isNativeEvent";
 
 // Models
 import { TGalleryPhoto, TGalleryPhotoPreview } from "../../../../../../../../models/Gallery";
@@ -29,15 +29,17 @@ import { ApiResponse } from "../../../../../../../../models/ApiResponse";
 
 
 function UploadGalleryDlg({ open, onClose, focus }: any) {
+  const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const { businessId } = useParams<{ businessId: string }>();
 
   const [ photos, setPhotos ] = useState<TGalleryPhotoPreview[]>([]);
+  const [ isDragging, setIsDragging ] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [ uploadPhotos, { isLoading } ] = useUploadPhotosMutation();
   const [ getPhotos ] = useGetPhotosMutation();
 
-  const TypesList = [GalleryType.Post, GalleryType.Story, GalleryType.Decoration];
 
   useEffect(() => {
     return () => {
@@ -48,21 +50,39 @@ function UploadGalleryDlg({ open, onClose, focus }: any) {
   // Init Form
   const initialForm = useMemo(() => {
     return {
-      type: focus === "Gallery" ? GalleryType.Image : GalleryType.Post,
+      type: focus === "Gallery" ? GalleryType.Image : focus === "Decorations" ? GalleryType.Decoration : GalleryType.Post,
       isActive: true,
       businessId: businessId ?? "",
     }
   }, [businessId]);
 
   // Form Hook
-  const { form, handleChange } = useForm(initialForm);
+  const { form } = useForm(initialForm);
 
   // Validation Hook
-  const { errors, validateField, validateAll } = useValidation({
+  const { validateAll } = useValidation<typeof form>({
     type: (value) => isRequired(value),
     isActive: (value) => isBoolean(value),
     businessId: (value) => isRequired(value),
   })
+
+  const addFiles = useCallback((files: FileList | File[]) => {
+    const newPhotos: TGalleryPhotoPreview[] = [];
+
+    Array.from(files).forEach((file) => {
+      try {
+        isValidPhoto(file);
+        newPhotos.push({
+          file,
+          preview: URL.createObjectURL(file),
+        });
+      } catch (error) {
+        showError(error);
+      }
+    });
+
+    setPhotos((prev) => [...prev, ...newPhotos]);
+  }, []);
 
   if (!open) return null;
   if (!businessId) return null;
@@ -96,44 +116,28 @@ function UploadGalleryDlg({ open, onClose, focus }: any) {
     }
   }
 
-  // Handle Change
-  const onChange = (arg: ChangeArg) => {
-    let name: string;
-    let value: any;
-
-    if (isNativeEvent(arg)) {
-      const t = arg.target as HTMLInputElement;
-      name = t.name;
-      value = t.type === "checkbox" ? t.checked : t.value;
-    } else {
-      name = arg.name;
-      value = arg.value;
-    }
-
-    handleChange(arg);
-    validateField(name as keyof typeof form, value, form);
+  const onChangePhotos = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    addFiles(e.target.files);
+    e.target.value = "";
   };
 
-  const onChangePhotos = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
 
-    const newPhotos: TGalleryPhotoPreview[] = [];
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
 
-    Array.from(files).forEach((file) => {
-      try {
-        isValidPhoto(file);
-
-        newPhotos.push({
-          file,
-          preview: URL.createObjectURL(file),
-        });
-      } catch (error) {
-        showError(error);
-      }
-    });
-
-    setPhotos((prev) => [...prev, ...newPhotos]);
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    if (e.dataTransfer.files.length > 0) {
+      addFiles(e.dataTransfer.files);
+    }
   };
 
   const removePhoto = (index: number) => {
@@ -147,7 +151,7 @@ function UploadGalleryDlg({ open, onClose, focus }: any) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 overflow-hidden">
       <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl">
         <div className="border-b p-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-slate-800">Upload Photos</h2>
+          <h2 className="text-lg font-semibold text-slate-800">{t("UploadPhotos.Title")}</h2>
 
           <button
             onClick={onClose}
@@ -159,59 +163,38 @@ function UploadGalleryDlg({ open, onClose, focus }: any) {
         </div>
 
         <form className="p-6 space-y-4" onSubmit={upload} action="">
-          { focus === "DesignSystem" && (
-            <div>
-              <div className="flex items-center gap-2 justify-between">
-                <label className="block text-sm font-medium text-slate-700 text-left">Type</label>
-              </div>
-
-              <select
-                name="type"
-                value={form.type}
-                onChange={onChange}
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
-              >
-                { TypesList.map((type: string) => (
-                  <option key={type} value={type}>{type}</option>
-                )) }
-              </select>
-              {errors.type && <p className="text-red-500 text-sm mt-2 text-left">{errors.type}</p>}
+          <div
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            onClick={() => fileInputRef.current?.click()}
+            className={`
+              flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed p-8 cursor-pointer transition
+              ${isDragging
+                ? "border-blue-500 bg-blue-50"
+                : "border-slate-300 bg-slate-50 hover:border-slate-400 hover:bg-slate-100"
+              }
+            `}
+          >
+            <div className={`rounded-full p-3 ${isDragging ? "bg-blue-100" : "bg-slate-200"}`}>
+              <Upload size={24} className={isDragging ? "text-blue-600" : "text-slate-500"} />
             </div>
-          ) }
-
-          <div>
-            <div className="flex items-center gap-2 justify-between">
-              <label className="block text-sm font-medium text-slate-700 text-left">Upload Photos</label>
-
-              <div className="flex items-center gap-3">
-                <label
-                  htmlFor="photo"
-                  className="
-                    inline-flex items-center gap-2
-                    px-4 py-2
-                    rounded-lg
-                    bg-blue-600 text-white
-                    text-sm font-medium
-                    cursor-pointer
-                    hover:bg-bg-blue-700
-                    transition
-                    focus-within:ring-2 focus-within:ring-slate-400
-                  "
-                >
-                  📁 Upload photos
-                </label>
-
-                <input
-                  type="file"
-                  name="photo"
-                  id="photo"
-                  className="hidden"
-                  accept="image/*"
-                  multiple={true}
-                  onChange={onChangePhotos}
-                />
-              </div>
+            <div className="text-center">
+              <p className="text-sm font-medium text-slate-700">
+                {t("UploadPhotos.DragDrop")}
+              </p>
+              <p className="text-xs text-slate-400 mt-1">
+                {t("UploadPhotos.OrClick")}
+              </p>
             </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              className="hidden"
+              accept="image/*"
+              multiple
+              onChange={onChangePhotos}
+            />
           </div>
 
           <div className="grid grid-cols-3 gap-3 mt-4">
@@ -240,18 +223,6 @@ function UploadGalleryDlg({ open, onClose, focus }: any) {
           </div>
 
 
-          <label className="flex items-start gap-3 cursor-pointer select-none">
-            <input
-              name="isActive"
-              type="checkbox"
-              checked={form.isActive}
-              onChange={handleChange}
-              className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-            />
-
-            <span className="block text-sm font-medium text-slate-700 text-left">Active Photo</span>
-          </label>
-
           <div className="flex justify-end gap-3 pt-4">
             <button
               type="button"
@@ -263,7 +234,7 @@ function UploadGalleryDlg({ open, onClose, focus }: any) {
                 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-slate-white
               "
             >
-              Cancel
+              {t("UploadPhotos.Cancel")}
             </button>
             <button
               type="submit"
@@ -273,9 +244,9 @@ function UploadGalleryDlg({ open, onClose, focus }: any) {
               { isLoading ? (
                 <>
                   <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"/>
-                  Saving...
+                  {t("UploadPhotos.Saving")}
                 </>
-              ) : ("Save")
+              ) : (t("UploadPhotos.Save"))
               }
             </button>
           </div>

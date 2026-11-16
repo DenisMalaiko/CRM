@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { format } from "date-fns";
+import { useTranslation } from "react-i18next";
 import {Download, Trash2, ImagePlay, PenBox, WandSparkles} from "lucide-react";
 import { toast } from "react-toastify";
 
@@ -26,6 +28,7 @@ import { showError } from "../../../../../../../../utils/showError";
 import { useParams } from "react-router-dom";
 
 function Photos({ photos }: { photos: any[] }) {
+  const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const { businessId } = useParams<{ businessId: string }>();
 
@@ -50,7 +53,7 @@ function Photos({ photos }: { photos: any[] }) {
   if (photos.length === 0) {
     return (
       <div className="py-4 text-center text-slate-400 text-sm">
-        No photos
+        {t("GalleryPhotos.NoPhotos")}
       </div>
     )
   }
@@ -59,8 +62,8 @@ function Photos({ photos }: { photos: any[] }) {
     e.preventDefault();
 
     const ok = await confirm({
-      title: "Delete Gallery Photo",
-      message: "Are you sure you want to delete this photo?",
+      title: t("GalleryPhotos.DeleteTitle"),
+      message: t("GalleryPhotos.DeleteMessage"),
     });
 
     if(ok) {
@@ -213,12 +216,17 @@ function Photos({ photos }: { photos: any[] }) {
             <div className="px-6 py-4 flex flex-col justify-center items-start">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-400 text-left">
-                  Description
+                  {t("GalleryPhotos.Description")}
                 </p>
                 <p className="mt-1 text-slate-700 leading-relaxed text-left whitespace-pre-wrap">
                   {photo.description && photo.description || "—"}
                 </p>
               </div>
+              {photo.createdAt && (
+                <p className="text-xs text-slate-400 mt-3">
+                  {format(new Date(photo.createdAt), "dd.MM.yyyy, HH:mm")}
+                </p>
+              )}
             </div>
           </div>
         </div>

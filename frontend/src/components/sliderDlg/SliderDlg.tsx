@@ -42,8 +42,8 @@ function SliderDlg({ open, onClose, medias }: { open: boolean, onClose: () => vo
     prevArrow: <PrevArrow />,
     nextArrow: <NextArrow />,
     appendDots: (dots: any) => (
-      <div style={{ position: 'relative', bottom: '0px', marginTop: "20px" }} className="flex justify-center w-full px-2 pb-2 text-blue-600">
-        <span className="text-blue-600 font-bold">
+      <div style={{ position: 'absolute', bottom: '-40px', left: 0, right: 0 }} className="flex justify-center w-full px-2">
+        <span className="text-white/70 font-bold">
           {dots.findIndex((dot: any) => dot.props.className.includes('slick-active')) + 1}
           {' / '}
           {dots.length}
@@ -54,7 +54,6 @@ function SliderDlg({ open, onClose, medias }: { open: boolean, onClose: () => vo
   }
 
   const getMediaType = (url: string): "image" | "video" | "unknown" => {
-    console.log("GET MEDIA TYPE: ", url)
     const cleanUrl = url.split("?")[0]
     const ext = cleanUrl.split(".").pop()?.toLowerCase()
 
@@ -77,39 +76,36 @@ function SliderDlg({ open, onClose, medias }: { open: boolean, onClose: () => vo
   });
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50">
-      <div className="w-full rounded-2xl bg-white shadow-xl max-h-[90vh] max-w-[90vw] overflow-auto">
-        <div className="border-b p-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-slate-800">Gallery</h2>
-          <button
-            onClick={() => onClose()}
-            aria-label="Close"
-            className="bg-blue-600 rounded-full p-1.5 hover:bg-blue-700 cursor-pointer"
-          >
-            <X size={18} strokeWidth={2} color="white" />
-          </button>
-        </div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80" onClick={() => onClose()}>
+      <button
+        onClick={() => onClose()}
+        aria-label="Close"
+        className="absolute top-4 right-4 z-50 bg-white/20 hover:bg-white/30 rounded-full p-2 cursor-pointer transition"
+      >
+        <X size={20} strokeWidth={2} color="white" />
+      </button>
 
-        {/* Slider */}
+      <div className="relative w-[70vw] h-[70vh]" onClick={(e) => e.stopPropagation()}>
         <Slider {...settings}>
           {normalizedMedia?.length > 0 &&
             normalizedMedia.map((media, index) =>
               media.isVideo ? (
-                <video
-                  key={index}
-                  src={media.url}
-                  controls
-                  autoPlay
-                  className="h-full w-auto max-h-[80vh]"
-                  style={{ width: "auto !important" }}
-                />
+                <div key={index} className="h-[70vh]" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <video
+                    src={media.url}
+                    controls
+                    autoPlay
+                    className="max-w-full max-h-[70vh]"
+                  />
+                </div>
               ) : (
-                <img
-                  key={index}
-                  src={media.url ?? media.thumbnail}
-                  alt="image"
-                  className="w-full h-full max-h-[80vh] object-contain"
-                />
+                <div key={index} className="h-[70vh]" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <img
+                    src={media.url ?? media.thumbnail}
+                    alt="image"
+                    className="max-w-full max-h-[70vh] object-contain"
+                  />
+                </div>
               )
             )}
         </Slider>

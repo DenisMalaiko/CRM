@@ -290,8 +290,48 @@
     "Posts": "Дописи",
     "Stories": "Історії",
     "Gallery": "Галерея",
-    "Design": "Дизайн",
+    "Decorations": "Декорації",
+    "Design": "Дизайн система",
     "AIPhoto": "AI-фото"
+  },
+  "GalleryPhotos": {
+    "DeleteTitle": "Видалити фото",
+    "DeleteMessage": "Ви впевнені, що хочете видалити це фото?",
+    "NoPhotos": "Немає фото",
+    "Description": "Опис"
+  },
+  "PhotoEdit": {
+    "Title": "Редагувати фото",
+    "Description": "Опис",
+    "Cancel": "Скасувати",
+    "Save": "Зберегти"
+  },
+  "EditPhotoDlg": {
+    "Title": "Редагувати фото",
+    "Prompt": "Промпт",
+    "PromptPlaceholder": "Введіть промпт...",
+    "Cancel": "Скасувати",
+    "RevertOriginal": "Повернути оригінал",
+    "RevertPrevious": "Повернути попередню",
+    "Reverting": "Повернення...",
+    "Edit": "Редагувати",
+    "Editing": "Редагування..."
+  },
+  "UploadPhotos": {
+    "Title": "Завантажити фото",
+    "Type": "Тип",
+    "DragDrop": "Перетягніть фото сюди",
+    "OrClick": "або натисніть для вибору",
+    "Cancel": "Скасувати",
+    "Save": "Зберегти",
+    "Saving": "Збереження...",
+    "UploadButton": "Завантажити фото"
+  },
+  "GalleryPage": {
+    "Title": "Галерея"
+  },
+  "DecorationsPage": {
+    "Title": "Декорації"
   },
   "CalendarPage": {
     "title": "Календар",

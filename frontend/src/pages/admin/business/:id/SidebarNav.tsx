@@ -70,6 +70,7 @@ export function SidebarNav() {
       icon: Layers,
       tabs: [
         { id: "gallery", title: t('BusinessSidebar.Gallery') },
+        { id: "decorations", title: t('BusinessSidebar.Decorations') },
         { id: "designSystem", title: t('BusinessSidebar.Design') },
         { id: "aiPhoto", title: t('BusinessSidebar.AIPhoto') },
       ],

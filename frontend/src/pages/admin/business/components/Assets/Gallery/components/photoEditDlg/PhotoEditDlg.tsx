@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from "react-i18next";
 import { X } from "lucide-react";
 import { TGalleryPhotoUpdate } from "../../../../../../../../models/Gallery";
-import { GalleryType } from "../../../../../../../../enum/GalleryType";
 
 type Props = {
   open: boolean;
@@ -11,8 +11,8 @@ type Props = {
 };
 
 function PhotoEditDlg({open, photo, onClose, onSave }: Props) {
+  const { t } = useTranslation();
   const [value, setValue] = useState<TGalleryPhotoUpdate>(photo);
-  const TypeList = Object.values(GalleryType);
 
   useEffect(() => {
     if (open) {
@@ -33,7 +33,7 @@ function PhotoEditDlg({open, photo, onClose, onSave }: Props) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50">
       <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl max-h-[90vh] overflow-auto">
         <div className="border-b p-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-slate-800">Add Description</h2>
+          <h2 className="text-lg font-semibold text-slate-800">{t("PhotoEdit.Title")}</h2>
 
           <button
             onClick={() => onClose()}
@@ -47,31 +47,10 @@ function PhotoEditDlg({open, photo, onClose, onSave }: Props) {
         {/* Text */}
         <div className="p-6">
 
-          {/* Type */}
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-slate-700 text-left">
-              Type
-            </label>
-
-            <select
-              name="type"
-              value={value.type}
-              onChange={(e) => updateField("type", e.target.value)}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
-            >
-              {TypeList.map((type) => (
-                <option key={type} value={type}>
-                  {type}
-                </option>
-              ))}
-            </select>
-          </div>
-
-
           {/* Description */}
           <div className="mb-4">
             <label className="block text-sm font-medium text-slate-700 text-left">
-              Description
+              {t("PhotoEdit.Description")}
             </label>
 
             <textarea
@@ -82,15 +61,6 @@ function PhotoEditDlg({open, photo, onClose, onSave }: Props) {
             />
           </div>
 
-          {/* Active */}
-          <div className="mb-4 flex items-center gap-2">
-            <input
-              type="checkbox"
-              checked={value.isActive}
-              onChange={(e) => updateField("isActive", e.target.checked)}
-            />
-            <label className="text-sm text-slate-700">Active</label>
-          </div>
         </div>
 
         {/* Actions */}
@@ -99,13 +69,13 @@ function PhotoEditDlg({open, photo, onClose, onSave }: Props) {
             onClick={() => onClose()}
             className="px-4 py-2 rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-50"
           >
-            Cancel
+            {t("PhotoEdit.Cancel")}
           </button>
           <button
             onClick={() => onSave(value)}
             className="px-4 py-2 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700"
           >
-            Save
+            {t("PhotoEdit.Save")}
           </button>
         </div>
       </div>

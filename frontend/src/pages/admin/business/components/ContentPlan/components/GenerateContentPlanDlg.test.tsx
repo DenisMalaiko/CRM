@@ -94,11 +94,21 @@ jest.mock('../../../../../../utils/showError', () => ({
   showError: jest.fn(),
 }));
 
+jest.mock('../../Assets/Gallery/components/selectGalleryDlg/SelectGalleryDlg', () => ({
+  SelectGalleryDlg: ({ onSelect }: { onSelect: (photos: unknown[]) => void; selectedIds: string[]; focus: null }) => (
+    <div data-testid="select-gallery-dlg">
+      <button onClick={() => onSelect([])}>Select Photos</button>
+    </div>
+  ),
+}));
+
 const mockHandleChange = jest.fn();
 let mockForm = {
   productsIds: [] as string[],
   audiencesIds: [] as string[],
   ideasIds: [] as string[],
+  photosIds: [] as string[],
+  defaultPhotosIds: [] as string[],
 };
 
 jest.mock('../../../../../../hooks/useForm', () => ({
@@ -163,5 +173,12 @@ describe('GenerateContentPlanDlg', () => {
 
     userEvent.click(screen.getByRole('button', { name: /cancel/i }));
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  // ── SelectGalleryDlg integration ───────────────────────────────────────────
+
+  it('renders the SelectGalleryDlg photo picker', () => {
+    renderDialog();
+    expect(screen.getByTestId('select-gallery-dlg')).toBeInTheDocument();
   });
 });

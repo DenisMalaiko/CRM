@@ -290,8 +290,48 @@
     "Posts": "Posts",
     "Stories": "Stories",
     "Gallery": "Gallery",
-    "Design": "Design",
+    "Decorations": "Decorations",
+    "Design": "Design System",
     "AIPhoto": "AI Photo"
+  },
+  "GalleryPhotos": {
+    "DeleteTitle": "Delete Photo",
+    "DeleteMessage": "Are you sure you want to delete this photo?",
+    "NoPhotos": "No photos",
+    "Description": "Description"
+  },
+  "PhotoEdit": {
+    "Title": "Edit Photo",
+    "Description": "Description",
+    "Cancel": "Cancel",
+    "Save": "Save"
+  },
+  "EditPhotoDlg": {
+    "Title": "Edit Photo",
+    "Prompt": "Prompt",
+    "PromptPlaceholder": "Enter prompt...",
+    "Cancel": "Cancel",
+    "RevertOriginal": "Revert to original",
+    "RevertPrevious": "Revert to previous",
+    "Reverting": "Reverting...",
+    "Edit": "Edit",
+    "Editing": "Editing..."
+  },
+  "UploadPhotos": {
+    "Title": "Upload Photos",
+    "Type": "Type",
+    "DragDrop": "Drag & drop your photos here",
+    "OrClick": "or click to browse",
+    "Cancel": "Cancel",
+    "Save": "Save",
+    "Saving": "Saving...",
+    "UploadButton": "Upload Photo"
+  },
+  "GalleryPage": {
+    "Title": "Gallery"
+  },
+  "DecorationsPage": {
+    "Title": "Decorations"
   },
   "CalendarPage": {
     "title": "Calendar",
