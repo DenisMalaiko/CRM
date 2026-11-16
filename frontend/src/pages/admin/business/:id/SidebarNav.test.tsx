@@ -28,6 +28,7 @@ jest.mock('react-i18next', () => ({
         'BusinessSidebar.Posts': 'Posts',
         'BusinessSidebar.Stories': 'Stories',
         'BusinessSidebar.Gallery': 'Gallery',
+        'BusinessSidebar.Decorations': 'Decorations',
         'BusinessSidebar.Design': 'Design',
         'BusinessSidebar.AIPhoto': 'AI Photo',
       };
@@ -107,6 +108,13 @@ describe('SidebarNav', () => {
 
   it('auto-expands the "Gallery" group when the route contains "/gallery"', () => {
     renderAt('/gallery');
+
+    const galleryButton = screen.getByRole('button', { name: /^gallery$/i });
+    expect(getAccordion(galleryButton)).toHaveClass('grid-rows-[1fr]');
+  });
+
+  it('auto-expands the "Gallery" group when the route contains "/decorations"', () => {
+    renderAt('/decorations');
 
     const galleryButton = screen.getByRole('button', { name: /^gallery$/i });
     expect(getAccordion(galleryButton)).toHaveClass('grid-rows-[1fr]');
@@ -232,6 +240,15 @@ describe('SidebarNav', () => {
     expect(screen.getByRole('link', { name: /^content plan$/i })).toHaveAttribute('href', '/contentPlan');
     expect(screen.getByRole('link', { name: /^posts$/i })).toHaveAttribute('href', '/posts');
     expect(screen.getByRole('link', { name: /^stories$/i })).toHaveAttribute('href', '/stories');
+  });
+
+  it('renders "Gallery" tab NavLinks with correct paths including decorations', () => {
+    renderAt('/gallery');
+
+    expect(screen.getByRole('link', { name: /^gallery$/i })).toHaveAttribute('href', '/gallery');
+    expect(screen.getByRole('link', { name: /^decorations$/i })).toHaveAttribute('href', '/decorations');
+    expect(screen.getByRole('link', { name: /^design$/i })).toHaveAttribute('href', '/designSystem');
+    expect(screen.getByRole('link', { name: /^ai photo$/i })).toHaveAttribute('href', '/aiPhoto');
   });
 
   // ── Active NavLink styling ─────────────────────────────────────────────────

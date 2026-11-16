@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { X } from "lucide-react";
 import { useParams } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -28,6 +28,7 @@ import { useGetCalendarificHolidaysQuery } from "../../../../../../store/calenda
 
 // Components
 import Select from "react-select";
+import { SelectGalleryDlg } from "../../Assets/Gallery/components/selectGalleryDlg/SelectGalleryDlg";
 
 // Models
 import { ApiResponse } from "../../../../../../models/ApiResponse";
@@ -37,6 +38,7 @@ import { TAudience } from "../../../../../../models/Audience";
 import { TIdea } from "../../../../../../models/Idea";
 import { TIdeaAI } from "../../../../../../models/IdeaAI";
 import { TCalendarificHoliday } from "../../../../../../models/CalendarificHoliday";
+import { TGalleryPhoto } from "../../../../../../models/Gallery";
 
 // Constants
 import { getMarketingDatesForYear } from "../../../../../../const/MarketingDates";
@@ -81,10 +83,12 @@ export function GenerateContentPlanDlg({ open, onClose }: Props) {
   const [selectedHoliday, setSelectedHoliday] = useState<{ name: string; nameKey?: string; date: string } | null>(null);
   const [viewDate, setViewDate] = useState<Date>(new Date());
 
-  const { form, handleChange } = useForm({
+  const { form, handleChange, setForm } = useForm({
     productsIds: [] as string[],
     audiencesIds: [] as string[],
     ideasIds: [] as string[],
+    photosIds: [] as string[],
+    defaultPhotosIds: [] as string[],
   });
 
   useEffect(() => {
@@ -178,6 +182,17 @@ export function GenerateContentPlanDlg({ open, onClose }: Props) {
     return map;
   }, [allHolidays]);
 
+  const selectedPhotoIds = useMemo(
+    () => [...form.photosIds, ...form.defaultPhotosIds],
+    [form.photosIds, form.defaultPhotosIds]
+  );
+
+  const handlePhotosSelect = useCallback((selectedPhotos: TGalleryPhoto[]) => {
+    const businessIds = selectedPhotos.filter(p => !p.isDefault).map(p => p.id);
+    const defaultIds = selectedPhotos.filter(p => p.isDefault).map(p => p.id);
+    setForm(prev => ({ ...prev, photosIds: businessIds, defaultPhotosIds: defaultIds }));
+  }, [setForm]);
+
   if (!open) return null;
   if (!businessId) return null;
 
@@ -238,6 +253,8 @@ export function GenerateContentPlanDlg({ open, onClose }: Props) {
           productsIds: form.productsIds,
           audiencesIds: form.audiencesIds,
           ideasIds: form.ideasIds,
+          photosIds: form.photosIds,
+          defaultPhotosIds: form.defaultPhotosIds,
         };
       } else {
         if (!selectedHoliday) {
@@ -251,6 +268,8 @@ export function GenerateContentPlanDlg({ open, onClose }: Props) {
           audiencesIds: form.audiencesIds,
           holidayName: selectedHoliday.name,
           holidayDate: selectedHoliday.date,
+          photosIds: form.photosIds,
+          defaultPhotosIds: form.defaultPhotosIds,
         };
       }
 
@@ -565,6 +584,12 @@ export function GenerateContentPlanDlg({ open, onClose }: Props) {
               </div>
             </div>
           )}
+
+          <SelectGalleryDlg
+            focus={null}
+            selectedIds={selectedPhotoIds}
+            onSelect={handlePhotosSelect}
+          />
 
           <div className="flex justify-end gap-3 pt-4">
             <button

@@ -89,15 +89,17 @@ export function SelectGalleryDlg({ onSelect, selectedIds, focus }: Props) {
     ...(focus === BusinessProfileFocus.GeneratePosts ? [{ type: GalleryType.Post, label: 'Templates for Posts', photos: postPhotos }] : []),
     ...(focus === BusinessProfileFocus.GenerateStories ? [{ type: GalleryType.Story, label: 'Templates for Stories', photos: storyPhotos }] : []),
     { type: GalleryType.Decoration, label: 'Decorations', photos: decorationPhotos },
-  ];
+  ].filter(cat => cat.photos.length > 0);
 
   const activeCategoryPhotos = activeCategory ?
     allPhotos.filter((p: TGalleryPhoto) => p.type === activeCategory)
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     : [];
-  console.log("PHOTOS ", activeCategoryPhotos);
+
 
   const activeCategoryLabel = visibleCategories.find(c => c.type === activeCategory)?.label ?? '';
+
+  if (visibleCategories.length === 0) return null;
 
   return (
     <div>

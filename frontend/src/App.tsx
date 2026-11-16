@@ -44,6 +44,7 @@ import Competitors from "./pages/admin/business/components/Competitors/List/Comp
 import Competitor from "./pages/admin/business/components/Competitors/List/:id/Competitor";
 import CompetitorsDashboard from "./pages/admin/business/components/Competitors/Dashboard/CompetitorsDashboard";
 import Gallery from "./pages/admin/business/components/Assets/Gallery/Gallery";
+import Decorations from "./pages/admin/business/components/Assets/Gallery/Decorations";
 import DesignSystem from "./pages/admin/business/components/Assets/Gallery/DesignSystem";
 import FacebookPostsIdeas from "./pages/admin/business/components/Competitors/Ideas/FacebookPostsIdeas";
 import InstagramIdeas from "./pages/admin/business/components/Competitors/Ideas/InstagramIdeas";
@@ -146,6 +147,7 @@ function App() {
             <Route path="stories" element={<Stories />} />
             <Route path="prompts" element={<Prompts />} />
             <Route path="gallery" element={<Gallery />} />
+            <Route path="decorations" element={<Decorations />} />
             <Route path="designSystem" element={<DesignSystem />} />
 
             {/*Competitors*/}

@@ -17,6 +17,8 @@ export type TContentPlanGenerate = {
   ideasIds?: string[];
   holidayName?: string;
   holidayDate?: string;
+  photosIds?: string[];
+  defaultPhotosIds?: string[];
 };
 
 export type TContentPlanUpdate = {
