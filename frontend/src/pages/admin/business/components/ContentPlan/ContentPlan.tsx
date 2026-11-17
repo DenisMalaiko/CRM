@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { Eye, Copy, Search } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 // Hooks
 import { usePagination } from "../../../../../hooks/usePagination";
@@ -31,16 +32,8 @@ import { toDate } from "../../../../../utils/toDate";
 import { ApiResponse } from "../../../../../models/ApiResponse";
 import { TContentPlan } from "../../../../../models/ContentPlan";
 
-const COLUMNS = [
-  { name: "Title", key: "title" },
-  { name: "Description", key: "description" },
-  { name: "Status", key: "status" },
-  { name: "Mode", key: "mode" },
-  { name: "Created At", key: "createdAt" },
-  { name: "Actions", key: "actions" },
-];
-
 function ContentPlan() {
+  const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const { businessId } = useParams<{ businessId: string }>();
   const navigate = useNavigate();
@@ -126,8 +119,8 @@ function ContentPlan() {
     e.preventDefault();
 
     const ok = await confirm({
-      title: "Delete Content Plan",
-      message: "Are you sure you want to delete this content plan?",
+      title: t("ContentPlan.deleteTitle"),
+      message: t("ContentPlan.deleteMessage"),
     });
 
     if (ok) {
@@ -164,7 +157,7 @@ function ContentPlan() {
       <div className="rounded-2xl bg-white shadow border border-slate-200 mb-5">
         <section>
           <div className="border-b p-4 flex items-center justify-between">
-            <h2 className="text-lg text-left font-semibold text-slate-800">Content Plan</h2>
+            <h2 className="text-lg text-left font-semibold text-slate-800">{t("ContentPlan.heading")}</h2>
 
             <div className="flex items-center gap-3">
               <div className="relative">
@@ -173,7 +166,7 @@ function ContentPlan() {
                   type="text"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search..."
+                  placeholder={t("ContentPlan.searchPlaceholder")}
                   className="pl-9 pr-3 py-2 text-sm rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none w-60"
                 />
               </div>
@@ -182,7 +175,7 @@ function ContentPlan() {
                 onClick={() => setOpen(true)}
                 className="px-4 py-2 rounded-lg bg-blue-600 text-white flex items-center gap-2 justify-center"
               >
-                Generate
+                {t("ContentPlan.generate")}
               </button>
             </div>
           </div>
@@ -194,33 +187,33 @@ function ContentPlan() {
               <thead className="bg-slate-50">
                 <tr>
                   <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide cursor-pointer select-none text-slate-600 text-left">
-                    Title
+                    {t("ContentPlan.title")}
                   </th>
 
                   <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide cursor-pointer select-none text-slate-600 text-left">
-                    Description
+                    {t("ContentPlan.description")}
                   </th>
 
                   <th
                     onClick={() => onSort('status')}
                     className="px-4 py-3 text-xs font-semibold uppercase tracking-wide cursor-pointer select-none text-slate-600 text-left text-nowrap"
                   >
-                    Status {sortKey === 'status' ? (sortDir === 'desc' ? '↓' : '↑') : ''}
+                    {t("General.status")} {sortKey === 'status' ? (sortDir === 'desc' ? '↓' : '↑') : ''}
                   </th>
 
                   <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide cursor-pointer select-none text-slate-600 text-left">
-                    Mode
+                    {t("ContentPlan.mode")}
                   </th>
 
                   <th
                     onClick={() => onSort('createdAt')}
                     className="px-4 py-3 text-xs font-semibold uppercase tracking-wide cursor-pointer select-none text-slate-600 text-left text-nowrap"
                   >
-                    Created At {sortKey === 'createdAt' ? (sortDir === 'desc' ? '↓' : '↑') : ''}
+                    {t("ContentPlan.createdAt")} {sortKey === 'createdAt' ? (sortDir === 'desc' ? '↓' : '↑') : ''}
                   </th>
 
                   <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide cursor-pointer select-none text-slate-600 text-left">
-                    Actions
+                    {t("General.actions")}
                   </th>
                 </tr>
               </thead>
@@ -229,10 +222,10 @@ function ContentPlan() {
                 {paginatedItems && paginatedItems?.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={COLUMNS.length}
+                      colSpan={6}
                       className="py-6 text-center text-slate-400"
                     >
-                      No data
+                      {t("General.noData")}
                     </td>
                   </tr>
                 ) : (

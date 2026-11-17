@@ -171,7 +171,7 @@ export function ContentPlanPosts() {
   function handleExportXLSX() {
     if (!posts.length) return;
 
-    const headers = ["Day", "Date", "Funnel Stage", "Format", "Content Type", "Topic", "Marketing Goal", "Title", "Hook", "Thesis", "CTA", "Design Reference"];
+    const headers = [t("ContentPlanPosts.Day"), t("ContentPlanPosts.Date"), t("ContentPlanPosts.FunnelStage"), t("ContentPlanPosts.Format"), t("ContentPlanPosts.ContentType"), t("ContentPlanPosts.Topic"), t("ContentPlanPosts.MarketingGoal"), t("ContentPlanPosts.Title"), t("ContentPlanPosts.Hook"), t("ContentPlanPosts.Thesis"), t("ContentPlanPosts.CTA"), t("ContentPlanPosts.DesignReference")];
     const esc = (v: string) => String(v ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
     const headerRow = headers.map((h) => `<th style="font-weight:bold;background-color:#f1f5f9;">${esc(h)}</th>`).join("");
@@ -218,7 +218,7 @@ export function ContentPlanPosts() {
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 cursor-pointer"
             >
               <Download size={16} />
-              Export Excel
+              {t("ContentPlanPosts.ExportExcel")}
             </button>
           )}
         </div>

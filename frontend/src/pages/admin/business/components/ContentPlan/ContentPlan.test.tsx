@@ -7,6 +7,28 @@ import { TContentPlan } from '../../../../../models/ContentPlan';
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
 
+jest.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key: string) => {
+      const map: Record<string, string> = {
+        'ContentPlan.heading': 'Content Plan',
+        'ContentPlan.searchPlaceholder': 'Search...',
+        'ContentPlan.generate': 'Generate',
+        'ContentPlan.title': 'Title',
+        'ContentPlan.description': 'Description',
+        'ContentPlan.mode': 'Mode',
+        'ContentPlan.createdAt': 'Created At',
+        'ContentPlan.deleteTitle': 'Delete Content Plan',
+        'ContentPlan.deleteMessage': 'Are you sure you want to delete this content plan?',
+        'General.status': 'Status',
+        'General.actions': 'Actions',
+        'General.noData': 'No data',
+      };
+      return map[key] ?? key;
+    },
+  }),
+}));
+
 jest.mock('react-toastify', () => ({
   toast: { success: jest.fn(), error: jest.fn() },
 }));
@@ -52,7 +74,7 @@ jest.mock('../../../../../store/contentPlan/contentPlanSlice', () => ({
 
 jest.mock('./components/GenerateContentPlanDlg', () => ({
   __esModule: true,
-  default: ({ open, onClose }: { open: boolean; onClose: () => void }) =>
+  GenerateContentPlanDlg: ({ open, onClose }: { open: boolean; onClose: () => void }) =>
     open ? <div role="dialog" aria-label="Generate Content Plan"><button onClick={onClose}>Close Generate</button></div> : null,
 }));
 
@@ -99,6 +121,10 @@ function makePlan(overrides: Partial<TContentPlan> = {}): TContentPlan {
     status: ContentPlanStatus.Draft,
     mode: 'manual',
     createdAt: new Date('2024-01-15'),
+    products: [],
+    audiences: [],
+    ideas: [],
+    ideasAI: [],
     ...overrides,
   };
 }

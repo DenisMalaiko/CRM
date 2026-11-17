@@ -7,6 +7,25 @@ import { TContentPlan } from '../../../../../../models/ContentPlan';
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
 
+jest.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key: string) => {
+      const map: Record<string, string> = {
+        'ContentPlan.editTitle': 'Edit Content Plan',
+        'ContentPlan.title': 'Title',
+        'ContentPlan.titlePlaceholder': 'Content plan title',
+        'ContentPlan.description': 'Description',
+        'ContentPlan.descriptionPlaceholder': 'Content plan description',
+        'General.status': 'Status',
+        'General.cancel': 'Cancel',
+        'General.save': 'Save',
+        'General.saving': 'Saving...',
+      };
+      return map[key] ?? key;
+    },
+  }),
+}));
+
 jest.mock('react-toastify', () => ({
   toast: { success: jest.fn(), error: jest.fn() },
 }));
@@ -49,6 +68,10 @@ function makePlan(overrides: Partial<TContentPlan> = {}): TContentPlan {
     status: ContentPlanStatus.Draft,
     mode: 'manual',
     createdAt: new Date('2024-01-01'),
+    products: [],
+    audiences: [],
+    ideas: [],
+    ideasAI: [],
     ...overrides,
   };
 }

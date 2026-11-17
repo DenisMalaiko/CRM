@@ -5,6 +5,31 @@ import { GenerateContentPlanDlg } from './GenerateContentPlanDlg';
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
 
+jest.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key: string) => {
+      const map: Record<string, string> = {
+        'ContentPlan.generateTitle': 'Generate Content Plan',
+        'ContentPlan.generate': 'Generate',
+        'ContentPlan.generating': 'Generating...',
+        'ContentPlan.products': 'Products',
+        'ContentPlan.audiences': 'Audiences',
+        'ContentPlan.idea': 'Idea',
+        'ContentPlan.marketingCalendar': 'Marketing Calendar',
+        'ContentPlan.ideas': 'Ideas',
+        'ContentPlan.badgeAI': 'AI',
+        'ContentPlan.badgeCompetitor': 'Competitor',
+        'ContentPlan.selectHoliday': 'Select a holiday',
+        'ContentPlan.selectHolidayPlaceholder': 'Select a holiday...',
+        'ContentPlan.selectHolidayError': 'Please select a holiday from the calendar',
+        'General.cancel': 'Cancel',
+      };
+      return map[key] ?? key;
+    },
+    i18n: { language: 'en' },
+  }),
+}));
+
 jest.mock('react-toastify', () => ({
   toast: { success: jest.fn(), error: jest.fn() },
 }));

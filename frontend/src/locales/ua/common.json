@@ -356,6 +356,33 @@
       "blackFriday": "Чорна п'ятниця"
     }
   },
+  "ContentPlan": {
+    "heading": "Контент-план",
+    "searchPlaceholder": "Пошук...",
+    "generate": "Згенерувати",
+    "title": "Назва",
+    "description": "Опис",
+    "mode": "Режим",
+    "createdAt": "Дата створення",
+    "deleteTitle": "Видалити контент-план",
+    "deleteMessage": "Ви впевнені, що хочете видалити цей контент-план?",
+    "editTitle": "Редагувати контент-план",
+    "titlePlaceholder": "Назва контент-плану",
+    "descriptionPlaceholder": "Опис контент-плану",
+    "generateTitle": "Згенерувати контент-план",
+    "products": "Продукти",
+    "audiences": "Аудиторії",
+    "idea": "Ідея",
+    "marketingCalendar": "Маркетинговий календар",
+    "ideas": "Ідеї",
+    "badgeAI": "AI",
+    "badgeCompetitor": "Конкурент",
+    "selectHoliday": "Оберіть свято",
+    "selectHolidayPlaceholder": "Оберіть свято...",
+    "selectHolidayError": "Будь ласка, оберіть свято з календаря",
+    "generating": "Генерація...",
+    "holiday": "Свято"
+  },
   "ContentPlanPosts": {
     "BackButton": "Назад",
     "Title_page": "Пости контент-плану",
@@ -377,7 +404,9 @@
     "FunnelStage": "Етап воронки",
     "Topic": "Тема",
     "Error": "Не вдалося завантажити пости.",
-    "Empty": "Постів не знайдено."
+    "Empty": "Постів не знайдено.",
+    "ExportExcel": "Експорт Excel",
+    "Date": "Дата"
   },
   "DesignSystem": {
     "title": "Дизайн система",

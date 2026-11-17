@@ -74,9 +74,9 @@ function UpdateContentPlanPostDlg({ open, onClose, post, contentPlanId }: Props)
     let value: string;
 
     if (isNativeEvent(arg)) {
-      const t = arg.target as HTMLInputElement;
-      name = t.name;
-      value = t.value;
+      const target = arg.target as HTMLInputElement;
+      name = target.name;
+      value = target.value;
     } else {
       name = arg.name;
       value = arg.value;
@@ -251,7 +251,7 @@ function UpdateContentPlanPostDlg({ open, onClose, post, contentPlanId }: Props)
               disabled={isLoading}
               className="px-4 py-2 rounded-lg border text-slate-600 border-slate-300 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Cancel
+              {t("General.cancel")}
             </button>
 
             <button
@@ -262,10 +262,10 @@ function UpdateContentPlanPostDlg({ open, onClose, post, contentPlanId }: Props)
               {isLoading ? (
                 <>
                   <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                  Saving...
+                  {t("General.saving")}
                 </>
               ) : (
-                "Save"
+                t("General.save")
               )}
             </button>
           </div>

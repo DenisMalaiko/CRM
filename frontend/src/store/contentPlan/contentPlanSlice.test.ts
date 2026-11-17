@@ -10,6 +10,10 @@ const makePlan = (overrides: Partial<TContentPlan> = {}): TContentPlan => ({
   status: ContentPlanStatus.Draft,
   mode: 'manual',
   createdAt: new Date('2024-01-01'),
+  products: [],
+  audiences: [],
+  ideas: [],
+  ideasAI: [],
   ...overrides,
 });
 

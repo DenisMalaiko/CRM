@@ -22,7 +22,21 @@ const CONTENT_PLAN_LIST_SELECT = {
   description: true,
   status: true,
   mode: true,
+  holidayName: true,
+  holidayDate: true,
   createdAt: true,
+  products: {
+    select: { product: { select: { id: true, name: true } } },
+  },
+  audiences: {
+    select: { targetAudience: { select: { id: true, name: true } } },
+  },
+  ideas: {
+    select: { idea: { select: { id: true, title: true } } },
+  },
+  ideasAI: {
+    select: { ideaAI: { select: { id: true, title: true } } },
+  },
 } as const;
 
 @Injectable()
@@ -61,6 +75,8 @@ export class ContentPlanService {
     let audiences: TargetAudience[] = [];
     let products: Product[] = [];
     let ideas: (Idea | IdeaAI)[] = [];
+    let manualIdeas: Idea[] = [];
+    let aiIdeas: IdeaAI[] = [];
 
     if (dto.audiencesIds?.length) {
       audiences = await this.prisma.targetAudience.findMany({
@@ -75,10 +91,10 @@ export class ContentPlanService {
     }
 
     if (dto.ideasIds?.length) {
-      const manualIdeas = await this.prisma.idea.findMany({
+      manualIdeas = await this.prisma.idea.findMany({
         where: { id: { in: dto.ideasIds }, businessId },
       });
-      const aiIdeas = await this.prisma.ideaAI.findMany({
+      aiIdeas = await this.prisma.ideaAI.findMany({
         where: { id: { in: dto.ideasIds }, businessId },
       });
       ideas = [...manualIdeas, ...aiIdeas];
@@ -101,6 +117,20 @@ export class ContentPlanService {
         description: result.description,
         mode: dto.mode,
         postsJson: result.posts,
+        holidayName: dto.holidayName ?? null,
+        holidayDate: dto.holidayDate ?? null,
+        products: products.length
+          ? { create: products.map((p) => ({ productId: p.id })) }
+          : undefined,
+        audiences: audiences.length
+          ? { create: audiences.map((a) => ({ targetAudienceId: a.id })) }
+          : undefined,
+        ideas: manualIdeas.length
+          ? { create: manualIdeas.map((i) => ({ ideaId: i.id })) }
+          : undefined,
+        ideasAI: aiIdeas.length
+          ? { create: aiIdeas.map((i) => ({ ideaAIId: i.id })) }
+          : undefined,
       },
       select: CONTENT_PLAN_LIST_SELECT,
     });

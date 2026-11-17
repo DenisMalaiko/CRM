@@ -46,8 +46,25 @@ const mockQueryState = {
   isError: false,
 };
 
+const mockDeleteContentPlanPost = jest.fn();
+const mockGetContentPlanPosts = jest.fn();
+
 jest.mock('../../../../../store/contentPlan/contentPlanApi', () => ({
   useGetContentPlanPostsQuery: () => mockQueryState,
+  useDeleteContentPlanPostMutation: () => [mockDeleteContentPlanPost, { isLoading: false }],
+  useLazyGetContentPlanPostsQuery: () => [mockGetContentPlanPosts, { isLoading: false }],
+}));
+
+jest.mock('../../../../../components/confirmDlg/ConfirmDlg', () => ({
+  confirm: jest.fn(),
+}));
+
+jest.mock('../../../../../utils/showError', () => ({
+  showError: jest.fn(),
+}));
+
+jest.mock('react-toastify', () => ({
+  toast: { success: jest.fn(), error: jest.fn() },
 }));
 
 jest.mock('../../../../../store/hooks', () => ({
@@ -83,6 +100,8 @@ describe('ContentPlanPosts', () => {
     mockQueryState.data = { data: [] };
     mockQueryState.isFetching = false;
     mockQueryState.isError = false;
+    mockDeleteContentPlanPost.mockReturnValue({ unwrap: () => Promise.resolve({ data: {}, message: 'Deleted' }) });
+    mockGetContentPlanPosts.mockReturnValue({ unwrap: () => Promise.resolve({ data: [] }) });
   });
 
   // ── Loading state ──────────────────────────────────────────────────────────

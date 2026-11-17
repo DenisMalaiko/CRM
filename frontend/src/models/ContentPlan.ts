@@ -1,13 +1,29 @@
 import { ContentPlanStatus } from "../enum/ContentPlanStatus";
 
+export type TContentPlanRelated = {
+  id: string;
+  name: string;
+};
+
+export type TContentPlanRelatedIdea = {
+  id: string;
+  title: string;
+};
+
 export type TContentPlan = {
   id: string;
   businessId: string;
   title: string;
   description: string;
   status: ContentPlanStatus;
-  mode: "manual";
+  mode: "manual" | "marketing_calendar";
+  holidayName?: string | null;
+  holidayDate?: string | null;
   createdAt: Date;
+  products: { product: TContentPlanRelated }[];
+  audiences: { targetAudience: TContentPlanRelated }[];
+  ideas: { idea: TContentPlanRelatedIdea }[];
+  ideasAI: { ideaAI: TContentPlanRelatedIdea }[];
 };
 
 export type TContentPlanGenerate = {
