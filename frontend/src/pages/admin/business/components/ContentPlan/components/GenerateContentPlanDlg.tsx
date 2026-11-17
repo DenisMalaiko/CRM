@@ -258,7 +258,7 @@ export function GenerateContentPlanDlg({ open, onClose }: Props) {
         };
       } else {
         if (!selectedHoliday) {
-          toast.error("Please select a holiday from the calendar");
+          toast.error(t("ContentPlan.selectHolidayError"));
           setIsLoading(false);
           return;
         }
@@ -298,7 +298,7 @@ export function GenerateContentPlanDlg({ open, onClose }: Props) {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50">
       <div className="w-full max-w-3xl rounded-2xl bg-white shadow-xl relative">
         <div className="border-b p-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-slate-800">Generate Content Plan</h2>
+          <h2 className="text-lg font-semibold text-slate-800">{t("ContentPlan.generateTitle")}</h2>
           <button
             onClick={onClose}
             aria-label="Close"
@@ -312,7 +312,7 @@ export function GenerateContentPlanDlg({ open, onClose }: Props) {
           <div className="relative z-20 space-y-3">
             {!!productsOptions.length && (
               <div>
-                <label className="block text-sm font-medium text-slate-700 text-left mb-1">Products</label>
+                <label className="block text-sm font-medium text-slate-700 text-left mb-1">{t("ContentPlan.products")}</label>
                 <Select<SelectOption>
                   options={productsOptions}
                   value={productsOptions.find(
@@ -331,7 +331,7 @@ export function GenerateContentPlanDlg({ open, onClose }: Props) {
 
             {!!audiencesOptions.length && (
               <div>
-                <label className="block text-sm font-medium text-slate-700 text-left mb-1">Audiences</label>
+                <label className="block text-sm font-medium text-slate-700 text-left mb-1">{t("ContentPlan.audiences")}</label>
                 <Select<SelectOption, true>
                   isMulti
                   options={audiencesOptions}
@@ -360,7 +360,7 @@ export function GenerateContentPlanDlg({ open, onClose }: Props) {
                 onChange={() => setSourceMode("idea")}
                 className="w-4 h-4 accent-blue-600"
               />
-              <span className="text-sm font-medium text-slate-700">Idea</span>
+              <span className="text-sm font-medium text-slate-700">{t("ContentPlan.idea")}</span>
             </label>
             <label className="flex items-center gap-2 cursor-pointer">
               <input
@@ -371,13 +371,13 @@ export function GenerateContentPlanDlg({ open, onClose }: Props) {
                 onChange={() => setSourceMode("marketing_calendar")}
                 className="w-4 h-4 accent-blue-600"
               />
-              <span className="text-sm font-medium text-slate-700">Marketing Calendar</span>
+              <span className="text-sm font-medium text-slate-700">{t("ContentPlan.marketingCalendar")}</span>
             </label>
           </div>
 
           {sourceMode === "idea" && !!allIdeasOptions.length && (
             <div className="relative z-20">
-              <label className="block text-sm font-medium text-slate-700 text-left mb-1">Ideas</label>
+              <label className="block text-sm font-medium text-slate-700 text-left mb-1">{t("ContentPlan.ideas")}</label>
               <Select<IdeaSelectOption, true>
                 isMulti
                 options={allIdeasOptions}
@@ -400,7 +400,7 @@ export function GenerateContentPlanDlg({ open, onClose }: Props) {
                           : "bg-blue-100 text-blue-700"
                       }`}
                     >
-                      {option.type === "ai" ? "AI" : "Competitor"}
+                      {option.type === "ai" ? t("ContentPlan.badgeAI") : t("ContentPlan.badgeCompetitor")}
                     </span>
                   </div>
                 )}
@@ -564,7 +564,7 @@ export function GenerateContentPlanDlg({ open, onClose }: Props) {
                 }
               `}</style>
               <label className="block text-sm font-medium text-slate-700 text-left mb-1">
-                Select a holiday
+                {t("ContentPlan.selectHoliday")}
               </label>
               <div className="w-full">
                 <DatePicker
@@ -575,7 +575,7 @@ export function GenerateContentPlanDlg({ open, onClose }: Props) {
                   dayClassName={getDayClassName}
                   renderDayContents={renderDayContents}
                   value={selectedHoliday ? `${selectedHoliday.nameKey ? t(selectedHoliday.nameKey) : selectedHoliday.name} (${selectedHoliday.date})` : ""}
-                  placeholderText="Select a holiday..."
+                  placeholderText={t("ContentPlan.selectHolidayPlaceholder")}
                   wrapperClassName="w-full"
                   popperClassName="content-plan-datepicker"
                   className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer"
@@ -602,7 +602,7 @@ export function GenerateContentPlanDlg({ open, onClose }: Props) {
                 disabled:opacity-50 disabled:cursor-not-allowed
               "
             >
-              Cancel
+              {t("General.cancel")}
             </button>
 
             <button
@@ -613,9 +613,9 @@ export function GenerateContentPlanDlg({ open, onClose }: Props) {
               {isLoading ? (
                 <>
                   <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                  Generating...
+                  {t("ContentPlan.generating")}
                 </>
-              ) : ("Generate")}
+              ) : (t("ContentPlan.generate"))}
             </button>
           </div>
         </form>

@@ -2,6 +2,7 @@ import React, { useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 // Hooks
 import { useForm } from "../../../../../../hooks/useForm";
@@ -34,6 +35,7 @@ type Props = {
 };
 
 function UpdateContentPlanDlg({ open, onClose, contentPlan }: Props) {
+  const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const { businessId } = useParams<{ businessId: string }>();
   const StatusList = Object.values(ContentPlanStatus);
@@ -95,9 +97,9 @@ function UpdateContentPlanDlg({ open, onClose, contentPlan }: Props) {
     let value: string;
 
     if (isNativeEvent(arg)) {
-      const t = arg.target as HTMLInputElement;
-      name = t.name;
-      value = t.type === "checkbox" ? String(t.checked) : t.value;
+      const target = arg.target as HTMLInputElement;
+      name = target.name;
+      value = target.type === "checkbox" ? String(target.checked) : target.value;
     } else {
       name = arg.name;
       value = arg.value;
@@ -107,11 +109,23 @@ function UpdateContentPlanDlg({ open, onClose, contentPlan }: Props) {
     validateField(name as keyof typeof form, value, form);
   };
 
+  const isIdeaMode = contentPlan?.mode !== "marketing_calendar";
+
+  const productsValue = contentPlan?.products?.map((p) => p.product.name).join(", ") ?? "";
+  const audiencesValue = contentPlan?.audiences?.map((a) => a.targetAudience.name).join(", ") ?? "";
+  const ideasValue = [
+    ...(contentPlan?.ideas?.map((i) => i.idea.title) ?? []),
+    ...(contentPlan?.ideasAI?.map((i) => i.ideaAI.title) ?? []),
+  ].join(", ");
+  const holidayValue = contentPlan?.holidayName
+    ? `${contentPlan.holidayName}${contentPlan.holidayDate ? ` (${contentPlan.holidayDate})` : ""}`
+    : "";
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50">
-      <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl">
-        <div className="border-b p-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-slate-800">Edit Content Plan</h2>
+      <div className="w-full max-w-3xl rounded-2xl bg-white shadow-xl max-h-[90vh] flex flex-col">
+        <div className="border-b p-4 flex items-center justify-between flex-shrink-0">
+          <h2 className="text-lg font-semibold text-slate-800">{t("ContentPlan.editTitle")}</h2>
           <button
             onClick={onClose}
             aria-label="Close"
@@ -121,10 +135,75 @@ function UpdateContentPlanDlg({ open, onClose, contentPlan }: Props) {
           </button>
         </div>
 
-        <form className="p-6 space-y-4" onSubmit={update}>
+        <form className="p-6 space-y-4 overflow-y-auto" onSubmit={update}>
+          <div className="space-y-3 pb-4 border-b border-slate-200">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 text-left">{t("ContentPlan.products")}</label>
+              <input
+                type="text"
+                value={productsValue}
+                disabled
+                className="mt-1 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 text-left">{t("ContentPlan.audiences")}</label>
+              <input
+                type="text"
+                value={audiencesValue}
+                disabled
+                className="mt-1 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-500"
+              />
+            </div>
+
+            <div className="flex items-center gap-6">
+              <label className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  checked={isIdeaMode}
+                  disabled
+                  className="w-4 h-4 accent-blue-600"
+                />
+                <span className="text-sm font-medium text-slate-500">{t("ContentPlan.idea")}</span>
+              </label>
+              <label className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  checked={!isIdeaMode}
+                  disabled
+                  className="w-4 h-4 accent-blue-600"
+                />
+                <span className="text-sm font-medium text-slate-500">{t("ContentPlan.marketingCalendar")}</span>
+              </label>
+            </div>
+
+            {isIdeaMode ? (
+              <div>
+                <label className="block text-sm font-medium text-slate-700 text-left">{t("ContentPlan.ideas")}</label>
+                <input
+                  type="text"
+                  value={ideasValue}
+                  disabled
+                  className="mt-1 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-500"
+                />
+              </div>
+            ) : (
+              <div>
+                <label className="block text-sm font-medium text-slate-700 text-left">{t("ContentPlan.holiday")}</label>
+                <input
+                  type="text"
+                  value={holidayValue}
+                  disabled
+                  className="mt-1 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-500"
+                />
+              </div>
+            )}
+          </div>
+
           <div>
             <div className="flex items-center gap-2 justify-between">
-              <label className="block text-sm font-medium text-slate-700 text-left">Title</label>
+              <label className="block text-sm font-medium text-slate-700 text-left">{t("ContentPlan.title")}</label>
             </div>
 
             <textarea
@@ -133,7 +212,7 @@ function UpdateContentPlanDlg({ open, onClose, contentPlan }: Props) {
               onChange={onChange}
               rows={2}
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 resize-none"
-              placeholder="Content plan title"
+              placeholder={t("ContentPlan.titlePlaceholder")}
             />
 
             {errors.title && <p className="text-red-500 text-sm mt-2 text-left">{errors.title}</p>}
@@ -141,7 +220,7 @@ function UpdateContentPlanDlg({ open, onClose, contentPlan }: Props) {
 
           <div>
             <div className="flex items-center gap-2 justify-between">
-              <label className="block text-sm font-medium text-slate-700 text-left">Description</label>
+              <label className="block text-sm font-medium text-slate-700 text-left">{t("ContentPlan.description")}</label>
             </div>
 
             <textarea
@@ -150,7 +229,7 @@ function UpdateContentPlanDlg({ open, onClose, contentPlan }: Props) {
               onChange={onChange}
               rows={4}
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 resize-none"
-              placeholder="Content plan description"
+              placeholder={t("ContentPlan.descriptionPlaceholder")}
             />
 
             {errors.description && <p className="text-red-500 text-sm mt-2 text-left">{errors.description}</p>}
@@ -158,7 +237,7 @@ function UpdateContentPlanDlg({ open, onClose, contentPlan }: Props) {
 
           <div>
             <div className="flex items-center gap-2 justify-between">
-              <label className="block text-sm font-medium text-slate-700 text-left">Status</label>
+              <label className="block text-sm font-medium text-slate-700 text-left">{t("General.status")}</label>
             </div>
 
             <select
@@ -186,7 +265,7 @@ function UpdateContentPlanDlg({ open, onClose, contentPlan }: Props) {
                 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-slate-white
               "
             >
-              Cancel
+              {t("General.cancel")}
             </button>
 
             <button
@@ -197,9 +276,9 @@ function UpdateContentPlanDlg({ open, onClose, contentPlan }: Props) {
               {isLoading ? (
                 <>
                   <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                  Saving...
+                  {t("General.saving")}
                 </>
-              ) : ("Save")}
+              ) : (t("General.save"))}
             </button>
           </div>
         </form>

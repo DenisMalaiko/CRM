@@ -356,6 +356,33 @@
       "blackFriday": "Black Friday"
     }
   },
+  "ContentPlan": {
+    "heading": "Content Plan",
+    "searchPlaceholder": "Search...",
+    "generate": "Generate",
+    "title": "Title",
+    "description": "Description",
+    "mode": "Mode",
+    "createdAt": "Created At",
+    "deleteTitle": "Delete Content Plan",
+    "deleteMessage": "Are you sure you want to delete this content plan?",
+    "editTitle": "Edit Content Plan",
+    "titlePlaceholder": "Content plan title",
+    "descriptionPlaceholder": "Content plan description",
+    "generateTitle": "Generate Content Plan",
+    "products": "Products",
+    "audiences": "Audiences",
+    "idea": "Idea",
+    "marketingCalendar": "Marketing Calendar",
+    "ideas": "Ideas",
+    "badgeAI": "AI",
+    "badgeCompetitor": "Competitor",
+    "selectHoliday": "Select a holiday",
+    "selectHolidayPlaceholder": "Select a holiday...",
+    "selectHolidayError": "Please select a holiday from the calendar",
+    "generating": "Generating...",
+    "holiday": "Holiday"
+  },
   "ContentPlanPosts": {
     "BackButton": "Back",
     "Title_page": "Content Plan Posts",
@@ -377,7 +404,9 @@
     "FunnelStage": "Funnel Stage",
     "Topic": "Topic",
     "Error": "Failed to load posts.",
-    "Empty": "No posts found."
+    "Empty": "No posts found.",
+    "ExportExcel": "Export Excel",
+    "Date": "Date"
   },
   "DesignSystem": {
     "title": "Design System",

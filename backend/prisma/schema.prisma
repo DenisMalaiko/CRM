@@ -155,9 +155,10 @@ model Product {
   isActive     Boolean                  @default(true)
   images       String[]
   embedding    Unsupported("vector")?
-  aiArtifacts  AIArtifactProduct[]
-  profiles     BusinessProfileProduct[]
-  business     Business                 @relation(fields: [businessId], references: [id])
+  aiArtifacts   AIArtifactProduct[]
+  profiles      BusinessProfileProduct[]
+  contentPlans  ContentPlanProduct[]
+  business      Business                 @relation(fields: [businessId], references: [id])
 }
 
 model TargetAudience {
@@ -172,7 +173,8 @@ model TargetAudience {
   businessId  String
   name        String
   interests   String[]
-  profiles    BusinessProfileTargetAudience[]
+  profiles     BusinessProfileTargetAudience[]
+  contentPlans ContentPlanTargetAudience[]
 }
 
 model Platform {
@@ -493,6 +495,7 @@ model Idea {
   status           IdeaStatus     @default(New)
 
   profiles       BusinessProfileIdea[]
+  contentPlans   ContentPlanIdea[]
   business       Business              @relation(fields: [businessId], references: [id])
   competitorPost CompetitorPost?       @relation(fields: [competitorPostId], references: [id], onDelete: Cascade)
   competitorReel CompetitorReel?       @relation(fields: [competitorReelId], references: [id], onDelete: Cascade)
@@ -518,8 +521,9 @@ model IdeaAI {
   nicheNewsId String?
   nicheNews   NicheNews? @relation(fields: [nicheNewsId], references: [id], onDelete: SetNull)
 
-  profiles BusinessProfileIdeaAI[]
-  business Business                @relation(fields: [businessId], references: [id])
+  profiles     BusinessProfileIdeaAI[]
+  contentPlans ContentPlanIdeaAI[]
+  business     Business                @relation(fields: [businessId], references: [id])
 }
 
 model Trend {
@@ -692,12 +696,54 @@ model ContentPlan {
   status      ContentPlanStatus @default(Draft)
   mode        ContentPlanMode
   postsJson   Json
+  holidayName String?
+  holidayDate String?
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @default(now()) @updatedAt
 
-  business Business @relation(fields: [businessId], references: [id])
+  business  Business                    @relation(fields: [businessId], references: [id])
+  products  ContentPlanProduct[]
+  audiences ContentPlanTargetAudience[]
+  ideas     ContentPlanIdea[]
+  ideasAI   ContentPlanIdeaAI[]
 
   @@index([businessId])
+}
+
+model ContentPlanProduct {
+  contentPlanId String
+  productId     String
+  contentPlan   ContentPlan @relation(fields: [contentPlanId], references: [id], onDelete: Cascade)
+  product       Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@id([contentPlanId, productId])
+}
+
+model ContentPlanTargetAudience {
+  contentPlanId    String
+  targetAudienceId String
+  contentPlan      ContentPlan    @relation(fields: [contentPlanId], references: [id], onDelete: Cascade)
+  targetAudience   TargetAudience @relation(fields: [targetAudienceId], references: [id], onDelete: Cascade)
+
+  @@id([contentPlanId, targetAudienceId])
+}
+
+model ContentPlanIdea {
+  contentPlanId String
+  ideaId        String
+  contentPlan   ContentPlan @relation(fields: [contentPlanId], references: [id], onDelete: Cascade)
+  idea          Idea        @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+
+  @@id([contentPlanId, ideaId])
+}
+
+model ContentPlanIdeaAI {
+  contentPlanId String
+  ideaAIId      String
+  contentPlan   ContentPlan @relation(fields: [contentPlanId], references: [id], onDelete: Cascade)
+  ideaAI        IdeaAI      @relation(fields: [ideaAIId], references: [id], onDelete: Cascade)
+
+  @@id([contentPlanId, ideaAIId])
 }
 
 model CalendarificHoliday {

@@ -1,5 +1,56 @@
 # Task Log
 
+## Зв'язки ContentPlan з Products/Audiences/Ideas — 2026-11-17
+
+### Plan
+- [x] **Backend: Prisma schema** — додати pivot-таблиці (ContentPlanProduct, ContentPlanTargetAudience, ContentPlanIdea, ContentPlanIdeaAI) + поля holidayName/holidayDate + зворотні зв'язки
+- [x] **Backend: Міграція** — `prisma db push` (prisma migrate blocked by pre-existing checksum issue)
+- [x] **Backend: Сервіс** — оновити CONTENT_PLAN_LIST_SELECT (include зв'язки), оновити generateContentPlan (зберігати зв'язки при створенні)
+- [x] **Frontend: Модель** — оновити TContentPlan (додати mode, products, audiences, ideas, ideasAI, holidayName, holidayDate)
+- [x] **Frontend: UpdateContentPlanDlg** — додати disabled поля (mode, products, audiences, ideas, holiday)
+- [x] **Frontend: Переклади** — додати ключ "holiday" в обидва locale файли
+- [x] Quality gate: reviewer + tester
+
+### Notes
+- Існуючі плани матимуть порожні масиви [] та null holiday — backward compatible
+- Pivot-таблиці з onDelete: Cascade — видалення плану або продукту каскадно чистить pivot
+- ideasIds з фронтенду містить ID з обох таблиць (Idea + IdeaAI) — бекенд вже розділяє їх при fetch
+- Disabled поля відображаються умовно — якщо даних немає, поле сховане
+- `prisma generate` потребує ручного запуску (EACCES на node_modules/.prisma)
+
+### Review
+- [x] reviewer → PASS (виправлено optional chaining на .map() для backward compat)
+- [x] tester → 92/92 тестів pass
+- [x] Регресій не знайдено
+- Summary: Додано зв'язки ContentPlan → Products/Audiences/Ideas/IdeaAI в Prisma + disabled поля в Edit діалозі
+
+---
+
+## Переклади Content Plan — 2026-11-17
+
+### Plan
+- [x] Додати секцію `ContentPlan` в `en/common.json` та `ua/common.json` (~25 ключів)
+- [x] Додати `ExportExcel` та `Date` до існуючої секції `ContentPlanPosts`
+- [x] Оновити `ContentPlan.tsx` — додати `useTranslation`, замінити 12 хардкоджених рядків
+- [x] Оновити `GenerateContentPlanDlg.tsx` — замінити 14 хардкоджених рядків
+- [x] Оновити `UpdateContentPlanDlg.tsx` — додати `useTranslation`, замінити 9 рядків
+- [x] Оновити `ContentPlanPosts.tsx` — Excel headers через `t()`, кнопка Export
+- [x] Оновити `UpdateContentPlanPostDlg.tsx` — замінити Cancel/Save/Saving на `General.*`
+- [x] Quality gate: reviewer + tester
+
+### Notes
+- Перевикористано існуючі ключі `General.*` (save, cancel, status, actions, noData)
+- Пагінація (Page/Prev/Next) залишена англійською — правило проєкту
+- TOFU/MOFU/BOFU та POST/REELS/STORIES не перекладаємо — enum-значення для бекенду
+- Виправлено shadowing `const t` → `const target` в UpdateContentPlanPostDlg та UpdateContentPlanDlg
+- Видалено мертвий масив `COLUMNS` з ContentPlan.tsx
+
+### Review
+- [x] reviewer → PASS (цикл 2: shadowing fix + dead code removal)
+- [x] tester → 92/92 тестів pass
+- [x] Регресій не знайдено
+- Summary: Додано i18n переклади (EN/UA) до всіх компонентів Content Plan
+
 ## Active Design System — 2026-11-13
 
 ### Plan
