@@ -18,6 +18,7 @@ import {
 import { AiService } from '../ai/ai.service';
 import { AiPost } from '../ai/entities/aiPost.entity';
 import { AiReplicateService, Photo } from '../ai/ai-replicate.service';
+import { getPhotoDescriptionText } from '../gallery/utils/photo-description.util';
 
 @Injectable()
 export class AiArtifactService {
@@ -141,10 +142,10 @@ export class AiArtifactService {
       manualPromptOverride: body.form.manualPromptOverride ?? false,
     };
 
-    const galleryPhotosUrls = [...defaultPhotos, ...photos].map((photo) => ({
+    const galleryPhotosUrls: Photo[] = [...defaultPhotos, ...photos].map((photo) => ({
       type: photo.type,
       url: photo.url ? this.storageUrlService.getPublicUrl(photo.url) : '',
-      description: photo.description ?? null,
+      description: getPhotoDescriptionText(photo.description, 'en'),
     }));
 
     let generatedContent: AiPost[];

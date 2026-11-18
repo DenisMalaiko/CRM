@@ -1,5 +1,36 @@
 # Task Log
 
+## Мультимовні описи фото (description String? → Json?) — 2026-11-18
+
+### Plan
+- [x] Backend: утиліта `getPhotoDescriptionText()` для витягування тексту за мовою
+- [x] Backend: Prisma schema — `description String?` → `Json?` (3 таблиці)
+- [x] Backend: SQL міграція — конвертація існуючих даних
+- [x] Backend: entity types — `string | null` → `Record<string, string> | null`
+- [x] Backend: DTOs — `@IsString()` → `@IsObject()`
+- [x] Backend: gallery.service.ts — 8+ змін для Json сумісності + background AI генерація описів
+- [x] Backend: aiArtifact.service.ts + profiles.service.ts — `getPhotoDescriptionText()` для AI
+- [x] Backend: виправлення 21 TS помилки (Prisma JsonValue ↔ Record cast)
+- [x] Frontend: `TPhotoDescription = Record<string, string>` + утиліти
+- [x] Frontend: Photos.tsx, PhotoEditDlg, DefaultGalleryPhotos, EditDefaultGalleryPhotoDlg
+- [x] Frontend: тести оновлені (SelectGalleryDlg, AiPhoto)
+- [x] Quality gate: reviewer + tester
+
+### Notes
+- English description завжди використовується для AI генерації зображень
+- UI показує опис мовою користувача через `useLanguage` hook
+- При завантаженні фото AI генерує описи англійською + мовою бізнесу (fire-and-forget)
+- Prisma `Json?` повертає `JsonValue` — потрібен explicit cast на boundary
+- Для запису null в Json поле використовується `Prisma.DbNull`
+
+### Review
+- [x] reviewer → PASS (1 critical fix: `alt={photo.description}` → `getDescriptionText()`)
+- [x] tester → all migration tests pass, 13 нових тестів для photoDescription.ts
+- [x] Регресій не знайдено
+- Summary: Поле description мігровано з String на Json для підтримки мультимовних описів фото. AI генерує описи при завантаженні, UI показує мовою користувача.
+
+---
+
 ## Зв'язки ContentPlan з Products/Audiences/Ideas — 2026-11-17
 
 ### Plan

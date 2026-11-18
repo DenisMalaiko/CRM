@@ -432,7 +432,7 @@ model GalleryPhoto {
   type        GalleryPhotoType
   isActive    Boolean
   url         String
-  description String?
+  description Json?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
@@ -452,7 +452,7 @@ model GalleryPhotoHistory {
   type        GalleryPhotoType
   isActive    Boolean
   url         String
-  description String?
+  description Json?
 
   changeType GalleryPhotoChangeType
   changedAt  DateTime               @default(now())
@@ -467,7 +467,7 @@ model DefaultPhoto {
   type        GalleryPhotoType
   isActive    Boolean                       @default(true)
   url         String
-  description String?
+  description Json?
   createdAt   DateTime                      @default(now())
   profiles    BusinessProfileDefaultPhoto[]
 }

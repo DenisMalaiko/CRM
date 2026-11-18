@@ -34,7 +34,6 @@ export type TContentPlanGenerate = {
   holidayName?: string;
   holidayDate?: string;
   photosIds?: string[];
-  defaultPhotosIds?: string[];
 };
 
 export type TContentPlanUpdate = {

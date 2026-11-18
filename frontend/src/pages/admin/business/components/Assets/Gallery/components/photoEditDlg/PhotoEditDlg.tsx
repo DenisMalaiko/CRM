@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from "react-i18next";
 import { X } from "lucide-react";
 import { TGalleryPhotoUpdate } from "../../../../../../../../models/Gallery";
+import { getDescriptionText, setDescriptionText } from "../../../../../../../../utils/photoDescription";
+import { useLanguage } from "../../../../../../../../hooks/useLanguage";
 
 type Props = {
   open: boolean;
@@ -12,6 +14,7 @@ type Props = {
 
 function PhotoEditDlg({open, photo, onClose, onSave }: Props) {
   const { t } = useTranslation();
+  const { currentLanguage } = useLanguage();
   const [value, setValue] = useState<TGalleryPhotoUpdate>(photo);
 
   useEffect(() => {
@@ -54,8 +57,8 @@ function PhotoEditDlg({open, photo, onClose, onSave }: Props) {
             </label>
 
             <textarea
-              value={value.description}
-              onChange={(e) => updateField("description", e.target.value)}
+              value={getDescriptionText(value.description, currentLanguage)}
+              onChange={(e) => setValue(prev => ({ ...prev, description: setDescriptionText(prev.description, currentLanguage, e.target.value) }))}
               className="w-full mt-1 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
               rows={3}
             />

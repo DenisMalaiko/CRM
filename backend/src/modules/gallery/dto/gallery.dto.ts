@@ -1,4 +1,4 @@
-import {IsBoolean, IsEnum, IsOptional, IsUUID, IsString, IsArray} from "class-validator";
+import {IsBoolean, IsEnum, IsOptional, IsUUID, IsString, IsArray, IsObject} from "class-validator";
 import { GalleryPhotoType } from "@prisma/client";
 
 export class GalleryPhotoBaseDto {
@@ -26,8 +26,8 @@ export class UpdateGalleryPhotoDto {
   isActive: boolean;
 
   @IsOptional()
-  @IsString()
-  description?: string;
+  @IsObject()
+  description?: Record<string, string>;
 }
 
 
@@ -49,8 +49,8 @@ export class DefaultUpdateGalleryPhotoDto {
   isActive: boolean;
 
   @IsOptional()
-  @IsString()
-  description?: string;
+  @IsObject()
+  description?: Record<string, string>;
 }
 
 export class AiGeneratedGalleryPhotoDto extends GalleryPhotoBaseDto {

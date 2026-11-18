@@ -46,6 +46,13 @@ jest.mock("../../../../../../components/sliderDlg/SliderDlg", () => ({
     open ? <div data-testid="slider-dlg" /> : null,
 }));
 
+// Mock EditPhotoDlg — prevents ESM parse error from artifactApi dependency chain
+jest.mock("../../../../../../components/editPhotoDlg/EditPhotoDlg", () => ({
+  __esModule: true,
+  default: ({ open }: { open: boolean }) =>
+    open ? <div data-testid="edit-photo-dlg" /> : null,
+}));
+
 // Mock CreateAiPhotoDlg
 jest.mock("./components/CreateAiPhotoDlg", () => ({
   CreateAiPhotoDlg: ({ open, onClose }: { open: boolean; onClose: () => void }) =>
@@ -71,7 +78,7 @@ const mockPhotos: TGalleryPhoto[] = [
     id: "photo-1",
     businessId: "test-123",
     url: "https://example.com/photo1.jpg",
-    description: "a sunset over the ocean",
+    description: { en: "a sunset over the ocean" },
     type: GalleryType.AI,
     isActive: true,
     createdAt: new Date("2024-01-15"),
@@ -80,7 +87,7 @@ const mockPhotos: TGalleryPhoto[] = [
     id: "photo-2",
     businessId: "test-123",
     url: "https://example.com/photo2.jpg",
-    description: "a mountain landscape",
+    description: { en: "a mountain landscape" },
     type: GalleryType.AI,
     isActive: true,
     createdAt: new Date("2024-01-16"),
@@ -130,8 +137,9 @@ describe("AiPhotos component", () => {
       mockAiPhotos = mockPhotos;
       renderComponent();
       const images = screen.getAllByRole("img");
-      expect(images[0]).toHaveAttribute("src", mockPhotos[0].url);
-      expect(images[1]).toHaveAttribute("src", mockPhotos[1].url);
+      // Photos are sorted newest-first, so photo-2 (Jan 16) appears before photo-1 (Jan 15)
+      expect(images[0]).toHaveAttribute("src", mockPhotos[1].url);
+      expect(images[1]).toHaveAttribute("src", mockPhotos[0].url);
     });
 
     test("does not show empty state message when photos exist", () => {

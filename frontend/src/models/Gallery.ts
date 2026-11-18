@@ -1,5 +1,7 @@
 import { GalleryType } from "../enum/GalleryType";
 
+export type TPhotoDescription = Record<string, string>;
+
 export type TGalleryPhotoBase = {
   businessId: string;
   type: GalleryType;
@@ -9,7 +11,7 @@ export type TGalleryPhotoBase = {
 export type TGalleryPhoto = TGalleryPhotoBase & {
   id: string;
   url: string;
-  description: string;
+  description: TPhotoDescription;
   createdAt: Date;
   isDefault?: boolean;
 }
@@ -24,7 +26,7 @@ export type TGalleryPhotoPreview = {
 export type TGalleryPhotoUpdateForm = {
   isActive: boolean;
   type: GalleryType;
-  description: string;
+  description: TPhotoDescription;
 }
 
 export type TGalleryPhotoUpdate = TGalleryPhotoUpdateForm & {
@@ -42,7 +44,7 @@ export type TDefaultGalleryPhotoBase = {
 export type TDefaultGalleryPhoto = TDefaultGalleryPhotoBase & {
   id: string;
   url: string;
-  description: string;
+  description: TPhotoDescription;
   createdAt: Date;
 }
 
@@ -54,7 +56,7 @@ export type TDefaultGalleryPhotoPreview = {
 export type TDefaultGalleryPhotoUpdateForm = {
   isActive: boolean;
   type: GalleryType;
-  description: string;
+  description: TPhotoDescription;
 }
 
 export type TDefaultGalleryPhotoUpdate = TDefaultGalleryPhotoUpdateForm & {

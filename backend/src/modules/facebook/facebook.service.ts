@@ -92,8 +92,6 @@ export class FacebookService {
       },
     );
 
-    console.log('[POSTS] total items from Apify:', items.length);
-
     let postsImageCount = 0;
     let postsVideoCount = 0;
     let postsCarouselCount = 0;
@@ -116,11 +114,6 @@ export class FacebookService {
         Array.isArray(item.media) &&
         item.media.some((m: any) => m?.__typename === 'Video');
       const category = hasCarousel ? 'carousel' : hasVideo ? 'video' : 'image';
-      console.log('[POSTS] item:', {
-        postId: item.postId,
-        category,
-        mediaCount: item.media?.length ?? 0,
-      });
       if (hasCarousel) {
         postsCarouselCount++;
       } else if (hasVideo) {
@@ -325,30 +318,12 @@ export class FacebookService {
     }
     const activeAds = activeCollations.size;
     const activeAds30d = activeCollations30d.size;
-    console.log('[ADS] ===== ACTIVE COLLATIONS LIST =====');
     let idx = 1;
     for (const key of activeCollations) {
       const sample = items.find(
         (i) => (i.collation_id ?? i.ad_archive_id) === key,
       );
-      console.log(
-        `[ADS] #${idx++}: collation_key=${key}, collation_id=${sample?.collation_id}, ad_archive_id=${sample?.ad_archive_id}, collation_count=${sample?.collation_count}, title="${sample?.snapshot?.title?.substring(0, 60)}"`,
-      );
-    }
-    console.log('[ADS] ===================================');
-    console.log('[ADS] results:', {
-      activeAds,
-      activeAds30d,
-      adsVideoCount,
-      adsImageCount,
-      adsCarouselCount,
-      adsDcoCount,
-      adsCtaWebsite,
-      adsCtaDirectMessage,
-      adsCtaInstagramPage,
-      adsCtaProduct,
-      adsCtaMetaPage,
-    });
+    };
 
     const seenTexts = new Set<string>();
     const topAdTexts: Array<{ text: string; collationCount: number; url: string | null }> = [];
