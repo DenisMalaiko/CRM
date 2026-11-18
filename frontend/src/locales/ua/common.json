@@ -121,7 +121,9 @@
     "twitter": "Twitter",
     "tiktok": "TikTok",
     "youtube": "YouTube",
-    "telegram": "Telegram"
+    "telegram": "Telegram",
+    "showMore": "Показати більше",
+    "showLess": "Показати менше"
   },
   "Sidebar": {
     "dashboard": "Дашборд",
@@ -377,6 +379,7 @@
     "ideas": "Ідеї",
     "badgeAI": "AI",
     "badgeCompetitor": "Конкурент",
+    "badgeNew": "Нове",
     "selectHoliday": "Оберіть свято",
     "selectHolidayPlaceholder": "Оберіть свято...",
     "selectHolidayError": "Будь ласка, оберіть свято з календаря",

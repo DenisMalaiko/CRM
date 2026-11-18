@@ -52,7 +52,7 @@ const makePhoto = (id: string, type: GalleryType): TGalleryPhoto => ({
   type,
   businessId: 'biz-1',
   isActive: true,
-  description: '',
+  description: {},
   createdAt: new Date('2024-01-01'),
 });
 

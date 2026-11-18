@@ -1,5 +1,5 @@
-import {Injectable, InternalServerErrorException, NotFoundException, BadRequestException } from '@nestjs/common';
-import { GalleryPhotoType, GalleryPhotoChangeType } from "@prisma/client";
+import {Injectable, InternalServerErrorException, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
+import { GalleryPhotoType, GalleryPhotoChangeType, Prisma } from "@prisma/client";
 import { PrismaService } from "../../core/prisma/prisma.service";
 import { S3Service } from "../../core/s3/s3.service";
 import { AiService } from "../ai/ai.service";
@@ -15,6 +15,7 @@ import {
   TAIGalleryPhotoCreate,
 } from './entities/gallery.entity';
 import { StorageUrlService } from "../../core/storage/storage-url.service";
+import { getPhotoDescriptionText } from './utils/photo-description.util';
 
 
 @Injectable()
@@ -35,6 +36,7 @@ export class GalleryService {
       return {
         ...photo,
         url: photo.url ? this.storageUrlService.getPublicUrl(photo.url) : "",
+        description: photo.description as Record<string, string> | null,
       }
     })
   }
@@ -71,7 +73,7 @@ export class GalleryService {
               type: dto.type,
               isActive: dto.isActive,
               url: img.key,
-              description: '',
+              description: {},
             },
           });
 
@@ -82,16 +84,21 @@ export class GalleryService {
               type: photo.type,
               isActive: photo.isActive,
               url: photo.url,
-              description: photo.description,
+              description: photo.description ?? Prisma.DbNull,
               changeType: GalleryPhotoChangeType.Create,
             },
           });
 
-          created.push(photo);
+          created.push({
+            ...photo,
+            description: photo.description as Record<string, string> | null,
+          });
         }
 
         return created;
       });
+
+      this.generateDescriptionsInBackground(photos, files, dto.businessId);
 
       return photos;
     } catch (error) {
@@ -102,18 +109,69 @@ export class GalleryService {
     }
   }
 
+  private generateDescriptionsInBackground(
+    photos: TGalleryPhoto[],
+    files: Express.Multer.File[],
+    businessId: string,
+  ): void {
+    const logger = new Logger('GalleryService');
+
+    this.prisma.business
+      .findUnique({ where: { id: businessId }, select: { language: true } })
+      .then((business) => {
+        const businessLang = business?.language ?? 'en';
+
+        return Promise.allSettled(
+          photos.map(async (photo, index) => {
+            try {
+              const enDescription = await this.aiService.describeGalleryPhoto(
+                files[index].buffer,
+                files[index].mimetype,
+                'en',
+              );
+
+              const description: Record<string, string> = { en: enDescription };
+
+              if (businessLang !== 'en') {
+                const localDescription = await this.aiService.describeGalleryPhoto(
+                  files[index].buffer,
+                  files[index].mimetype,
+                  businessLang,
+                );
+                description[businessLang] = localDescription;
+              }
+
+              await this.prisma.galleryPhoto.updateMany({
+                where: { id: photo.id, description: { equals: {} } },
+                data: { description },
+              });
+            } catch (error) {
+              logger.error(
+                `Failed to generate AI description for photo ${photo.id}`,
+                error instanceof Error ? error.stack : error,
+              );
+            }
+          }),
+        );
+      })
+      .catch((error) => {
+        logger.error('Failed to fetch business language for photo descriptions', error);
+      });
+  }
+
   async updatePhoto(id: string, body: TGalleryPhotoUpdate): Promise<TGalleryPhoto>  {
     if (!id) throw new NotFoundException('Artifact ID is required');
 
     try {
-      return await this.prisma.galleryPhoto.update({
+      const updated = await this.prisma.galleryPhoto.update({
         where: {id},
         data: {
           type: body.type,
           isActive: body.isActive,
-          description: body.description,
+          description: (body.description ?? Prisma.DbNull) as Prisma.InputJsonValue,
         },
       });
+      return { ...updated, description: updated.description as Record<string, string> | null };
     } catch (err: any) {
       if (err.code === 'P2025') {
         throw new NotFoundException(`Artifact with ID ${id} not found`);
@@ -189,7 +247,7 @@ export class GalleryService {
     const galleryPhotosUrls = [photo].map((photo) => ({
       type: photo.type,
       url: photo.url ? this.storageUrlService.getPublicUrl(photo.url) : "",
-      description: photo.description ?? null,
+      description: getPhotoDescriptionText(photo.description, 'en'),
     }));
 
     const generatedPhoto = await this.aiService.generateAiPhoto(
@@ -213,7 +271,7 @@ export class GalleryService {
           type: updated.type,
           isActive: updated.isActive,
           url: updated.url,
-          description: updated.description,
+          description: updated.description ?? Prisma.DbNull,
           changeType: GalleryPhotoChangeType.Update,
         },
       });
@@ -286,7 +344,7 @@ export class GalleryService {
         data: {
           url: originalEntry.url,
           type: originalEntry.type,
-          description: originalEntry.description,
+          description: originalEntry.description ?? Prisma.DbNull,
           isActive: originalEntry.isActive,
         },
       });
@@ -366,7 +424,7 @@ export class GalleryService {
         data: {
           url: previousEntry.url,
           type: previousEntry.type,
-          description: previousEntry.description,
+          description: previousEntry.description ?? Prisma.DbNull,
           isActive: previousEntry.isActive,
         },
       });
@@ -397,6 +455,7 @@ export class GalleryService {
       return {
         ...photo,
         url: photo.url ? this.storageUrlService.getPublicUrl(photo.url) : "",
+        description: photo.description as Record<string, string> | null,
       }
     })
   }
@@ -424,7 +483,7 @@ export class GalleryService {
           type: dto.type,
           url: img.key,
           isActive: dto.isActive,
-          description: "",
+          description: {},
         })),
       });
     } catch (error) {
@@ -442,14 +501,15 @@ export class GalleryService {
     if (!id) throw new NotFoundException('Default photo ID is required');
 
     try {
-      return await this.prisma.defaultPhoto.update({
+      const updated = await this.prisma.defaultPhoto.update({
         where: {id},
         data: {
           type: body.type,
           isActive: body.isActive,
-          description: body.description,
+          description: (body.description ?? Prisma.DbNull) as Prisma.InputJsonValue,
         },
       });
+      return { ...updated, description: updated.description as Record<string, string> | null };
     } catch (err: any) {
       if (err.code === 'P2025') {
         throw new NotFoundException(`Default photo with ID ${id} not found`);
@@ -491,6 +551,7 @@ export class GalleryService {
       return {
         ...photo,
         url: photo.url ? this.storageUrlService.getPublicUrl(photo.url) : "",
+        description: photo.description as Record<string, string> | null,
       }
     })
   }
@@ -511,7 +572,7 @@ export class GalleryService {
     const galleryPhotosUrls = [...photos, ...defaultPhotos].map((photo) => ({
       type: photo.type,
       url: photo.url ? this.storageUrlService.getPublicUrl(photo.url) : "",
-      description: photo.description ?? null,
+      description: getPhotoDescriptionText(photo.description, 'en'),
     }));
 
     const generatedPhoto = await this.aiService.generateAiPhoto(id, body.prompt, galleryPhotosUrls, body.aspectRatio);
@@ -523,7 +584,7 @@ export class GalleryService {
           type: body.type,
           isActive: body.isActive,
           url: generatedPhoto,
-          description: '',
+          description: {},
         },
       });
 
@@ -534,7 +595,7 @@ export class GalleryService {
           type: photo.type,
           isActive: photo.isActive,
           url: photo.url,
-          description: photo.description,
+          description: photo.description ?? Prisma.DbNull,
           changeType: GalleryPhotoChangeType.Create,
         },
       });

@@ -14,14 +14,14 @@ export type TGalleryPhotoBase = {
 export type TGalleryPhoto = TGalleryPhotoBase & {
   id: string;
   url: string;
-  description?: string | null;
+  description?: Record<string, string> | null;
   createdAt: Date;
 }
 
 export type TGalleryPhotoUpdate = {
   type: GalleryPhotoType;
   isActive: boolean;
-  description?: string | null;
+  description?: Record<string, string> | null;
 }
 
 
@@ -34,13 +34,13 @@ export type TDefaultGalleryPhotoBase = {
 export type TDefaultGalleryPhoto = TDefaultGalleryPhotoBase & {
   id: string;
   url: string;
-  description?: string | null;
+  description?: Record<string, string> | null;
 }
 
 export type TDefaultGalleryPhotoUpdate = {
   type: GalleryPhotoType;
   isActive: boolean;
-  description?: string | null;
+  description?: Record<string, string> | null;
 }
 
 // AI Gallery Photo

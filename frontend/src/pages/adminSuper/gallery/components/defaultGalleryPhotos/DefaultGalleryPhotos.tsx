@@ -24,9 +24,12 @@ import { GalleryType } from "../../../../../enum/GalleryType";
 
 // Utils
 import { showError } from "../../../../../utils/showError";
+import { getDescriptionText } from "../../../../../utils/photoDescription";
+import { useLanguage } from "../../../../../hooks/useLanguage";
 import { TDefaultGalleryPhoto, TDefaultGalleryPhotoUpdate } from "../../../../../models/Gallery";
 
 function DefaultGalleryPhotos({ photos }: { photos: any[] }) {
+  const { currentLanguage } = useLanguage();
   const dispatch = useAppDispatch();
 
   const [ openSliderDlg, setOpenSliderDlg ] = useState<any>(null);
@@ -37,7 +40,7 @@ function DefaultGalleryPhotos({ photos }: { photos: any[] }) {
     id: "",
     type: GalleryType.Image,
     isActive: true,
-    description: ""
+    description: {}
   });
 
   const [ getPhotos ] = useLazyGetDefaultPhotosQuery();
@@ -139,7 +142,7 @@ function DefaultGalleryPhotos({ photos }: { photos: any[] }) {
           <img
             src={photo.url}
             className="w-full h-48 object-cover"
-            alt={photo.description}
+            alt={getDescriptionText(photo.description, currentLanguage)}
           />
 
           {/* Overlay */}
@@ -168,9 +171,9 @@ function DefaultGalleryPhotos({ photos }: { photos: any[] }) {
             </div>
 
 
-            {photo.description && (
+            {getDescriptionText(photo.description, currentLanguage) && (
               <p className="opacity-0 group-hover:opacity-100 transition duration-300 text-white text-sm mb-4 max-w-[80%] line-clamp-2">
-                {photo.description}
+                {getDescriptionText(photo.description, currentLanguage)}
               </p>
             )}
           </div>

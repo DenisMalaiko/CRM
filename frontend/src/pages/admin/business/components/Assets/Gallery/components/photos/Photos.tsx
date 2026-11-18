@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { format } from "date-fns";
 import { useTranslation } from "react-i18next";
 import {Download, Trash2, ImagePlay, PenBox, WandSparkles} from "lucide-react";
@@ -25,28 +25,39 @@ import { ContentType } from "../../../../../../../../enum/ContentType";
 
 // Utils
 import { showError } from "../../../../../../../../utils/showError";
+import { getDescriptionText } from "../../../../../../../../utils/photoDescription";
 import { useParams } from "react-router-dom";
+
+// Hooks
+import { useLanguage } from "../../../../../../../../hooks/useLanguage";
 
 function Photos({ photos }: { photos: any[] }) {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
+  const { currentLanguage } = useLanguage();
   const { businessId } = useParams<{ businessId: string }>();
 
   const [ openSliderDlg, setOpenSliderDlg ] = useState<any>(null);
   const [ selectedMedia, setSelectedMedia ] = useState<any>(null);
   const [ openEditPhotoDlg, setOpenEditPhotoDlg ] = useState<string | null>(null);
 
+  const [ expandedDescriptions, setExpandedDescriptions ] = useState<Record<string, boolean>>({});
+
   const [ openPhotoEditDlg, setOpenPhotoEditDlg ] = useState(false);
   const [ selectedPhoto, setSelectedPhoto ]  = useState({
     id: "",
     type: GalleryType.Image,
     isActive: false,
-    description: ""
+    description: {}
   });
 
   const [ getPhotos ] = useGetPhotosMutation();
   const [ updatePhoto ] = useUpdatePhotoMutation();
   const [ deletePhoto ] = useDeletePhotoMutation();
+
+  const toggleDescription = useCallback((id: string) => {
+    setExpandedDescriptions(prev => ({ ...prev, [id]: !prev[id] }));
+  }, []);
 
   if(!businessId) return null;
 
@@ -181,7 +192,7 @@ function Photos({ photos }: { photos: any[] }) {
             <img
               src={photo.url}
               className="w-auto h-auto max-w-full max-h-full"
-              alt={photo.description}
+              alt={getDescriptionText(photo.description, currentLanguage)}
             />
 
             {/* Overlay */}
@@ -211,23 +222,31 @@ function Photos({ photos }: { photos: any[] }) {
             </div>
           </div>
 
-          {/* Hook */}
-          <div>
-            <div className="px-6 py-4 flex flex-col justify-center items-start">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-slate-400 text-left">
-                  {t("GalleryPhotos.Description")}
+          {/* Description */}
+          <div className="px-6 py-4 flex flex-col justify-center items-start">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400 text-left">
+              {t("GalleryPhotos.Description")}
+            </p>
+            {getDescriptionText(photo.description, currentLanguage) ? (
+              <>
+                <p className={`mt-1 text-slate-700 leading-relaxed text-left whitespace-pre-wrap ${expandedDescriptions[photo.id] ? "" : "line-clamp-3"}`}>
+                  {getDescriptionText(photo.description, currentLanguage)}
                 </p>
-                <p className="mt-1 text-slate-700 leading-relaxed text-left whitespace-pre-wrap">
-                  {photo.description && photo.description || "—"}
-                </p>
-              </div>
-              {photo.createdAt && (
-                <p className="text-xs text-slate-400 mt-3">
-                  {format(new Date(photo.createdAt), "dd.MM.yyyy, HH:mm")}
-                </p>
-              )}
-            </div>
+                <button
+                  onClick={() => toggleDescription(photo.id)}
+                  className="mt-1 text-xs text-blue-600 hover:text-blue-700"
+                >
+                  {expandedDescriptions[photo.id] ? t("General.showLess") : t("General.showMore")}
+                </button>
+              </>
+            ) : (
+              <p className="mt-1 text-slate-700 leading-relaxed text-left">—</p>
+            )}
+            {photo.createdAt && (
+              <p className="text-xs text-slate-400 mt-3">
+                {format(new Date(photo.createdAt), "dd.MM.yyyy, HH:mm")}
+              </p>
+            )}
           </div>
         </div>
       ))}

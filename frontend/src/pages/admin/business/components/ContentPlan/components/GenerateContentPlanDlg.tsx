@@ -52,7 +52,7 @@ import { StylesConfig } from "react-select";
 import { IdeaStatus } from "../../../../../../enum/IdeaStatus";
 
 type SelectOption = { value: string; label: string };
-type IdeaSelectOption = SelectOption & { type: "manual" | "ai" };
+type IdeaSelectOption = SelectOption & { type: "manual" | "ai"; createdAt: Date; isNew: boolean };
 
 type Props = {
   open: boolean;
@@ -124,22 +124,29 @@ export function GenerateContentPlanDlg({ open, onClose }: Props) {
   );
 
   const allIdeasOptions = useMemo(() => {
+    const now = Date.now();
+    const DAY_MS = 24 * 60 * 60 * 1000;
+
     return [
       ...(ideas ?? [])
-        .filter((idea: TIdea) => idea.status === IdeaStatus.Planned || idea.status === IdeaStatus.Used)
+        .filter((idea: TIdea) => idea.status === IdeaStatus.New || idea.status === IdeaStatus.Planned || idea.status === IdeaStatus.Used)
         .map((idea: TIdea) => ({
           label: idea.title,
           value: idea.id,
           type: "manual" as const,
+          createdAt: new Date(idea.createdAt),
+          isNew: now - new Date(idea.createdAt).getTime() < DAY_MS,
         })),
       ...(ideasAi ?? [])
-        .filter((idea: TIdeaAI) => idea.status === IdeaStatus.Planned || idea.status === IdeaStatus.Used)
+        .filter((idea: TIdeaAI) => idea.status === IdeaStatus.New || idea.status === IdeaStatus.Planned || idea.status === IdeaStatus.Used)
         .map((idea: TIdeaAI) => ({
           label: idea.title,
           value: idea.id,
           type: "ai" as const,
+          createdAt: new Date(idea.createdAt),
+          isNew: now - new Date(idea.createdAt).getTime() < DAY_MS,
         })),
-    ];
+    ].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
   }, [ideas, ideasAi]);
 
   const viewYear = getYear(viewDate);
@@ -247,14 +254,15 @@ export function GenerateContentPlanDlg({ open, onClose }: Props) {
 
       let formData: TContentPlanGenerate;
 
+      const allPhotosIds = [...form.photosIds, ...form.defaultPhotosIds];
+
       if (sourceMode === "idea") {
         formData = {
           mode: "manual",
           productsIds: form.productsIds,
           audiencesIds: form.audiencesIds,
           ideasIds: form.ideasIds,
-          photosIds: form.photosIds,
-          defaultPhotosIds: form.defaultPhotosIds,
+          photosIds: allPhotosIds,
         };
       } else {
         if (!selectedHoliday) {
@@ -268,8 +276,7 @@ export function GenerateContentPlanDlg({ open, onClose }: Props) {
           audiencesIds: form.audiencesIds,
           holidayName: selectedHoliday.name,
           holidayDate: selectedHoliday.date,
-          photosIds: form.photosIds,
-          defaultPhotosIds: form.defaultPhotosIds,
+          photosIds: allPhotosIds,
         };
       }
 
@@ -309,7 +316,7 @@ export function GenerateContentPlanDlg({ open, onClose }: Props) {
         </div>
 
         <form className="p-6 space-y-4" onSubmit={generate}>
-          <div className="relative z-20 space-y-3">
+          <div className="relative z-30 space-y-3">
             {!!productsOptions.length && (
               <div>
                 <label className="block text-sm font-medium text-slate-700 text-left mb-1">{t("ContentPlan.products")}</label>
@@ -392,16 +399,23 @@ export function GenerateContentPlanDlg({ open, onClose }: Props) {
                 }
                 formatOptionLabel={(option) => (
                   <div className="flex items-center justify-between w-full gap-2">
-                    <span>{option.label}</span>
-                    <span
-                      className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
-                        option.type === "ai"
-                          ? "bg-purple-100 text-purple-700"
-                          : "bg-blue-100 text-blue-700"
-                      }`}
-                    >
-                      {option.type === "ai" ? t("ContentPlan.badgeAI") : t("ContentPlan.badgeCompetitor")}
-                    </span>
+                    <span className="truncate">{option.label}</span>
+                    <div className="flex items-center gap-1 shrink-0">
+                      {option.isNew && (
+                        <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-green-100 text-green-700">
+                          {t("ContentPlan.badgeNew")}
+                        </span>
+                      )}
+                      <span
+                        className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
+                          option.type === "ai"
+                            ? "bg-purple-100 text-purple-700"
+                            : "bg-blue-100 text-blue-700"
+                        }`}
+                      >
+                        {option.type === "ai" ? t("ContentPlan.badgeAI") : t("ContentPlan.badgeCompetitor")}
+                      </span>
+                    </div>
                   </div>
                 )}
                 styles={centeredSelectStyles as StylesConfig<IdeaSelectOption, true>}

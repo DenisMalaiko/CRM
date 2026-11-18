@@ -9,6 +9,7 @@ import { AiPost } from "../ai/entities/aiPost.entity";
 import { AIArtifactBase } from "../aiArtifact/entities/aiArtifact.entity";
 import { StorageUrlService } from "../../core/storage/storage-url.service";
 import { ProfileFocus } from "@prisma/client"
+import { getPhotoDescriptionText } from "../gallery/utils/photo-description.util";
 
 @Injectable()
 export class ProfilesService {
@@ -46,8 +47,14 @@ export class ProfilesService {
       ideas: profile?.ideas.map(p => p.idea),
       ideasAi: profile?.ideasAI.map(p => p.ideaAI),
       prompts: profile?.prompts.map(p => p.prompt),
-      photos: profile?.photos.map(p => p.galleryPhoto),
-      defaultPhotos: profile?.defaultPhotos.map(p => p.defaultPhoto),
+      photos: profile?.photos.map(p => ({
+        ...p.galleryPhoto,
+        description: p.galleryPhoto.description as Record<string, string> | null,
+      })),
+      defaultPhotos: profile?.defaultPhotos.map(p => ({
+        ...p.defaultPhoto,
+        description: p.defaultPhoto.description as Record<string, string> | null,
+      })),
     }));
   }
 
@@ -277,14 +284,20 @@ export class ProfilesService {
           ...p.ideaAI,
         })),
         prompts: profile.prompts.map(p => p.prompt),
-        photos: profile?.photos.map(p => p.galleryPhoto),
-        defaultPhotos: profile?.defaultPhotos.map(p => p.defaultPhoto),
+        photos: profile?.photos.map(p => ({
+          ...p.galleryPhoto,
+          description: p.galleryPhoto.description as Record<string, string> | null,
+        })),
+        defaultPhotos: profile?.defaultPhotos.map(p => ({
+          ...p.defaultPhoto,
+          description: p.defaultPhoto.description as Record<string, string> | null,
+        })),
       };
       const galleryPhotosUrls = [...mappedProfile.defaultPhotos, ...mappedProfile.photos].map((photo) => {
         return {
           type: photo.type,
           url: photo.url ? this.storageUrlService.getPublicUrl(photo.url) : "",
-          description: photo.description ?? null,
+          description: getPhotoDescriptionText(photo.description, 'en'),
         };
       });
 

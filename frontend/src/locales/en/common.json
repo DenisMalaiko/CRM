@@ -121,7 +121,9 @@
     "twitter": "Twitter",
     "tiktok": "TikTok",
     "youtube": "YouTube",
-    "telegram": "Telegram"
+    "telegram": "Telegram",
+    "showMore": "Show more",
+    "showLess": "Show less"
   },
   "Sidebar": {
     "dashboard": "Dashboard",
@@ -377,6 +379,7 @@
     "ideas": "Ideas",
     "badgeAI": "AI",
     "badgeCompetitor": "Competitor",
+    "badgeNew": "New",
     "selectHoliday": "Select a holiday",
     "selectHolidayPlaceholder": "Select a holiday...",
     "selectHolidayError": "Please select a holiday from the calendar",

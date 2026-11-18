@@ -21,6 +21,7 @@ import {
   DesignSystemFromPhoto,
 } from '../designSystem/schema/designSystem-from-photo.schema';
 import { buildDesignSystemFromPhotoPrompt } from '../designSystem/prompts/from-photo.prompt';
+import { buildGalleryPhotoDescriptionPrompt } from '../gallery/prompts/describe-photo.prompt';
 import { jsonrepair } from 'jsonrepair';
 import * as process from 'node:process';
 import { ideaPrompt } from './prompts/idea/idea';
@@ -620,6 +621,21 @@ export class AiService {
         'Failed to analyze photo for design system',
       );
     }
+  }
+
+  async describeGalleryPhoto(buffer: Buffer, mimeType: string, language: string): Promise<string> {
+    const base64 = buffer.toString('base64');
+    const dataUrl = `data:${mimeType};base64,${base64}`;
+
+    const message = new HumanMessage({
+      content: [
+        { type: 'text', text: buildGalleryPhotoDescriptionPrompt(language) },
+        { type: 'image_url', image_url: { url: dataUrl } },
+      ],
+    });
+
+    const response = await this.fastModel.invoke([message]);
+    return this.extractTextContent(response.content).trim();
   }
 
   async generateVideoPrompt(
