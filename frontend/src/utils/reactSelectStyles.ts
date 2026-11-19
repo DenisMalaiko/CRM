@@ -19,4 +19,8 @@ export const centeredSelectStyles: StylesConfig = {
     ...base,
     textAlign: "left",
   }),
+  groupHeading: (base) => ({
+    ...base,
+    textAlign: "left",
+  }),
 };

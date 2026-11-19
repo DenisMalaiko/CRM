@@ -25,9 +25,17 @@ import { setIdeas } from "../../../../../../store/idea/ideaSlice";
 import { useLazyGetIdeasAIQuery } from "../../../../../../store/ai/ideas/ideaAiApi";
 import { setIdeasAi } from "../../../../../../store/ai/ideas/ideaAiSlice";
 import { useGetCalendarificHolidaysQuery } from "../../../../../../store/calendarific/calendarificApi";
+import {
+  useLazyGetDesignSystemPresetsQuery,
+  useLazyGetBusinessDesignSystemsQuery,
+} from "../../../../../../store/designSystem/designSystemApi";
+import {
+  setPresets as setDesignPresets,
+  setBusinessSystems as setDesignBusinessSystems,
+} from "../../../../../../store/designSystem/designSystemSlice";
 
 // Components
-import Select from "react-select";
+import Select, { StylesConfig, GroupBase } from "react-select";
 import { SelectGalleryDlg } from "../../Assets/Gallery/components/selectGalleryDlg/SelectGalleryDlg";
 
 // Models
@@ -39,6 +47,7 @@ import { TIdea } from "../../../../../../models/Idea";
 import { TIdeaAI } from "../../../../../../models/IdeaAI";
 import { TCalendarificHoliday } from "../../../../../../models/CalendarificHoliday";
 import { TGalleryPhoto } from "../../../../../../models/Gallery";
+import { TDesignSystem } from "../../../../../../models/DesignSystem";
 
 // Constants
 import { getMarketingDatesForYear } from "../../../../../../const/MarketingDates";
@@ -46,13 +55,14 @@ import { getMarketingDatesForYear } from "../../../../../../const/MarketingDates
 // Utils
 import { showError } from "../../../../../../utils/showError";
 import { centeredSelectStyles } from "../../../../../../utils/reactSelectStyles";
-import { StylesConfig } from "react-select";
 
 // Enum
 import { IdeaStatus } from "../../../../../../enum/IdeaStatus";
 
 type SelectOption = { value: string; label: string };
 type IdeaSelectOption = SelectOption & { type: "manual" | "ai"; createdAt: Date; isNew: boolean };
+type DesignSystemOption = SelectOption & { isActive: boolean; colorSwatches: string[] };
+type DesignSystemGroup = GroupBase<DesignSystemOption>;
 
 type Props = {
   open: boolean;
@@ -70,18 +80,24 @@ export function GenerateContentPlanDlg({ open, onClose }: Props) {
   const [ getAudiences ] = useGetAudiencesMutation();
   const [ getIdeas ] = useGetIdeasMutation();
   const [ getIdeasAI ] = useLazyGetIdeasAIQuery();
+  const [getDesignPresets] = useLazyGetDesignSystemPresetsQuery();
+  const [getDesignBusinessSystems] = useLazyGetBusinessDesignSystemsQuery();
   const { products } = useAppSelector((state) => state.productsModule);
   const { audiences } = useAppSelector((state) => state.audienceModule);
   const { ideas } = useAppSelector((state) => state.ideaModule);
   const { ideasAi } = useAppSelector((state) => state.ideaAiModule);
   const business = useAppSelector((state) => state.businessModule.business);
   const country = business?.country;
+  const { presets: designPresets, businessSystems: designBusinessSystems } = useAppSelector(
+    (state) => state.designSystemModule
+  );
 
   const [isLoading, setIsLoading] = useState(false);
   const [sourceMode, setSourceMode] = useState<"idea" | "marketing_calendar">("idea");
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedHoliday, setSelectedHoliday] = useState<{ name: string; nameKey?: string; date: string } | null>(null);
   const [viewDate, setViewDate] = useState<Date>(new Date());
+  const [selectedDesignSystemId, setSelectedDesignSystemId] = useState<string | null>(null);
 
   const { form, handleChange, setForm } = useForm({
     productsIds: [] as string[],
@@ -104,6 +120,16 @@ export function GenerateContentPlanDlg({ open, onClose }: Props) {
           if (audiencesResponse && audiencesResponse?.data) dispatch(setAudiences(audiencesResponse.data));
           if (ideasResponse && ideasResponse?.data) dispatch(setIdeas(ideasResponse.data));
           if (ideasAiResponse && ideasAiResponse?.data) dispatch(setIdeasAi(ideasAiResponse.data));
+
+          const designPresetsRes = await getDesignPresets().unwrap();
+          if (designPresetsRes?.data) dispatch(setDesignPresets(designPresetsRes.data));
+
+          const designBizRes = await getDesignBusinessSystems(businessId).unwrap();
+          if (designBizRes?.data) dispatch(setDesignBusinessSystems(designBizRes.data));
+
+          const allSystems = [...(designBizRes?.data ?? []), ...(designPresetsRes?.data ?? [])];
+          const active = allSystems.find((ds) => ds.isActive);
+          if (active) setSelectedDesignSystemId(active.id);
         }
       } catch (error) {
         showError(error);
@@ -111,7 +137,7 @@ export function GenerateContentPlanDlg({ open, onClose }: Props) {
     };
 
     fetchData();
-  }, [dispatch, businessId, getProducts, getAudiences, getIdeas, getIdeasAI]);
+  }, [dispatch, businessId, getProducts, getAudiences, getIdeas, getIdeasAI, getDesignPresets, getDesignBusinessSystems]);
 
   const productsOptions = useMemo(
     () => products?.map((product: TProduct) => ({ value: product.id, label: product.name })) ?? [],
@@ -121,6 +147,27 @@ export function GenerateContentPlanDlg({ open, onClose }: Props) {
   const audiencesOptions = useMemo(
     () => audiences?.map((audience: TAudience) => ({ value: audience.id, label: audience.name })) ?? [],
     [audiences]
+  );
+
+  const designSystemOptions = useMemo(() => {
+    const toOption = (ds: TDesignSystem): DesignSystemOption => ({
+      value: ds.id,
+      label: ds.name,
+      isActive: ds.isActive,
+      colorSwatches: [ds.colors.primary, ds.colors.secondary, ds.colors.accent, ds.colors.muted],
+    });
+    const customOpts = designBusinessSystems.map(toOption);
+    const presetOpts = designPresets.map(toOption);
+
+    const groups: DesignSystemGroup[] = [];
+    if (customOpts.length) groups.push({ label: t("ContentPlan.designSystemCustomGroup"), options: customOpts });
+    if (presetOpts.length) groups.push({ label: t("ContentPlan.designSystemPresetGroup"), options: presetOpts });
+    return groups;
+  }, [designBusinessSystems, designPresets, t]);
+
+  const allDesignSystemFlatOptions = useMemo(
+    () => designSystemOptions.flatMap((g) => g.options),
+    [designSystemOptions]
   );
 
   const allIdeasOptions = useMemo(() => {
@@ -263,6 +310,7 @@ export function GenerateContentPlanDlg({ open, onClose }: Props) {
           audiencesIds: form.audiencesIds,
           ideasIds: form.ideasIds,
           photosIds: allPhotosIds,
+          ...(selectedDesignSystemId ? { designSystemId: selectedDesignSystemId } : {}),
         };
       } else {
         if (!selectedHoliday) {
@@ -277,6 +325,7 @@ export function GenerateContentPlanDlg({ open, onClose }: Props) {
           holidayName: selectedHoliday.name,
           holidayDate: selectedHoliday.date,
           photosIds: allPhotosIds,
+          ...(selectedDesignSystemId ? { designSystemId: selectedDesignSystemId } : {}),
         };
       }
 
@@ -356,6 +405,46 @@ export function GenerateContentPlanDlg({ open, onClose }: Props) {
               </div>
             )}
           </div>
+
+          {designSystemOptions.length > 0 && (
+            <div className="relative z-[25]">
+              <label className="block text-sm font-medium text-slate-700 text-left mb-1">
+                {t("ContentPlan.designSystem")}
+              </label>
+              <Select<DesignSystemOption, false, DesignSystemGroup>
+                options={designSystemOptions}
+                value={allDesignSystemFlatOptions.find(
+                  (option) => option.value === selectedDesignSystemId
+                ) ?? null}
+                onChange={(selected) =>
+                  setSelectedDesignSystemId(selected ? selected.value : null)
+                }
+                formatOptionLabel={(option) => (
+                  <div className="flex items-center justify-between w-full gap-2">
+                    <span className="truncate">{option.label}</span>
+                    <div className="flex items-center gap-2 shrink-0">
+                      {option.isActive && (
+                        <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-green-100 text-green-700">
+                          {t("ContentPlan.designSystemActive")}
+                        </span>
+                      )}
+                      <div className="flex gap-1">
+                        {option.colorSwatches.map((color, i) => (
+                          <div
+                            key={i}
+                            className="w-4 h-4 rounded-full border border-slate-300"
+                            style={{ backgroundColor: color }}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                isClearable
+                styles={centeredSelectStyles as StylesConfig<DesignSystemOption, false, DesignSystemGroup>}
+              />
+            </div>
+          )}
 
           <div className="flex items-center gap-6">
             <label className="flex items-center gap-2 cursor-pointer">

@@ -157,6 +157,29 @@ function UpdateContentPlanDlg({ open, onClose, contentPlan }: Props) {
               />
             </div>
 
+            {contentPlan?.designSystem && (
+              <div>
+                <label className="block text-sm font-medium text-slate-700 text-left">{t("ContentPlan.designSystem")}</label>
+                <div className="mt-1 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-500 flex items-center justify-between">
+                  <span>{contentPlan.designSystem.name}</span>
+                  <div className="flex gap-1">
+                    {[
+                      contentPlan.designSystem.colors.primary,
+                      contentPlan.designSystem.colors.secondary,
+                      contentPlan.designSystem.colors.accent,
+                      contentPlan.designSystem.colors.muted,
+                    ].map((color, i) => (
+                      <div
+                        key={i}
+                        className="w-4 h-4 rounded-full border border-slate-300"
+                        style={{ backgroundColor: color }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="flex items-center gap-6">
               <label className="flex items-center gap-2">
                 <input

@@ -40,6 +40,10 @@ export class GenerateContentPlanDto {
   @IsString()
   @IsOptional()
   holidayDate?: string;
+
+  @IsUUID('4')
+  @IsOptional()
+  designSystemId?: string;
 }
 
 export class UpdateContentPlanDto {

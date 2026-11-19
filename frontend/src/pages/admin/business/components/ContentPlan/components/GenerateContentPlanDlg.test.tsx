@@ -21,6 +21,10 @@ jest.mock('react-i18next', () => ({
         'ContentPlan.badgeAI': 'AI',
         'ContentPlan.badgeCompetitor': 'Competitor',
         'ContentPlan.badgeNew': 'New',
+        'ContentPlan.designSystem': 'Design System',
+        'ContentPlan.designSystemCustomGroup': 'Custom',
+        'ContentPlan.designSystemPresetGroup': 'Presets',
+        'ContentPlan.designSystemActive': 'Active',
         'ContentPlan.selectHoliday': 'Select a holiday',
         'ContentPlan.selectHolidayPlaceholder': 'Select a holiday...',
         'ContentPlan.selectHolidayError': 'Please select a holiday from the calendar',
@@ -73,6 +77,19 @@ jest.mock('../../../../../../store/calendarific/calendarificApi', () => ({
   useGetCalendarificHolidaysQuery: () => ({ data: undefined }),
 }));
 
+const mockGetDesignPresets = jest.fn();
+const mockGetDesignBusinessSystems = jest.fn();
+
+jest.mock('../../../../../../store/designSystem/designSystemApi', () => ({
+  useLazyGetDesignSystemPresetsQuery: () => [mockGetDesignPresets, { isLoading: false }],
+  useLazyGetBusinessDesignSystemsQuery: () => [mockGetDesignBusinessSystems, { isLoading: false }],
+}));
+
+jest.mock('../../../../../../store/designSystem/designSystemSlice', () => ({
+  setPresets: (d: unknown) => ({ type: 'designSystem/setPresets', payload: d }),
+  setBusinessSystems: (d: unknown) => ({ type: 'designSystem/setBusinessSystems', payload: d }),
+}));
+
 const mockGetBusiness = jest.fn();
 
 jest.mock('../../../../../../store/businesses/businessesApi', () => ({
@@ -97,6 +114,8 @@ function buildStoreState(overrides: {
   ideas?: unknown[];
   ideasAi?: unknown[];
   business?: unknown;
+  designPresets?: unknown[];
+  designBusinessSystems?: unknown[];
 } = {}) {
   return {
     productsModule: { products: overrides.products ?? [] },
@@ -104,6 +123,10 @@ function buildStoreState(overrides: {
     ideaModule: { ideas: overrides.ideas ?? [] },
     ideaAiModule: { ideasAi: overrides.ideasAi ?? [] },
     businessModule: { business: overrides.business ?? null },
+    designSystemModule: {
+      presets: overrides.designPresets ?? [],
+      businessSystems: overrides.designBusinessSystems ?? [],
+    },
   };
 }
 
@@ -164,6 +187,26 @@ jest.mock('../../../../../../hooks/useForm', () => ({
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
+const mockColors = {
+  primary: '#2563eb',
+  secondary: '#64748b',
+  accent: '#f59e0b',
+  muted: '#e2e8f0',
+  background: '#fff',
+  foreground: '#000',
+  primaryForeground: '#fff',
+  secondaryForeground: '#fff',
+  mutedForeground: '#64748b',
+  accentForeground: '#000',
+  destructive: '#ef4444',
+  border: '#e2e8f0',
+  ring: '#2563eb',
+};
+
+function mockDesignSystem(overrides: Record<string, unknown> = {}) {
+  return { colors: mockColors, ...overrides };
+}
+
 function renderDialog(props: { open?: boolean; onClose?: () => void } = {}) {
   const defaults = { open: true, onClose: jest.fn() };
   return render(<GenerateContentPlanDlg {...defaults} {...props} />);
@@ -181,6 +224,8 @@ describe('GenerateContentPlanDlg', () => {
     mockGetIdeasAI.mockReturnValue({ unwrap: () => Promise.resolve({ data: [] }) });
     mockGetContentPlans.mockReturnValue({ unwrap: () => Promise.resolve({ data: [] }) });
     mockGetBusiness.mockReturnValue({ unwrap: () => Promise.resolve({ data: null }) });
+    mockGetDesignPresets.mockReturnValue({ unwrap: () => Promise.resolve({ data: [] }) });
+    mockGetDesignBusinessSystems.mockReturnValue({ unwrap: () => Promise.resolve({ data: [] }) });
     mockGenerateContentPlan.mockReturnValue({
       unwrap: () => Promise.resolve({ data: [], message: 'Generated' }),
     });
@@ -387,6 +432,177 @@ describe('GenerateContentPlanDlg', () => {
       expect(screen.getByText('AI No Badge')).toBeInTheDocument();
       expect(container.querySelector('.bg-green-100')).not.toBeInTheDocument();
       expect(screen.getByText('AI')).toBeInTheDocument();
+    });
+  });
+
+  // ── Design system select ───────────────────────────────────────────────────
+
+  describe('design system select', () => {
+    // Helper: open the design system select menu.
+    // When design systems are present there is an extra combobox rendered before
+    // the ideas comboboxes. We locate the control by walking up from the input.
+    function openDesignSystemMenu() {
+      // The design system select label is rendered just before it; find the
+      // combobox associated with that section by text proximity.
+      // react-select renders one hidden <input role="combobox"> per Select.
+      // We find the one whose closest labelled ancestor contains "Design System".
+      const label = screen.getByText(/design system/i);
+      // The Select component is rendered as a sibling of the label inside the
+      // same wrapper div. Walk up from the label to the wrapper, then find the
+      // combobox inside it.
+      const wrapper = label.parentElement as HTMLElement;
+      const combobox = wrapper.querySelector('[role="combobox"]') as HTMLElement;
+      const control = combobox.parentElement?.parentElement as HTMLElement;
+      fireEvent.mouseDown(control);
+    }
+
+    it('renders the design system select when design systems are available', () => {
+      setupSelector({
+        designBusinessSystems: [
+          mockDesignSystem({ id: 'biz-ds-1', name: 'My Brand', isActive: false, isPreset: false }),
+        ],
+      });
+
+      renderDialog();
+
+      expect(screen.getByText(/design system/i)).toBeInTheDocument();
+    });
+
+    it('does not render the design system select when no design systems exist', () => {
+      setupSelector({ designPresets: [], designBusinessSystems: [] });
+
+      renderDialog();
+
+      expect(screen.queryByText('Design System')).not.toBeInTheDocument();
+    });
+
+    it('auto-selects the active design system on mount', async () => {
+      const bizSystems = [
+        mockDesignSystem({ id: 'biz-ds-inactive', name: 'Inactive Brand', isActive: false, isPreset: false }),
+        mockDesignSystem({ id: 'biz-ds-active', name: 'Active Brand', isActive: true, isPreset: false }),
+      ];
+      setupSelector({ designBusinessSystems: bizSystems });
+      mockGetDesignBusinessSystems.mockReturnValue({
+        unwrap: () => Promise.resolve({ data: bizSystems }),
+      });
+
+      renderDialog();
+
+      // react-select renders the selected value as visible text in the control
+      expect(await screen.findByText('Active Brand')).toBeInTheDocument();
+    });
+
+    it('shows no selected value when no design system is active', () => {
+      setupSelector({
+        designBusinessSystems: [
+          mockDesignSystem({ id: 'biz-ds-1', name: 'Brand A', isActive: false, isPreset: false }),
+          mockDesignSystem({ id: 'biz-ds-2', name: 'Brand B', isActive: false, isPreset: false }),
+        ],
+      });
+
+      renderDialog();
+
+      // No active system: the select control should not display any selected value text
+      // (react-select renders nothing in the single-value slot when value is null)
+      const label = screen.getByText('Design System');
+      const wrapper = label.parentElement as HTMLElement;
+      const singleValue = wrapper.querySelector('[class*="singleValue"]');
+      expect(singleValue).not.toBeInTheDocument();
+    });
+
+    it('renders color swatches for each design system option', () => {
+      setupSelector({
+        designBusinessSystems: [
+          mockDesignSystem({ id: 'biz-ds-1', name: 'Colorful Brand', isActive: false, isPreset: false }),
+        ],
+      });
+
+      const { container } = renderDialog();
+      openDesignSystemMenu();
+
+      const swatches = container.querySelectorAll('.rounded-full.border.border-slate-300');
+      expect(swatches.length).toBe(4);
+      expect((swatches[0] as HTMLElement).style.backgroundColor).toBeTruthy();
+    });
+
+    it('shows a green Active badge for the active design system in the dropdown', () => {
+      setupSelector({
+        designBusinessSystems: [
+          mockDesignSystem({ id: 'biz-ds-inactive', name: 'Inactive Brand', isActive: false, isPreset: false }),
+          mockDesignSystem({ id: 'biz-ds-active', name: 'Active Brand', isActive: true, isPreset: false }),
+        ],
+      });
+
+      const { container } = renderDialog();
+      openDesignSystemMenu();
+
+      const activeBadge = container.querySelector('.bg-green-100');
+      expect(activeBadge).toBeInTheDocument();
+      expect(activeBadge?.textContent).toBe('Active');
+    });
+
+    it('does not show Active badge for inactive design systems', () => {
+      setupSelector({
+        designBusinessSystems: [
+          mockDesignSystem({ id: 'biz-ds-1', name: 'Brand A', isActive: false, isPreset: false }),
+          mockDesignSystem({ id: 'biz-ds-2', name: 'Brand B', isActive: false, isPreset: false }),
+        ],
+      });
+
+      const { container } = renderDialog();
+      openDesignSystemMenu();
+
+      expect(container.querySelector('.bg-green-100')).not.toBeInTheDocument();
+    });
+
+    it('renders custom business systems before presets in the grouped options', () => {
+      setupSelector({
+        designBusinessSystems: [
+          mockDesignSystem({ id: 'biz-1', name: 'Custom System', isActive: false, isPreset: false }),
+        ],
+        designPresets: [
+          mockDesignSystem({ id: 'preset-1', name: 'Preset System', isActive: false, isPreset: true }),
+        ],
+      });
+
+      renderDialog();
+      openDesignSystemMenu();
+
+      const optionElements = screen.getAllByText(/Custom System|Preset System/);
+      const customIdx = optionElements.findIndex(el => el.textContent === 'Custom System');
+      const presetIdx = optionElements.findIndex(el => el.textContent === 'Preset System');
+      expect(customIdx).toBeLessThan(presetIdx);
+    });
+
+    it('includes designSystemId in the generate request when a design system is selected', async () => {
+      const bizSystems = [
+        mockDesignSystem({ id: 'biz-ds-active', name: 'Active Brand', isActive: true, isPreset: false }),
+      ];
+      setupSelector({ designBusinessSystems: bizSystems });
+      mockGetDesignBusinessSystems.mockReturnValue({
+        unwrap: () => Promise.resolve({ data: bizSystems }),
+      });
+
+      mockGenerateContentPlan.mockReturnValue({
+        unwrap: () => Promise.resolve({ data: [{}], message: 'Generated' }),
+      });
+      mockGetContentPlans.mockReturnValue({
+        unwrap: () => Promise.resolve({ data: [] }),
+      });
+
+      renderDialog();
+
+      // Wait for auto-select to happen via fetch callback
+      await screen.findByText('Active Brand');
+
+      const submitButton = screen.getByRole('button', { name: /^generate$/i });
+      await userEvent.click(submitButton);
+
+      expect(mockGenerateContentPlan).toHaveBeenCalledWith(
+        expect.objectContaining({
+          form: expect.objectContaining({ designSystemId: 'biz-ds-active' }),
+        })
+      );
     });
   });
 });

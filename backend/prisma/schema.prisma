@@ -689,25 +689,28 @@ model BusinessTrendMatch {
 }
 
 model ContentPlan {
-  id          String            @id @default(uuid())
-  businessId  String
-  title       String
-  description String            @default("")
-  status      ContentPlanStatus @default(Draft)
-  mode        ContentPlanMode
-  postsJson   Json
-  holidayName String?
-  holidayDate String?
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @default(now()) @updatedAt
+  id              String            @id @default(uuid())
+  businessId      String
+  title           String
+  description     String            @default("")
+  status          ContentPlanStatus @default(Draft)
+  mode            ContentPlanMode
+  postsJson       Json
+  holidayName     String?
+  holidayDate     String?
+  designSystemId  String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @default(now()) @updatedAt
 
-  business  Business                    @relation(fields: [businessId], references: [id])
-  products  ContentPlanProduct[]
-  audiences ContentPlanTargetAudience[]
-  ideas     ContentPlanIdea[]
-  ideasAI   ContentPlanIdeaAI[]
+  business     Business                    @relation(fields: [businessId], references: [id])
+  designSystem DesignSystem?               @relation(fields: [designSystemId], references: [id])
+  products     ContentPlanProduct[]
+  audiences    ContentPlanTargetAudience[]
+  ideas        ContentPlanIdea[]
+  ideasAI      ContentPlanIdeaAI[]
 
   @@index([businessId])
+  @@index([designSystemId])
 }
 
 model ContentPlanProduct {
@@ -982,6 +985,8 @@ model DesignSystem {
 
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+
+  contentPlans ContentPlan[]
 
   @@index([businessId])
 }
