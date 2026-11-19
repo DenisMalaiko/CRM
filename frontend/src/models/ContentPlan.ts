@@ -1,4 +1,5 @@
 import { ContentPlanStatus } from "../enum/ContentPlanStatus";
+import { TColorToken } from "./DesignSystem";
 
 export type TContentPlanRelated = {
   id: string;
@@ -24,6 +25,7 @@ export type TContentPlan = {
   audiences: { targetAudience: TContentPlanRelated }[];
   ideas: { idea: TContentPlanRelatedIdea }[];
   ideasAI: { ideaAI: TContentPlanRelatedIdea }[];
+  designSystem?: { id: string; name: string; colors: TColorToken } | null;
 };
 
 export type TContentPlanGenerate = {
@@ -34,6 +36,7 @@ export type TContentPlanGenerate = {
   holidayName?: string;
   holidayDate?: string;
   photosIds?: string[];
+  designSystemId?: string;
 };
 
 export type TContentPlanUpdate = {

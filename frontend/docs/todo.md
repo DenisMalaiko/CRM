@@ -1,5 +1,24 @@
 # Task Log
 
+## Селект дизайн систем у попапі генерації контент-плану — 2026-11-19
+
+### Plan
+- [x] Додати `designSystemId?: string` до `TContentPlanGenerate`
+- [x] Додати локалізацію (EN/UA) — 3 ключі
+- [x] Імпорти: designSystemApi, designSystemSlice, TDesignSystem, GroupBase
+- [x] Fetch presets + businessSystems у існуючому useEffect
+- [x] Auto-select active дизайн системи через окремий useEffect
+- [x] Grouped options: кастомні першими, потім пресети
+- [x] JSX: Select між audiences та radio buttons
+- [x] Передача designSystemId у запиті генерації
+- [x] Quality gate: reviewer + tester
+
+### Review
+- [x] reviewer → PASS (2 🟡 виправлено: об'єднаний react-select імпорт, видалена зайва type annotation)
+- [x] tester → 22/22 тестів пройшли (5 нових)
+- [x] Регресій не знайдено
+- Summary: Додано grouped react-select з дизайн системами до попапу генерації контент-плану з авто-вибором активної
+
 ## Мультимовні описи фото (description String? → Json?) — 2026-11-18
 
 ### Plan

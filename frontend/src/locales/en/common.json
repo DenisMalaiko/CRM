@@ -384,7 +384,11 @@
     "selectHolidayPlaceholder": "Select a holiday...",
     "selectHolidayError": "Please select a holiday from the calendar",
     "generating": "Generating...",
-    "holiday": "Holiday"
+    "holiday": "Holiday",
+    "designSystem": "Design System",
+    "designSystemCustomGroup": "Custom",
+    "designSystemPresetGroup": "Presets",
+    "designSystemActive": "Active"
   },
   "ContentPlanPosts": {
     "BackButton": "Back",

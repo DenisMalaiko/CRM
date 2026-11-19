@@ -384,7 +384,11 @@
     "selectHolidayPlaceholder": "Оберіть свято...",
     "selectHolidayError": "Будь ласка, оберіть свято з календаря",
     "generating": "Генерація...",
-    "holiday": "Свято"
+    "holiday": "Свято",
+    "designSystem": "Дизайн система",
+    "designSystemCustomGroup": "Власні",
+    "designSystemPresetGroup": "Шаблони",
+    "designSystemActive": "Активна"
   },
   "ContentPlanPosts": {
     "BackButton": "Назад",

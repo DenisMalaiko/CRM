@@ -37,6 +37,9 @@ const CONTENT_PLAN_LIST_SELECT = {
   ideasAI: {
     select: { ideaAI: { select: { id: true, title: true } } },
   },
+  designSystem: {
+    select: { id: true, name: true, colors: true },
+  },
 } as const;
 
 @Injectable()
@@ -119,6 +122,7 @@ export class ContentPlanService {
         postsJson: result.posts,
         holidayName: dto.holidayName ?? null,
         holidayDate: dto.holidayDate ?? null,
+        designSystemId: dto.designSystemId ?? null,
         products: products.length
           ? { create: products.map((p) => ({ productId: p.id })) }
           : undefined,
