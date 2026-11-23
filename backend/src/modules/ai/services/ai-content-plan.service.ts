@@ -4,6 +4,8 @@ import {
   StrategistResponseSchema,
   CopywriterResponseSchema,
   ContentPlanResponseSchema,
+  PhotoMatcherResponseSchema,
+  OverlayDesignerResponseSchema,
   TContentPlanPost,
 } from '../schema/ai-content-plan.schema';
 import {
@@ -23,6 +25,15 @@ import {
   artDirectorSystemPrompt,
   artDirectorTaskBlock,
 } from '../prompts/contentPlan/art-director';
+import {
+  photoMatcherSystemPrompt,
+  photoMatcherTaskBlock,
+} from '../prompts/contentPlan/photo-matcher';
+import {
+  overlayDesignerSystemPrompt,
+  overlayDesignerTaskBlock,
+} from '../prompts/contentPlan/overlay-designer';
+import { getFormatDimensions } from '../../../shared/const/ContentFormats';
 import { z } from 'zod';
 
 interface ContentPlanSettings {
@@ -64,6 +75,17 @@ interface ContentPlanSettings {
   context?: string;
   holidayName?: string;
   holidayDate?: string;
+  photos?: {
+    id: string;
+    url: string;
+    description: string;
+  }[];
+  designSystem?: {
+    colors: Record<string, string>;
+    typography: Record<string, any>;
+    composition: Record<string, any>;
+    radius: string;
+  };
 }
 
 @Injectable()
@@ -101,10 +123,21 @@ export class AiContentPlanService {
     );
     this.logger.log(`Art Director done: ${final.posts.length} posts`);
 
+    const withPhotos = settings.photos?.length
+      ? await this.runPhotoMatcher(final.posts, settings.photos)
+      : final.posts;
+    this.logger.log(`Photo Matcher done: ${withPhotos.length} posts`);
+
+    const withOverlays = await this.runOverlayDesigner(
+      withPhotos,
+      settings.designSystem,
+    );
+    this.logger.log(`Overlay Designer done: ${withOverlays.length} posts`);
+
     return {
       title: strategy.title,
       description: strategy.description,
-      posts: final.posts,
+      posts: withOverlays,
     };
   }
 
@@ -174,5 +207,104 @@ export class AiContentPlanService {
     const response = await this.base.getModel(AiModel.Fast).invoke(prompt);
     const rawText = this.base.extractTextContent(response.content);
     return ContentPlanResponseSchema.parse(this.base.safeParseJson(rawText));
+  }
+
+  private async runPhotoMatcher(
+    posts: TContentPlanPost[],
+    photos: ContentPlanSettings['photos'],
+  ): Promise<TContentPlanPost[]> {
+    if (!photos?.length) return posts;
+
+    const photoDescriptions = photos.map((p) => ({
+      id: p.id,
+      description: p.description,
+    }));
+
+    const results = await Promise.all(
+      posts.map(async (post) => {
+        try {
+          const prompt = [
+            photoMatcherSystemPrompt(),
+            photoMatcherTaskBlock(
+              post.designReference,
+              post.format,
+              photoDescriptions,
+            ),
+          ].join('\n\n');
+
+          const response = await this.base
+            .getModel(AiModel.Fast)
+            .invoke(prompt);
+          const rawText = this.base.extractTextContent(response.content);
+          const parsed = PhotoMatcherResponseSchema.parse(
+            this.base.safeParseJson(rawText),
+          );
+
+          if (parsed.photoId) {
+            const matchedPhoto = photos.find((p) => p.id === parsed.photoId);
+            if (matchedPhoto) {
+              return {
+                ...post,
+                photos: [{ photoId: matchedPhoto.id, url: matchedPhoto.url }],
+              };
+            }
+          }
+
+          return { ...post, photos: [] };
+        } catch (error) {
+          this.logger.warn(
+            `Photo matching failed for post day ${post.day}: ${error.message}`,
+          );
+          return { ...post, photos: [] };
+        }
+      }),
+    );
+
+    return results;
+  }
+
+  private async runOverlayDesigner(
+    posts: TContentPlanPost[],
+    designSystem?: ContentPlanSettings['designSystem'],
+  ): Promise<TContentPlanPost[]> {
+    const results = await Promise.all(
+      posts.map(async (post) => {
+        try {
+          const dimensions = getFormatDimensions(post.format);
+
+          const prompt = [
+            overlayDesignerSystemPrompt(),
+            overlayDesignerTaskBlock(
+              {
+                title: post.title,
+                hook: post.hook,
+                cta: post.cta,
+                format: post.format,
+                designReference: post.designReference,
+              },
+              { width: dimensions.width, height: dimensions.height },
+              designSystem,
+            ),
+          ].join('\n\n');
+
+          const response = await this.base
+            .getModel(AiModel.Creative)
+            .invoke(prompt);
+          const rawText = this.base.extractTextContent(response.content);
+          const parsed = OverlayDesignerResponseSchema.parse(
+            this.base.safeParseJson(rawText),
+          );
+
+          return { ...post, overlayHtml: parsed.overlayHtml };
+        } catch (error) {
+          this.logger.warn(
+            `Overlay generation failed for post day ${post.day}: ${error.message}`,
+          );
+          return { ...post, overlayHtml: '' };
+        }
+      }),
+    );
+
+    return results;
   }
 }

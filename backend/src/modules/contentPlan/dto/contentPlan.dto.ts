@@ -41,6 +41,11 @@ export class GenerateContentPlanDto {
   @IsOptional()
   holidayDate?: string;
 
+  @IsArray()
+  @IsOptional()
+  @IsUUID('4', { each: true })
+  photosIds?: string[];
+
   @IsUUID('4')
   @IsOptional()
   designSystemId?: string;
@@ -116,4 +121,13 @@ export class UpdateContentPlanPostDto {
   @IsNotEmpty()
   @IsOptional()
   designReference?: string;
+
+  @IsString()
+  @IsOptional()
+  overlayHtml?: string;
+
+  @IsArray()
+  @IsOptional()
+  @IsUUID('4', { each: true })
+  photosIds?: string[];
 }

@@ -1,7 +1,7 @@
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import UpdateContentPlanPostDlg from './UpdateContentPlanPostDlg';
+import { UpdateContentPlanPostDlg } from './UpdateContentPlanPostDlg';
 import { TContentPlanPost } from '../../../../../../models/ContentPlan';
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
@@ -21,6 +21,9 @@ jest.mock('react-i18next', () => ({
         'ContentPlanPosts.CTA': 'CTA',
         'ContentPlanPosts.MarketingGoal': 'Marketing Goal',
         'ContentPlanPosts.DesignReference': 'Design Reference',
+        'ContentPlanPosts.Photo': 'Photo',
+        'ContentPlanPosts.SelectPhoto': 'Select Photo',
+        'ContentPlanPosts.ChangePhoto': 'Change Photo',
         'General.cancel': 'Cancel',
         'General.save': 'Save',
         'General.saving': 'Saving...',
@@ -44,6 +47,17 @@ jest.mock('../../../../../../store/contentPlan/contentPlanApi', () => ({
 
 jest.mock('../../../../../../utils/showError', () => ({
   showError: jest.fn(),
+}));
+
+jest.mock('../../Assets/Gallery/components/selectGalleryDlg/SelectGalleryDlg', () => ({
+  SelectGalleryDlg: ({ onSelect }: { onSelect: (photos: { id: string; url: string }[]) => void }) => (
+    <button
+      data-testid="mock-gallery"
+      onClick={() => onSelect([{ id: 'gallery-photo-1', url: 'https://example.com/gallery.jpg' }])}
+    >
+      Gallery
+    </button>
+  ),
 }));
 
 // ── Fixtures ──────────────────────────────────────────────────────────────────
@@ -193,6 +207,103 @@ describe('UpdateContentPlanPostDlg', () => {
       expect(mockUpdatePost).toHaveBeenCalled();
       expect(mockUpdatePost.mock.calls[0][0].id).toBe('plan-42');
       expect(mockUpdatePost.mock.calls[0][0].day).toBe(5);
+    });
+  });
+
+  // ── Photo section — initialisation ─────────────────────────────────────────
+
+  it('renders the Photo label', () => {
+    renderDialog();
+    expect(screen.getByText('Photo')).toBeInTheDocument();
+  });
+
+  it('renders "Select Photo" button when post has no photos', () => {
+    renderDialog({ post: makePost({ photos: undefined }) });
+    expect(screen.getByRole('button', { name: /select photo/i })).toBeInTheDocument();
+  });
+
+  it('renders "Change Photo" button when post already has photos', () => {
+    renderDialog({
+      post: makePost({
+        photos: [{ photoId: 'photo-1', url: 'https://example.com/img.jpg' }],
+      }),
+    });
+    expect(screen.getByRole('button', { name: /change photo/i })).toBeInTheDocument();
+  });
+
+  it('renders photo preview thumbnails for each photo in post.photos', () => {
+    const { container } = renderDialog({
+      post: makePost({
+        photos: [
+          { photoId: 'photo-1', url: 'https://example.com/img1.jpg' },
+          { photoId: 'photo-2', url: 'https://example.com/img2.jpg' },
+        ],
+      }),
+    });
+
+    // Thumbnails use alt="" (decorative) so they don't have role="img" — query via DOM
+    const thumbnails = container.querySelectorAll('img');
+    expect(thumbnails).toHaveLength(2);
+    expect(thumbnails[0]).toHaveAttribute('src', 'https://example.com/img1.jpg');
+    expect(thumbnails[1]).toHaveAttribute('src', 'https://example.com/img2.jpg');
+  });
+
+  it('initialises photosIds form field from post.photos', async () => {
+    renderDialog({
+      post: makePost({
+        photos: [{ photoId: 'photo-abc', url: 'https://example.com/abc.jpg' }],
+      }),
+      contentPlanId: 'plan-1',
+    });
+
+    userEvent.click(screen.getByRole('button', { name: /^save$/i }));
+
+    await waitFor(() => {
+      expect(mockUpdatePost).toHaveBeenCalled();
+      const { form } = mockUpdatePost.mock.calls[0][0];
+      expect(form.photosIds).toEqual(['photo-abc']);
+    });
+  });
+
+  it('opens the gallery dialog when the select/change photo button is clicked', () => {
+    renderDialog({ post: makePost({ photos: undefined }) });
+
+    userEvent.click(screen.getByRole('button', { name: /select photo/i }));
+
+    expect(screen.getByTestId('mock-gallery')).toBeInTheDocument();
+  });
+
+  it('adds selected gallery photos to the form and shows their thumbnails', async () => {
+    const { container } = renderDialog({ post: makePost({ photos: undefined }) });
+
+    userEvent.click(screen.getByRole('button', { name: /select photo/i }));
+    userEvent.click(screen.getByTestId('mock-gallery'));
+
+    await waitFor(() => {
+      // Thumbnails use alt="" (decorative) — query via DOM
+      const thumbnails = container.querySelectorAll('img');
+      expect(thumbnails).toHaveLength(1);
+      expect(thumbnails[0]).toHaveAttribute('src', 'https://example.com/gallery.jpg');
+    });
+  });
+
+  it('removes a photo thumbnail when its remove button is clicked', async () => {
+    const { container } = renderDialog({
+      post: makePost({
+        photos: [{ photoId: 'photo-1', url: 'https://example.com/img.jpg' }],
+      }),
+    });
+
+    expect(container.querySelectorAll('img')).toHaveLength(1);
+
+    // The remove button is inside the thumbnail wrapper div (relative/overflow-hidden)
+    // It is the only button that is a descendant of the photo preview container
+    const photoPreviewContainer = container.querySelector('.flex.gap-2.mb-2') as HTMLElement;
+    const removeButton = within(photoPreviewContainer).getByRole('button');
+    userEvent.click(removeButton);
+
+    await waitFor(() => {
+      expect(container.querySelectorAll('img')).toHaveLength(0);
     });
   });
 });

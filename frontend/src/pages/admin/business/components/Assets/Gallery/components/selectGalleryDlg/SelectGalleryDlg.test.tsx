@@ -70,16 +70,20 @@ type RenderOptions = {
   focus?: BusinessProfileFocus | null;
 };
 
+type RenderOptionsWithMax = RenderOptions & { maxSelected?: number };
+
 function renderComponent({
   selectedIds = [],
   focus = BusinessProfileFocus.GeneratePosts,
-}: RenderOptions = {}) {
+  maxSelected,
+}: RenderOptionsWithMax = {}) {
   const onSelect = jest.fn();
   render(
     <SelectGalleryDlg
       onSelect={onSelect}
       selectedIds={selectedIds}
       focus={focus}
+      {...(maxSelected !== undefined ? { maxSelected } : {})}
     />
   );
   return { onSelect };
@@ -250,6 +254,62 @@ describe('SelectGalleryDlg', () => {
       renderComponent({ focus: BusinessProfileFocus.GenerateStories });
 
       expect(screen.queryByText('Templates for Posts')).not.toBeInTheDocument();
+    });
+  });
+
+  // ── 7b. maxSelected prop ───────────────────────────────────────────────────
+
+  describe('maxSelected prop', () => {
+    test('shows the max indicator label when selected count equals maxSelected', () => {
+      mockGalleryState = {
+        photos: [makePhoto('img-1', GalleryType.Image), makePhoto('img-2', GalleryType.Image)],
+        defaultPhotos: [],
+      };
+
+      renderComponent({ selectedIds: ['img-1'], maxSelected: 1 });
+
+      // maxSelected=1 and 1 photo already selected → limit reached label is visible
+      expect(screen.getByText(/max \d+ photos/i)).toBeInTheDocument();
+    });
+
+    test('disables unchecked checkboxes when maxSelected is 1 and one photo is selected', () => {
+      const photos = [
+        makePhoto('img-1', GalleryType.Image),
+        makePhoto('img-2', GalleryType.Image),
+      ];
+      mockGalleryState = { photos, defaultPhotos: [] };
+
+      renderComponent({ selectedIds: ['img-1'], maxSelected: 1 });
+
+      userEvent.click(screen.getByText('Images'));
+
+      const checkboxes = screen.getAllByRole('checkbox') as HTMLInputElement[];
+      const disabled = checkboxes.filter((cb) => cb.disabled && !cb.checked);
+      expect(disabled.length).toBeGreaterThan(0);
+    });
+
+    test('allows selecting photos up to the maxSelected limit when prop is 2', () => {
+      const photos = [
+        makePhoto('img-1', GalleryType.Image),
+        makePhoto('img-2', GalleryType.Image),
+        makePhoto('img-3', GalleryType.Image),
+      ];
+      mockGalleryState = { photos, defaultPhotos: [] };
+
+      const { onSelect } = renderComponent({ selectedIds: ['img-1', 'img-2'], maxSelected: 2 });
+
+      userEvent.click(screen.getByText('Images'));
+
+      const checkboxes = screen.getAllByRole('checkbox') as HTMLInputElement[];
+      const unchecked = checkboxes.filter((cb) => !cb.checked);
+      expect(unchecked[0]).toBeDisabled();
+
+      // The two already-selected photos should remain enabled (user can deselect)
+      const checked = checkboxes.filter((cb) => cb.checked);
+      expect(checked).toHaveLength(2);
+      checked.forEach((cb) => expect(cb).not.toBeDisabled());
+
+      void onSelect; // referenced to satisfy linter; selection assertions above are sufficient
     });
   });
 

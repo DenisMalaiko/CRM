@@ -1,5 +1,6 @@
 import { ContentPlanStatus } from "../enum/ContentPlanStatus";
 import { TColorToken } from "./DesignSystem";
+import { ContentPlanPostFormat } from "../const/ContentFormats";
 
 export type TContentPlanRelated = {
   id: string;
@@ -45,11 +46,16 @@ export type TContentPlanUpdate = {
   status?: ContentPlanStatus;
 };
 
+export type TContentPlanPostPhoto = {
+  photoId: string;
+  url: string;
+};
+
 export type TContentPlanPost = {
   day: number;
   date: string;
   funnelStage: "TOFU" | "MOFU" | "BOFU";
-  format: string;
+  format: ContentPlanPostFormat;
   contentType: string;
   topic: string;
   marketingGoal: string;
@@ -58,6 +64,10 @@ export type TContentPlanPost = {
   thesis: string;
   cta: string;
   designReference: string;
+  photos?: TContentPlanPostPhoto[];
+  overlayHtml?: string;
 };
 
-export type TContentPlanPostUpdate = Partial<Omit<TContentPlanPost, "day">>;
+export type TContentPlanPostUpdate = Partial<Omit<TContentPlanPost, "day">> & {
+  photosIds?: string[];
+};

@@ -1,7 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
-import { X } from "lucide-react";
+import { X, ImagePlus } from "lucide-react";
 
 import { useForm } from "../../../../../../hooks/useForm";
 import { useValidation } from "../../../../../../hooks/useValidation";
@@ -10,9 +10,13 @@ import {
   useLazyGetContentPlanPostsQuery,
 } from "../../../../../../store/contentPlan/contentPlanApi";
 import { TContentPlanPost } from "../../../../../../models/ContentPlan";
+import { TGalleryPhoto } from "../../../../../../models/Gallery";
 import { isRequired } from "../../../../../../utils/validations";
 import { showError } from "../../../../../../utils/showError";
 import { ChangeArg, isNativeEvent } from "../../../../../../utils/isNativeEvent";
+import { SelectGalleryDlg } from "../../Assets/Gallery/components/selectGalleryDlg/SelectGalleryDlg";
+import { getFormatDimensions } from "../../../../../../const/ContentFormats";
+import { PostOverlay } from "./PostOverlay";
 
 type Props = {
   open: boolean;
@@ -24,10 +28,11 @@ type Props = {
 const FUNNEL_STAGES = ["TOFU", "MOFU", "BOFU"];
 const FORMATS = ["POST", "REELS", "STORIES"];
 
-function UpdateContentPlanPostDlg({ open, onClose, post, contentPlanId }: Props) {
+export function UpdateContentPlanPostDlg({ open, onClose, post, contentPlanId }: Props) {
   const { t } = useTranslation();
   const [updatePost, { isLoading }] = useUpdateContentPlanPostMutation();
   const [getContentPlanPosts] = useLazyGetContentPlanPostsQuery();
+  const [showGallery, setShowGallery] = useState(false);
 
   const { form, handleChange } = useForm({
     date: post.date,
@@ -41,7 +46,13 @@ function UpdateContentPlanPostDlg({ open, onClose, post, contentPlanId }: Props)
     thesis: post.thesis,
     cta: post.cta,
     designReference: post.designReference,
+    overlayHtml: post.overlayHtml ?? '',
+    photosIds: (post.photos ?? []).map((p) => p.photoId),
   });
+
+  const [photoUrls, setPhotoUrls] = useState<Record<string, string>>(
+    Object.fromEntries((post.photos ?? []).map((p) => [p.photoId, p.url]))
+  );
 
   const { errors, validateField, validateAll } = useValidation<typeof form>({
     title: (value: string) => isRequired(value),
@@ -231,6 +242,69 @@ function UpdateContentPlanPostDlg({ open, onClose, post, contentPlanId }: Props)
             />
           </div>
 
+          {/* Photo section */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 text-left mb-2">
+              {t("ContentPlanPosts.Photo")}
+            </label>
+
+            {form.photosIds.length > 0 && (
+              <div className="flex gap-2 mb-2">
+                {form.photosIds.map((id: string) => (
+                  <div
+                    key={id}
+                    style={{ aspectRatio: getFormatDimensions(form.format).aspectRatio }}
+                    className="relative h-24 rounded-lg overflow-hidden border border-slate-200"
+                  >
+                    <img
+                      src={photoUrls[id] ?? ""}
+                      alt=""
+                      className="h-full w-full object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const next = form.photosIds.filter((pid: string) => pid !== id);
+                        handleChange({ name: "photosIds", value: next });
+                      }}
+                      className="absolute top-0.5 right-0.5 bg-slate-900/60 rounded-full p-0.5 hover:bg-slate-900/80"
+                    >
+                      <X size={12} color="white" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <button
+              type="button"
+              onClick={() => setShowGallery(!showGallery)}
+              className="flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 font-medium"
+            >
+              <ImagePlus size={16} />
+              {form.photosIds.length > 0
+                ? t("ContentPlanPosts.ChangePhoto")
+                : t("ContentPlanPosts.SelectPhoto")}
+            </button>
+
+            {showGallery && (
+              <div className="mt-3 p-3 border border-slate-200 rounded-xl bg-slate-50">
+                <SelectGalleryDlg
+                  selectedIds={form.photosIds}
+                  maxSelected={3}
+                  focus={null}
+                  onSelect={(selectedPhotos: TGalleryPhoto[]) => {
+                    handleChange({ name: "photosIds", value: selectedPhotos.map((p) => p.id) });
+                    setPhotoUrls((prev) => ({
+                      ...prev,
+                      ...Object.fromEntries(selectedPhotos.map((p) => [p.id, p.url])),
+                    }));
+                  }}
+                />
+              </div>
+            )}
+          </div>
+
           <div>
             <label className="block text-sm font-medium text-slate-700 text-left">
               {t("ContentPlanPosts.DesignReference")}
@@ -241,6 +315,29 @@ function UpdateContentPlanPostDlg({ open, onClose, post, contentPlanId }: Props)
               onChange={onChange}
               rows={3}
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 resize-none"
+            />
+          </div>
+
+          {/* Overlay HTML */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-medium text-slate-700">
+              {t("UpdateContentPlanPostDlg.OverlayHtml")}
+            </label>
+            {form.overlayHtml && (
+              <div
+                className="relative rounded-xl overflow-hidden border border-slate-200 bg-slate-100 max-h-72"
+                style={{ aspectRatio: getFormatDimensions(form.format).aspectRatio }}
+              >
+                <PostOverlay overlayHtml={form.overlayHtml} photoUrl={photoUrls[form.photosIds[0]]} />
+              </div>
+            )}
+            <textarea
+              name="overlayHtml"
+              value={form.overlayHtml}
+              onChange={onChange}
+              rows={4}
+              className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 font-mono focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none resize-y"
+              placeholder="<div style='position:absolute;width:100%;height:100%'>...</div>"
             />
           </div>
 
@@ -275,4 +372,3 @@ function UpdateContentPlanPostDlg({ open, onClose, post, contentPlanId }: Props)
   );
 }
 
-export default UpdateContentPlanPostDlg;
