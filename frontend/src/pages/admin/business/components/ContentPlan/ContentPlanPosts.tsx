@@ -5,7 +5,9 @@ import { toast } from "react-toastify";
 import { ArrowLeft, Download, Image, Pencil, Trash2 } from "lucide-react";
 
 import { confirm } from "../../../../../components/confirmDlg/ConfirmDlg";
-import UpdateContentPlanPostDlg from "./components/UpdateContentPlanPostDlg";
+import { UpdateContentPlanPostDlg } from "./components/UpdateContentPlanPostDlg";
+import { PostOverlay } from "./components/PostOverlay";
+import { getFormatDimensions } from "../../../../../const/ContentFormats";
 
 import {
   useGetContentPlanPostsQuery,
@@ -32,7 +34,9 @@ type PostCardProps = {
 function PostCard({ post, businessName, onEdit, onDelete }: PostCardProps) {
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
+  const [imgError, setImgError] = useState(false);
   const avatarLetter = businessName.charAt(0).toUpperCase();
+  const isVertical = post.format === 'REELS' || post.format === 'STORIES';
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col text-left overflow-hidden">
@@ -82,10 +86,39 @@ function PostCard({ post, businessName, onEdit, onDelete }: PostCardProps) {
         <p className="text-sm font-semibold text-blue-600">{post.cta}</p>
       </div>
 
-      {/* Visual placeholder */}
-      <div className="mx-4 mb-3 rounded-xl bg-gradient-to-br from-slate-100 to-slate-200 flex flex-col items-center justify-center gap-2 p-5 min-h-28">
-        <Image size={28} className="text-slate-400" />
-        <p className="text-xs text-slate-500 text-center leading-relaxed">{post.designReference}</p>
+      {/* Post visual: overlay frame, photo, or placeholder */}
+      <div className="mx-4 mb-3 flex justify-center">
+        {post.overlayHtml ? (
+          <div
+            className={`rounded-xl overflow-hidden relative ${isVertical ? '' : 'w-full'}`}
+            style={{ height: '25rem', ...(isVertical ? { aspectRatio: getFormatDimensions(post.format).aspectRatio } : {}) }}
+          >
+            <PostOverlay
+              overlayHtml={post.overlayHtml}
+              photoUrl={post.photos?.[0]?.url}
+            />
+          </div>
+        ) : post.photos?.length && !imgError ? (
+          <div
+            className={`rounded-xl overflow-hidden ${isVertical ? '' : 'w-full'}`}
+            style={{ height: '25rem', ...(isVertical ? { aspectRatio: getFormatDimensions(post.format).aspectRatio } : {}) }}
+          >
+            <img
+              src={post.photos[0].url}
+              alt={post.designReference}
+              className="w-full h-full object-cover"
+              onError={() => setImgError(true)}
+            />
+          </div>
+        ) : (
+          <div
+            style={{ height: '25rem', ...(isVertical ? { aspectRatio: getFormatDimensions(post.format).aspectRatio } : {}) }}
+            className={`rounded-xl bg-gradient-to-br from-slate-100 to-slate-200 flex flex-col items-center justify-center gap-2 p-5 ${isVertical ? '' : 'w-full'}`}
+          >
+            <Image size={28} className="text-slate-400" />
+            <p className="text-xs text-slate-500 text-center leading-relaxed">{post.designReference}</p>
+          </div>
+        )}
       </div>
 
       {/* Footer */}

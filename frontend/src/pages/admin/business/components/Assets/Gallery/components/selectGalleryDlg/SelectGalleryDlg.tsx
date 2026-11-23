@@ -20,12 +20,12 @@ type Props = {
   onSelect: (selectedPhotos: TGalleryPhoto[]) => void;
   selectedIds: string[];
   focus: BusinessProfileFocus | null;
+  maxSelected?: number;
 }
 
-export function SelectGalleryDlg({ onSelect, selectedIds, focus }: Props) {
+export function SelectGalleryDlg({ onSelect, selectedIds, focus, maxSelected = 3 }: Props) {
   const dispatch = useAppDispatch();
   const { businessId } = useParams<{ businessId: string }>();
-  const MAX_SELECTED = 3;
 
   const [localSelected, setLocalSelected] = useState<string[]>([]);
   const [activeCategory, setActiveCategory] = useState<GalleryType | null>(null);
@@ -65,7 +65,7 @@ export function SelectGalleryDlg({ onSelect, selectedIds, focus }: Props) {
     };
 
     fetchData();
-  }, [dispatch]);
+  }, [dispatch, businessId, getPhotos, getDefaultPhotos]);
 
   useEffect(() => {
     setLocalSelected(selectedIds);
@@ -75,7 +75,7 @@ export function SelectGalleryDlg({ onSelect, selectedIds, focus }: Props) {
     setLocalSelected(prev => {
       const next = prev.includes(id)
         ? prev.filter(x => x !== id)
-        : prev.length >= MAX_SELECTED ? prev : [...prev, id];
+        : prev.length >= maxSelected ? prev : [...prev, id];
       onSelect(allPhotos.filter((p: TGalleryPhoto) => next.includes(p.id)));
       return next;
     });
@@ -106,7 +106,7 @@ export function SelectGalleryDlg({ onSelect, selectedIds, focus }: Props) {
       <div className="flex items-center gap-2 justify-between">
         <label className="block text-sm font-medium text-slate-700 text-left mb-3">
           Attach Photos
-          {localSelected.length === MAX_SELECTED && <span className="ml-1 text-red-500">(max 3 photos)</span>}
+          {localSelected.length === maxSelected && <span className="ml-1 text-red-500">(max {maxSelected} photos)</span>}
         </label>
       </div>
 
@@ -174,7 +174,7 @@ export function SelectGalleryDlg({ onSelect, selectedIds, focus }: Props) {
                       type="checkbox"
                       checked={localSelected.includes(photo.id)}
                       disabled={
-                        (!localSelected.includes(photo.id) && localSelected.length >= MAX_SELECTED) ||
+                        (!localSelected.includes(photo.id) && localSelected.length >= maxSelected) ||
                         (
                           hasPostOrStorySelected &&
                           (photo.type === GalleryType.Post || photo.type === GalleryType.Story) &&

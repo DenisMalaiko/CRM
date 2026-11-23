@@ -7,6 +7,7 @@ import {
   IdeaAI,
 } from '@prisma/client';
 import { PrismaService } from '../../core/prisma/prisma.service';
+import { StorageUrlService } from '../../core/storage/storage-url.service';
 import { AiContentPlanService } from '../ai/services/ai-content-plan.service';
 import {
   GenerateContentPlanDto,
@@ -14,6 +15,7 @@ import {
   UpdateContentPlanPostDto,
 } from './dto/contentPlan.dto';
 import { TContentPlanPost } from './entities/contentPlan.entity';
+import { getPhotoDescriptionText } from '../gallery/utils/photo-description.util';
 
 const CONTENT_PLAN_LIST_SELECT = {
   id: true,
@@ -47,6 +49,7 @@ export class ContentPlanService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly aiContentPlanService: AiContentPlanService,
+    private readonly storageUrlService: StorageUrlService,
   ) {}
 
   async getContentPlans(businessId: string) {
@@ -103,6 +106,38 @@ export class ContentPlanService {
       ideas = [...manualIdeas, ...aiIdeas];
     }
 
+    const galleryPhotos = dto.photosIds?.length
+      ? await this.prisma.galleryPhoto.findMany({
+          where: { id: { in: dto.photosIds } },
+          select: { id: true, url: true, description: true },
+        })
+      : await this.prisma.galleryPhoto.findMany({
+          where: { businessId, isActive: true },
+          select: { id: true, url: true, description: true },
+        });
+
+    const photosForAi = galleryPhotos.map((p) => ({
+      id: p.id,
+      url: p.url ? this.storageUrlService.getPublicUrl(p.url) : '',
+      description: getPhotoDescriptionText(p.description, business.language),
+    }));
+
+    let designSystemForAi: Record<string, any> | undefined;
+    if (dto.designSystemId) {
+      const ds = await this.prisma.designSystem.findUnique({
+        where: { id: dto.designSystemId },
+        select: { colors: true, typography: true, composition: true, radius: true },
+      });
+      if (ds) {
+        designSystemForAi = {
+          colors: ds.colors as Record<string, string>,
+          typography: ds.typography as Record<string, any>,
+          composition: ds.composition as Record<string, any>,
+          radius: ds.radius,
+        };
+      }
+    }
+
     const result = await this.aiContentPlanService.generateContentPlan({
       business,
       audiences,
@@ -111,6 +146,8 @@ export class ContentPlanService {
       context: dto.context,
       holidayName: dto.holidayName,
       holidayDate: dto.holidayDate,
+      photos: photosForAi,
+      designSystem: designSystemForAi,
     });
 
     return this.prisma.contentPlan.create({
@@ -176,7 +213,20 @@ export class ContentPlanService {
 
     if (!post) throw new NotFoundException('Post not found');
 
-    Object.assign(post, dto);
+    const { photosIds, ...restDto } = dto;
+    Object.assign(post, restDto);
+
+    if (photosIds) {
+      const galleryPhotos = await this.prisma.galleryPhoto.findMany({
+        where: { id: { in: photosIds } },
+        select: { id: true, url: true },
+      });
+
+      post.photos = galleryPhotos.map((p) => ({
+        photoId: p.id,
+        url: p.url ? this.storageUrlService.getPublicUrl(p.url) : '',
+      }));
+    }
 
     await this.prisma.contentPlan.update({
       where: { id },

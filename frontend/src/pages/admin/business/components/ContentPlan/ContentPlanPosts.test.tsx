@@ -63,6 +63,10 @@ jest.mock('../../../../../utils/showError', () => ({
   showError: jest.fn(),
 }));
 
+jest.mock('../Assets/Gallery/components/selectGalleryDlg/SelectGalleryDlg', () => ({
+  SelectGalleryDlg: () => null,
+}));
+
 jest.mock('react-toastify', () => ({
   toast: { success: jest.fn(), error: jest.fn() },
 }));
@@ -79,7 +83,7 @@ function makePost(overrides: Partial<TContentPlanPost> = {}): TContentPlanPost {
     day: 1,
     date: '2024-01-15',
     funnelStage: 'TOFU',
-    format: 'Carousel',
+    format: 'POST',
     contentType: 'Educational',
     topic: 'Test Topic',
     marketingGoal: 'Increase awareness',
@@ -288,10 +292,111 @@ describe('ContentPlanPosts', () => {
   // ── Format badge ───────────────────────────────────────────────────────────
 
   it('renders the format badge for each post', () => {
-    mockQueryState.data = { data: [makePost({ format: 'Reels' })] };
+    mockQueryState.data = { data: [makePost({ format: 'REELS' })] };
 
     render(<ContentPlanPosts />);
 
-    expect(screen.getByText('Reels')).toBeInTheDocument();
+    expect(screen.getByText('REELS')).toBeInTheDocument();
+  });
+
+  // ── Post photo rendering ───────────────────────────────────────────────────
+
+  it('renders an img element with the first photo url when photos array is non-empty', () => {
+    mockQueryState.data = {
+      data: [
+        makePost({
+          photos: [{ photoId: 'photo-1', url: 'https://example.com/photo.jpg' }],
+        }),
+      ],
+    };
+
+    render(<ContentPlanPosts />);
+
+    const img = screen.getByRole('img');
+    expect(img).toHaveAttribute('src', 'https://example.com/photo.jpg');
+  });
+
+  it('uses designReference as the img alt text', () => {
+    mockQueryState.data = {
+      data: [
+        makePost({
+          designReference: 'Bold landscape photo',
+          photos: [{ photoId: 'photo-1', url: 'https://example.com/photo.jpg' }],
+        }),
+      ],
+    };
+
+    render(<ContentPlanPosts />);
+
+    expect(screen.getByRole('img')).toHaveAttribute('alt', 'Bold landscape photo');
+  });
+
+  it('renders the placeholder with designReference text when photos is undefined', () => {
+    mockQueryState.data = {
+      data: [makePost({ photos: undefined, designReference: 'Bright outdoor scene' })],
+    };
+
+    render(<ContentPlanPosts />);
+
+    expect(screen.queryByRole('img')).not.toBeInTheDocument();
+    expect(screen.getByText('Bright outdoor scene')).toBeInTheDocument();
+  });
+
+  it('renders the placeholder with designReference text when photos is an empty array', () => {
+    mockQueryState.data = {
+      data: [makePost({ photos: [], designReference: 'Studio portrait' })],
+    };
+
+    render(<ContentPlanPosts />);
+
+    expect(screen.queryByRole('img')).not.toBeInTheDocument();
+    expect(screen.getByText('Studio portrait')).toBeInTheDocument();
+  });
+
+  // ── PostOverlay integration ────────────────────────────────────────────────
+
+  it('renders an iframe in the photo section when post has overlayHtml and a photo', () => {
+    mockQueryState.data = {
+      data: [
+        makePost({
+          overlayHtml: '<p>overlay content</p>',
+          photos: [{ photoId: 'photo-1', url: 'https://example.com/photo.jpg' }],
+        }),
+      ],
+    };
+
+    render(<ContentPlanPosts />);
+
+    expect(screen.getByTitle('Post overlay').tagName.toLowerCase()).toBe('iframe');
+  });
+
+  it('does not render an iframe when post has no overlayHtml and has a photo', () => {
+    mockQueryState.data = {
+      data: [
+        makePost({
+          overlayHtml: undefined,
+          photos: [{ photoId: 'photo-1', url: 'https://example.com/photo.jpg' }],
+        }),
+      ],
+    };
+
+    render(<ContentPlanPosts />);
+
+    expect(screen.queryByTitle('Post overlay')).not.toBeInTheDocument();
+  });
+
+  it('renders an iframe in the placeholder section when post has overlayHtml but no photos', () => {
+    mockQueryState.data = {
+      data: [
+        makePost({
+          overlayHtml: '<p>overlay content</p>',
+          photos: undefined,
+        }),
+      ],
+    };
+
+    render(<ContentPlanPosts />);
+
+    expect(screen.getByTitle('Post overlay').tagName.toLowerCase()).toBe('iframe');
   });
 });

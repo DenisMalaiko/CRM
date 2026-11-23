@@ -27,12 +27,29 @@ export const CopywriterResponseSchema = z.object({
   posts: z.array(CopywriterPostSchema).min(1),
 });
 
+export const ContentPlanPostPhotoSchema = z.object({
+  photoId: z.string(),
+  url: z.string(),
+});
+
 export const ContentPlanPostSchema = CopywriterPostSchema.extend({
   designReference: z.string(),
+  photos: z.array(ContentPlanPostPhotoSchema).default([]),
+  overlayHtml: z.string().optional().default(''),
 });
 
 export const ContentPlanResponseSchema = z.object({
   posts: z.array(ContentPlanPostSchema).min(1),
 });
 
+export const PhotoMatcherResponseSchema = z.object({
+  photoId: z.string().nullable(),
+});
+
+export const OverlayDesignerResponseSchema = z.object({
+  overlayHtml: z.string(),
+});
+
+export type TContentPlanPostPhoto = z.infer<typeof ContentPlanPostPhotoSchema>;
 export type TContentPlanPost = z.infer<typeof ContentPlanPostSchema>;
+export type TOverlayDesignerResponse = z.infer<typeof OverlayDesignerResponseSchema>;

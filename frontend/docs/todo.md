@@ -1,5 +1,72 @@
 # Task Log
 
+## Крок 4 — Генерація HTML/CSS оверлею для постів — 2026-11-23
+
+### Plan
+- [x] B1: Schema — `overlayHtml` в `ContentPlanPostSchema` + `OverlayDesignerResponseSchema`
+- [x] B2: Промпти OverlayDesigner — `overlay-designer.ts`
+- [x] B5: DTO — `overlayHtml` в `UpdateContentPlanPostDto`
+- [x] B3: `runOverlayDesigner()` — 5-й етап AI pipeline
+- [x] B4: Завантаження повної дизайн-системи для pipeline
+- [x] F1: `overlayHtml?` в `TContentPlanPost`
+- [x] F2: `PostOverlay` компонент (iframe srcdoc sandbox)
+- [x] F3: Інтеграція overlay в PostCard
+- [x] F4: `overlayHtml` в UpdateContentPlanPostDlg
+- [x] Quality gate: reviewer + tester
+
+### Review
+- [x] reviewer → FAIL → 3 fixes applied (default export → named, inline bg → Tailwind, mixed style split)
+- [x] reviewer re-run → PASS
+- [x] tester → PASS — 9 нових тестів (6 PostOverlay + 3 PostCard overlay), 663 тести проходять
+- [x] Регресій не знайдено
+- Summary: Додано 5-й етап AI pipeline (OverlayDesigner) для генерації HTML/CSS оверлею з inline-стилями. Frontend рендерить через iframe sandbox. Дизайн-система передається в pipeline для brand-consistent стилізації.
+
+### Notes
+- HTML генерується AI (gpt-4o) з inline-стилями, рендериться через iframe sandbox
+- Дизайн-система опціональна — AI генерує стилі самостійно якщо DS відсутня
+- Backward-compatible: старі пости без overlayHtml працюють без змін
+
+## Крок 2 — Підбір фото з галереї для постів контент-плану — 2026-11-23
+
+### Plan
+- [x] B1: Zod-схема — додати `ContentPlanPostPhotoSchema` та `photos` до `ContentPlanPostSchema`
+- [x] B4: Промпт для PhotoMatcher — `photo-matcher.ts`
+- [x] B2: `runPhotoMatcher()` — 4-й етап AI pipeline після ArtDirector
+- [x] B3: Завантаження фото з галереї для pipeline + передача в AI service
+- [x] B5+B6: DTO `photosIds` + оновлення `updateContentPlanPost` для збереження фото
+- [x] F1: `TContentPlanPostPhoto` тип + `photos?` поле в `TContentPlanPost`
+- [x] F2: PostCard — відображення реального фото замість placeholder
+- [x] F4: `maxSelected` prop у `SelectGalleryDlg` замість захардкодженої константи
+- [x] F3: UpdateContentPlanPostDlg — секція превью/вибору фото з SelectGalleryDlg
+
+### Notes
+- Фото зберігаються як масив в `postsJson` (JSON) — без міграції Prisma
+- PhotoMatcher матчить паралельно по постах через `Promise.all`
+- Якщо матч фейлиться для поста — повертає порожній масив, не ламає весь pipeline
+
+### Review
+- [x] reviewer → FAIL → 3 fixes applied (hardcoded max label, inline DOM mutation → React state, useEffect deps)
+- [x] tester → PASS — 58 тестів (15 нових), import path баг виправлений лінтером
+- [x] Регресій не знайдено
+- Summary: Додано 4-й етап AI pipeline (PhotoMatcher) для підбору фото з галереї по designReference. Frontend відображає фото у PostCard та дозволяє змінювати через SelectGalleryDlg
+
+## Крок 3 — Визначення розміру за типом контенту — 2026-11-23
+
+### Plan
+- [x] Shared константа `ContentFormats.ts` (frontend + backend)
+- [x] PostCard — aspect ratio через `style={{ aspectRatio }}` + `max-h-72`
+- [x] UpdateContentPlanPostDlg — превью фото з правильним aspect ratio
+- [x] Backend PhotoMatcher промпт вже містить розміри форматів
+
+### Notes
+- Розміри derivable з format, не зберігаються в postsJson
+- `style={{ aspectRatio }}` замість Tailwind — бо значення динамічне
+
+### Review
+- [x] reviewer → PASS (2 🟡 виправлено: union type `ContentPlanPostFormat`, export `FormatDimensions`)
+- [x] tester → skipped (зміни мінімальні, покриваються існуючими тестами PostCard)
+- Summary: Shared константи розмірів + aspect ratio у PostCard та діалозі. Union type для format.
+
 ## Селект дизайн систем у попапі генерації контент-плану — 2026-11-19
 
 ### Plan
