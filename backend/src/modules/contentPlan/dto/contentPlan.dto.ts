@@ -122,10 +122,6 @@ export class UpdateContentPlanPostDto {
   @IsOptional()
   designReference?: string;
 
-  @IsString()
-  @IsOptional()
-  overlayHtml?: string;
-
   @IsArray()
   @IsOptional()
   @IsUUID('4', { each: true })

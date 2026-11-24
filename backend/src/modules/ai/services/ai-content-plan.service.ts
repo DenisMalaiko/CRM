@@ -5,7 +5,6 @@ import {
   CopywriterResponseSchema,
   ContentPlanResponseSchema,
   PhotoMatcherResponseSchema,
-  OverlayDesignerResponseSchema,
   TContentPlanPost,
 } from '../schema/ai-content-plan.schema';
 import {
@@ -29,14 +28,9 @@ import {
   photoMatcherSystemPrompt,
   photoMatcherTaskBlock,
 } from '../prompts/contentPlan/photo-matcher';
-import {
-  overlayDesignerSystemPrompt,
-  overlayDesignerTaskBlock,
-} from '../prompts/contentPlan/overlay-designer';
-import { getFormatDimensions } from '../../../shared/const/ContentFormats';
 import { z } from 'zod';
 
-interface ContentPlanSettings {
+export interface ContentPlanSettings {
   business: {
     name: string;
     industry?: string | null;
@@ -85,6 +79,7 @@ interface ContentPlanSettings {
     typography: Record<string, any>;
     composition: Record<string, any>;
     radius: string;
+    shadow?: Record<string, string>;
   };
 }
 
@@ -128,16 +123,10 @@ export class AiContentPlanService {
       : final.posts;
     this.logger.log(`Photo Matcher done: ${withPhotos.length} posts`);
 
-    const withOverlays = await this.runOverlayDesigner(
-      withPhotos,
-      settings.designSystem,
-    );
-    this.logger.log(`Overlay Designer done: ${withOverlays.length} posts`);
-
     return {
       title: strategy.title,
       description: strategy.description,
-      posts: withOverlays,
+      posts: withPhotos,
     };
   }
 
@@ -256,51 +245,6 @@ export class AiContentPlanService {
             `Photo matching failed for post day ${post.day}: ${error.message}`,
           );
           return { ...post, photos: [] };
-        }
-      }),
-    );
-
-    return results;
-  }
-
-  private async runOverlayDesigner(
-    posts: TContentPlanPost[],
-    designSystem?: ContentPlanSettings['designSystem'],
-  ): Promise<TContentPlanPost[]> {
-    const results = await Promise.all(
-      posts.map(async (post) => {
-        try {
-          const dimensions = getFormatDimensions(post.format);
-
-          const prompt = [
-            overlayDesignerSystemPrompt(),
-            overlayDesignerTaskBlock(
-              {
-                title: post.title,
-                hook: post.hook,
-                cta: post.cta,
-                format: post.format,
-                designReference: post.designReference,
-              },
-              { width: dimensions.width, height: dimensions.height },
-              designSystem,
-            ),
-          ].join('\n\n');
-
-          const response = await this.base
-            .getModel(AiModel.Creative)
-            .invoke(prompt);
-          const rawText = this.base.extractTextContent(response.content);
-          const parsed = OverlayDesignerResponseSchema.parse(
-            this.base.safeParseJson(rawText),
-          );
-
-          return { ...post, overlayHtml: parsed.overlayHtml };
-        } catch (error) {
-          this.logger.warn(
-            `Overlay generation failed for post day ${post.day}: ${error.message}`,
-          );
-          return { ...post, overlayHtml: '' };
         }
       }),
     );

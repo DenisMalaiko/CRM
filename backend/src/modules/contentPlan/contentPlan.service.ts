@@ -8,7 +8,10 @@ import {
 } from '@prisma/client';
 import { PrismaService } from '../../core/prisma/prisma.service';
 import { StorageUrlService } from '../../core/storage/storage-url.service';
-import { AiContentPlanService } from '../ai/services/ai-content-plan.service';
+import {
+  AiContentPlanService,
+  ContentPlanSettings,
+} from '../ai/services/ai-content-plan.service';
 import {
   GenerateContentPlanDto,
   UpdateContentPlanDto,
@@ -122,11 +125,16 @@ export class ContentPlanService {
       description: getPhotoDescriptionText(p.description, business.language),
     }));
 
-    let designSystemForAi: Record<string, any> | undefined;
+    let designSystemForAi: ContentPlanSettings['designSystem'];
     if (dto.designSystemId) {
       const ds = await this.prisma.designSystem.findUnique({
         where: { id: dto.designSystemId },
-        select: { colors: true, typography: true, composition: true, radius: true },
+        select: {
+          colors: true,
+          typography: true,
+          composition: true,
+          radius: true,
+        },
       });
       if (ds) {
         designSystemForAi = {
