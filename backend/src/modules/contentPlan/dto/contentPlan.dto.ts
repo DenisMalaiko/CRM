@@ -6,8 +6,32 @@ import {
   IsOptional,
   IsString,
   IsUUID,
+  ValidateNested,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 import { ContentPlanMode, ContentPlanStatus } from '@prisma/client';
+
+class OverlayTextDto {
+  @IsIn(['heading', 'subheading', 'cta'])
+  @IsNotEmpty()
+  type: string;
+
+  @IsString()
+  @IsNotEmpty()
+  text: string;
+}
+
+class OverlayTextsDto {
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => OverlayTextDto)
+  uk: OverlayTextDto[];
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => OverlayTextDto)
+  en: OverlayTextDto[];
+}
 
 export class GenerateContentPlanDto {
   @IsEnum(ContentPlanMode)
@@ -121,6 +145,11 @@ export class UpdateContentPlanPostDto {
   @IsNotEmpty()
   @IsOptional()
   designReference?: string;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => OverlayTextsDto)
+  overlayTexts?: OverlayTextsDto;
 
   @IsArray()
   @IsOptional()

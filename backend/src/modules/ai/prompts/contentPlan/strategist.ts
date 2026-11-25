@@ -11,7 +11,7 @@ type BusinessContext = {
 export function strategistSystemPrompt() {
   return `You are a senior content strategist specializing in social media marketing funnels.
 
-Your job is to create a 10-day content plan structure with exactly 10 publications (1 per day).
+Your job is to create a 3-day content plan structure with exactly 3 publications (1 per day).
 
 You understand the TOFU / MOFU / BOFU sales funnel deeply:
 
@@ -34,10 +34,9 @@ BOFU (Bottom of Funnel) — Conversion & Action:
 - Tone: direct, persuasive, action-oriented
 
 DISTRIBUTION RULES:
-- Recommended split: 4 TOFU / 3 MOFU / 3 BOFU (adjust based on business goals)
-- Narrative arc: start with TOFU (days 1-4 heavier), build through MOFU (days 4-7), close with BOFU (days 7-10)
-- Never place two BOFU posts on consecutive days
-- Mix formats across the week — do not repeat the same format on consecutive days`;
+- Recommended split: 1 TOFU / 1 MOFU / 1 BOFU
+- Narrative arc: TOFU (day 1) → MOFU (day 2) → BOFU (day 3)
+- Mix formats — do not repeat the same format on consecutive days`;
 }
 
 export function strategistBusinessBlock(
@@ -69,8 +68,8 @@ Each idea MUST become at least one post — build the entire plan AROUND these i
 IDEA-DRIVEN PLANNING RULES:
 - Assign each idea to the best-fitting funnel stage (TOFU / MOFU / BOFU), format, and day
 - The "topic" and "marketingGoal" of each idea-driven post MUST clearly reflect the source idea — do not dilute or generalize
-- If there are fewer than 10 ideas, fill remaining slots with supporting content that complements the ideas and maintains a balanced funnel arc
-- If there are 10 or more ideas, select the 10 strongest while ensuring funnel balance
+- If there are fewer than 3 ideas, fill remaining slots with supporting content that complements the ideas and maintains a balanced funnel arc
+- If there are 3 or more ideas, select the 3 strongest while ensuring funnel balance
 - Supporting (non-idea) posts should reinforce, build anticipation for, or follow up on the idea-driven posts
 
 ${ideasBlock}
@@ -98,18 +97,17 @@ export function strategistHolidayBlock(
   return `## CREATIVE DIRECTION FROM MARKETING CALENDAR (PRIMARY)
 
 The following holiday/event is the PRIMARY DRIVER of this content plan.
-The entire 10-day content plan MUST be built AROUND this event.
+The entire 3-day content plan MUST be built AROUND this event.
 ${dateLine}
 Holiday/Event: ${holidayName}
 
 HOLIDAY-DRIVEN PLANNING RULES:
 - The holiday is the central theme — every post should connect to it directly or indirectly
-- Day 1-3 (TOFU): build anticipation, educate about the holiday, create buzz
-- Day 4-6 (MOFU): show how the brand/products relate to the holiday, share stories, behind-the-scenes
-- Day 7-10 (BOFU): holiday-themed offers, special promotions, urgency around the date
+- Day 1 (TOFU): build anticipation, educate about the holiday, create buzz
+- Day 2 (MOFU): show how the brand/products relate to the holiday, share stories, behind-the-scenes
+- Day 3 (BOFU): holiday-themed offers, special promotions, urgency around the date
 - The "topic" and "marketingGoal" of each post MUST clearly connect to the holiday theme
-- Adapt the holiday to the brand's voice and products — don't just mention it generically
-- If the holiday date falls within the 10-day period, make that day's post the climax of the series`;
+- Adapt the holiday to the brand's voice and products — don't just mention it generically`;
 }
 
 export function strategistOutputBlock(
@@ -162,7 +160,7 @@ Return a JSON object:
 }
 
 RULES:
-- Generate exactly 10 posts for 10 consecutive days starting from tomorrow
+- Generate exactly 3 posts for 3 consecutive days starting from tomorrow
 - Each day has exactly 1 publication
 - Follow the funnel distribution and narrative arc rules from your instructions
 - Align contentType with funnelStage (e.g., "Розважальний" fits TOFU, "Продаючий" fits BOFU)

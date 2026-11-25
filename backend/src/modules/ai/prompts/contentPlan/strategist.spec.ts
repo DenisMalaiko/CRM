@@ -120,10 +120,10 @@ describe('strategistOutputBlock', () => {
     expect(result).toContain('## OUTPUT FORMAT (STRICT JSON)');
   });
 
-  it('always includes exactly 10 posts rule', () => {
+  it('always includes exactly 3 posts rule', () => {
     const result = strategistOutputBlock('English');
 
-    expect(result).toContain('Generate exactly 10 posts');
+    expect(result).toContain('Generate exactly 3 posts');
   });
 });
 
