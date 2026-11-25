@@ -32,8 +32,19 @@ export const ContentPlanPostPhotoSchema = z.object({
   url: z.string(),
 });
 
+export const OverlayTextSchema = z.object({
+  type: z.enum(['heading', 'subheading', 'cta']),
+  text: z.string(),
+});
+
+export const OverlayTextsSchema = z.object({
+  uk: z.array(OverlayTextSchema),
+  en: z.array(OverlayTextSchema),
+});
+
 export const ContentPlanPostSchema = CopywriterPostSchema.extend({
   designReference: z.string(),
+  overlayTexts: OverlayTextsSchema.default({ uk: [], en: [] }),
   photos: z.array(ContentPlanPostPhotoSchema).default([]),
 });
 
@@ -46,4 +57,6 @@ export const PhotoMatcherResponseSchema = z.object({
 });
 
 export type TContentPlanPostPhoto = z.infer<typeof ContentPlanPostPhotoSchema>;
+export type TOverlayText = z.infer<typeof OverlayTextSchema>;
+export type TOverlayTexts = z.infer<typeof OverlayTextsSchema>;
 export type TContentPlanPost = z.infer<typeof ContentPlanPostSchema>;

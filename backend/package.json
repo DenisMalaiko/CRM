@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.980.0",
+    "@fal-ai/client": "^1.11.0",
     "@google-cloud/aiplatform": "^6.4.0",
     "@google-cloud/vertexai": "^1.10.0",
     "@langchain/anthropic": "^1.5.11",
@@ -92,7 +93,12 @@
     "rootDir": "src",
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
-      "^.+\\.(t|j)s$": ["ts-jest", { "tsconfig": "tsconfig.test.json" }]
+      "^.+\\.(t|j)s$": [
+        "ts-jest",
+        {
+          "tsconfig": "tsconfig.test.json"
+        }
+      ]
     },
     "collectCoverageFrom": [
       "**/*.(t|j)s"
