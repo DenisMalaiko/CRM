@@ -71,7 +71,14 @@ export class ContentPlanService {
 
     if (!plan) throw new NotFoundException('Content plan not found');
 
-    return plan.postsJson;
+    const posts = (plan.postsJson ?? []) as TContentPlanPost[];
+
+    return posts.map((post) => ({
+      ...post,
+      generatedImages: (post.generatedImages ?? []).map((key) =>
+        this.storageUrlService.getPublicUrl(key),
+      ),
+    }));
   }
 
   async generateContentPlan(businessId: string, dto: GenerateContentPlanDto) {
@@ -131,17 +138,29 @@ export class ContentPlanService {
         where: { id: dto.designSystemId },
         select: {
           colors: true,
+          gradients: true,
           typography: true,
-          composition: true,
           radius: true,
+          border: true,
+          shadow: true,
+          spacing: true,
+          brandElements: true,
+          composition: true,
+          scene: true,
         },
       });
       if (ds) {
         designSystemForAi = {
           colors: ds.colors as Record<string, string>,
-          typography: ds.typography as Record<string, any>,
-          composition: ds.composition as Record<string, any>,
+          gradients: ds.gradients as Record<string, unknown>[],
+          typography: ds.typography as Record<string, unknown>,
           radius: ds.radius,
+          border: ds.border as Record<string, string>,
+          shadow: ds.shadow as Record<string, string>,
+          spacing: ds.spacing as Record<string, string>,
+          brandElements: ds.brandElements as Record<string, unknown>,
+          composition: ds.composition as Record<string, unknown>,
+          scene: ds.scene as Record<string, unknown>,
         };
       }
     }

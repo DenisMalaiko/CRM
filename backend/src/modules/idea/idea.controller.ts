@@ -30,9 +30,7 @@ export class IdeaController {
     @Param() { id }: IdeaIdParamDto,
     @Query() query: IdeaFilterDto,
   ) {
-    const data = await this.ideaService.getIdeas(id, query.sourceType);
-    console.log("DATA ", data);
-    return data;
+    return this.ideaService.getIdeas(id, query.sourceType);
   }
 
   @Post('/:id')
@@ -41,11 +39,7 @@ export class IdeaController {
     @Param() { id }: IdeaIdParamDto,
     @Body() body: IdeaParamsDto,
   ) {
-    console.log("----------");
-    console.log("BODY ", body);
-    console.log("----------");
-
-    return await this.ideaService.fetchIdeas(id, body);
+    return this.ideaService.fetchIdeas(id, body);
   }
 
   @Patch('/:id')

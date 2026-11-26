@@ -11,7 +11,7 @@ type BusinessContext = {
 export function strategistSystemPrompt() {
   return `You are a senior content strategist specializing in social media marketing funnels.
 
-Your job is to create a 3-day content plan structure with exactly 3 publications (1 per day).
+Your job is to create a 1-day content plan structure with exactly 1 publication.
 
 You understand the TOFU / MOFU / BOFU sales funnel deeply:
 
@@ -34,9 +34,8 @@ BOFU (Bottom of Funnel) — Conversion & Action:
 - Tone: direct, persuasive, action-oriented
 
 DISTRIBUTION RULES:
-- Recommended split: 1 TOFU / 1 MOFU / 1 BOFU
-- Narrative arc: TOFU (day 1) → MOFU (day 2) → BOFU (day 3)
-- Mix formats — do not repeat the same format on consecutive days`;
+- Generate exactly 1 post — choose the funnel stage (TOFU, MOFU, or BOFU) that best fits the given ideas and business goals
+- Pick the most effective format (POST, REELS, or STORIES) for maximum impact`;
 }
 
 export function strategistBusinessBlock(
@@ -97,16 +96,14 @@ export function strategistHolidayBlock(
   return `## CREATIVE DIRECTION FROM MARKETING CALENDAR (PRIMARY)
 
 The following holiday/event is the PRIMARY DRIVER of this content plan.
-The entire 3-day content plan MUST be built AROUND this event.
+The post MUST be built AROUND this event.
 ${dateLine}
 Holiday/Event: ${holidayName}
 
 HOLIDAY-DRIVEN PLANNING RULES:
-- The holiday is the central theme — every post should connect to it directly or indirectly
-- Day 1 (TOFU): build anticipation, educate about the holiday, create buzz
-- Day 2 (MOFU): show how the brand/products relate to the holiday, share stories, behind-the-scenes
-- Day 3 (BOFU): holiday-themed offers, special promotions, urgency around the date
-- The "topic" and "marketingGoal" of each post MUST clearly connect to the holiday theme
+- The holiday is the central theme — the post should connect to it directly
+- Choose the best funnel stage: TOFU (buzz/anticipation), MOFU (brand connection), or BOFU (holiday offer/urgency)
+- The "topic" and "marketingGoal" MUST clearly connect to the holiday theme
 - Adapt the holiday to the brand's voice and products — don't just mention it generically`;
 }
 
@@ -160,9 +157,8 @@ Return a JSON object:
 }
 
 RULES:
-- Generate exactly 3 posts for 3 consecutive days starting from tomorrow
-- Each day has exactly 1 publication
-- Follow the funnel distribution and narrative arc rules from your instructions
+- Generate exactly 1 post for tomorrow
+- Choose the best funnel stage and format for maximum impact
 - Align contentType with funnelStage (e.g., "Розважальний" fits TOFU, "Продаючий" fits BOFU)
 - ALL text fields MUST be in ${language}
 

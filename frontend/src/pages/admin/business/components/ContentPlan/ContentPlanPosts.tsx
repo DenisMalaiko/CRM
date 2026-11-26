@@ -86,7 +86,7 @@ function PostCard({ post, businessName, onEdit, onDelete }: PostCardProps) {
         <p className="text-sm font-semibold text-blue-600">{post.cta}</p>
       </div>
 
-      {/* Post visual: overlay frame, photo, or placeholder */}
+      {/* Post visual: overlay frame, generated image, photo, or placeholder */}
       <div className="mx-4 mb-3 flex justify-center">
         {post.overlayHtml ? (
           <div
@@ -98,13 +98,13 @@ function PostCard({ post, businessName, onEdit, onDelete }: PostCardProps) {
               photoUrl={post.photos?.[0]?.url}
             />
           </div>
-        ) : post.photos?.length && !imgError ? (
+        ) : (post.generatedImages?.length || post.photos?.length) && !imgError ? (
           <div
             className={`rounded-xl overflow-hidden ${isVertical ? '' : 'w-full'}`}
             style={{ height: '25rem', ...(isVertical ? { aspectRatio: getFormatDimensions(post.format).aspectRatio } : {}) }}
           >
             <img
-              src={post.photos[0].url}
+              src={post.generatedImages?.[0] ?? post.photos?.[0]?.url}
               alt={post.designReference}
               className="w-full h-full object-cover"
               onError={() => setImgError(true)}

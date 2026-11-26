@@ -46,6 +46,7 @@ export const ContentPlanPostSchema = CopywriterPostSchema.extend({
   designReference: z.string(),
   overlayTexts: OverlayTextsSchema.default({ uk: [], en: [] }),
   photos: z.array(ContentPlanPostPhotoSchema).default([]),
+  generatedImages: z.array(z.string()).default([]),
 });
 
 export const ContentPlanResponseSchema = z.object({
