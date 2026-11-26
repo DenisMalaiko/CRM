@@ -1,5 +1,10 @@
 import { FalModelConfig, FalGenerateInput } from './fal.types';
 
+function buildPrompt(input: FalGenerateInput): string {
+  if (!input.text) return input.prompt;
+  return `${input.prompt}\n\nText to render on the image (exact wording): "${input.text}"`;
+}
+
 function buildImageUrls(input: FalGenerateInput, max: number): string[] {
   const urls: string[] = [];
   if (input.photoUrl) urls.push(input.photoUrl);
@@ -22,24 +27,11 @@ function adaptOpenAI(
   numImages: number,
 ): Record<string, unknown> {
   return {
-    prompt: input.prompt,
+    prompt: buildPrompt(input),
     image_urls: buildImageUrls(input, 16),
     image_size: mapAspectToImageSize(input.aspectRatio),
     quality: 'high',
     num_images: numImages,
-    output_format: 'png',
-  };
-}
-
-function adaptSeedream(
-  input: FalGenerateInput,
-  numImages: number,
-): Record<string, unknown> {
-  return {
-    prompt: input.prompt,
-    image_urls: buildImageUrls(input, 10),
-    image_size: 'auto_2K',
-    num_images: Math.min(numImages, 6),
     output_format: 'png',
   };
 }
@@ -61,7 +53,7 @@ function adaptNanoBanana(
   const imageUrls = buildImageUrls(input, 4);
 
   return {
-    prompt: input.prompt,
+    prompt: buildPrompt(input),
     ...(imageUrls.length > 0 && { image_urls: imageUrls }),
     aspect_ratio: dims.aspect_ratio,
     resolution: dims.resolution,
@@ -75,7 +67,7 @@ function adaptSeedreamLite(
   numImages: number,
 ): Record<string, unknown> {
   return {
-    prompt: input.prompt,
+    prompt: buildPrompt(input),
     image_urls: buildImageUrls(input, 10),
     image_size: 'auto_2K',
     num_images: Math.min(numImages, 6),
@@ -90,13 +82,6 @@ export const FAL_MODEL_CHAIN: FalModelConfig[] = [
     maxImages: 1,
     maxReferenceImages: 16,
     adapt: adaptOpenAI,
-  },
-  {
-    id: 'bytedance/seedream/v5.5/edit',
-    label: 'Seedream v5.5',
-    maxImages: 6,
-    maxReferenceImages: 10,
-    adapt: adaptSeedream,
   },
   {
     id: 'google/nano-banana-2.1/edit',
@@ -121,4 +106,4 @@ export const FAL_MODEL_CHAIN: FalModelConfig[] = [
   },
 ];
 
-export const FAL_PREVIEW_MODEL = FAL_MODEL_CHAIN[3]; // Flare
+export const FAL_PREVIEW_MODEL = FAL_MODEL_CHAIN[2]; // Flare

@@ -32,8 +32,8 @@ export const FalApiResponseSchema = z.object({
     .array(
       z.object({
         url: z.string(),
-        width: z.number(),
-        height: z.number(),
+        width: z.number().nullable().optional(),
+        height: z.number().nullable().optional(),
       }),
     )
     .min(1),

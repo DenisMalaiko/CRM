@@ -66,6 +66,14 @@ describe('artDirectorSystemPrompt', () => {
     expect(result).toContain('MOFU');
     expect(result).toContain('BOFU');
   });
+
+  it('requires designReference to always be written in English', () => {
+    const result = artDirectorSystemPrompt();
+
+    expect(result).toContain(
+      'designReference MUST always be written in English',
+    );
+  });
 });
 
 // ─────────────────────────────────────────────
@@ -115,9 +123,21 @@ describe('artDirectorTaskBlock', () => {
   it('instructs that overlayTexts are always bilingual regardless of language setting', () => {
     const result = artDirectorTaskBlock(postsJson, 'Acme Corp', 'Ukrainian');
 
+    expect(result).toContain('overlayTexts are always bilingual (uk and en)');
+  });
+
+  it('instructs that designReference must always be in English', () => {
+    const result = artDirectorTaskBlock(postsJson, 'Acme Corp', 'Ukrainian');
+
     expect(result).toContain(
-      'overlayTexts are always bilingual with uk and en',
+      'EXCEPT designReference which MUST always be in English',
     );
+  });
+
+  it('designReference example in JSON output is in English', () => {
+    const result = artDirectorTaskBlock(postsJson, 'Acme Corp', 'English');
+
+    expect(result).toMatch(/flat-lay|composition/i);
   });
 
   it('includes the OUTPUT FORMAT header', () => {

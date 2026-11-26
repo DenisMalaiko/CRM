@@ -22,6 +22,7 @@ import {
 } from '../prompts/contentPlan/copywriter';
 import {
   artDirectorSystemPrompt,
+  artDirectorDesignSystemBlock,
   artDirectorTaskBlock,
 } from '../prompts/contentPlan/art-director';
 import {
@@ -29,9 +30,12 @@ import {
   photoMatcherTaskBlock,
 } from '../prompts/contentPlan/photo-matcher';
 import { z } from 'zod';
+import { FalImageService } from '../fal/fal-image.service';
+import { FalGenerateInput } from '../fal/fal.types';
 
 export interface ContentPlanSettings {
   business: {
+    id: string;
     name: string;
     industry?: string | null;
     website: string;
@@ -76,10 +80,15 @@ export interface ContentPlanSettings {
   }[];
   designSystem?: {
     colors: Record<string, string>;
-    typography: Record<string, any>;
-    composition: Record<string, any>;
+    gradients: Record<string, unknown>[];
+    typography: Record<string, unknown>;
     radius: string;
-    shadow?: Record<string, string>;
+    border: Record<string, string>;
+    shadow: Record<string, string>;
+    spacing: Record<string, string>;
+    brandElements: Record<string, unknown>;
+    composition: Record<string, unknown>;
+    scene: Record<string, unknown>;
   };
 }
 
@@ -87,7 +96,10 @@ export interface ContentPlanSettings {
 export class AiContentPlanService {
   private readonly logger = new Logger(AiContentPlanService.name);
 
-  constructor(private readonly base: AiBaseService) {}
+  constructor(
+    private readonly base: AiBaseService,
+    private readonly falImageService: FalImageService,
+  ) {}
 
   async generateContentPlan(settings: ContentPlanSettings): Promise<{
     title: string;
@@ -115,6 +127,7 @@ export class AiContentPlanService {
       withCopy.posts,
       business.name,
       language,
+      settings.designSystem,
     );
     this.logger.log(`Art Director done: ${final.posts.length} posts`);
 
@@ -123,10 +136,17 @@ export class AiContentPlanService {
       : final.posts;
     this.logger.log(`Photo Matcher done: ${withPhotos.length} posts`);
 
+    const withImages = await this.runImageGenerator(
+      withPhotos,
+      language,
+      settings.business.id,
+    );
+    this.logger.log(`Image Generator done: ${withImages.length} posts`);
+
     return {
       title: strategy.title,
       description: strategy.description,
-      posts: withPhotos,
+      posts: withImages,
     };
   }
 
@@ -185,13 +205,17 @@ export class AiContentPlanService {
     posts: z.infer<typeof CopywriterResponseSchema>['posts'],
     businessName: string,
     language: string,
+    designSystem?: ContentPlanSettings['designSystem'],
   ) {
     const postsJson = JSON.stringify(posts, null, 2);
 
     const prompt = [
       artDirectorSystemPrompt(),
+      designSystem ? artDirectorDesignSystemBlock(designSystem) : '',
       artDirectorTaskBlock(postsJson, businessName, language),
-    ].join('\n\n');
+    ]
+      .filter(Boolean)
+      .join('\n\n');
 
     const response = await this.base.getModel(AiModel.Fast).invoke(prompt);
     const rawText = this.base.extractTextContent(response.content);
@@ -250,5 +274,61 @@ export class AiContentPlanService {
     );
 
     return results;
+  }
+
+  private async runImageGenerator(
+    posts: TContentPlanPost[],
+    language: string,
+    businessId: string,
+  ): Promise<TContentPlanPost[]> {
+    const FORMAT_ASPECT_RATIO: Record<string, '4:5' | '9:16'> = {
+      POST: '4:5',
+      REELS: '9:16',
+      STORIES: '9:16',
+    };
+
+    const overlayLang: 'uk' | 'en' = language === 'uk' ? 'uk' : 'en';
+
+    return Promise.all(
+      posts.map(async (post) => {
+        try {
+          const overlayTexts = post.overlayTexts?.[overlayLang] ?? [];
+          const textParts = overlayTexts.map((ot) => `${ot.type}: ${ot.text}`);
+
+          const input: FalGenerateInput = {
+            prompt: post.designReference,
+            text: textParts.join(' | '),
+            photoUrl: post.photos?.[0]?.url,
+            referenceUrls: [], // TODO: forward designSystem reference image URLs when available
+            aspectRatio: FORMAT_ASPECT_RATIO[post.format] ?? '4:5',
+          };
+
+          const hasImages = !!input.photoUrl || input.referenceUrls.length > 0;
+
+          this.logger.log(
+            `[Day ${post.day}] format=${post.format} aspect=${input.aspectRatio} photo=${input.photoUrl ? 'yes' : 'no'} text="${input.text.slice(0, 60)}"`,
+          );
+
+          if (!hasImages) {
+            this.logger.warn(
+              `[Day ${post.day}] Skipped — /edit endpoints require at least one image`,
+            );
+            return { ...post, generatedImages: [] };
+          }
+
+          const result = await this.falImageService.generateForPost(
+            input,
+            businessId,
+          );
+
+          return { ...post, generatedImages: result.imageUrls };
+        } catch (error) {
+          this.logger.warn(
+            `Image generation failed for post day ${post.day}: ${error instanceof Error ? error.message : String(error)}`,
+          );
+          return { ...post, generatedImages: [] };
+        }
+      }),
+    );
   }
 }

@@ -28,6 +28,7 @@ GENERAL RULES:
 - Describe the visual concept specifically enough for a designer to execute
 - Maintain visual consistency across the week (suggest a cohesive color/style thread)
 - Never use generic descriptions like "nice image" — be specific about composition, colors, and elements
+- designReference MUST always be written in English regardless of content language — image generation models perform best with English prompts
 
 OVERLAY TEXT RULES:
 - For each post, generate overlayTexts — short text strings designed to be placed ON the image
@@ -42,6 +43,93 @@ OVERLAY TEXT RULES:
   - REELS: heading + cta (2 items per language — no subheading, video has less text space)
   - STORIES: heading + cta (2 items per language — keep minimal for small screen)
 - Adapt tone to funnel stage: TOFU = curiosity/hook, MOFU = value/authority, BOFU = urgency/action`;
+}
+
+export function artDirectorDesignSystemBlock(ds: {
+  colors: Record<string, string>;
+  gradients: Record<string, unknown>[];
+  typography: Record<string, unknown>;
+  radius: string;
+  border: Record<string, string>;
+  shadow: Record<string, string>;
+  spacing: Record<string, string>;
+  brandElements: Record<string, unknown>;
+  composition: Record<string, unknown>;
+  scene: Record<string, unknown>;
+}) {
+  const colorEntries = Object.entries(ds.colors)
+    .map(([k, v]) => `  ${k}: ${v}`)
+    .join('\n');
+
+  const gradientsCss =
+    ds.gradients.length > 0
+      ? ds.gradients
+          .map((g: any) => {
+            const stops = (g.stops ?? [])
+              .map((s: any) => `${s.color} ${s.position}%`)
+              .join(', ');
+            return `  linear-gradient(${g.angle ?? 0}deg, ${stops})`;
+          })
+          .join('\n')
+      : '  none';
+
+  const typo = ds.typography as Record<string, any>;
+  const typoBlock = Object.entries(typo)
+    .map(
+      ([role, t]: [string, any]) =>
+        `  ${role}: font-family: ${t.fontFamily}; font-weight: ${t.weight}; text-transform: ${t.case}; letter-spacing: ${t.letterSpacing}; line-height: ${t.lineHeight}; size: ${t.sizePercent}%`,
+    )
+    .join('\n');
+
+  const comp = ds.composition as Record<string, any>;
+  const compositionBlock = Object.entries(comp)
+    .map(([k, v]) => `  ${k}: ${v}`)
+    .join('\n');
+
+  const scn = ds.scene as Record<string, any>;
+  const sceneBlock = Object.entries(scn)
+    .map(([k, v]) => `  ${k}: ${v}`)
+    .join('\n');
+
+  const brand = ds.brandElements as Record<string, any>;
+  const brandBlock = Object.entries(brand)
+    .map(([k, v]) => `  ${k}: ${JSON.stringify(v)}`)
+    .join('\n');
+
+  return `## BRAND DESIGN SYSTEM (MUST FOLLOW)
+
+You MUST use this design system when writing designReference. Match colors, typography, composition, and scene style to these values.
+
+COLORS:
+${colorEntries}
+
+GRADIENTS:
+${gradientsCss}
+
+TYPOGRAPHY:
+${typoBlock}
+
+BORDER: style: ${ds.border.style ?? 'none'}; width: ${ds.border.width ?? '0'}; color: ${ds.border.color ?? 'transparent'}
+RADIUS: ${ds.radius}
+SHADOW: color: ${ds.shadow.color ?? 'none'}; blur: ${ds.shadow.blur ?? '0'}; offset: ${ds.shadow.offsetX ?? '0'} ${ds.shadow.offsetY ?? '0'}
+SPACING: base-unit: ${ds.spacing.baseUnit ?? '8px'}; content-padding: ${ds.spacing.contentPadding ?? '24px'}
+
+COMPOSITION:
+${compositionBlock}
+
+SCENE DIRECTION:
+${sceneBlock}
+
+BRAND ELEMENTS:
+${brandBlock}
+
+RULES:
+- designReference MUST reference specific colors from the palette above (use HEX values)
+- Typography style in designReference must match the font families and weights above
+- Composition layout and text placement must follow the composition rules
+- Scene lighting and camera style must follow the scene direction
+- If gradients exist, incorporate them into background or overlay descriptions
+- If brand decorative motifs exist, mention them in designReference where appropriate`;
 }
 
 export function artDirectorTaskBlock(
@@ -59,7 +147,7 @@ ${postsWithCopy}
 
 ## OUTPUT FORMAT (STRICT JSON)
 
-ALL text fields MUST be written in ${language}.
+ALL text fields MUST be written in ${language}, EXCEPT designReference which MUST always be in English.
 
 Return a JSON object:
 
@@ -77,7 +165,7 @@ Return a JSON object:
       "hook": "(keep from input)",
       "thesis": "(keep from input)",
       "cta": "(keep from input)",
-      "designReference": "detailed visual concept for this post (2-3 sentences)",
+      "designReference": "Bright flat-lay composition with pastel pink background, product centered with scattered flowers. Bold sans-serif heading overlay at top, subtle gradient CTA button at bottom.",
       "overlayTexts": {
         "uk": [
           { "type": "heading", "text": "Короткий яскравий заголовок" },
@@ -98,7 +186,7 @@ RULES:
 - overlayTexts must contain both uk and en versions, adapted from post copy but shortened for visual overlay
 - Match visual style to both format AND funnelStage
 - Maintain visual consistency across all posts
-- ALL text fields MUST be in ${language} (this applies to title, hook, thesis, cta — overlayTexts are always bilingual with uk and en)
+- ALL text fields MUST be in ${language} (title, hook, thesis, cta) — overlayTexts are always bilingual (uk and en) — designReference is ALWAYS in English
 
 Return ONLY valid JSON. No markdown. No explanations.`;
 }

@@ -118,11 +118,15 @@ export class FalImageService {
     input: FalGenerateInput,
     numImages: number,
   ): Promise<{
-    images: { url: string; width: number; height: number }[];
+    images: { url: string }[];
     requestId: string;
   }> {
     const payload = model.adapt(input, numImages);
     const start = Date.now();
+
+    this.logger.log(
+      `Calling ${model.label}: prompt="${input.prompt.slice(0, 80)}…" images=${((payload.image_urls as string[]) ?? []).length} size=${payload.image_size ?? payload.resolution ?? 'auto'}`,
+    );
 
     const result = await this.fal.subscribe(model.id, {
       input: payload,

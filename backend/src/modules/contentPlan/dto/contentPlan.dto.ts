@@ -155,4 +155,10 @@ export class UpdateContentPlanPostDto {
   @IsOptional()
   @IsUUID('4', { each: true })
   photosIds?: string[];
+
+  @IsArray()
+  @IsOptional()
+  @IsString({ each: true })
+  @IsNotEmpty({ each: true })
+  generatedImages?: string[];
 }

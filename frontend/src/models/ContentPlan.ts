@@ -65,6 +65,7 @@ export type TContentPlanPost = {
   cta: string;
   designReference: string;
   photos?: TContentPlanPostPhoto[];
+  generatedImages?: string[];
   overlayHtml?: string;
 };
 

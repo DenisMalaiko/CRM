@@ -184,3 +184,51 @@ describe('ContentPlanPostSchema — overlayTexts', () => {
     ).toThrow();
   });
 });
+
+// ─────────────────────────────────────────────
+// ContentPlanPostSchema — generatedImages field
+// ─────────────────────────────────────────────
+describe('ContentPlanPostSchema — generatedImages', () => {
+  const basePost = {
+    day: 1,
+    date: '25.11.2026',
+    funnelStage: 'TOFU' as const,
+    format: 'POST',
+    contentType: 'Розважальний',
+    topic: 'Brand story',
+    marketingGoal: 'Awareness',
+    title: 'Title',
+    hook: 'Hook',
+    thesis: 'Thesis',
+    cta: 'CTA',
+    designReference: 'Visual concept description here.',
+  };
+
+  it('defaults generatedImages to [] when not provided', () => {
+    const result = ContentPlanPostSchema.parse(basePost);
+
+    expect(result.generatedImages).toEqual([]);
+  });
+
+  it('parses a valid generatedImages array of URL strings', () => {
+    const result = ContentPlanPostSchema.parse({
+      ...basePost,
+      generatedImages: [
+        'https://cdn.fal.ai/image1.jpg',
+        'https://cdn.fal.ai/image2.jpg',
+      ],
+    });
+
+    expect(result.generatedImages).toHaveLength(2);
+    expect(result.generatedImages[0]).toBe('https://cdn.fal.ai/image1.jpg');
+  });
+
+  it('fails when generatedImages contains a non-string element', () => {
+    expect(() =>
+      ContentPlanPostSchema.parse({
+        ...basePost,
+        generatedImages: [42],
+      }),
+    ).toThrow();
+  });
+});

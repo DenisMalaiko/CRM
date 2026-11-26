@@ -1,8 +1,11 @@
-import {Injectable, InternalServerErrorException, NotFoundException} from '@nestjs/common';
-import {PrismaService} from "../../core/prisma/prisma.service";
-import {AiService} from "../ai/ai.service";
-import {TIdeaAI, TIdeaAIUpdate} from "./entities/ideaAI.entity";
-
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
+import { PrismaService } from '../../core/prisma/prisma.service';
+import { AiService } from '../ai/ai.service';
+import { TIdeaAI, TIdeaAIUpdate } from './entities/ideaAI.entity';
 
 @Injectable()
 export class IdeaAIService {
@@ -12,8 +15,6 @@ export class IdeaAIService {
   ) {}
 
   async fetchIdeas(businessId: string) {
-    console.log("FETCH IDEAS SERVICE")
-    console.log(businessId)
     const business = await this.prisma.business.findUnique({
       where: { id: businessId },
       select: {
@@ -26,7 +27,7 @@ export class IdeaAIService {
         advantages: true,
         goals: true,
         products: true,
-      }
+      },
     });
 
     const ideasAI = await this.prisma.ideaAI.findMany({
@@ -34,8 +35,8 @@ export class IdeaAIService {
       select: {
         title: true,
         description: true,
-      }
-    })
+      },
+    });
 
     const ideas = await this.aiService.generateIdeas(business, ideasAI);
 
@@ -51,15 +52,15 @@ export class IdeaAIService {
             how: idea.how,
             feeling: idea.feeling,
             businessId: businessId,
-          }
-        })
-      )
+          },
+        }),
+      ),
     );
   }
 
   async getIdeas(businessId: string) {
     return await this.prisma.ideaAI.findMany({
-      where: {businessId: businessId}
+      where: { businessId: businessId },
     });
   }
 
@@ -71,7 +72,7 @@ export class IdeaAIService {
     try {
       return await this.prisma.ideaAI.update({
         where: { id },
-        data: { status: body.status }
+        data: { status: body.status },
       });
     } catch (err: any) {
       if (err.code === 'P2025') {
